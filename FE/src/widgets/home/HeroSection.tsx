@@ -24,19 +24,15 @@ export const HeroSection: React.FC = () => {
         className="absolute inset-0 bg-gradient-to-r from-green-900/70 to-green-700/50"
         style={{ y: backgroundY }}
       >
-        {/* Farm background video */}
-        <motion.video
+        <video
+          src="../../../public/videos/farm.mp4"
           autoPlay
-          muted
           loop
+          muted
           playsInline
-          className="w-full h-full object-cover opacity-80"
-          style={{ y: backgroundY }}
-        >
-          <source src="../../../public/videos/farm.mp4" type="video/mp4" />
-          {/* Fallback image if video doesn't load */}
-          <div className="w-full h-full bg-gradient-to-br from-green-800 via-green-600 to-emerald-500" />
-        </motion.video>
+          className="absolute inset-0 w-full h-full object-cover object-center"
+          style={{ zIndex: 0 }}
+        />
         {/* Dark overlay for text readability */}
         <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent" />
       </motion.div>

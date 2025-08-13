@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Menu, X, Leaf } from 'lucide-react'
 import { Button } from '@/shared/ui'
+import { useLocation, useNavigate } from 'react-router-dom'
 
 const navigationItems = [
   { name: 'Home', href: '#home' },
@@ -13,6 +14,8 @@ const navigationItems = [
 export const Header: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const navigate = useNavigate()
+  const location = useLocation()
 
   useEffect(() => {
     const handleScroll = () => {
@@ -24,6 +27,10 @@ export const Header: React.FC = () => {
   }, [])
 
   const scrollToSection = (href: string) => {
+    if (location.pathname !== '/') {
+      window.location.href = `/${href}`
+      return
+    }
     const element = document.querySelector(href)
     if (element) {
       element.scrollIntoView({ behavior: 'smooth' })
@@ -74,13 +81,18 @@ export const Header: React.FC = () => {
             ))}
           </div>
 
-          {/* CTA Button & Mobile Menu */}
-          <div className="flex items-center space-x-4">
+          {/* CTA Buttons & Mobile Menu */}
+          <div className="flex items-center space-x-3">
+            <Button
+              className="hidden lg:inline-flex bg-white/0 border border-white/30 text-white hover:bg-white/10 lg:backdrop-blur-sm lg:border-border lg:text-foreground"
+              variant="outline"
+              onClick={() => navigate('/register')}
+            >
+              Register
+            </Button>
             <Button
               className="hidden lg:inline-flex bg-brand hover:bg-brand-hover text-white"
-              onClick={() => {
-                /* TODO: Navigate to login page */
-              }}
+              onClick={() => navigate('/login')}
             >
               Login
             </Button>
@@ -129,11 +141,23 @@ export const Header: React.FC = () => {
                   >
                     <Button
                       className="w-full bg-brand hover:bg-brand-hover text-white mt-4"
-                      onClick={() => {
-                        /* TODO: Navigate to login page */
-                      }}
+                      onClick={() => navigate('/login')}
                     >
                       Login
+                    </Button>
+                  </motion.div>
+
+                  <motion.div
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: navigationItems.length * 0.1 + 0.05 }}
+                  >
+                    <Button
+                      variant="outline"
+                      className="w-full mt-2"
+                      onClick={() => navigate('/register')}
+                    >
+                      Register
                     </Button>
                   </motion.div>
                 </div>

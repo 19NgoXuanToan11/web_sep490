@@ -2,10 +2,12 @@ import React from 'react'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { Button } from '@/shared/ui'
 import { useReducedMotionSafe, fadeIn, slideInLeft } from '@/shared/lib/motion'
+import { useNavigate } from 'react-router-dom'
 
 export const HeroSection: React.FC = () => {
   const shouldReduceMotion = useReducedMotionSafe()
   const { scrollYProgress } = useScroll()
+  const navigate = useNavigate()
 
   // Parallax transforms - disabled if motion should be reduced
   const backgroundY = useTransform(scrollYProgress, [0, 1], shouldReduceMotion ? [0, 0] : [0, 80])
@@ -25,7 +27,7 @@ export const HeroSection: React.FC = () => {
         style={{ y: backgroundY }}
       >
         <video
-          src="../../../public/videos/farm.mp4"
+          src="../../../public/videos/farm3.mp4"
           autoPlay
           loop
           muted
@@ -99,6 +101,7 @@ export const HeroSection: React.FC = () => {
               <Button
                 size="lg"
                 className="bg-brand hover:bg-brand-hover text-brand-foreground px-8 py-4 text-base rounded-full transform transition-all duration-200"
+                onClick={() => navigate('/login')}
               >
                 Access System
               </Button>

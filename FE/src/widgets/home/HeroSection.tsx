@@ -60,7 +60,7 @@ export const HeroSection: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.6 }}
             >
-              WE ARE IOT FARM
+              IOT FARM SYSTEM
             </motion.p>
 
             {/* Main heading */}
@@ -71,8 +71,8 @@ export const HeroSection: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4, duration: 0.8 }}
             >
-              IOT-POWERED PRODUCE,{' '}
-              <span className="text-brand-foreground block lg:inline">NATURALLY GROWN</span>
+              SMART FARM{' '}
+              <span className="text-brand-foreground block lg:inline">MANAGEMENT SYSTEM</span>
             </motion.h1>
 
             {/* Description */}
@@ -82,9 +82,10 @@ export const HeroSection: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6, duration: 0.8 }}
             >
-              Revolutionizing agriculture through intelligent IoT sensors and automated systems.
-              Monitor, control, and optimize your farm operations remotely for sustainable and
-              efficient crop production.
+              A comprehensive graduation project developing an IoT-based smart farm management
+              system. The system supports three main roles: System Administrator, Farm Manager, and
+              Staff, providing real-time monitoring, automated irrigation, and data-driven decision
+              making for sustainable agriculture.
             </motion.p>
 
             {/* CTA Button */}
@@ -99,7 +100,7 @@ export const HeroSection: React.FC = () => {
                 size="lg"
                 className="bg-brand hover:bg-brand-hover text-brand-foreground px-8 py-4 text-base rounded-full transform transition-all duration-200"
               >
-                Get Started
+                Access System
               </Button>
             </motion.div>
           </motion.div>

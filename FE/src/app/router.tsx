@@ -1,6 +1,6 @@
 import React from 'react'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
-import { HomePage } from '@/pages/home'
+import { HomePage } from '../pages/home'
 
 // Router configuration - moved to separate constant to avoid fast-refresh issues
 const routerConfig = [

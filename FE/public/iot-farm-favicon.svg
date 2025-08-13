@@ -1,0 +1,8 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="16" cy="16" r="16" fill="#16a34a"/>
+  
+  <!-- Leaf icon -->
+  <path d="M12 10c0 4.418 3.582 8 8 8 1.38 0 2.684-.35 3.81-.965A6.99 6.99 0 0 1 22 21c-3.866 0-7-3.134-7-7 0-1.38.35-2.684.965-3.81A6.99 6.99 0 0 0 12 10z" fill="white"/>
+  <path d="M16 8l-2 2 2 2 2-2-2-2z" fill="white" opacity="0.8"/>
+</svg>

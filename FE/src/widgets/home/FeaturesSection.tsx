@@ -1,33 +1,62 @@
 import React from 'react'
 import { motion } from 'framer-motion'
-import { Activity, Database, Cpu, Monitor } from 'lucide-react'
+import {
+  Activity,
+  Database,
+  Cpu,
+  Monitor,
+  Thermometer,
+  Droplets,
+  Users,
+  BarChart3,
+} from 'lucide-react'
 import { Card, CardContent } from '@/shared/ui'
 import { fadeInUp, staggerContainer, inViewProps, useSafeVariants } from '@/shared/lib/motion'
 
 const features = [
   {
-    icon: Activity,
-    title: 'SENSOR SYSTEM SETUP',
+    icon: Thermometer,
+    title: 'ENVIRONMENTAL MONITORING',
     description:
-      'Deploy advanced IoT sensors across your farm to monitor soil moisture, temperature, humidity, and nutrient levels in real-time.',
+      'Track temperature, air humidity, soil moisture and other environmental parameters through IoT sensors.',
   },
   {
-    icon: Database,
-    title: 'DATA CONNECTION & PROCESSING',
+    icon: Droplets,
+    title: 'AUTOMATED IRRIGATION',
     description:
-      'Seamlessly collect and process sensor data through secure cloud connectivity for intelligent decision making.',
+      'Smart irrigation system that operates automatically based on soil moisture data and crop requirements.',
   },
   {
-    icon: Cpu,
-    title: 'FARMING PROCESS AUTOMATION',
+    icon: BarChart3,
+    title: 'DATA ANALYTICS',
+    description: 'Collect, process and analyze data to make effective farm management decisions.',
+  },
+  {
+    icon: Users,
+    title: 'USER MANAGEMENT',
     description:
-      'Automate irrigation, fertilization, and other farming processes based on real-time data and predictive analytics.',
+      'Role-based system with three roles: System Administrator, Farm Manager, and Staff.',
   },
   {
     icon: Monitor,
-    title: 'REMOTE MONITORING & ADJUSTMENT',
+    title: 'VISUAL DASHBOARD',
     description:
-      'Monitor and control your entire farm operation remotely through our intuitive dashboard and mobile application.',
+      'User-friendly web interface displaying real-time information and detailed reports.',
+  },
+  {
+    icon: Database,
+    title: 'DATA STORAGE',
+    description: 'Centralized database storing all sensor information and farm activities.',
+  },
+  {
+    icon: Activity,
+    title: 'SMART ALERTS',
+    description: 'Automatic alert system when parameters exceed predefined safety thresholds.',
+  },
+  {
+    icon: Cpu,
+    title: 'IOT INTEGRATION',
+    description: 'Connect and manage multiple IoT devices through standard protocols.',
   },
 ]
 
@@ -40,7 +69,7 @@ export const FeaturesSection: React.FC = () => {
       <div className="container mx-auto px-4">
         {/* Section title */}
         <motion.div className="text-center mb-16" {...inViewProps} variants={itemVariants}>
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">HOW IT'S WORKING</h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">SYSTEM FEATURES</h2>
           <div className="w-24 h-1 bg-brand mx-auto rounded-full" />
         </motion.div>
 

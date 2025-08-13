@@ -1,29 +1,26 @@
 import React from 'react'
-import { HeroSection } from '@/widgets/home/HeroSection'
-import { FeaturesSection } from '@/widgets/home/FeaturesSection'
-import { TeamSection } from '@/widgets/home/TeamSection'
-import { Footer } from '@/widgets/home/Footer'
+import { Header, HeroSection, FeaturesSection, AboutSection, Footer } from '@/widgets/home'
 
-/**
- * Public Home Page Component
- *
- * Features:
- * - Hero section with parallax animations
- * - Features section with scroll-reveal cards
- * - Team/Customer section with hover animations
- * - Footer with social links and contact info
- * - Fully responsive and accessible
- * - Respects prefers-reduced-motion
- * - No network calls - all static content
- */
 export const HomePage: React.FC = () => {
   return (
-    <main className="min-h-screen bg-background text-foreground">
-      <HeroSection />
-      <FeaturesSection />
-      <TeamSection />
+    <>
+      <Header />
+      <main className="min-h-screen bg-background text-foreground">
+        <div id="home">
+          <HeroSection />
+        </div>
+
+        <div id="features">
+          <FeaturesSection />
+        </div>
+
+        <div id="about">
+          <AboutSection />
+        </div>
+      </main>
+
       <Footer />
-    </main>
+    </>
   )
 }
 

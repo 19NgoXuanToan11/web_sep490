@@ -5,22 +5,22 @@ import { fadeIn, inViewProps, useSafeVariants } from '@/shared/lib/motion'
 
 const footerSections = {
   about: {
-    title: 'About IoT Farm',
+    title: 'About IoT Farm Project',
     content:
-      'Leading the agricultural revolution through innovative IoT solutions. We empower farmers with real-time data, automated systems, and intelligent insights for sustainable farming practices.',
+      'A graduation project developing a smart farm management system using IoT technology. Supporting farmers with real-time data, automated systems, and intelligent analytics for sustainable agriculture.',
   },
   quickLinks: [
-    { name: 'About Us', href: '#' },
-    { name: 'Our Solutions', href: '#' },
-    { name: 'Case Studies', href: '#' },
-    { name: 'Support Center', href: '#' },
+    { name: 'About', href: '#about' },
+    { name: 'System Features', href: '#features' },
+    { name: 'Documentation', href: '#' },
+    { name: 'Technical Support', href: '#contact' },
     { name: 'Privacy Policy', href: '#' },
     { name: 'Terms of Service', href: '#' },
   ],
   contact: {
-    email: 'info@iotfarm.com',
-    phone: '+1 (555) 123-4567',
-    address: 'Smart Agriculture Center, Tech Valley, CA 94105',
+    email: 'iotfarm.project@fpt.edu.vn',
+    phone: '(+84) 123-456-789',
+    address: 'FPT University, Hoa Lac Hi-Tech Park, Hanoi',
   },
 }
 
@@ -129,7 +129,7 @@ export const Footer: React.FC = () => {
         >
           <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
             <div className="text-muted-foreground text-sm">
-              © 2025 IoT Farm. All Rights Reserved.
+              © 2025 IoT Farm Project - FPT University. All rights reserved.
             </div>
 
             <div className="flex space-x-6 text-sm">

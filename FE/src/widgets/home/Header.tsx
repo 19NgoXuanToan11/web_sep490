@@ -10,7 +10,11 @@ const navigationItems = [
   { name: 'About', href: '#about' },
 ]
 
-const managerItems = [{ name: 'Farm Manager', href: '/manager/dashboard' }]
+const roleItems = [
+  { name: 'Farm Manager', href: '/manager/dashboard', color: 'green' },
+  { name: 'Admin', href: '/admin/users', color: 'blue' },
+  { name: 'Staff', href: '/staff/operations', color: 'purple' },
+]
 
 export const Header: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false)
@@ -82,33 +86,43 @@ export const Header: React.FC = () => {
             ))}
           </div>
 
-          {/* Manager Links */}
-          <div className="hidden lg:flex items-center space-x-4 mx-6">
-            {managerItems.map((item, index) => (
-              <button
-                key={item.name}
-                onClick={() => navigate(item.href)}
-                className={`px-3 py-1.5 text-sm font-medium transition-colors duration-200 rounded-md border ${
-                  index === 0
-                    ? `bg-gradient-to-r from-green-500 to-green-600 text-white border-transparent shadow-lg hover:from-green-600 hover:to-green-700 ${
-                        isScrolled ? '' : 'ring-2 ring-white/20'
-                      }`
-                    : isScrolled
-                      ? 'border-border text-foreground hover:bg-muted'
-                      : 'border-white/20 text-white hover:bg-white/10'
-                }`}
-              >
-                {item.name}
-              </button>
-            ))}
+          {/* Role Links */}
+          <div className="hidden lg:flex items-center space-x-3 mx-6">
+            {roleItems.map((item, index) => {
+              const getColorClasses = (color: string) => {
+                switch (color) {
+                  case 'green':
+                    return 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700'
+                  case 'blue':
+                    return 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700'
+                  case 'purple':
+                    return 'bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700'
+                  default:
+                    return 'bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700'
+                }
+              }
+
+              return (
+                <button
+                  key={item.name}
+                  onClick={() => navigate(item.href)}
+                  className={`px-3 py-1.5 text-sm font-medium transition-all duration-200 rounded-md border text-white border-transparent shadow-lg ${getColorClasses(
+                    item.color
+                  )} ${isScrolled ? '' : 'ring-2 ring-white/20'} hover:shadow-xl transform hover:scale-105`}
+                >
+                  {item.name}
+                </button>
+              )
+            })}
           </div>
 
           {/* CTA Buttons & Mobile Menu */}
           <div className="flex items-center space-x-3">
             <Button
-              className="hidden lg:inline-flex bg-white/0 border border-white/30 text-white hover:bg-white/10 lg:backdrop-blur-sm lg:border-border lg:text-foreground"
+              className="hidden lg:inline-flex bg-white/0 border border-white/30 text-white hover:bg-white/10 lg:backdrop-blur-sm lg:border-border"
               variant="outline"
               onClick={() => navigate('/register')}
+              style={{ color: '#525252' }}
             >
               Register
             </Button>
@@ -156,21 +170,32 @@ export const Header: React.FC = () => {
                     </motion.button>
                   ))}
 
-                  {/* Manager Items in Mobile */}
+                  {/* Role Items in Mobile */}
                   <div className="border-t border-border pt-4 mt-4">
-                    <p className="text-sm font-medium text-muted-foreground mb-3">Manager Portal</p>
-                    {managerItems.map((item, index) => (
+                    <p className="text-sm font-medium text-muted-foreground mb-3">Quick Access</p>
+                    {roleItems.map((item, index) => (
                       <motion.button
                         key={index}
                         onClick={() => {
                           navigate(item.href)
                           setIsMobileMenuOpen(false)
                         }}
-                        className="text-left font-medium text-foreground hover:text-brand transition-colors duration-200 py-2 w-full"
+                        className="text-left font-medium text-foreground hover:text-brand transition-colors duration-200 py-2 w-full flex items-center"
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: (navigationItems.length + index) * 0.1 }}
                       >
+                        <div
+                          className={`w-3 h-3 rounded-full mr-3 ${
+                            item.color === 'green'
+                              ? 'bg-green-500'
+                              : item.color === 'blue'
+                                ? 'bg-blue-500'
+                                : item.color === 'purple'
+                                  ? 'bg-purple-500'
+                                  : 'bg-gray-500'
+                          }`}
+                        />
                         {item.name}
                       </motion.button>
                     ))}
@@ -179,7 +204,7 @@ export const Header: React.FC = () => {
                   <motion.div
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: (navigationItems.length + managerItems.length) * 0.1 }}
+                    transition={{ delay: (navigationItems.length + roleItems.length) * 0.1 }}
                   >
                     <Button
                       className="w-full bg-brand hover:bg-brand-hover text-white mt-4"

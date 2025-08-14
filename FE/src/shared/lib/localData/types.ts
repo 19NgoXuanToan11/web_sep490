@@ -79,10 +79,11 @@ export interface ReportSummary {
   productionVsSales: ProductionVsSalesDataPoint[]
 }
 
-// Utility types for forms and UI
+// Utility types for forms and UI - Updated to support Staff operations
 export interface DeviceAction {
-  type: 'start' | 'stop' | 'pause' | 'run-now'
+  type: 'start' | 'stop' | 'pause' | 'run-now' | 'maintenance'
   deviceId: string
+  notes?: string
 }
 
 export interface ScheduleFormData {
@@ -143,3 +144,140 @@ export interface PaginationState {
   total: number
 }
 
+// =======================================================
+// ADMIN & STAFF ROLE EXTENSIONS
+// =======================================================
+
+// User Management (Admin)
+export type UserRole = 'ADMIN' | 'MANAGER' | 'STAFF' | 'VIEWER' | 'OPERATOR'
+export type UserStatus = 'Active' | 'Inactive'
+
+export interface User {
+  id: string
+  name: string
+  email: string
+  roles: UserRole[]
+  status: UserStatus
+  lastLogin: string | null // ISO string or null if never logged in
+  createdAt: string // ISO string
+  updatedAt: string // ISO string
+}
+
+// Role Management (Admin)
+export interface Permission {
+  id: string
+  name: string
+  description: string
+  resource: string // e.g., 'users', 'devices', 'reports'
+  actions: ('create' | 'read' | 'update' | 'delete')[]
+}
+
+export interface Role {
+  id: string
+  name: string
+  description: string
+  permissions: string[] // Permission IDs
+  createdAt: string // ISO string
+  updatedAt: string // ISO string
+}
+
+// System Settings (Admin)
+export interface SystemSettings {
+  general: {
+    systemName: string
+    primaryColor: string
+    logoUrl: string | null
+  }
+  notifications: {
+    emailEnabled: boolean
+    smsEnabled: boolean
+    alertFrequency: 'daily' | 'weekly' | 'monthly'
+  }
+  iotConfig: {
+    defaultPollingInterval: number // minutes
+    sensorThresholds: {
+      temperature: { min: number; max: number }
+      moisture: { min: number; max: number }
+      ph: { min: number; max: number }
+    }
+  }
+  updatedAt: string // ISO string
+}
+
+// Staff Device Operations
+export type StaffDeviceStatus = 'Idle' | 'Running' | 'Paused' | 'Maintenance'
+
+export interface StaffDevice {
+  id: string
+  name: string
+  zone: string
+  status: StaffDeviceStatus
+  lastAction: string // ISO string
+  nextSchedule: string | null // ISO string or null
+  batteryLevel?: number // 0-100, optional for battery-powered devices
+  needsMaintenance: boolean
+  uptimePct: number
+}
+
+// Work Logs (Staff)
+export type TaskType =
+  | 'Irrigation'
+  | 'Fertilization'
+  | 'Pest Control'
+  | 'Harvesting'
+  | 'Maintenance'
+  | 'Planting'
+  | 'Monitoring'
+
+export interface WorkLog {
+  id: string
+  date: string // ISO string
+  taskType: TaskType
+  notes: string
+  deviceId?: string // Optional device reference
+  duration?: number // minutes, optional
+  createdBy: string // User ID
+  createdAt: string // ISO string
+  updatedAt: string // ISO string
+}
+
+// Quality Checks (Staff)
+export interface QualityCheckItem {
+  id: string
+  name: string
+  passed: boolean
+  comments?: string
+}
+
+export interface QualityCheck {
+  id: string
+  productBatchId: string
+  productName: string
+  checkedDate: string // ISO string
+  checkedBy: string // User ID
+  items: QualityCheckItem[]
+  overallStatus: 'Pass' | 'Fail' | 'Pending'
+  createdAt: string // ISO string
+  updatedAt: string // ISO string
+}
+
+// Form data interfaces for Admin/Staff features
+export interface UserFormData {
+  name: string
+  email: string
+  roles: UserRole[]
+  status: UserStatus
+}
+
+export interface RoleFormData {
+  name: string
+  description: string
+  permissions: string[]
+}
+
+export interface WorkLogFormData {
+  taskType: TaskType
+  notes: string
+  deviceId?: string
+  duration?: number
+}

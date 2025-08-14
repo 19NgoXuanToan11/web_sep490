@@ -3,6 +3,10 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import { HomePage } from '../pages/home'
 import { LoginPage } from '@/pages/auth/LoginPage'
 import { RegisterPage } from '@/pages/auth/RegisterPage'
+import ManagerDashboard from '@/pages/manager/dashboard'
+import IrrigationPage from '@/pages/manager/irrigation'
+import InventoryPage from '@/pages/manager/inventory'
+import ReportsPage from '@/pages/manager/reports'
 
 // Router configuration - moved to separate constant to avoid fast-refresh issues
 const routerConfig = [
@@ -18,7 +22,23 @@ const routerConfig = [
     path: '/register',
     element: <RegisterPage />,
   },
-  // Additional routes will be added here for authenticated users
+  // Manager routes for farm management features
+  {
+    path: '/manager/dashboard',
+    element: <ManagerDashboard />,
+  },
+  {
+    path: '/manager/irrigation',
+    element: <IrrigationPage />,
+  },
+  {
+    path: '/manager/inventory',
+    element: <InventoryPage />,
+  },
+  {
+    path: '/manager/reports',
+    element: <ReportsPage />,
+  },
 ]
 
 const router = createBrowserRouter(routerConfig)

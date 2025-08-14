@@ -8,8 +8,9 @@ const navigationItems = [
   { name: 'Home', href: '#home' },
   { name: 'Features', href: '#features' },
   { name: 'About', href: '#about' },
-  { name: 'Contact', href: '#contact' },
 ]
+
+const managerItems = [{ name: 'Farm Manager', href: '/manager/dashboard' }]
 
 export const Header: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false)
@@ -81,6 +82,27 @@ export const Header: React.FC = () => {
             ))}
           </div>
 
+          {/* Manager Links */}
+          <div className="hidden lg:flex items-center space-x-4 mx-6">
+            {managerItems.map((item, index) => (
+              <button
+                key={item.name}
+                onClick={() => navigate(item.href)}
+                className={`px-3 py-1.5 text-sm font-medium transition-colors duration-200 rounded-md border ${
+                  index === 0
+                    ? `bg-gradient-to-r from-green-500 to-green-600 text-white border-transparent shadow-lg hover:from-green-600 hover:to-green-700 ${
+                        isScrolled ? '' : 'ring-2 ring-white/20'
+                      }`
+                    : isScrolled
+                      ? 'border-border text-foreground hover:bg-muted'
+                      : 'border-white/20 text-white hover:bg-white/10'
+                }`}
+              >
+                {item.name}
+              </button>
+            ))}
+          </div>
+
           {/* CTA Buttons & Mobile Menu */}
           <div className="flex items-center space-x-3">
             <Button
@@ -134,10 +156,30 @@ export const Header: React.FC = () => {
                     </motion.button>
                   ))}
 
+                  {/* Manager Items in Mobile */}
+                  <div className="border-t border-border pt-4 mt-4">
+                    <p className="text-sm font-medium text-muted-foreground mb-3">Manager Portal</p>
+                    {managerItems.map((item, index) => (
+                      <motion.button
+                        key={index}
+                        onClick={() => {
+                          navigate(item.href)
+                          setIsMobileMenuOpen(false)
+                        }}
+                        className="text-left font-medium text-foreground hover:text-brand transition-colors duration-200 py-2 w-full"
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: (navigationItems.length + index) * 0.1 }}
+                      >
+                        {item.name}
+                      </motion.button>
+                    ))}
+                  </div>
+
                   <motion.div
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: navigationItems.length * 0.1 }}
+                    transition={{ delay: (navigationItems.length + managerItems.length) * 0.1 }}
                   >
                     <Button
                       className="w-full bg-brand hover:bg-brand-hover text-white mt-4"

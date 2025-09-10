@@ -1,5 +1,7 @@
 export * from './badge'
 export * from './button'
+export { default as RoleGuard } from './router/RoleGuard'
+export { default as LogoutButton } from './LogoutButton'
 export * from './card'
 export * from './checkbox'
 export * from './dialog'

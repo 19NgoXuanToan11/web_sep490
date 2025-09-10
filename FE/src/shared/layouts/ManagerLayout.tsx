@@ -13,13 +13,13 @@ import {
   User,
   ChevronRight,
   Sprout,
-  LogOut,
   Home,
 } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
+import LogoutButton from '@/shared/ui/LogoutButton'
 import { Input } from '@/shared/ui/input'
 import { Badge } from '@/shared/ui/badge'
-import { Card } from '@/shared/ui/card'
+// removed unused Card import
 
 interface ManagerLayoutProps {
   children: React.ReactNode
@@ -226,9 +226,7 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
               </div>
             )}
             {isSidebarOpen && (
-              <Button variant="ghost" size="sm" className="text-gray-500 hover:text-gray-700">
-                <LogOut className="h-4 w-4" />
-              </Button>
+              <LogoutButton className="text-gray-500 hover:text-gray-700" iconOnly />
             )}
           </div>
         </div>
@@ -310,8 +308,8 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
                   <Menu className="h-5 w-5" />
                 </Button>
 
-                {/* Breadcrumbs */}
-                <nav className="flex items-center space-x-2 text-sm overflow-hidden">
+                {/* Breadcrumbs hidden */}
+                <nav className="hidden">
                   <Button
                     variant="ghost"
                     size="sm"

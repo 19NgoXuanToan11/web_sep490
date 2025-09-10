@@ -1,5 +1,5 @@
 import React from 'react'
-import { Header, HeroSection, FeaturesSection, AboutSection, Footer } from '@/widgets/home'
+import { Header, HeroSection, FeaturesSection, Footer } from '@/widgets/home'
 
 export const HomePage: React.FC = () => {
   return (
@@ -12,10 +12,6 @@ export const HomePage: React.FC = () => {
 
         <div id="features">
           <FeaturesSection />
-        </div>
-
-        <div id="about">
-          <AboutSection />
         </div>
       </main>
 

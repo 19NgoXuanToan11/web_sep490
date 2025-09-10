@@ -7,9 +7,10 @@
 
 // Default values for development
 const defaults = {
-  API_URL: 'http://localhost:3001/api',
+  // Mặc định trỏ tới backend local đã cấu hình trong launchSettings
+  API_URL: 'https://localhost:7067/api',
   ENV: 'development',
-  ENABLE_MOCK_API: true,
+  ENABLE_MOCK_API: false,
   ENABLE_ANALYTICS: false,
 } as const
 

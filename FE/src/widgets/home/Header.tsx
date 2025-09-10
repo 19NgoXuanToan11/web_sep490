@@ -4,16 +4,10 @@ import { Menu, X, Leaf } from 'lucide-react'
 import { Button } from '@/shared/ui'
 import { useLocation, useNavigate } from 'react-router-dom'
 
-const navigationItems = [
-  { name: 'Home', href: '#home' },
-  { name: 'Features', href: '#features' },
-  { name: 'About', href: '#about' },
-]
+const navigationItems: { name: string; href: string }[] = []
 
 const roleItems = [
-  { name: 'Farm Manager', href: '/manager/dashboard', color: 'green' },
-  { name: 'Admin', href: '/admin/users', color: 'blue' },
-  { name: 'Staff', href: '/staff/operations', color: 'purple' },
+  // Ẩn các nút truy cập nhanh theo role trên landing page
 ]
 
 export const Header: React.FC = () => {
@@ -87,34 +81,7 @@ export const Header: React.FC = () => {
           </div>
 
           {/* Role Links */}
-          <div className="hidden lg:flex items-center space-x-3 mx-6">
-            {roleItems.map((item, index) => {
-              const getColorClasses = (color: string) => {
-                switch (color) {
-                  case 'green':
-                    return 'bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700'
-                  case 'blue':
-                    return 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700'
-                  case 'purple':
-                    return 'bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700'
-                  default:
-                    return 'bg-gradient-to-r from-gray-500 to-gray-600 hover:from-gray-600 hover:to-gray-700'
-                }
-              }
-
-              return (
-                <button
-                  key={item.name}
-                  onClick={() => navigate(item.href)}
-                  className={`px-3 py-1.5 text-sm font-medium transition-all duration-200 rounded-md border text-white border-transparent shadow-lg ${getColorClasses(
-                    item.color
-                  )} ${isScrolled ? '' : 'ring-2 ring-white/20'} hover:shadow-xl transform hover:scale-105`}
-                >
-                  {item.name}
-                </button>
-              )
-            })}
-          </div>
+          <div className="hidden lg:flex items-center space-x-3 mx-6" />
 
           {/* CTA Buttons & Mobile Menu */}
           <div className="flex items-center space-x-3">
@@ -171,35 +138,7 @@ export const Header: React.FC = () => {
                   ))}
 
                   {/* Role Items in Mobile */}
-                  <div className="border-t border-border pt-4 mt-4">
-                    <p className="text-sm font-medium text-muted-foreground mb-3">Quick Access</p>
-                    {roleItems.map((item, index) => (
-                      <motion.button
-                        key={index}
-                        onClick={() => {
-                          navigate(item.href)
-                          setIsMobileMenuOpen(false)
-                        }}
-                        className="text-left font-medium text-foreground hover:text-brand transition-colors duration-200 py-2 w-full flex items-center"
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: (navigationItems.length + index) * 0.1 }}
-                      >
-                        <div
-                          className={`w-3 h-3 rounded-full mr-3 ${
-                            item.color === 'green'
-                              ? 'bg-green-500'
-                              : item.color === 'blue'
-                                ? 'bg-blue-500'
-                                : item.color === 'purple'
-                                  ? 'bg-purple-500'
-                                  : 'bg-gray-500'
-                          }`}
-                        />
-                        {item.name}
-                      </motion.button>
-                    ))}
-                  </div>
+                  <div className="border-t border-border pt-4 mt-4" />
 
                   <motion.div
                     initial={{ opacity: 0, x: -20 }}

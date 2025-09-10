@@ -18,11 +18,19 @@ import StaffOperationsPage from '@/pages/staff/operations'
 import StaffWorkLogsPage from '@/pages/staff/work-logs'
 import StaffQualityChecksPage from '@/pages/staff/quality-checks'
 
+// RBAC components
+const Unauthorized = React.lazy(() => import('@/pages/Unauthorized'))
+import { RoleGuard } from '@/shared/ui/router/RoleGuard'
+
 // Router configuration - moved to separate constant to avoid fast-refresh issues
 const routerConfig = [
   {
     path: '/',
     element: <HomePage />,
+  },
+  {
+    path: '/unauthorized',
+    element: <Unauthorized />,
   },
   {
     path: '/login',
@@ -35,19 +43,35 @@ const routerConfig = [
   // Manager routes for farm management features
   {
     path: '/manager/dashboard',
-    element: <ManagerDashboard />,
+    element: (
+      <RoleGuard allowed={['Manager']}>
+        <ManagerDashboard />
+      </RoleGuard>
+    ),
   },
   {
     path: '/manager/irrigation',
-    element: <IrrigationPage />,
+    element: (
+      <RoleGuard allowed={['Manager']}>
+        <IrrigationPage />
+      </RoleGuard>
+    ),
   },
   {
     path: '/manager/inventory',
-    element: <InventoryPage />,
+    element: (
+      <RoleGuard allowed={['Manager']}>
+        <InventoryPage />
+      </RoleGuard>
+    ),
   },
   {
     path: '/manager/reports',
-    element: <ReportsPage />,
+    element: (
+      <RoleGuard allowed={['Manager']}>
+        <ReportsPage />
+      </RoleGuard>
+    ),
   },
   // Admin routes for system administration
   {

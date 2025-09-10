@@ -3,17 +3,30 @@ import { motion } from 'framer-motion'
 import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '@/shared/ui'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui'
-import { Mail, Lock, User, Phone, ArrowRight, Home } from 'lucide-react'
+import { Mail, Lock, ArrowRight, Home } from 'lucide-react'
+import { authApi } from '@/shared/api/auth'
 
 export const RegisterPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const navigate = useNavigate()
+  const [form, setForm] = useState({ email: '', password: '', confirmPassword: '' })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (form.password !== form.confirmPassword) {
+      alert('Mật khẩu xác nhận không khớp')
+      return
+    }
     setIsSubmitting(true)
-    await new Promise(r => setTimeout(r, 1400))
-    setIsSubmitting(false)
+    try {
+      await authApi.register(form)
+      alert('Đăng ký thành công')
+      navigate('/login')
+    } catch (err) {
+      alert('Đăng ký thất bại')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -67,34 +80,6 @@ export const RegisterPage: React.FC = () => {
               </CardHeader>
               <CardContent>
                 <form className="space-y-5" onSubmit={handleSubmit}>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-white/90 mb-2">
-                        Full Name
-                      </label>
-                      <div className="relative">
-                        <User className="w-4 h-4 text-white/60 absolute left-3 top-1/2 -translate-y-1/2" />
-                        <input
-                          type="text"
-                          required
-                          className="w-full pl-10 pr-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder:text-white/60 focus:outline-none focus:ring-2 focus:ring-brand"
-                          placeholder="Nguyen Van A"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-white/90 mb-2">Phone</label>
-                      <div className="relative">
-                        <Phone className="w-4 h-4 text-white/60 absolute left-3 top-1/2 -translate-y-1/2" />
-                        <input
-                          type="tel"
-                          className="w-full pl-10 pr-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder:text-white/60 focus:outline-none focus:ring-2 focus:ring-brand"
-                          placeholder="(+84) 912 345 678"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
                   <div>
                     <label className="block text-sm font-medium text-white/90 mb-2">Email</label>
                     <div className="relative">
@@ -104,6 +89,8 @@ export const RegisterPage: React.FC = () => {
                         required
                         className="w-full pl-10 pr-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder:text-white/60 focus:outline-none focus:ring-2 focus:ring-brand"
                         placeholder="name@example.com"
+                        value={form.email}
+                        onChange={e => setForm({ ...form, email: e.target.value })}
                       />
                     </div>
                   </div>
@@ -120,6 +107,8 @@ export const RegisterPage: React.FC = () => {
                           required
                           className="w-full pl-10 pr-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder:text-white/60 focus:outline-none focus:ring-2 focus:ring-brand"
                           placeholder="••••••••"
+                          value={form.password}
+                          onChange={e => setForm({ ...form, password: e.target.value })}
                         />
                       </div>
                     </div>
@@ -134,6 +123,8 @@ export const RegisterPage: React.FC = () => {
                           required
                           className="w-full pl-10 pr-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder:text-white/60 focus:outline-none focus:ring-2 focus:ring-brand"
                           placeholder="••••••••"
+                          value={form.confirmPassword}
+                          onChange={e => setForm({ ...form, confirmPassword: e.target.value })}
                         />
                       </div>
                     </div>

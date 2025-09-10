@@ -4,16 +4,36 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '@/shared/ui'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui'
 import { Mail, Lock, ArrowRight, Home } from 'lucide-react'
+import { authApi } from '@/shared/api/auth'
+import { useAuthStore } from '@/shared/store/authStore'
 
 export const LoginPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const navigate = useNavigate()
 
+  const [form, setForm] = useState({ email: '', password: '' })
+  const setToken = useAuthStore(s => s.setToken)
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
-    await new Promise(r => setTimeout(r, 1200))
-    setIsSubmitting(false)
+    try {
+      const res = await authApi.login({ email: form.email, password: form.password })
+      const token = (res as any).token || (res as any).Token
+      if (token) {
+        setToken(token)
+        // Điều hướng theo role sau khi set token (decode ngay trong store)
+        const role = useAuthStore.getState().role
+        if (role === 'Admin') navigate('/admin/users')
+        else if (role === 'Manager') navigate('/manager/dashboard')
+        else if (role === 'Staff') navigate('/staff/operations')
+        else navigate('/')
+      }
+    } catch (err) {
+      alert('Đăng nhập thất bại')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -84,6 +104,8 @@ export const LoginPage: React.FC = () => {
                         required
                         className="w-full pl-10 pr-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder:text-white/60 focus:outline-none focus:ring-2 focus:ring-brand"
                         placeholder="name@example.com"
+                        value={form.email}
+                        onChange={e => setForm({ ...form, email: e.target.value })}
                       />
                     </div>
                   </div>
@@ -97,17 +119,10 @@ export const LoginPage: React.FC = () => {
                         required
                         className="w-full pl-10 pr-4 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder:text-white/60 focus:outline-none focus:ring-2 focus:ring-brand"
                         placeholder="••••••••"
+                        value={form.password}
+                        onChange={e => setForm({ ...form, password: e.target.value })}
                       />
                     </div>
-                  </div>
-
-                  <div className="flex items-center justify-between text-sm">
-                    <label className="inline-flex items-center gap-2 text-white/80">
-                      <input type="checkbox" className="accent-brand" /> Remember me
-                    </label>
-                    <a className="text-brand-foreground hover:underline" href="#">
-                      Forgot password?
-                    </a>
                   </div>
 
                   <Button

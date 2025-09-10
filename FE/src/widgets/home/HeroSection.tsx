@@ -109,20 +109,6 @@ export const HeroSection: React.FC = () => {
           </motion.div>
         </div>
       </div>
-
-      {/* Scroll indicator */}
-      <motion.div
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 text-white/60"
-        animate={{ y: [0, 10, 0] }}
-        transition={{
-          duration: 2,
-          repeat: shouldReduceMotion ? 0 : Infinity,
-          ease: 'easeInOut',
-        }}
-      >
-        <div className="w-px h-16 bg-gradient-to-b from-transparent via-white/50 to-transparent mx-auto mb-2" />
-        <p className="text-xs uppercase tracking-wider">Scroll Down</p>
-      </motion.div>
     </motion.section>
   )
 }

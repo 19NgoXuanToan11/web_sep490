@@ -9,14 +9,10 @@ import type {
   PaginationState,
   TableDensity,
 } from '@/shared/lib/localData'
-import { users as initialUsers, roles as initialRoles } from '@/shared/lib/localData/fixtures'
-import {
-  simulateLatency,
-  simulateError,
-  exportToCSV,
-  userPreferences,
-} from '@/shared/lib/localData/storage'
-import type { UserFormData, BulkUserAction } from '../model/schemas'
+import { roles as initialRoles } from '@/shared/lib/localData/fixtures'
+import { exportToCSV, userPreferences } from '@/shared/lib/localData/storage'
+import { accountApi, type AccountDto } from '@/shared/api/auth'
+import type { UserFormData } from '../model/schemas'
 
 interface AdminUsersState {
   // Data
@@ -94,15 +90,26 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
   roleFilter: '',
   statusFilter: '',
 
-  // Initialize data from fixtures
-  initializeData: () => {
+  // Initialize data from API
+  initializeData: async () => {
     const prefs = userPreferences.get()
-
-    set({
-      users: [...initialUsers],
-      roles: [...initialRoles],
-      tableDensity: prefs.tableDensity,
-    })
+    try {
+      const accounts = await accountApi.getAll()
+      const users: User[] = accounts.map((a: AccountDto) => ({
+        id: String(a.id),
+        name: a.email,
+        email: a.email,
+        roles: [a.role.toUpperCase() as UserRole],
+        status: a.status === 'Active' ? ('Active' as UserStatus) : ('Inactive' as UserStatus),
+        lastLogin: null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      }))
+      set({ users, roles: [...initialRoles], tableDensity: prefs.tableDensity })
+    } catch (error) {
+      // keep state empty; UI should show toast elsewhere if needed
+      set({ users: [], roles: [...initialRoles], tableDensity: prefs.tableDensity })
+    }
   },
 
   // User CRUD operations
@@ -111,32 +118,13 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
     get().setLoadingState(key, { isLoading: true })
 
     try {
-      await simulateLatency(400, 800)
-
-      if (simulateError(0.12)) {
-        throw new Error('Failed to create user. Please try again.')
-      }
-
-      // Check for email uniqueness
-      const { users } = get()
-      if (users.some(u => u.email.toLowerCase() === data.email.toLowerCase())) {
-        throw new Error('Email already exists. Please use a unique email address.')
-      }
-
-      const newUser: User = {
-        id: `user-${Date.now()}`,
-        name: data.name,
+      await accountApi.create({
         email: data.email,
-        roles: data.roles,
-        status: data.status,
-        lastLogin: null,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      }
-
-      set(state => ({
-        users: [...state.users, newUser],
-      }))
+        password: 'Password@123',
+        role: (data.roles[0] || 'Staff') as any,
+      })
+      // reload list
+      await get().initializeData()
 
       get().setLoadingState(key, { isLoading: false })
     } catch (error) {
@@ -153,25 +141,11 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
     get().setLoadingState(key, { isLoading: true })
 
     try {
-      await simulateLatency(300, 600)
-
-      if (simulateError(0.1)) {
-        throw new Error('Failed to update user. Please try again.')
-      }
-
-      // Check for email uniqueness if email is being updated
-      if (data.email) {
-        const { users } = get()
-        if (users.some(u => u.id !== id && u.email.toLowerCase() === data.email.toLowerCase())) {
-          throw new Error('Email already exists. Please use a unique email address.')
-        }
-      }
-
-      set(state => ({
-        users: state.users.map(user =>
-          user.id === id ? { ...user, ...data, updatedAt: new Date().toISOString() } : user
-        ),
-      }))
+      await accountApi.update(Number(id), {
+        email: data.email,
+        role: data.roles && data.roles[0] ? (data.roles[0] as any) : undefined,
+      })
+      await get().initializeData()
 
       get().setLoadingState(key, { isLoading: false })
     } catch (error) {
@@ -188,16 +162,9 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
     get().setLoadingState(key, { isLoading: true })
 
     try {
-      await simulateLatency(250, 500)
-
-      if (simulateError(0.08)) {
-        throw new Error('Failed to delete user. Please try again.')
-      }
-
-      set(state => ({
-        users: state.users.filter(user => user.id !== id),
-        selectedUserIds: state.selectedUserIds.filter(uid => uid !== id),
-      }))
+      // No delete endpoint in list, emulate deactivate
+      await accountApi.updateStatus(Number(id), { status: 'Inactive' })
+      await get().initializeData()
 
       get().setLoadingState(key, { isLoading: false })
     } catch (error) {
@@ -214,16 +181,10 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
     get().setLoadingState(key, { isLoading: true })
 
     try {
-      await simulateLatency(500, 1000)
-
-      if (simulateError(0.1)) {
-        throw new Error('Failed to delete users. Please try again.')
-      }
-
-      set(state => ({
-        users: state.users.filter(user => !userIds.includes(user.id)),
-        selectedUserIds: state.selectedUserIds.filter(uid => !userIds.includes(uid)),
-      }))
+      await Promise.all(
+        userIds.map(id => accountApi.updateStatus(Number(id), { status: 'Inactive' }))
+      )
+      await get().initializeData()
 
       get().setLoadingState(key, { isLoading: false })
     } catch (error) {
@@ -241,19 +202,10 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
     get().setLoadingState(key, { isLoading: true })
 
     try {
-      await simulateLatency(400, 800)
-
-      if (simulateError(0.1)) {
-        throw new Error('Failed to activate users. Please try again.')
-      }
-
-      set(state => ({
-        users: state.users.map(user =>
-          userIds.includes(user.id)
-            ? { ...user, status: 'Active' as UserStatus, updatedAt: new Date().toISOString() }
-            : user
-        ),
-      }))
+      await Promise.all(
+        userIds.map(id => accountApi.updateStatus(Number(id), { status: 'Active' }))
+      )
+      await get().initializeData()
 
       get().setLoadingState(key, { isLoading: false })
     } catch (error) {
@@ -270,19 +222,10 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
     get().setLoadingState(key, { isLoading: true })
 
     try {
-      await simulateLatency(400, 800)
-
-      if (simulateError(0.1)) {
-        throw new Error('Failed to deactivate users. Please try again.')
-      }
-
-      set(state => ({
-        users: state.users.map(user =>
-          userIds.includes(user.id)
-            ? { ...user, status: 'Inactive' as UserStatus, updatedAt: new Date().toISOString() }
-            : user
-        ),
-      }))
+      await Promise.all(
+        userIds.map(id => accountApi.updateStatus(Number(id), { status: 'Inactive' }))
+      )
+      await get().initializeData()
 
       get().setLoadingState(key, { isLoading: false })
     } catch (error) {
@@ -299,23 +242,14 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
     get().setLoadingState(key, { isLoading: true })
 
     try {
-      await simulateLatency(500, 900)
-
-      if (simulateError(0.12)) {
-        throw new Error('Failed to assign role to users. Please try again.')
-      }
-
-      set(state => ({
-        users: state.users.map(user =>
-          userIds.includes(user.id)
-            ? {
-                ...user,
-                roles: user.roles.includes(role) ? user.roles : [...user.roles, role],
-                updatedAt: new Date().toISOString(),
-              }
-            : user
-        ),
-      }))
+      await Promise.all(
+        userIds.map(async id => {
+          const user = get().users.find(u => u.id === id)
+          const email = user?.email || ''
+          return accountApi.updateRole({ email, role: role as any })
+        })
+      )
+      await get().initializeData()
 
       get().setLoadingState(key, { isLoading: false })
     } catch (error) {

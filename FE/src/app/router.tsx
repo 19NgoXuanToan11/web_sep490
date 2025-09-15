@@ -11,7 +11,7 @@ import ReportsPage from '@/pages/manager/reports'
 // Admin route imports
 import AdminUsersPage from '@/pages/admin/users'
 import AdminRolesPage from '@/pages/admin/roles'
-import AdminSettingsPage from '@/pages/admin/settings'
+import ProfilePage from '@/pages/profile'
 
 // Staff route imports
 import StaffOperationsPage from '@/pages/staff/operations'
@@ -36,10 +36,10 @@ const routerConfig = [
     path: '/login',
     element: <LoginPage />,
   },
-  {
-    path: '/register',
-    element: <RegisterPage />,
-  },
+  // {
+  //   path: '/register',
+  //   element: <RegisterPage />,
+  // },
   // Manager routes for farm management features
   {
     path: '/manager/dashboard',
@@ -76,16 +76,21 @@ const routerConfig = [
   // Admin routes for system administration
   {
     path: '/admin/users',
-    element: <AdminUsersPage />,
+    element: (
+      <RoleGuard allowed={['Admin']}>
+        <AdminUsersPage />
+      </RoleGuard>
+    ),
   },
   {
     path: '/admin/roles',
-    element: <AdminRolesPage />,
+    element: (
+      <RoleGuard allowed={['Admin']}>
+        <AdminRolesPage />
+      </RoleGuard>
+    ),
   },
-  {
-    path: '/admin/settings',
-    element: <AdminSettingsPage />,
-  },
+
   // Staff routes for field operations
   {
     path: '/staff/operations',
@@ -98,6 +103,15 @@ const routerConfig = [
   {
     path: '/staff/quality-checks',
     element: <StaffQualityChecksPage />,
+  },
+  // Common profile page for all authenticated roles
+  {
+    path: '/profile',
+    element: (
+      <RoleGuard allowed={['Admin', 'Manager', 'Staff']}>
+        <ProfilePage />
+      </RoleGuard>
+    ),
   },
 ]
 

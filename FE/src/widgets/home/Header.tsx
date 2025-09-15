@@ -85,14 +85,14 @@ export const Header: React.FC = () => {
 
           {/* CTA Buttons & Mobile Menu */}
           <div className="flex items-center space-x-3">
-            <Button
+            {/* <Button
               className="hidden lg:inline-flex bg-white/0 border border-white/30 text-white hover:bg-white/10 lg:backdrop-blur-sm lg:border-border"
               variant="outline"
               onClick={() => navigate('/register')}
               style={{ color: '#525252' }}
             >
               Register
-            </Button>
+            </Button> */}
             <Button
               className="hidden lg:inline-flex bg-brand hover:bg-brand-hover text-white"
               onClick={() => navigate('/login')}

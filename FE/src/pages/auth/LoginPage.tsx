@@ -134,13 +134,6 @@ export const LoginPage: React.FC = () => {
                     {isSubmitting ? 'Signing in…' : 'Sign In'}
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
-
-                  <p className="text-center text-white/80 text-sm">
-                    Don't have an account?{' '}
-                    <Link className="text-brand-foreground hover:underline" to="/register">
-                      Create one
-                    </Link>
-                  </p>
                 </form>
               </CardContent>
             </Card>

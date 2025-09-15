@@ -1,10 +1,11 @@
 import React from 'react'
-import { useLocation, Link } from 'react-router-dom'
+import { useLocation, Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { ShieldAlert, ArrowLeft, LogIn } from 'lucide-react'
 
 const Unauthorized: React.FC = () => {
   const location = useLocation() as any
+  const navigate = useNavigate()
   const reason = location.state?.reason as 'not_authenticated' | 'forbidden' | undefined
 
   const title =
@@ -13,6 +14,17 @@ const Unauthorized: React.FC = () => {
     reason === 'not_authenticated'
       ? 'Hãy đăng nhập lại để tiếp tục sử dụng hệ thống.'
       : 'Tài khoản của bạn không có quyền vào trang này.'
+
+  const handleGoBack = () => {
+    // Try to go back in browser history first
+    // This will take the user back to the previous page (e.g., admin page)
+    if (window.history.length > 1) {
+      navigate(-1)
+    } else {
+      // Fallback to home if no history (e.g., direct URL access)
+      navigate('/')
+    }
+  }
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black text-white">
@@ -46,7 +58,7 @@ const Unauthorized: React.FC = () => {
                 <p className="text-white/75 text-sm mt-1">{desc}</p>
               </div>
             </div>
-            
+
             {/* Actions */}
             <div className="flex gap-3">
               <Link
@@ -56,13 +68,13 @@ const Unauthorized: React.FC = () => {
                 <LogIn className="w-4 h-4" />
                 Đăng nhập
               </Link>
-              <Link
-                to="/"
+              <button
+                onClick={handleGoBack}
                 className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-white/20 hover:bg-white/10 transition-colors"
               >
                 <ArrowLeft className="w-4 h-4" />
-                Về trang chủ
-              </Link>
+                Quay lại
+              </button>
             </div>
           </div>
         </div>

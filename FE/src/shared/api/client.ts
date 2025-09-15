@@ -36,7 +36,9 @@ async function request<T>(
   const text = await res.text()
   const data = text ? (JSON.parse(text) as T) : (undefined as unknown as T)
   if (!res.ok) {
-    throw Object.assign(new Error((data as any)?.message || 'Request failed'), { status, data })
+    // Standardize error shape for UI toasts
+    const message = (data as any)?.message || (data as any)?.Message || `HTTP ${status}`
+    throw Object.assign(new Error(message), { status, data })
   }
   return { data, status }
 }

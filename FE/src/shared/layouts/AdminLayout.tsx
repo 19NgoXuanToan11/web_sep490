@@ -1,18 +1,7 @@
 import React, { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import {
-  Settings,
-  Users,
-  Shield,
-  Menu,
-  X,
-  Bell,
-  Search,
-  User,
-  ChevronRight,
-  Home,
-} from 'lucide-react'
+import { Users, Shield, Menu, X, Bell, Search, User, ChevronRight, Home } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import LogoutButton from '@/shared/ui/LogoutButton'
 import { Input } from '@/shared/ui/input'
@@ -43,12 +32,6 @@ const navigationItems: NavItem[] = [
     icon: Shield,
     badge: 2,
     description: 'Configure access control',
-  },
-  {
-    name: 'System Settings',
-    href: '/admin/settings',
-    icon: Settings,
-    description: 'System configuration',
   },
 ]
 
@@ -298,7 +281,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                   >
                     <Home className="h-4 w-4" />
                   </Button>
-                  {breadcrumbs.map((crumb, index) => (
+                  {breadcrumbs.map(crumb => (
                     <React.Fragment key={crumb.href}>
                       <ChevronRight className="h-4 w-4 text-gray-400 flex-shrink-0" />
                       <button

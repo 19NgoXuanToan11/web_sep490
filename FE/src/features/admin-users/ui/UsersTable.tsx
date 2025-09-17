@@ -142,7 +142,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
-              placeholder="Search by name, email, or role..."
+              placeholder="Tìm theo tên, email hoặc vai trò..."
               value={searchState.query}
               onChange={e => setSearch(e.target.value)}
               className="pl-9"
@@ -153,10 +153,10 @@ export const UsersTable: React.FC<UsersTableProps> = ({
         <div className="flex gap-2">
           <Select value={roleFilter || '__all__'} onValueChange={setRoleFilter}>
             <SelectTrigger className="w-40">
-              <SelectValue placeholder="Filter by role" />
+              <SelectValue placeholder="Lọc theo vai trò" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="__all__">All Roles</SelectItem>
+              <SelectItem value="__all__">Tất cả vai trò</SelectItem>
               {availableRoles.map(role => (
                 <SelectItem key={role.value} value={role.value}>
                   {role.label}
@@ -167,10 +167,10 @@ export const UsersTable: React.FC<UsersTableProps> = ({
 
           <Select value={statusFilter || '__all__'} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-32">
-              <SelectValue placeholder="Status" />
+              <SelectValue placeholder="Trạng thái" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="__all__">All Status</SelectItem>
+              <SelectItem value="__all__">Tất cả trạng thái</SelectItem>
               {statusOptions.map(status => (
                 <SelectItem key={status.value} value={status.value}>
                   {status.label}
@@ -189,7 +189,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({
           className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg"
         >
           <span className="text-sm text-green-700 font-medium">
-            {selectedUserIds.length} user{selectedUserIds.length === 1 ? '' : 's'} selected
+            {selectedUserIds.length} đã chọn
           </span>
 
           <div className="flex items-center gap-2">
@@ -200,7 +200,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({
               className="text-green-700 border-green-300"
             >
               <UserCheck className="h-4 w-4 mr-1" />
-              Activate
+              Kích hoạt
             </Button>
 
             <Button
@@ -210,18 +210,18 @@ export const UsersTable: React.FC<UsersTableProps> = ({
               className="text-orange-700 border-orange-300"
             >
               <UserX className="h-4 w-4 mr-1" />
-              Deactivate
+              Ngưng hoạt động
             </Button>
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button size="sm" variant="outline" className="text-blue-700 border-blue-300">
                   <Shield className="h-4 w-4 mr-1" />
-                  Assign Role <ChevronDown className="h-3 w-3 ml-1" />
+                  Gán vai trò <ChevronDown className="h-3 w-3 ml-1" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
-                <DropdownMenuLabel>Select Role to Assign</DropdownMenuLabel>
+                <DropdownMenuLabel>Chọn vai trò để gán</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {availableRoles.map(role => (
                   <DropdownMenuItem
@@ -239,11 +239,11 @@ export const UsersTable: React.FC<UsersTableProps> = ({
 
             <Button size="sm" variant="destructive" onClick={() => handleBulkAction('delete')}>
               <Trash2 className="h-4 w-4 mr-1" />
-              Delete
+              Xóa
             </Button>
 
             <Button size="sm" variant="ghost" onClick={clearSelection}>
-              Clear
+              Bỏ chọn
             </Button>
           </div>
         </motion.div>
@@ -256,8 +256,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({
             <TableRow>
               <TableHead className="w-12">
                 <Checkbox
-                  checked={isAllSelected}
-                  indeterminate={isIndeterminate}
+                  checked={isIndeterminate ? 'indeterminate' : isAllSelected}
                   onCheckedChange={handleSelectAll}
                 />
               </TableHead>
@@ -269,7 +268,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({
                   className="h-auto p-0 font-medium"
                   onClick={() => handleSort('name')}
                 >
-                  User
+                  Người dùng
                   {getSortIcon('name')}
                 </Button>
               </TableHead>
@@ -281,7 +280,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({
                   className="h-auto p-0 font-medium"
                   onClick={() => handleSort('roles')}
                 >
-                  Roles
+                  Vai trò
                   {getSortIcon('roles')}
                 </Button>
               </TableHead>
@@ -293,7 +292,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({
                   className="h-auto p-0 font-medium"
                   onClick={() => handleSort('status')}
                 >
-                  Status
+                  Trạng thái
                   {getSortIcon('status')}
                 </Button>
               </TableHead>
@@ -305,7 +304,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({
                   className="h-auto p-0 font-medium"
                   onClick={() => handleSort('lastLogin')}
                 >
-                  Last Login
+                  Đăng nhập gần nhất
                   {getSortIcon('lastLogin')}
                 </Button>
               </TableHead>
@@ -354,11 +353,11 @@ export const UsersTable: React.FC<UsersTableProps> = ({
                 <TableCell colSpan={6} className="text-center py-12">
                   <div className="flex flex-col items-center space-y-2 text-gray-500">
                     <Users className="h-12 w-12" />
-                    <p className="font-medium">No users found</p>
+                    <p className="font-medium">Không có người dùng</p>
                     <p className="text-sm">
                       {searchState.query || roleFilter || statusFilter
-                        ? 'Try adjusting your search or filters'
-                        : 'Get started by creating your first user'}
+                        ? 'Hãy điều chỉnh bộ lọc hoặc tìm kiếm'
+                        : 'Chưa có dữ liệu người dùng'}
                     </p>
                   </div>
                 </TableCell>
@@ -410,7 +409,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({
                         </div>
                       </div>
                     ) : (
-                      <span className="text-gray-400 text-sm">Never</span>
+                      <span className="text-gray-400 text-sm">Chưa từng</span>
                     )}
                   </TableCell>
 
@@ -424,7 +423,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={() => onEditUser?.(user)}>
                           <Edit className="h-4 w-4 mr-2" />
-                          Edit User
+                          Sửa người dùng
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
@@ -432,7 +431,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({
                           className="text-red-600"
                         >
                           <Trash2 className="h-4 w-4 mr-2" />
-                          Delete User
+                          Xóa người dùng
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -447,10 +446,10 @@ export const UsersTable: React.FC<UsersTableProps> = ({
       {/* Results summary */}
       <div className="flex items-center justify-between text-sm text-gray-600">
         <span>
-          Showing {users.length} of {totalCount} user{totalCount === 1 ? '' : 's'}
+          Hiển thị {users.length}/{totalCount}
         </span>
         {selectedUserIds.length > 0 && (
-          <span className="text-green-600 font-medium">{selectedUserIds.length} selected</span>
+          <span className="text-green-600 font-medium">{selectedUserIds.length} đã chọn</span>
         )}
       </div>
     </div>

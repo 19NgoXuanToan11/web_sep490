@@ -36,7 +36,6 @@ export const DeviceActionModal: React.FC<DeviceActionModalProps> = ({
   device,
   action,
   onConfirm,
-  isLoading = false,
 }) => {
   const { toast } = useToast()
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -68,7 +67,6 @@ export const DeviceActionModal: React.FC<DeviceActionModalProps> = ({
     }
   }, [device, action, setValue])
 
-  const watchedType = watch('type')
   const watchedDuration = watch('duration')
 
   if (!device || !action) return null
@@ -98,15 +96,15 @@ export const DeviceActionModal: React.FC<DeviceActionModalProps> = ({
   const getActionDescription = () => {
     switch (action) {
       case 'start':
-        return 'This will start the device operation according to its normal schedule.'
+        return 'Thao tác này sẽ khởi động thiết bị theo lịch trình bình thường.'
       case 'stop':
-        return 'This will completely stop the device operation. Any scheduled tasks will be cancelled.'
+        return 'Thao tác này sẽ dừng hoàn toàn thiết bị. Tất cả nhiệm vụ đã lên lịch sẽ bị hủy.'
       case 'pause':
-        return 'This will temporarily pause the device operation. The device can be resumed later.'
+        return 'Thao tác này sẽ tạm dừng thiết bị. Thiết bị có thể được tiếp tục sau đó.'
       case 'run-now':
-        return 'This will start the device immediately for the specified duration, overriding the normal schedule.'
+        return 'Thao tác này sẽ khởi động thiết bị ngay lập tức trong thời gian quy định, ghi đè lịch trình bình thường.'
       case 'maintenance':
-        return 'This will put the device into maintenance mode. All operations will be suspended until maintenance is complete.'
+        return 'Thao tác này sẽ đưa thiết bị vào chế độ bảo trì. Tất cả hoạt động sẽ bị tạm dừng cho đến khi bảo trì hoàn tất.'
       default:
         return actionCfg.description
     }
@@ -119,14 +117,14 @@ export const DeviceActionModal: React.FC<DeviceActionModalProps> = ({
       reset()
       onClose()
       toast({
-        title: 'Action completed',
-        description: `Successfully ${action}${action.endsWith('e') ? 'd' : action === 'stop' ? 'ped' : 'ed'} device "${device.name}".`,
+        title: 'Thao tác hoàn thành',
+        description: `Đã ${action === 'start' ? 'khởi động' : action === 'stop' ? 'dừng' : action === 'pause' ? 'tạm dừng' : action === 'run-now' ? 'chạy ngay' : 'bảo trì'} thiết bị "${device.name}" thành công.`,
       })
     } catch (error) {
       toast({
         variant: 'destructive',
-        title: 'Action failed',
-        description: error instanceof Error ? error.message : 'An unexpected error occurred.',
+        title: 'Thao tác thất bại',
+        description: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn.',
       })
     } finally {
       setIsSubmitting(false)
@@ -134,7 +132,7 @@ export const DeviceActionModal: React.FC<DeviceActionModalProps> = ({
   }
 
   const getDialogTitle = () => {
-    return `${actionCfg.label} Device`
+    return `${actionCfg.label} Thiết bị`
   }
 
   const showDurationInput = action === 'run-now'
@@ -142,7 +140,7 @@ export const DeviceActionModal: React.FC<DeviceActionModalProps> = ({
   const showWarning = ['stop', 'maintenance'].includes(action)
 
   return (
-    <Dialog open={isOpen} onOpenChange={() => !isSubmitting && onClose()}>
+    <Dialog open={isOpen} onOpenChange={open => !open && !isSubmitting && onClose()}>
       <DialogContent className="sm:max-w-md">
         <form onSubmit={handleSubmit(onSubmit)}>
           <DialogHeader>
@@ -151,7 +149,7 @@ export const DeviceActionModal: React.FC<DeviceActionModalProps> = ({
               {getDialogTitle()}
             </DialogTitle>
             <DialogDescription>
-              Confirm action for device: <strong>{device.name}</strong>
+              Xác nhận thao tác cho thiết bị: <strong>{device.name}</strong>
             </DialogDescription>
           </DialogHeader>
 
@@ -159,15 +157,15 @@ export const DeviceActionModal: React.FC<DeviceActionModalProps> = ({
             {/* Device Info */}
             <div className="p-3 bg-gray-50 rounded-lg space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">Device:</span>
+                <span className="text-sm font-medium text-gray-700">Thiết bị:</span>
                 <span className="text-sm text-gray-900">{device.name}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">Zone:</span>
+                <span className="text-sm font-medium text-gray-700">Khu vực:</span>
                 <span className="text-sm text-gray-900">{device.zone}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">Current Status:</span>
+                <span className="text-sm font-medium text-gray-700">Trạng thái hiện tại:</span>
                 <Badge variant="outline">{device.status}</Badge>
               </div>
             </div>
@@ -181,7 +179,7 @@ export const DeviceActionModal: React.FC<DeviceActionModalProps> = ({
               >
                 <AlertTriangle className="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
                 <div className="text-sm text-yellow-800">
-                  <p className="font-medium mb-1">Warning</p>
+                  <p className="font-medium mb-1">Cảnh báo</p>
                   <p>{getActionDescription()}</p>
                 </div>
               </motion.div>
@@ -195,7 +193,7 @@ export const DeviceActionModal: React.FC<DeviceActionModalProps> = ({
               <div className="space-y-2">
                 <Label htmlFor="duration" className="text-sm font-medium flex items-center gap-2">
                   <Clock className="h-4 w-4" />
-                  Duration (minutes)
+                  Thời gian (phút)
                 </Label>
                 <Input
                   id="duration"
@@ -210,8 +208,8 @@ export const DeviceActionModal: React.FC<DeviceActionModalProps> = ({
                   <p className="text-sm text-red-600">{errors.duration.message}</p>
                 )}
                 <p className="text-xs text-gray-500">
-                  Device will run for {watchedDuration || 60} minute
-                  {(watchedDuration || 60) === 1 ? '' : 's'} and then return to idle.
+                  Thiết bị sẽ chạy trong {watchedDuration || 60} phút và sau đó trở về trạng thái
+                  nghỉ.
                 </p>
               </div>
             )}
@@ -221,14 +219,14 @@ export const DeviceActionModal: React.FC<DeviceActionModalProps> = ({
               <div className="space-y-2">
                 <Label htmlFor="notes" className="text-sm font-medium flex items-center gap-2">
                   <MessageSquare className="h-4 w-4" />
-                  Notes {action === 'maintenance' && '(Required)'}
+                  Ghi chú {action === 'maintenance' && '(Bắt buộc)'}
                 </Label>
                 <Textarea
                   id="notes"
                   placeholder={
                     action === 'maintenance'
-                      ? 'Describe the maintenance work to be performed...'
-                      : 'Add optional notes about this action...'
+                      ? 'Mô tả công việc bảo trì cần thực hiện...'
+                      : 'Thêm ghi chú tùy chọn về thao tác này...'
                   }
                   {...register('notes')}
                   className={errors.notes ? 'border-red-500' : ''}
@@ -241,7 +239,7 @@ export const DeviceActionModal: React.FC<DeviceActionModalProps> = ({
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
-              Cancel
+              Hủy
             </Button>
             <Button
               type="submit"

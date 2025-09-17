@@ -24,14 +24,14 @@ export function TableDensityToggle({ value, onChange, className }: TableDensityT
       size="sm"
       onClick={handleToggle}
       className={cn('gap-2', className)}
-      title={`Switch to ${value === 'compact' ? 'comfortable' : 'compact'} density`}
+      title={`Chuyển sang mật độ ${value === 'compact' ? 'thoải mái' : 'gọn'}`}
     >
       {value === 'compact' ? (
         <MoreHorizontal className="h-4 w-4" />
       ) : (
         <AlignJustify className="h-4 w-4" />
       )}
-      <span className="capitalize">{value}</span>
+      <span className="capitalize">{value === 'compact' ? 'Gọn' : 'Thoải mái'}</span>
     </Button>
   )
 }
@@ -54,4 +54,3 @@ export function useTableDensity() {
     isComfortable: density === 'comfortable',
   }
 }
-

@@ -126,30 +126,30 @@ export default function ManagerDashboard() {
 
   const recentActivities = [
     {
-      title: 'Irrigation System Activated',
-      description: 'Zone A watering cycle completed successfully',
-      time: '2 min ago',
+      title: 'Hệ thống tưới đã kích hoạt',
+      description: 'Khu A đã hoàn tất chu kỳ tưới nước',
+      time: '2 phút trước',
       type: 'success' as const,
       icon: Droplets,
     },
     {
-      title: 'Low Stock Alert',
-      description: 'Organic Tomatoes below threshold (15 units)',
-      time: '5 min ago',
+      title: 'Cảnh báo tồn kho thấp',
+      description: 'Cà chua hữu cơ dưới ngưỡng (15 đơn vị)',
+      time: '5 phút trước',
       type: 'warning' as const,
       icon: Package,
     },
     {
-      title: 'New Order Received',
-      description: 'Order #1245 - Mixed Vegetables (50 units)',
-      time: '12 min ago',
+      title: 'Đơn hàng mới',
+      description: 'Đơn #1245 - Rau củ tổng hợp (50 đơn vị)',
+      time: '12 phút trước',
       type: 'info' as const,
       icon: CheckCircle,
     },
     {
-      title: 'Sensor Maintenance',
-      description: 'Temperature sensor B2 requires calibration',
-      time: '1 hour ago',
+      title: 'Bảo trì cảm biến',
+      description: 'Cảm biến nhiệt độ B2 cần hiệu chuẩn',
+      time: '1 giờ trước',
       type: 'warning' as const,
       icon: Thermometer,
     },
@@ -157,29 +157,29 @@ export default function ManagerDashboard() {
 
   const quickActions = [
     {
-      title: 'Start Irrigation',
-      description: 'Activate watering cycle',
+      title: 'Bắt đầu tưới',
+      description: 'Kích hoạt chu kỳ tưới nước',
       icon: Droplets,
       color: 'blue' as const,
       action: () => navigate('/manager/irrigation'),
     },
     {
-      title: 'Add Inventory',
-      description: 'Update stock levels',
+      title: 'Thêm tồn kho',
+      description: 'Cập nhật số lượng tồn',
       icon: Package,
       color: 'green' as const,
       action: () => navigate('/manager/inventory'),
     },
     {
-      title: 'View Reports',
-      description: 'Analytics & insights',
+      title: 'Xem báo cáo',
+      description: 'Phân tích & thống kê',
       icon: TrendingUp,
       color: 'purple' as const,
       action: () => navigate('/manager/reports'),
     },
     {
-      title: 'System Settings',
-      description: 'Configure parameters',
+      title: 'Cài đặt hệ thống',
+      description: 'Cấu hình tham số',
       icon: Zap,
       color: 'orange' as const,
       action: () => navigate('/manager/settings'),
@@ -190,46 +190,44 @@ export default function ManagerDashboard() {
     <ManagerLayout>
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Farm Manager Dashboard</h1>
-          <p className="mt-2 text-gray-600">
-            Welcome back! Here's what's happening on your farm today.
-          </p>
+          <h1 className="text-3xl font-bold text-gray-900">Bảng điều khiển quản lý nông trại</h1>
+          <p className="mt-2 text-gray-600">Chào mừng trở lại! Đây là tình hình hôm nay.</p>
         </div>
 
         {/* Status Cards */}
         <div className="grid gap-6 mb-8 md:grid-cols-2 lg:grid-cols-4">
           <MetricCard
-            title="System Status"
-            value="Operational"
-            change="+99.2% uptime"
+            title="Trạng thái hệ thống"
+            value="Hoạt động ổn định"
+            change="+99.2% thời gian hoạt động"
             icon={Activity}
             color="green"
-            description="All systems running smoothly"
+            description="Tất cả hệ thống hoạt động trơn tru"
           />
           <MetricCard
-            title="Active Irrigation"
-            value="3 Zones"
-            change="2 scheduled"
+            title="Khu vực đang tưới"
+            value="3 khu"
+            change="2 lịch đã đặt"
             icon={Droplets}
             color="blue"
-            description="Automated watering in progress"
+            description="Tưới tự động đang diễn ra"
           />
           <MetricCard
-            title="Inventory Items"
+            title="Mặt hàng tồn kho"
             value="1,247"
-            change="5 low stock"
+            change="5 sắp hết"
             changeType="decrease"
             icon={Package}
             color="orange"
-            description="Total products in stock"
+            description="Tổng số sản phẩm trong kho"
           />
           <MetricCard
-            title="Today's Revenue"
+            title="Doanh thu hôm nay"
             value="$3,450"
             change="+12.5%"
             icon={DollarSign}
             color="purple"
-            description="Sales performance today"
+            description="Hiệu suất bán hàng trong ngày"
           />
         </div>
 
@@ -241,10 +239,10 @@ export default function ManagerDashboard() {
               <CardHeader className="border-b border-gray-100">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-lg font-semibold text-gray-900">
-                    Performance Overview
+                    Tổng quan hiệu suất
                   </CardTitle>
                   <Button variant="outline" size="sm">
-                    View Details
+                    Xem chi tiết
                   </Button>
                 </div>
               </CardHeader>
@@ -254,10 +252,10 @@ export default function ManagerDashboard() {
                     <div className="w-16 h-16 mx-auto mb-3 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-lg">
                       <Sprout className="w-8 h-8 text-white" />
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-900">Crop Health</h3>
-                    <p className="text-sm text-gray-600 mb-2">95% Excellent</p>
+                    <h3 className="text-lg font-semibold text-gray-900">Sức khỏe cây trồng</h3>
+                    <p className="text-sm text-gray-600 mb-2">95% Xuất sắc</p>
                     <Badge variant="default" className="bg-green-100 text-green-800">
-                      Optimal Growth
+                      Sinh trưởng tối ưu
                     </Badge>
                   </div>
 
@@ -265,10 +263,10 @@ export default function ManagerDashboard() {
                     <div className="w-16 h-16 mx-auto mb-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg">
                       <Thermometer className="w-8 h-8 text-white" />
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-900">Climate Control</h3>
+                    <h3 className="text-lg font-semibold text-gray-900">Điều kiện khí hậu</h3>
                     <p className="text-sm text-gray-600 mb-2">24°C / 65% RH</p>
                     <Badge variant="default" className="bg-blue-100 text-blue-800">
-                      Perfect Range
+                      Trong ngưỡng lý tưởng
                     </Badge>
                   </div>
 
@@ -276,10 +274,10 @@ export default function ManagerDashboard() {
                     <div className="w-16 h-16 mx-auto mb-3 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
                       <Zap className="w-8 h-8 text-white" />
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-900">Energy Usage</h3>
-                    <p className="text-sm text-gray-600 mb-2">127 kWh today</p>
+                    <h3 className="text-lg font-semibold text-gray-900">Tiêu thụ năng lượng</h3>
+                    <p className="text-sm text-gray-600 mb-2">127 kWh hôm nay</p>
                     <Badge variant="default" className="bg-purple-100 text-purple-800">
-                      Efficient
+                      Hiệu quả
                     </Badge>
                   </div>
                 </div>
@@ -289,7 +287,9 @@ export default function ManagerDashboard() {
             {/* Quick Actions */}
             <Card className="border-0 shadow-lg">
               <CardHeader className="border-b border-gray-100">
-                <CardTitle className="text-lg font-semibold text-gray-900">Quick Actions</CardTitle>
+                <CardTitle className="text-lg font-semibold text-gray-900">
+                  Thao tác nhanh
+                </CardTitle>
               </CardHeader>
               <CardContent className="p-6">
                 <div className="grid gap-4 md:grid-cols-2">
@@ -334,10 +334,10 @@ export default function ManagerDashboard() {
               <CardHeader className="border-b border-gray-100">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-lg font-semibold text-gray-900">
-                    Recent Activity
+                    Hoạt động gần đây
                   </CardTitle>
                   <Badge variant="outline" className="text-xs">
-                    Live
+                    Trực tiếp
                   </Badge>
                 </div>
               </CardHeader>
@@ -349,7 +349,7 @@ export default function ManagerDashboard() {
                 </div>
                 <div className="p-3 border-t border-gray-100">
                   <Button variant="outline" size="sm" className="w-full">
-                    View All Activity
+                    Xem tất cả hoạt động
                   </Button>
                 </div>
               </CardContent>
@@ -358,32 +358,34 @@ export default function ManagerDashboard() {
             {/* System Health */}
             <Card className="border-0 shadow-lg">
               <CardHeader className="border-b border-gray-100">
-                <CardTitle className="text-lg font-semibold text-gray-900">System Health</CardTitle>
+                <CardTitle className="text-lg font-semibold text-gray-900">
+                  Tình trạng hệ thống
+                </CardTitle>
               </CardHeader>
               <CardContent className="p-6">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-700">Irrigation System</span>
+                    <span className="text-sm font-medium text-gray-700">Hệ thống tưới</span>
                     <Badge variant="default" className="bg-green-100 text-green-800">
-                      Online
+                      Trực tuyến
                     </Badge>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-700">Temperature Sensors</span>
+                    <span className="text-sm font-medium text-gray-700">Cảm biến nhiệt độ</span>
                     <Badge variant="default" className="bg-green-100 text-green-800">
-                      Normal
+                      Bình thường
                     </Badge>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-700">Inventory System</span>
+                    <span className="text-sm font-medium text-gray-700">Hệ thống kho</span>
                     <Badge variant="default" className="bg-orange-100 text-orange-800">
-                      Alerts (5)
+                      Cảnh báo (5)
                     </Badge>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-700">Network Connection</span>
+                    <span className="text-sm font-medium text-gray-700">Kết nối mạng</span>
                     <Badge variant="default" className="bg-green-100 text-green-800">
-                      Stable
+                      Ổn định
                     </Badge>
                   </div>
                 </div>
@@ -391,7 +393,7 @@ export default function ManagerDashboard() {
                 <div className="mt-6 pt-4 border-t border-gray-100">
                   <Button variant="outline" size="sm" className="w-full">
                     <Calendar className="w-4 h-4 mr-2" />
-                    Schedule Maintenance
+                    Lên lịch bảo trì
                   </Button>
                 </div>
               </CardContent>

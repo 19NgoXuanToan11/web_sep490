@@ -2,13 +2,13 @@ import React from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
-  Drawer,
-  DrawerContent,
-  DrawerDescription,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-} from '@/shared/ui/drawer'
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/shared/ui/dialog'
 import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
 import { Label } from '@/shared/ui/label'
@@ -20,14 +20,14 @@ import type { Product } from '@/shared/lib/localData'
 import { productFormSchema } from '../model/schemas'
 import type { ProductFormData } from '../model/schemas'
 
-interface ProductDrawerProps {
+interface ProductDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   editingProduct?: Product | null
   onClose: () => void
 }
 
-export function ProductDrawer({ open, onOpenChange, editingProduct, onClose }: ProductDrawerProps) {
+export function ProductDrawer({ open, onOpenChange, editingProduct, onClose }: ProductDialogProps) {
   const { createProduct, updateProduct, getCategories, loadingStates } = useInventoryStore()
   const { toast } = useToast()
   const fileInputRef = React.useRef<HTMLInputElement>(null)
@@ -75,8 +75,8 @@ export function ProductDrawer({ open, onOpenChange, editingProduct, onClose }: P
       if (file.size > 5 * 1024 * 1024) {
         // 5MB limit
         toast({
-          title: 'File Too Large',
-          description: 'Image must be smaller than 5MB',
+          title: 'Tệp quá lớn',
+          description: 'Hình ảnh phải nhỏ hơn 5MB',
           variant: 'destructive',
         })
         return
@@ -104,22 +104,22 @@ export function ProductDrawer({ open, onOpenChange, editingProduct, onClose }: P
           ...(imageFile && { imageUrl: URL.createObjectURL(imageFile) }),
         })
         toast({
-          title: 'Product Updated',
-          description: `${data.name} has been updated successfully.`,
+          title: 'Đã cập nhật sản phẩm',
+          description: `Đã cập nhật ${data.name} thành công.`,
           variant: 'success',
         })
       } else {
         await createProduct(formData as ProductFormData)
         toast({
-          title: 'Product Created',
-          description: `${data.name} has been created successfully.`,
+          title: 'Đã tạo sản phẩm',
+          description: `Đã tạo ${data.name} thành công.`,
           variant: 'success',
         })
       }
       handleClose()
     } catch (error) {
       toast({
-        title: isEditing ? 'Update Failed' : 'Creation Failed',
+        title: isEditing ? 'Cập nhật thất bại' : 'Tạo thất bại',
         description: error instanceof Error ? error.message : 'Unknown error occurred.',
         variant: 'destructive',
       })
@@ -136,25 +136,25 @@ export function ProductDrawer({ open, onOpenChange, editingProduct, onClose }: P
   }
 
   return (
-    <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="max-w-md mx-auto">
-        <DrawerHeader>
-          <DrawerTitle className="flex items-center gap-2">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
             <Package className="h-5 w-5" />
-            {isEditing ? 'Edit Product' : 'Add New Product'}
-          </DrawerTitle>
-          <DrawerDescription>
+            {isEditing ? 'Chỉnh sửa sản phẩm' : 'Thêm sản phẩm mới'}
+          </DialogTitle>
+          <DialogDescription>
             {isEditing
-              ? 'Update product information and inventory details.'
-              : 'Add a new product to your inventory catalog.'}
-          </DrawerDescription>
-        </DrawerHeader>
+              ? 'Cập nhật thông tin sản phẩm và chi tiết tồn kho.'
+              : 'Thêm sản phẩm mới vào danh mục tồn kho.'}
+          </DialogDescription>
+        </DialogHeader>
 
-        <div className="px-4 py-2 space-y-6 max-h-96 overflow-y-auto">
+        <div className="flex-1 space-y-6 overflow-y-auto px-1 pb-4">
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             {/* Image Upload */}
             <div className="space-y-2">
-              <Label>Product Image</Label>
+              <Label>Hình ảnh sản phẩm</Label>
               <div className="flex items-center gap-4">
                 <div className="w-20 h-20 bg-muted rounded-lg flex items-center justify-center overflow-hidden">
                   {previewImage ? (
@@ -177,7 +177,7 @@ export function ProductDrawer({ open, onOpenChange, editingProduct, onClose }: P
                     onClick={() => fileInputRef.current?.click()}
                     className="w-full"
                   >
-                    Choose Image
+                    Chọn hình ảnh
                   </Button>
                   {previewImage && (
                     <Button
@@ -188,7 +188,7 @@ export function ProductDrawer({ open, onOpenChange, editingProduct, onClose }: P
                       className="w-full mt-1"
                     >
                       <X className="h-4 w-4 mr-1" />
-                      Remove
+                      Xóa
                     </Button>
                   )}
                 </div>
@@ -197,8 +197,8 @@ export function ProductDrawer({ open, onOpenChange, editingProduct, onClose }: P
 
             {/* Product Name */}
             <div className="space-y-2">
-              <Label htmlFor="name">Product Name *</Label>
-              <Input id="name" placeholder="e.g., Cherry Tomatoes" {...form.register('name')} />
+              <Label htmlFor="name">Tên sản phẩm *</Label>
+              <Input id="name" placeholder="ví dụ: Cà chua cherry" {...form.register('name')} />
               {form.formState.errors.name && (
                 <p className="text-sm text-destructive">{form.formState.errors.name.message}</p>
               )}
@@ -206,8 +206,8 @@ export function ProductDrawer({ open, onOpenChange, editingProduct, onClose }: P
 
             {/* SKU */}
             <div className="space-y-2">
-              <Label htmlFor="sku">SKU *</Label>
-              <Input id="sku" placeholder="e.g., TOM-CHE-001" {...form.register('sku')} />
+              <Label htmlFor="sku">Mã SKU *</Label>
+              <Input id="sku" placeholder="ví dụ: TOM-CHE-001" {...form.register('sku')} />
               {form.formState.errors.sku && (
                 <p className="text-sm text-destructive">{form.formState.errors.sku.message}</p>
               )}
@@ -215,13 +215,13 @@ export function ProductDrawer({ open, onOpenChange, editingProduct, onClose }: P
 
             {/* Category */}
             <div className="space-y-2">
-              <Label htmlFor="category">Category *</Label>
+              <Label htmlFor="category">Danh mục *</Label>
               <Select
                 value={form.watch('category')}
                 onValueChange={value => form.setValue('category', value)}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select category" />
+                  <SelectValue placeholder="Chọn danh mục" />
                 </SelectTrigger>
                 <SelectContent>
                   {categories.map(category => (
@@ -229,7 +229,7 @@ export function ProductDrawer({ open, onOpenChange, editingProduct, onClose }: P
                       {category}
                     </SelectItem>
                   ))}
-                  <SelectItem value="__new__">+ Add New Category</SelectItem>
+                  <SelectItem value="__new__">+ Thêm danh mục mới</SelectItem>
                 </SelectContent>
               </Select>
               {form.formState.errors.category && (
@@ -238,14 +238,14 @@ export function ProductDrawer({ open, onOpenChange, editingProduct, onClose }: P
             </div>
 
             {/* Price */}
-            <div className="space-y-2">
-              <Label htmlFor="price">Price ($) *</Label>
+            <div className="space-y-2 mb-4">
+              <Label htmlFor="price">Giá (VND) *</Label>
               <Input
                 id="price"
                 type="number"
-                step="0.01"
+                step="1"
                 min="0"
-                placeholder="0.00"
+                placeholder="0"
                 {...form.register('price', { valueAsNumber: true })}
               />
               {form.formState.errors.price && (
@@ -255,9 +255,9 @@ export function ProductDrawer({ open, onOpenChange, editingProduct, onClose }: P
           </form>
         </div>
 
-        <DrawerFooter className="flex-row gap-2">
+        <DialogFooter className="flex-row gap-2 mt-6">
           <Button type="button" variant="outline" onClick={handleClose} className="flex-1">
-            Cancel
+            Hủy
           </Button>
           <Button
             type="submit"
@@ -266,10 +266,10 @@ export function ProductDrawer({ open, onOpenChange, editingProduct, onClose }: P
             className="flex-1"
           >
             {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-            {isEditing ? 'Update' : 'Create'}
+            {isEditing ? 'Cập nhật' : 'Tạo'}
           </Button>
-        </DrawerFooter>
-      </DrawerContent>
-    </Drawer>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }

@@ -14,12 +14,12 @@ import type {
   QualityCheck,
 } from '@/shared/lib/localData'
 
-// Generate realistic test data for all features
+// Tạo dữ liệu thử nghiệm thực tế cho tất cả các tính năng
 export const devices: Device[] = [
   {
     id: 'dev-1',
-    zone: 'Zone A - Greenhouse 1',
-    name: 'Sprinkler System A1',
+    zone: 'Khu A - Nhà kính 1',
+    name: 'Hệ thống phun nước A1',
     status: 'Idle',
     lastRun: '2024-01-15T06:00:00Z',
     nextRun: '2024-01-16T06:00:00Z',
@@ -27,8 +27,8 @@ export const devices: Device[] = [
   },
   {
     id: 'dev-2',
-    zone: 'Zone A - Greenhouse 1',
-    name: 'Drip System A2',
+    zone: 'Khu A - Nhà kính 1',
+    name: 'Hệ thống nhỏ giọt A2',
     status: 'Running',
     lastRun: '2024-01-15T14:00:00Z',
     nextRun: '2024-01-15T18:00:00Z',
@@ -36,8 +36,8 @@ export const devices: Device[] = [
   },
   {
     id: 'dev-3',
-    zone: 'Zone B - Outdoor Field',
-    name: 'Sprinkler System B1',
+    zone: 'Khu B - Cánh đồng ngoài trời',
+    name: 'Hệ thống phun nước B1',
     status: 'Paused',
     lastRun: '2024-01-14T19:00:00Z',
     nextRun: '2024-01-16T05:30:00Z',
@@ -45,8 +45,8 @@ export const devices: Device[] = [
   },
   {
     id: 'dev-4',
-    zone: 'Zone B - Outdoor Field',
-    name: 'Drip System B2',
+    zone: 'Khu B - Cánh đồng ngoài trời',
+    name: 'Hệ thống nhỏ giọt B2',
     status: 'Idle',
     lastRun: '2024-01-15T08:00:00Z',
     nextRun: '2024-01-16T08:00:00Z',
@@ -54,8 +54,8 @@ export const devices: Device[] = [
   },
   {
     id: 'dev-5',
-    zone: 'Zone C - Greenhouse 2',
-    name: 'Mist System C1',
+    zone: 'Khu C - Nhà kính 2',
+    name: 'Hệ thống phun sương C1',
     status: 'Running',
     lastRun: '2024-01-15T10:00:00Z',
     nextRun: '2024-01-15T16:00:00Z',
@@ -63,8 +63,8 @@ export const devices: Device[] = [
   },
   {
     id: 'dev-6',
-    zone: 'Zone C - Greenhouse 2',
-    name: 'Sprinkler System C2',
+    zone: 'Khu C - Nhà kính 2',
+    name: 'Hệ thống phun nước C2',
     status: 'Idle',
     lastRun: '2024-01-15T12:00:00Z',
     nextRun: '2024-01-16T12:00:00Z',
@@ -72,8 +72,8 @@ export const devices: Device[] = [
   },
   {
     id: 'dev-7',
-    zone: 'Zone D - Nursery',
-    name: 'Drip System D1',
+    zone: 'Khu D - Vườn ươm',
+    name: 'Hệ thống nhỏ giọt D1',
     status: 'Idle',
     lastRun: '2024-01-15T07:00:00Z',
     nextRun: '2024-01-16T07:00:00Z',
@@ -81,8 +81,8 @@ export const devices: Device[] = [
   },
   {
     id: 'dev-8',
-    zone: 'Zone D - Nursery',
-    name: 'Mist System D2',
+    zone: 'Khu D - Vườn ươm',
+    name: 'Hệ thống phun sương D2',
     status: 'Running',
     lastRun: '2024-01-15T13:00:00Z',
     nextRun: '2024-01-15T19:00:00Z',
@@ -90,8 +90,8 @@ export const devices: Device[] = [
   },
   {
     id: 'dev-9',
-    zone: 'Zone E - Research Area',
-    name: 'Precision Drip E1',
+    zone: 'Khu E - Khu nghiên cứu',
+    name: 'Hệ thống nhỏ giọt chính xác E1',
     status: 'Idle',
     lastRun: '2024-01-15T09:00:00Z',
     nextRun: '2024-01-16T09:00:00Z',
@@ -99,8 +99,8 @@ export const devices: Device[] = [
   },
   {
     id: 'dev-10',
-    zone: 'Zone E - Research Area',
-    name: 'Smart Sprinkler E2',
+    zone: 'Khu E - Khu nghiên cứu',
+    name: 'Hệ thống phun nước thông minh E2',
     status: 'Paused',
     lastRun: '2024-01-15T11:00:00Z',
     nextRun: '2024-01-16T11:00:00Z',
@@ -112,8 +112,8 @@ export const irrigationSchedules: IrrigationSchedule[] = [
   {
     id: 'sched-1',
     deviceId: 'dev-1',
-    title: 'Morning Greenhouse Watering',
-    recurrenceText: 'Daily at 6:00 AM',
+    title: 'Tưới nước nhà kính buổi sáng',
+    recurrenceText: 'Hàng ngày lúc 6:00 sáng',
     startTime: '06:00',
     endTime: '06:30',
     moistureThresholdPct: 30,
@@ -124,8 +124,8 @@ export const irrigationSchedules: IrrigationSchedule[] = [
   {
     id: 'sched-2',
     deviceId: 'dev-2',
-    title: 'Afternoon Drip Cycle',
-    recurrenceText: 'Every 6 hours',
+    title: 'Chu trình nhỏ giọt buổi chiều',
+    recurrenceText: 'Mỗi 6 giờ',
     startTime: '14:00',
     endTime: '14:45',
     moistureThresholdPct: 25,
@@ -136,8 +136,8 @@ export const irrigationSchedules: IrrigationSchedule[] = [
   {
     id: 'sched-3',
     deviceId: 'dev-3',
-    title: 'Field Irrigation - Early Morning',
-    recurrenceText: 'Daily at 5:30 AM',
+    title: 'Tưới cánh đồng - Sáng sớm',
+    recurrenceText: 'Hàng ngày lúc 5:30 sáng',
     startTime: '05:30',
     endTime: '07:00',
     moistureThresholdPct: 35,
@@ -148,8 +148,8 @@ export const irrigationSchedules: IrrigationSchedule[] = [
   {
     id: 'sched-4',
     deviceId: 'dev-4',
-    title: 'Field Drip System',
-    recurrenceText: 'Daily at 8:00 AM',
+    title: 'Hệ thống nhỏ giọt cánh đồng',
+    recurrenceText: 'Hàng ngày lúc 8:00 sáng',
     startTime: '08:00',
     endTime: '09:00',
     moistureThresholdPct: 28,
@@ -160,8 +160,8 @@ export const irrigationSchedules: IrrigationSchedule[] = [
   {
     id: 'sched-5',
     deviceId: 'dev-5',
-    title: 'Greenhouse 2 Misting',
-    recurrenceText: 'Every 6 hours',
+    title: 'Phun sương nhà kính 2',
+    recurrenceText: 'Mỗi 6 giờ',
     startTime: '10:00',
     endTime: '10:15',
     moistureThresholdPct: 40,
@@ -172,8 +172,8 @@ export const irrigationSchedules: IrrigationSchedule[] = [
   {
     id: 'sched-6',
     deviceId: 'dev-6',
-    title: 'Greenhouse 2 Sprinklers',
-    recurrenceText: 'Daily at 12:00 PM',
+    title: 'Hệ thống phun nước nhà kính 2',
+    recurrenceText: 'Hàng ngày lúc 12:00 trưa',
     startTime: '12:00',
     endTime: '12:45',
     moistureThresholdPct: 32,
@@ -184,8 +184,8 @@ export const irrigationSchedules: IrrigationSchedule[] = [
   {
     id: 'sched-7',
     deviceId: 'dev-7',
-    title: 'Nursery Drip Watering',
-    recurrenceText: 'Daily at 7:00 AM',
+    title: 'Tưới nhỏ giọt vườn ươm',
+    recurrenceText: 'Hàng ngày lúc 7:00 sáng',
     startTime: '07:00',
     endTime: '07:30',
     moistureThresholdPct: 45,
@@ -196,8 +196,8 @@ export const irrigationSchedules: IrrigationSchedule[] = [
   {
     id: 'sched-8',
     deviceId: 'dev-8',
-    title: 'Nursery Mist System',
-    recurrenceText: 'Every 6 hours',
+    title: 'Hệ thống phun sương vườn ươm',
+    recurrenceText: 'Mỗi 6 giờ',
     startTime: '13:00',
     endTime: '13:10',
     moistureThresholdPct: 50,
@@ -208,8 +208,8 @@ export const irrigationSchedules: IrrigationSchedule[] = [
   {
     id: 'sched-9',
     deviceId: 'dev-9',
-    title: 'Research Precision Drip',
-    recurrenceText: 'Daily at 9:00 AM',
+    title: 'Nhỏ giọt chính xác nghiên cứu',
+    recurrenceText: 'Hàng ngày lúc 9:00 sáng',
     startTime: '09:00',
     endTime: '09:20',
     moistureThresholdPct: 22,
@@ -220,8 +220,8 @@ export const irrigationSchedules: IrrigationSchedule[] = [
   {
     id: 'sched-10',
     deviceId: 'dev-10',
-    title: 'Smart Sprinkler Schedule',
-    recurrenceText: 'Daily at 11:00 AM',
+    title: 'Lịch phun nước thông minh',
+    recurrenceText: 'Hàng ngày lúc 11:00 sáng',
     startTime: '11:00',
     endTime: '11:30',
     moistureThresholdPct: 27,
@@ -229,12 +229,12 @@ export const irrigationSchedules: IrrigationSchedule[] = [
     nextRun: '2024-01-16T11:00:00Z',
     status: 'Paused',
   },
-  // Additional schedules for calendar density
+  // Lịch trình bổ sung cho mật độ lịch
   {
     id: 'sched-11',
     deviceId: 'dev-1',
-    title: 'Evening Maintenance',
-    recurrenceText: 'Daily at 8:00 PM',
+    title: 'Bảo trì buổi tối',
+    recurrenceText: 'Hàng ngày lúc 8:00 tối',
     startTime: '20:00',
     endTime: '20:15',
     moistureThresholdPct: 20,
@@ -245,8 +245,8 @@ export const irrigationSchedules: IrrigationSchedule[] = [
   {
     id: 'sched-12',
     deviceId: 'dev-3',
-    title: 'Weekend Field Irrigation',
-    recurrenceText: 'Weekends at 4:00 AM',
+    title: 'Tưới cánh đồng cuối tuần',
+    recurrenceText: 'Cuối tuần lúc 4:00 sáng',
     startTime: '04:00',
     endTime: '06:00',
     moistureThresholdPct: 30,
@@ -257,8 +257,8 @@ export const irrigationSchedules: IrrigationSchedule[] = [
   {
     id: 'sched-13',
     deviceId: 'dev-5',
-    title: 'Mid-day Greenhouse Boost',
-    recurrenceText: 'Daily at 2:00 PM',
+    title: 'Tăng cường nhà kính giữa ngày',
+    recurrenceText: 'Hàng ngày lúc 2:00 chiều',
     startTime: '14:00',
     endTime: '14:30',
     moistureThresholdPct: 35,
@@ -269,8 +269,8 @@ export const irrigationSchedules: IrrigationSchedule[] = [
   {
     id: 'sched-14',
     deviceId: 'dev-7',
-    title: 'Nursery Evening Care',
-    recurrenceText: 'Daily at 6:30 PM',
+    title: 'Chăm sóc vườn ươm buổi tối',
+    recurrenceText: 'Hàng ngày lúc 6:30 tối',
     startTime: '18:30',
     endTime: '18:45',
     moistureThresholdPct: 40,
@@ -281,8 +281,8 @@ export const irrigationSchedules: IrrigationSchedule[] = [
   {
     id: 'sched-15',
     deviceId: 'dev-9',
-    title: 'Research Evening Protocol',
-    recurrenceText: 'Daily at 7:30 PM',
+    title: 'Quy trình nghiên cứu buổi tối',
+    recurrenceText: 'Hàng ngày lúc 7:30 tối',
     startTime: '19:30',
     endTime: '19:50',
     moistureThresholdPct: 18,
@@ -293,8 +293,8 @@ export const irrigationSchedules: IrrigationSchedule[] = [
   {
     id: 'sched-16',
     deviceId: 'dev-2',
-    title: 'Late Night Drip',
-    recurrenceText: 'Daily at 11:00 PM',
+    title: 'Nhỏ giọt đêm muộn',
+    recurrenceText: 'Hàng ngày lúc 11:00 tối',
     startTime: '23:00',
     endTime: '23:20',
     moistureThresholdPct: 25,
@@ -305,8 +305,8 @@ export const irrigationSchedules: IrrigationSchedule[] = [
   {
     id: 'sched-17',
     deviceId: 'dev-4',
-    title: 'Field Pre-Dawn Prep',
-    recurrenceText: 'Daily at 3:00 AM',
+    title: 'Chuẩn bị cánh đồng trước bình minh',
+    recurrenceText: 'Hàng ngày lúc 3:00 sáng',
     startTime: '03:00',
     endTime: '03:30',
     moistureThresholdPct: 33,
@@ -317,8 +317,8 @@ export const irrigationSchedules: IrrigationSchedule[] = [
   {
     id: 'sched-18',
     deviceId: 'dev-6',
-    title: 'Greenhouse 2 Evening',
-    recurrenceText: 'Daily at 9:00 PM',
+    title: 'Nhà kính 2 buổi tối',
+    recurrenceText: 'Hàng ngày lúc 9:00 tối',
     startTime: '21:00',
     endTime: '21:25',
     moistureThresholdPct: 30,
@@ -329,8 +329,8 @@ export const irrigationSchedules: IrrigationSchedule[] = [
   {
     id: 'sched-19',
     deviceId: 'dev-8',
-    title: 'Nursery Dawn Misting',
-    recurrenceText: 'Daily at 5:00 AM',
+    title: 'Phun sương vườn ươm bình minh',
+    recurrenceText: 'Hàng ngày lúc 5:00 sáng',
     startTime: '05:00',
     endTime: '05:15',
     moistureThresholdPct: 48,
@@ -341,8 +341,8 @@ export const irrigationSchedules: IrrigationSchedule[] = [
   {
     id: 'sched-20',
     deviceId: 'dev-10',
-    title: 'Research Afternoon Protocol',
-    recurrenceText: 'Daily at 3:30 PM',
+    title: 'Quy trình nghiên cứu buổi chiều',
+    recurrenceText: 'Hàng ngày lúc 3:30 chiều',
     startTime: '15:30',
     endTime: '16:00',
     moistureThresholdPct: 24,
@@ -355,71 +355,71 @@ export const irrigationSchedules: IrrigationSchedule[] = [
 export const irrigationRules: IrrigationRule[] = [
   {
     id: 'rule-1',
-    name: 'Low Moisture Emergency',
-    conditionText: 'If soil moisture < 15%, run for 30 minutes immediately',
+    name: 'Khẩn cấp độ ẩm thấp',
+    conditionText: 'Nếu độ ẩm đất < 15%, chạy ngay lập tức trong 30 phút',
     enabled: true,
     createdAt: '2024-01-10T10:00:00Z',
   },
   {
     id: 'rule-2',
-    name: 'Morning Greenhouse Boost',
-    conditionText: 'If soil moisture < 30% between 5:00-6:00 AM, run for 15 minutes',
+    name: 'Tăng cường nhà kính buổi sáng',
+    conditionText: 'Nếu độ ẩm đất < 30% từ 5:00-6:00 sáng, chạy trong 15 phút',
     enabled: true,
     createdAt: '2024-01-08T14:30:00Z',
   },
   {
     id: 'rule-3',
-    name: 'Hot Day Extension',
-    conditionText: 'If temperature > 85°F and soil moisture < 40%, extend run by 10 minutes',
+    name: 'Gia hạn ngày nóng',
+    conditionText: 'Nếu nhiệt độ > 85°F và độ ẩm đất < 40%, kéo dài thời gian chạy thêm 10 phút',
     enabled: true,
     createdAt: '2024-01-05T09:15:00Z',
   },
   {
     id: 'rule-4',
-    name: 'Rain Delay Protocol',
-    conditionText: 'If rain detected, delay next scheduled run by 4 hours',
+    name: 'Quy trình trì hoãn mưa',
+    conditionText: 'Nếu phát hiện mưa, trì hoãn lần chạy tiếp theo 4 giờ',
     enabled: true,
     createdAt: '2024-01-03T16:45:00Z',
   },
   {
     id: 'rule-5',
-    name: 'Weekend Light Watering',
-    conditionText: 'On weekends, reduce run time by 25% if soil moisture > 25%',
+    name: 'Tưới nhẹ cuối tuần',
+    conditionText: 'Vào cuối tuần, giảm thời gian chạy 25% nếu độ ẩm đất > 25%',
     enabled: false,
     createdAt: '2024-01-01T08:00:00Z',
   },
   {
     id: 'rule-6',
-    name: 'Nursery Gentle Care',
-    conditionText: 'For nursery zones, use mist setting if soil moisture < 50%',
+    name: 'Chăm sóc nhẹ nhàng vườn ươm',
+    conditionText: 'Đối với khu vườn ươm, sử dụng chế độ phun sương nếu độ ẩm đất < 50%',
     enabled: true,
     createdAt: '2023-12-28T11:20:00Z',
   },
   {
     id: 'rule-7',
-    name: 'Evening Efficiency',
-    conditionText: 'Between 7:00-9:00 PM, run only if moisture < 20%',
+    name: 'Hiệu quả buổi tối',
+    conditionText: 'Từ 7:00-9:00 tối, chỉ chạy nếu độ ẩm < 20%',
     enabled: true,
     createdAt: '2023-12-25T13:10:00Z',
   },
   {
     id: 'rule-8',
-    name: 'System Maintenance Mode',
-    conditionText: 'During maintenance hours (2:00-4:00 AM), pause all non-critical systems',
+    name: 'Chế độ bảo trì hệ thống',
+    conditionText: 'Trong giờ bảo trì (2:00-4:00 sáng), tạm dừng tất cả hệ thống không quan trọng',
     enabled: false,
     createdAt: '2023-12-20T15:30:00Z',
   },
   {
     id: 'rule-9',
-    name: 'Research Area Precision',
-    conditionText: 'In research zones, maintain moisture between 20-25% with 5-minute intervals',
+    name: 'Độ chính xác khu nghiên cứu',
+    conditionText: 'Trong khu nghiên cứu, duy trì độ ẩm từ 20-25% với khoảng cách 5 phút',
     enabled: true,
     createdAt: '2023-12-18T12:45:00Z',
   },
   {
     id: 'rule-10',
-    name: 'Energy Saving Schedule',
-    conditionText: 'During peak hours (12:00-4:00 PM), delay non-urgent irrigation by 2 hours',
+    name: 'Lịch tiết kiệm năng lượng',
+    conditionText: 'Trong giờ cao điểm (12:00-4:00 chiều), trì hoãn tưới không khẩn cấp 2 giờ',
     enabled: false,
     createdAt: '2023-12-15T10:15:00Z',
   },
@@ -429,8 +429,8 @@ export const products: Product[] = [
   {
     id: 'prod-1',
     sku: 'TOM-CHE-001',
-    name: 'Cherry Tomatoes',
-    category: 'Vegetables',
+    name: 'Cà chua bi',
+    category: 'Rau củ',
     price: 4.99,
     imageUrl: '/images/cherry-tomatoes.jpg',
     updatedAt: '2024-01-15T10:30:00Z',
@@ -438,8 +438,8 @@ export const products: Product[] = [
   {
     id: 'prod-2',
     sku: 'LET-ROM-002',
-    name: 'Romaine Lettuce',
-    category: 'Leafy Greens',
+    name: 'Rau diếp Romaine',
+    category: 'Rau lá xanh',
     price: 2.49,
     imageUrl: '/images/romaine-lettuce.jpg',
     updatedAt: '2024-01-14T14:20:00Z',
@@ -447,8 +447,8 @@ export const products: Product[] = [
   {
     id: 'prod-3',
     sku: 'HER-BAS-003',
-    name: 'Fresh Basil',
-    category: 'Herbs',
+    name: 'Húng quế tươi',
+    category: 'Rau thơm',
     price: 3.99,
     imageUrl: '/images/basil.jpg',
     updatedAt: '2024-01-15T09:15:00Z',
@@ -456,8 +456,8 @@ export const products: Product[] = [
   {
     id: 'prod-4',
     sku: 'PEP-BEL-004',
-    name: 'Bell Peppers',
-    category: 'Vegetables',
+    name: 'Ớt chuông',
+    category: 'Rau củ',
     price: 1.99,
     imageUrl: '/images/bell-peppers.jpg',
     updatedAt: '2024-01-13T16:45:00Z',
@@ -465,8 +465,8 @@ export const products: Product[] = [
   {
     id: 'prod-5',
     sku: 'CAR-ORG-005',
-    name: 'Organic Carrots',
-    category: 'Root Vegetables',
+    name: 'Cà rốt hữu cơ',
+    category: 'Rau củ',
     price: 3.49,
     imageUrl: '/images/carrots.jpg',
     updatedAt: '2024-01-15T11:00:00Z',
@@ -474,8 +474,8 @@ export const products: Product[] = [
   {
     id: 'prod-6',
     sku: 'SPI-ORG-006',
-    name: 'Organic Spinach',
-    category: 'Leafy Greens',
+    name: 'Rau bina hữu cơ',
+    category: 'Rau lá xanh',
     price: 2.99,
     imageUrl: '/images/spinach.jpg',
     updatedAt: '2024-01-14T08:30:00Z',
@@ -483,8 +483,8 @@ export const products: Product[] = [
   {
     id: 'prod-7',
     sku: 'CUC-GRE-007',
-    name: 'Green Cucumbers',
-    category: 'Vegetables',
+    name: 'Dưa chuột xanh',
+    category: 'Rau củ',
     price: 1.79,
     imageUrl: '/images/cucumbers.jpg',
     updatedAt: '2024-01-15T13:20:00Z',
@@ -492,8 +492,8 @@ export const products: Product[] = [
   {
     id: 'prod-8',
     sku: 'HER-PAR-008',
-    name: 'Fresh Parsley',
-    category: 'Herbs',
+    name: 'Mùi tây tươi',
+    category: 'Rau thơm',
     price: 2.99,
     imageUrl: '/images/parsley.jpg',
     updatedAt: '2024-01-12T15:10:00Z',
@@ -501,8 +501,8 @@ export const products: Product[] = [
   {
     id: 'prod-9',
     sku: 'RAD-RED-009',
-    name: 'Red Radishes',
-    category: 'Root Vegetables',
+    name: 'Củ cải đỏ',
+    category: 'Rau củ',
     price: 1.99,
     imageUrl: '/images/radishes.jpg',
     updatedAt: '2024-01-15T07:45:00Z',
@@ -510,8 +510,8 @@ export const products: Product[] = [
   {
     id: 'prod-10',
     sku: 'KAL-CUR-010',
-    name: 'Curly Kale',
-    category: 'Leafy Greens',
+    name: 'Cải xoăn',
+    category: 'Rau lá xanh',
     price: 3.49,
     imageUrl: '/images/kale.jpg',
     updatedAt: '2024-01-14T12:15:00Z',
@@ -519,8 +519,8 @@ export const products: Product[] = [
   {
     id: 'prod-11',
     sku: 'ZUC-GRE-011',
-    name: 'Green Zucchini',
-    category: 'Vegetables',
+    name: 'Bí xanh',
+    category: 'Rau củ',
     price: 2.29,
     imageUrl: '/images/zucchini.jpg',
     updatedAt: '2024-01-13T10:30:00Z',
@@ -528,8 +528,8 @@ export const products: Product[] = [
   {
     id: 'prod-12',
     sku: 'HER-CIL-012',
-    name: 'Fresh Cilantro',
-    category: 'Herbs',
+    name: 'Ngò tươi',
+    category: 'Rau thơm',
     price: 2.49,
     imageUrl: '/images/cilantro.jpg',
     updatedAt: '2024-01-15T14:50:00Z',
@@ -537,8 +537,8 @@ export const products: Product[] = [
   {
     id: 'prod-13',
     sku: 'EGG-PUR-013',
-    name: 'Purple Eggplant',
-    category: 'Vegetables',
+    name: 'Cà tím tím',
+    category: 'Rau củ',
     price: 3.99,
     imageUrl: '/images/eggplant.jpg',
     updatedAt: '2024-01-14T09:20:00Z',
@@ -546,8 +546,8 @@ export const products: Product[] = [
   {
     id: 'prod-14',
     sku: 'BEE-DET-014',
-    name: 'Detroit Beets',
-    category: 'Root Vegetables',
+    name: 'Củ dền Detroit',
+    category: 'Rau củ',
     price: 2.79,
     imageUrl: '/images/beets.jpg',
     updatedAt: '2024-01-15T16:10:00Z',
@@ -555,8 +555,8 @@ export const products: Product[] = [
   {
     id: 'prod-15',
     sku: 'ARU-ROC-015',
-    name: 'Rocket Arugula',
-    category: 'Leafy Greens',
+    name: 'Rau rocket',
+    category: 'Rau lá xanh',
     price: 3.99,
     imageUrl: '/images/arugula.jpg',
     updatedAt: '2024-01-13T11:40:00Z',
@@ -564,8 +564,8 @@ export const products: Product[] = [
   {
     id: 'prod-16',
     sku: 'HER-CHI-016',
-    name: 'Fresh Chives',
-    category: 'Herbs',
+    name: 'Hành lá tươi',
+    category: 'Rau thơm',
     price: 2.99,
     imageUrl: '/images/chives.jpg',
     updatedAt: '2024-01-15T08:25:00Z',
@@ -573,8 +573,8 @@ export const products: Product[] = [
   {
     id: 'prod-17',
     sku: 'BRO-GRE-017',
-    name: 'Green Broccoli',
-    category: 'Vegetables',
+    name: 'Bông cải xanh',
+    category: 'Rau củ',
     price: 2.99,
     imageUrl: '/images/broccoli.jpg',
     updatedAt: '2024-01-14T13:35:00Z',
@@ -582,8 +582,8 @@ export const products: Product[] = [
   {
     id: 'prod-18',
     sku: 'CAU-WHI-018',
-    name: 'White Cauliflower',
-    category: 'Vegetables',
+    name: 'Súp lơ trắng',
+    category: 'Rau củ',
     price: 3.49,
     imageUrl: '/images/cauliflower.jpg',
     updatedAt: '2024-01-15T12:50:00Z',
@@ -591,8 +591,8 @@ export const products: Product[] = [
   {
     id: 'prod-19',
     sku: 'HER-DIL-019',
-    name: 'Fresh Dill',
-    category: 'Herbs',
+    name: 'Thì là tươi',
+    category: 'Rau thơm',
     price: 2.79,
     imageUrl: '/images/dill.jpg',
     updatedAt: '2024-01-12T14:15:00Z',
@@ -600,8 +600,8 @@ export const products: Product[] = [
   {
     id: 'prod-20',
     sku: 'ONI-GRE-020',
-    name: 'Green Onions',
-    category: 'Vegetables',
+    name: 'Hành lá',
+    category: 'Rau củ',
     price: 1.99,
     imageUrl: '/images/green-onions.jpg',
     updatedAt: '2024-01-15T15:30:00Z',
@@ -609,8 +609,8 @@ export const products: Product[] = [
   {
     id: 'prod-21',
     sku: 'PEA-SNO-021',
-    name: 'Snow Peas',
-    category: 'Vegetables',
+    name: 'Đậu Hà Lan tuyết',
+    category: 'Rau củ',
     price: 4.49,
     imageUrl: '/images/snow-peas.jpg',
     updatedAt: '2024-01-14T10:45:00Z',
@@ -618,8 +618,8 @@ export const products: Product[] = [
   {
     id: 'prod-22',
     sku: 'HER-ORE-022',
-    name: 'Fresh Oregano',
-    category: 'Herbs',
+    name: 'Kinh giới tươi',
+    category: 'Rau thơm',
     price: 3.29,
     imageUrl: '/images/oregano.jpg',
     updatedAt: '2024-01-13T09:30:00Z',
@@ -627,8 +627,8 @@ export const products: Product[] = [
   {
     id: 'prod-23',
     sku: 'SWI-CHA-023',
-    name: 'Swiss Chard',
-    category: 'Leafy Greens',
+    name: 'Cải Thụy Sĩ',
+    category: 'Rau lá xanh',
     price: 3.79,
     imageUrl: '/images/swiss-chard.jpg',
     updatedAt: '2024-01-15T11:20:00Z',
@@ -636,8 +636,8 @@ export const products: Product[] = [
   {
     id: 'prod-24',
     sku: 'TUR-PUR-024',
-    name: 'Purple Turnips',
-    category: 'Root Vegetables',
+    name: 'Củ cải tím',
+    category: 'Rau củ',
     price: 2.49,
     imageUrl: '/images/turnips.jpg',
     updatedAt: '2024-01-14T15:55:00Z',
@@ -645,8 +645,8 @@ export const products: Product[] = [
   {
     id: 'prod-25',
     sku: 'HER-THY-025',
-    name: 'Fresh Thyme',
-    category: 'Herbs',
+    name: 'Húng tây tươi',
+    category: 'Rau thơm',
     price: 3.49,
     imageUrl: '/images/thyme.jpg',
     updatedAt: '2024-01-15T09:40:00Z',
@@ -654,8 +654,8 @@ export const products: Product[] = [
   {
     id: 'prod-26',
     sku: 'COL-GRE-026',
-    name: 'Collard Greens',
-    category: 'Leafy Greens',
+    name: 'Cải collard',
+    category: 'Rau lá xanh',
     price: 2.99,
     imageUrl: '/images/collard-greens.jpg',
     updatedAt: '2024-01-13T16:10:00Z',
@@ -663,8 +663,8 @@ export const products: Product[] = [
   {
     id: 'prod-27',
     sku: 'LEE-GIA-027',
-    name: 'Giant Leeks',
-    category: 'Vegetables',
+    name: 'Tỏi tây khổng lồ',
+    category: 'Rau củ',
     price: 4.99,
     imageUrl: '/images/leeks.jpg',
     updatedAt: '2024-01-15T14:25:00Z',
@@ -672,8 +672,8 @@ export const products: Product[] = [
   {
     id: 'prod-28',
     sku: 'HER-SAG-028',
-    name: 'Fresh Sage',
-    category: 'Herbs',
+    name: 'Cây xô thơm tươi',
+    category: 'Rau thơm',
     price: 3.99,
     imageUrl: '/images/sage.jpg',
     updatedAt: '2024-01-14T11:50:00Z',
@@ -681,8 +681,8 @@ export const products: Product[] = [
   {
     id: 'prod-29',
     sku: 'SQU-BUT-029',
-    name: 'Butternut Squash',
-    category: 'Vegetables',
+    name: 'Bí đỏ butternut',
+    category: 'Rau củ',
     price: 3.99,
     imageUrl: '/images/butternut-squash.jpg',
     updatedAt: '2024-01-15T10:15:00Z',
@@ -690,8 +690,8 @@ export const products: Product[] = [
   {
     id: 'prod-30',
     sku: 'HER-ROS-030',
-    name: 'Fresh Rosemary',
-    category: 'Herbs',
+    name: 'Hương thảo tươi',
+    category: 'Rau thơm',
     price: 3.79,
     imageUrl: '/images/rosemary.jpg',
     updatedAt: '2024-01-13T12:35:00Z',
@@ -699,8 +699,8 @@ export const products: Product[] = [
   {
     id: 'prod-31',
     sku: 'MUS-GRE-031',
-    name: 'Mustard Greens',
-    category: 'Leafy Greens',
+    name: 'Cải mù tạt',
+    category: 'Rau lá xanh',
     price: 2.79,
     imageUrl: '/images/mustard-greens.jpg',
     updatedAt: '2024-01-15T13:45:00Z',
@@ -708,8 +708,8 @@ export const products: Product[] = [
   {
     id: 'prod-32',
     sku: 'RUT-YEL-032',
-    name: 'Yellow Rutabaga',
-    category: 'Root Vegetables',
+    name: 'Củ cải vàng',
+    category: 'Rau củ',
     price: 2.99,
     imageUrl: '/images/rutabaga.jpg',
     updatedAt: '2024-01-14T07:20:00Z',
@@ -717,8 +717,8 @@ export const products: Product[] = [
   {
     id: 'prod-33',
     sku: 'HER-MIN-033',
-    name: 'Fresh Mint',
-    category: 'Herbs',
+    name: 'Bạc hà tươi',
+    category: 'Rau thơm',
     price: 2.99,
     imageUrl: '/images/mint.jpg',
     updatedAt: '2024-01-15T16:50:00Z',
@@ -726,8 +726,8 @@ export const products: Product[] = [
   {
     id: 'prod-34',
     sku: 'BOK-CHO-034',
-    name: 'Baby Bok Choy',
-    category: 'Leafy Greens',
+    name: 'Cải thìa non',
+    category: 'Rau lá xanh',
     price: 3.49,
     imageUrl: '/images/bok-choy.jpg',
     updatedAt: '2024-01-13T14:10:00Z',
@@ -735,8 +735,8 @@ export const products: Product[] = [
   {
     id: 'prod-35',
     sku: 'ASP-GRE-035',
-    name: 'Green Asparagus',
-    category: 'Vegetables',
+    name: 'Măng tây xanh',
+    category: 'Rau củ',
     price: 5.99,
     imageUrl: '/images/asparagus.jpg',
     updatedAt: '2024-01-15T08:40:00Z',
@@ -744,8 +744,8 @@ export const products: Product[] = [
   {
     id: 'prod-36',
     sku: 'HER-TAR-036',
-    name: 'Fresh Tarragon',
-    category: 'Herbs',
+    name: 'Ngải giấm tươi',
+    category: 'Rau thơm',
     price: 4.49,
     imageUrl: '/images/tarragon.jpg',
     updatedAt: '2024-01-14T12:25:00Z',
@@ -753,8 +753,8 @@ export const products: Product[] = [
   {
     id: 'prod-37',
     sku: 'FEN-BUL-037',
-    name: 'Fennel Bulbs',
-    category: 'Vegetables',
+    name: 'Củ thì là',
+    category: 'Rau củ',
     price: 3.79,
     imageUrl: '/images/fennel.jpg',
     updatedAt: '2024-01-15T11:55:00Z',
@@ -762,8 +762,8 @@ export const products: Product[] = [
   {
     id: 'prod-38',
     sku: 'HER-LAV-038',
-    name: 'Culinary Lavender',
-    category: 'Herbs',
+    name: 'Oải hương ẩm thực',
+    category: 'Rau thơm',
     price: 6.99,
     imageUrl: '/images/lavender.jpg',
     updatedAt: '2024-01-13T08:45:00Z',
@@ -771,8 +771,8 @@ export const products: Product[] = [
   {
     id: 'prod-39',
     sku: 'ART-GLO-039',
-    name: 'Globe Artichokes',
-    category: 'Vegetables',
+    name: 'Atisô cầu',
+    category: 'Rau củ',
     price: 7.99,
     imageUrl: '/images/artichokes.jpg',
     updatedAt: '2024-01-15T15:15:00Z',
@@ -780,8 +780,8 @@ export const products: Product[] = [
   {
     id: 'prod-40',
     sku: 'HER-LEM-040',
-    name: 'Lemon Balm',
-    category: 'Herbs',
+    name: 'Cây chanh dưỡng',
+    category: 'Rau thơm',
     price: 3.99,
     imageUrl: '/images/lemon-balm.jpg',
     updatedAt: '2024-01-14T09:50:00Z',
@@ -795,7 +795,7 @@ export const inventoryItems: InventoryItem[] = [
     stock: 45,
     minThreshold: 20,
     maxThreshold: 100,
-    qualityFlags: ['Organic', 'Fresh'],
+    qualityFlags: ['Hữu cơ', 'Tươi'],
     updatedAt: '2024-01-15T10:30:00Z',
   },
   {
@@ -804,7 +804,7 @@ export const inventoryItems: InventoryItem[] = [
     stock: 12, // Low stock
     minThreshold: 15,
     maxThreshold: 80,
-    qualityFlags: ['Organic'],
+    qualityFlags: ['Hữu cơ'],
     updatedAt: '2024-01-14T14:20:00Z',
   },
   {
@@ -813,7 +813,7 @@ export const inventoryItems: InventoryItem[] = [
     stock: 28,
     minThreshold: 10,
     maxThreshold: 50,
-    qualityFlags: ['Fresh', 'Local'],
+    qualityFlags: ['Tươi', 'Địa phương'],
     updatedAt: '2024-01-15T09:15:00Z',
   },
   {
@@ -822,7 +822,7 @@ export const inventoryItems: InventoryItem[] = [
     stock: 67,
     minThreshold: 25,
     maxThreshold: 120,
-    qualityFlags: ['Fresh'],
+    qualityFlags: ['Tươi'],
     updatedAt: '2024-01-13T16:45:00Z',
   },
   {
@@ -831,7 +831,7 @@ export const inventoryItems: InventoryItem[] = [
     stock: 8, // Low stock
     minThreshold: 12,
     maxThreshold: 60,
-    qualityFlags: ['Organic', 'Fresh'],
+    qualityFlags: ['Hữu cơ', 'Tươi'],
     updatedAt: '2024-01-15T11:00:00Z',
   },
   {
@@ -840,7 +840,7 @@ export const inventoryItems: InventoryItem[] = [
     stock: 34,
     minThreshold: 20,
     maxThreshold: 90,
-    qualityFlags: ['Organic', 'Local'],
+    qualityFlags: ['Hữu cơ', 'Địa phương'],
     updatedAt: '2024-01-14T08:30:00Z',
   },
   {
@@ -858,7 +858,7 @@ export const inventoryItems: InventoryItem[] = [
     stock: 19,
     minThreshold: 8,
     maxThreshold: 40,
-    qualityFlags: ['Fresh', 'Local'],
+    qualityFlags: ['Tươi', 'Địa phương'],
     updatedAt: '2024-01-12T15:10:00Z',
   },
   {
@@ -894,7 +894,7 @@ export const inventoryItems: InventoryItem[] = [
     stock: 16,
     minThreshold: 8,
     maxThreshold: 35,
-    qualityFlags: ['Fresh', 'Local'],
+    qualityFlags: ['Tươi', 'Địa phương'],
     updatedAt: '2024-01-15T14:50:00Z',
   },
   {
@@ -921,7 +921,7 @@ export const inventoryItems: InventoryItem[] = [
     stock: 22,
     minThreshold: 12,
     maxThreshold: 55,
-    qualityFlags: ['Organic', 'Fresh', 'Local'],
+    qualityFlags: ['Hữu cơ', 'Tươi', 'Địa phương'],
     updatedAt: '2024-01-13T11:40:00Z',
   },
   {
@@ -930,7 +930,7 @@ export const inventoryItems: InventoryItem[] = [
     stock: 11, // Low stock
     minThreshold: 12,
     maxThreshold: 30,
-    qualityFlags: ['Fresh', 'Local'],
+    qualityFlags: ['Tươi', 'Địa phương'],
     updatedAt: '2024-01-15T08:25:00Z',
   },
   {
@@ -957,7 +957,7 @@ export const inventoryItems: InventoryItem[] = [
     stock: 9, // Low stock
     minThreshold: 10,
     maxThreshold: 25,
-    qualityFlags: ['Fresh', 'Local'],
+    qualityFlags: ['Tươi', 'Địa phương'],
     updatedAt: '2024-01-12T14:15:00Z',
   },
   {
@@ -975,7 +975,7 @@ export const inventoryItems: InventoryItem[] = [
     stock: 18,
     minThreshold: 15,
     maxThreshold: 65,
-    qualityFlags: ['Fresh', 'Premium'],
+    qualityFlags: ['Tươi', 'Cao cấp'],
     updatedAt: '2024-01-14T10:45:00Z',
   },
   {
@@ -984,7 +984,7 @@ export const inventoryItems: InventoryItem[] = [
     stock: 15,
     minThreshold: 8,
     maxThreshold: 35,
-    qualityFlags: ['Organic', 'Fresh', 'Local'],
+    qualityFlags: ['Hữu cơ', 'Tươi', 'Địa phương'],
     updatedAt: '2024-01-13T09:30:00Z',
   },
   {
@@ -1011,7 +1011,7 @@ export const inventoryItems: InventoryItem[] = [
     stock: 13,
     minThreshold: 6,
     maxThreshold: 25,
-    qualityFlags: ['Fresh', 'Local'],
+    qualityFlags: ['Tươi', 'Địa phương'],
     updatedAt: '2024-01-15T09:40:00Z',
   },
   {
@@ -1029,7 +1029,7 @@ export const inventoryItems: InventoryItem[] = [
     stock: 8, // Low stock
     minThreshold: 10,
     maxThreshold: 35,
-    qualityFlags: ['Fresh', 'Premium'],
+    qualityFlags: ['Tươi', 'Cao cấp'],
     updatedAt: '2024-01-15T14:25:00Z',
   },
   {
@@ -1038,7 +1038,7 @@ export const inventoryItems: InventoryItem[] = [
     stock: 11,
     minThreshold: 5,
     maxThreshold: 20,
-    qualityFlags: ['Fresh', 'Local'],
+    qualityFlags: ['Tươi', 'Địa phương'],
     updatedAt: '2024-01-14T11:50:00Z',
   },
   {
@@ -1056,7 +1056,7 @@ export const inventoryItems: InventoryItem[] = [
     stock: 17,
     minThreshold: 8,
     maxThreshold: 30,
-    qualityFlags: ['Fresh', 'Local'],
+    qualityFlags: ['Tươi', 'Địa phương'],
     updatedAt: '2024-01-13T12:35:00Z',
   },
   {
@@ -1083,7 +1083,7 @@ export const inventoryItems: InventoryItem[] = [
     stock: 20,
     minThreshold: 8,
     maxThreshold: 35,
-    qualityFlags: ['Fresh', 'Local'],
+    qualityFlags: ['Tươi', 'Địa phương'],
     updatedAt: '2024-01-15T16:50:00Z',
   },
   {
@@ -1092,7 +1092,7 @@ export const inventoryItems: InventoryItem[] = [
     stock: 25,
     minThreshold: 15,
     maxThreshold: 60,
-    qualityFlags: ['Fresh', 'Premium'],
+    qualityFlags: ['Tươi', 'Cao cấp'],
     updatedAt: '2024-01-13T14:10:00Z',
   },
   {
@@ -1101,7 +1101,7 @@ export const inventoryItems: InventoryItem[] = [
     stock: 6, // Very low stock
     minThreshold: 8,
     maxThreshold: 30,
-    qualityFlags: ['Fresh', 'Premium'],
+    qualityFlags: ['Tươi', 'Cao cấp'],
     updatedAt: '2024-01-15T08:40:00Z',
   },
   {
@@ -1110,7 +1110,7 @@ export const inventoryItems: InventoryItem[] = [
     stock: 9,
     minThreshold: 5,
     maxThreshold: 18,
-    qualityFlags: ['Fresh', 'Local'],
+    qualityFlags: ['Tươi', 'Địa phương'],
     updatedAt: '2024-01-14T12:25:00Z',
   },
   {
@@ -1128,7 +1128,7 @@ export const inventoryItems: InventoryItem[] = [
     stock: 15,
     minThreshold: 5,
     maxThreshold: 25,
-    qualityFlags: ['Organic', 'Fresh', 'Premium'],
+    qualityFlags: ['Hữu cơ', 'Tươi', 'Cao cấp'],
     updatedAt: '2024-01-13T08:45:00Z',
   },
   {
@@ -1137,7 +1137,7 @@ export const inventoryItems: InventoryItem[] = [
     stock: 3, // Very low stock
     minThreshold: 5,
     maxThreshold: 20,
-    qualityFlags: ['Fresh', 'Premium'],
+    qualityFlags: ['Tươi', 'Cao cấp'],
     updatedAt: '2024-01-15T15:15:00Z',
   },
   {
@@ -1146,7 +1146,7 @@ export const inventoryItems: InventoryItem[] = [
     stock: 16,
     minThreshold: 8,
     maxThreshold: 30,
-    qualityFlags: ['Fresh', 'Local'],
+    qualityFlags: ['Tươi', 'Địa phương'],
     updatedAt: '2024-01-14T09:50:00Z',
   },
 ]
@@ -1200,15 +1200,15 @@ export const reportSummary: ReportSummary = {
 }
 
 // =======================================================
-// ADMIN & STAFF FIXTURES - EXTENSIVE DATA
+// DỮ LIỆU ADMIN & NHÂN VIÊN - DỮ LIỆU MỞ RỘNG
 // =======================================================
 
-// Users for Admin Management
+// Người dùng cho Quản lý Admin
 export const users: User[] = [
   {
     id: 'user-1',
-    name: 'John Smith',
-    email: 'john.smith@farm.com',
+    name: 'Nguyễn Văn Nam',
+    email: 'nguyen.van.nam@farm.com',
     roles: ['ADMIN'],
     status: 'Active',
     lastLogin: '2024-01-15T09:30:00Z',
@@ -1217,8 +1217,8 @@ export const users: User[] = [
   },
   {
     id: 'user-2',
-    name: 'Sarah Johnson',
-    email: 'sarah.johnson@farm.com',
+    name: 'Trần Thị Lan',
+    email: 'tran.thi.lan@farm.com',
     roles: ['MANAGER'],
     status: 'Active',
     lastLogin: '2024-01-15T14:20:00Z',
@@ -1227,8 +1227,8 @@ export const users: User[] = [
   },
   {
     id: 'user-3',
-    name: 'Mike Wilson',
-    email: 'mike.wilson@farm.com',
+    name: 'Lê Minh Tuấn',
+    email: 'le.minh.tuan@farm.com',
     roles: ['STAFF', 'OPERATOR'],
     status: 'Active',
     lastLogin: '2024-01-15T07:45:00Z',
@@ -1237,8 +1237,8 @@ export const users: User[] = [
   },
   {
     id: 'user-4',
-    name: 'Emily Chen',
-    email: 'emily.chen@farm.com',
+    name: 'Phạm Thị Hoa',
+    email: 'pham.thi.hoa@farm.com',
     roles: ['STAFF'],
     status: 'Active',
     lastLogin: '2024-01-15T16:10:00Z',
@@ -1247,8 +1247,8 @@ export const users: User[] = [
   },
   {
     id: 'user-5',
-    name: 'David Rodriguez',
-    email: 'david.rodriguez@farm.com',
+    name: 'Hoàng Văn Đức',
+    email: 'hoang.van.duc@farm.com',
     roles: ['MANAGER', 'OPERATOR'],
     status: 'Active',
     lastLogin: '2024-01-14T18:30:00Z',
@@ -1257,7 +1257,7 @@ export const users: User[] = [
   },
   {
     id: 'user-6',
-    name: 'Lisa Thompson',
+    name: 'Vũ Thị Mai',
     email: 'lisa.thompson@farm.com',
     roles: ['STAFF'],
     status: 'Inactive',
@@ -1267,7 +1267,7 @@ export const users: User[] = [
   },
   {
     id: 'user-7',
-    name: 'James Anderson',
+    name: 'Đặng Văn Hùng',
     email: 'james.anderson@farm.com',
     roles: ['VIEWER'],
     status: 'Active',
@@ -1277,7 +1277,7 @@ export const users: User[] = [
   },
   {
     id: 'user-8',
-    name: 'Maria Garcia',
+    name: 'Bùi Thị Nga',
     email: 'maria.garcia@farm.com',
     roles: ['STAFF', 'VIEWER'],
     status: 'Active',
@@ -1287,7 +1287,7 @@ export const users: User[] = [
   },
   {
     id: 'user-9',
-    name: 'Robert Lee',
+    name: 'Ngô Văn Long',
     email: 'robert.lee@farm.com',
     roles: ['OPERATOR'],
     status: 'Active',
@@ -1297,7 +1297,7 @@ export const users: User[] = [
   },
   {
     id: 'user-10',
-    name: 'Anna Martinez',
+    name: 'Lý Thị Minh',
     email: 'anna.martinez@farm.com',
     roles: ['MANAGER'],
     status: 'Active',
@@ -1307,7 +1307,7 @@ export const users: User[] = [
   },
   {
     id: 'user-11',
-    name: 'Thomas Brown',
+    name: 'Võ Văn Tài',
     email: 'thomas.brown@farm.com',
     roles: ['STAFF'],
     status: 'Inactive',
@@ -1317,7 +1317,7 @@ export const users: User[] = [
   },
   {
     id: 'user-12',
-    name: 'Jennifer White',
+    name: 'Đinh Thị Hương',
     email: 'jennifer.white@farm.com',
     roles: ['ADMIN', 'MANAGER'],
     status: 'Active',
@@ -1327,7 +1327,7 @@ export const users: User[] = [
   },
   {
     id: 'user-13',
-    name: 'Kevin Davis',
+    name: 'Cao Văn Quang',
     email: 'kevin.davis@farm.com',
     roles: ['OPERATOR', 'VIEWER'],
     status: 'Active',
@@ -1337,7 +1337,7 @@ export const users: User[] = [
   },
   {
     id: 'user-14',
-    name: 'Michelle Taylor',
+    name: 'Lưu Thị Linh',
     email: 'michelle.taylor@farm.com',
     roles: ['STAFF'],
     status: 'Active',
@@ -1347,7 +1347,7 @@ export const users: User[] = [
   },
   {
     id: 'user-15',
-    name: 'Christopher Moore',
+    name: 'Tôn Văn Minh',
     email: 'christopher.moore@farm.com',
     roles: ['VIEWER'],
     status: 'Active',
@@ -1357,86 +1357,86 @@ export const users: User[] = [
   },
 ]
 
-// Permissions for Role Management
+// Quyền hạn cho Quản lý Vai trò
 export const permissions: Permission[] = [
   {
     id: 'perm-1',
-    name: 'User Management',
-    description: 'Manage system users',
+    name: 'Quản lý Người dùng',
+    description: 'Quản lý người dùng hệ thống',
     resource: 'users',
     actions: ['create', 'read', 'update', 'delete'],
   },
   {
     id: 'perm-2',
-    name: 'Role Management',
-    description: 'Manage user roles and permissions',
+    name: 'Quản lý Vai trò',
+    description: 'Quản lý vai trò và quyền hạn người dùng',
     resource: 'roles',
     actions: ['create', 'read', 'update', 'delete'],
   },
   {
     id: 'perm-3',
-    name: 'System Settings',
-    description: 'Configure system settings',
+    name: 'Cài đặt Hệ thống',
+    description: 'Cấu hình cài đặt hệ thống',
     resource: 'settings',
     actions: ['read', 'update'],
   },
   {
     id: 'perm-4',
-    name: 'Device Operations',
-    description: 'Control irrigation devices',
+    name: 'Vận hành Thiết bị',
+    description: 'Điều khiển thiết bị tưới tiêu',
     resource: 'devices',
     actions: ['read', 'update'],
   },
   {
     id: 'perm-5',
-    name: 'Inventory Management',
-    description: 'Manage products and inventory',
+    name: 'Quản lý Kho hàng',
+    description: 'Quản lý sản phẩm và kho hàng',
     resource: 'inventory',
     actions: ['create', 'read', 'update', 'delete'],
   },
   {
     id: 'perm-6',
-    name: 'Reports Access',
-    description: 'View system reports',
+    name: 'Truy cập Báo cáo',
+    description: 'Xem báo cáo hệ thống',
     resource: 'reports',
     actions: ['read'],
   },
   {
     id: 'perm-7',
-    name: 'Work Logs',
-    description: 'Manage work logs and tasks',
+    name: 'Nhật ký Công việc',
+    description: 'Quản lý nhật ký công việc và nhiệm vụ',
     resource: 'work-logs',
     actions: ['create', 'read', 'update', 'delete'],
   },
   {
     id: 'perm-8',
-    name: 'Quality Checks',
-    description: 'Perform and manage quality checks',
+    name: 'Kiểm tra Chất lượng',
+    description: 'Thực hiện và quản lý kiểm tra chất lượng',
     resource: 'quality-checks',
     actions: ['create', 'read', 'update', 'delete'],
   },
   {
     id: 'perm-9',
-    name: 'Schedule Management',
-    description: 'Manage irrigation schedules',
+    name: 'Quản lý Lịch trình',
+    description: 'Quản lý lịch trình tưới tiêu',
     resource: 'schedules',
     actions: ['create', 'read', 'update', 'delete'],
   },
   {
     id: 'perm-10',
-    name: 'Rule Configuration',
-    description: 'Configure irrigation rules',
+    name: 'Cấu hình Quy tắc',
+    description: 'Cấu hình quy tắc tưới tiêu',
     resource: 'rules',
     actions: ['create', 'read', 'update', 'delete'],
   },
 ]
 
-// Roles for Role Management
+// Vai trò cho Quản lý Vai trò
 export const roles: Role[] = [
   {
     id: 'role-1',
     name: 'ADMIN',
-    description: 'Full system administrator with all permissions',
+    description: 'Quản trị viên hệ thống đầy đủ với tất cả quyền hạn',
     permissions: [
       'perm-1',
       'perm-2',
@@ -1455,7 +1455,7 @@ export const roles: Role[] = [
   {
     id: 'role-2',
     name: 'MANAGER',
-    description: 'Farm manager with operational control',
+    description: 'Quản lý trang trại với quyền kiểm soát vận hành',
     permissions: ['perm-4', 'perm-5', 'perm-6', 'perm-7', 'perm-8', 'perm-9', 'perm-10'],
     createdAt: '2024-01-01T00:00:00Z',
     updatedAt: '2024-01-10T15:30:00Z',
@@ -1463,7 +1463,7 @@ export const roles: Role[] = [
   {
     id: 'role-3',
     name: 'STAFF',
-    description: 'Field staff with limited operational access',
+    description: 'Nhân viên hiện trường với quyền truy cập vận hành hạn chế',
     permissions: ['perm-4', 'perm-7', 'perm-8'],
     createdAt: '2024-01-01T00:00:00Z',
     updatedAt: '2024-01-05T12:20:00Z',
@@ -1471,7 +1471,7 @@ export const roles: Role[] = [
   {
     id: 'role-4',
     name: 'VIEWER',
-    description: 'Read-only access to reports and system status',
+    description: 'Quyền truy cập chỉ đọc báo cáo và trạng thái hệ thống',
     permissions: ['perm-6'],
     createdAt: '2024-01-01T00:00:00Z',
     updatedAt: '2024-01-01T00:00:00Z',
@@ -1479,7 +1479,7 @@ export const roles: Role[] = [
   {
     id: 'role-5',
     name: 'OPERATOR',
-    description: 'Device operator with control permissions',
+    description: 'Người vận hành thiết bị với quyền điều khiển',
     permissions: ['perm-4', 'perm-6', 'perm-9'],
     createdAt: '2024-01-02T00:00:00Z',
     updatedAt: '2024-01-08T14:45:00Z',
@@ -1487,7 +1487,7 @@ export const roles: Role[] = [
   {
     id: 'role-6',
     name: 'QUALITY_INSPECTOR',
-    description: 'Specialized role for quality control processes',
+    description: 'Vai trò chuyên biệt cho quy trình kiểm soát chất lượng',
     permissions: ['perm-6', 'perm-8'],
     createdAt: '2024-01-03T00:00:00Z',
     updatedAt: '2024-01-12T09:15:00Z',
@@ -1495,17 +1495,17 @@ export const roles: Role[] = [
   {
     id: 'role-7',
     name: 'MAINTENANCE_TECH',
-    description: 'Technical maintenance role for devices',
+    description: 'Vai trò bảo trì kỹ thuật cho thiết bị',
     permissions: ['perm-4', 'perm-7'],
     createdAt: '2024-01-04T00:00:00Z',
     updatedAt: '2024-01-04T00:00:00Z',
   },
 ]
 
-// System Settings
+// Cài đặt Hệ thống
 export const systemSettings: SystemSettings = {
   general: {
-    systemName: 'IFMS - Integrated Farm Management System',
+    systemName: 'IFMS - Hệ thống Quản lý Trang trại Tích hợp',
     primaryColor: '#16a34a', // green-600
     logoUrl: '/images/ifms-logo.png',
   },
@@ -1525,12 +1525,12 @@ export const systemSettings: SystemSettings = {
   updatedAt: '2024-01-15T10:30:00Z',
 }
 
-// Staff Devices for Operations
+// Thiết bị Nhân viên cho Vận hành
 export const staffDevices: StaffDevice[] = [
   {
     id: 'staff-dev-1',
-    name: 'Greenhouse A1 Sprinkler',
-    zone: 'Zone A - Greenhouse 1',
+    name: 'Hệ thống phun nước Nhà kính A1',
+    zone: 'Khu A - Nhà kính 1',
     status: 'Running',
     lastAction: '2024-01-15T14:30:00Z',
     nextSchedule: '2024-01-16T06:00:00Z',
@@ -1539,8 +1539,8 @@ export const staffDevices: StaffDevice[] = [
   },
   {
     id: 'staff-dev-2',
-    name: 'Field B2 Drip System',
-    zone: 'Zone B - Outdoor Field',
+    name: 'Hệ thống nhỏ giọt Cánh đồng B2',
+    zone: 'Khu B - Cánh đồng ngoài trời',
     status: 'Idle',
     lastAction: '2024-01-15T08:15:00Z',
     nextSchedule: '2024-01-16T08:00:00Z',
@@ -1550,8 +1550,8 @@ export const staffDevices: StaffDevice[] = [
   },
   {
     id: 'staff-dev-3',
-    name: 'Nursery C1 Mist System',
-    zone: 'Zone C - Nursery',
+    name: 'Hệ thống phun sương Vườn ươm C1',
+    zone: 'Khu C - Vườn ươm',
     status: 'Paused',
     lastAction: '2024-01-15T12:20:00Z',
     nextSchedule: '2024-01-15T18:00:00Z',
@@ -1560,8 +1560,8 @@ export const staffDevices: StaffDevice[] = [
   },
   {
     id: 'staff-dev-4',
-    name: 'Research Area D1 Precision Drip',
-    zone: 'Zone D - Research Area',
+    name: 'Hệ thống nhỏ giọt chính xác Khu nghiên cứu D1',
+    zone: 'Khu D - Khu nghiên cứu',
     status: 'Running',
     lastAction: '2024-01-15T15:45:00Z',
     nextSchedule: null,
@@ -1571,8 +1571,8 @@ export const staffDevices: StaffDevice[] = [
   },
   {
     id: 'staff-dev-5',
-    name: 'Field E1 Smart Sprinkler',
-    zone: 'Zone E - Field Extension',
+    name: 'Hệ thống phun nước thông minh Cánh đồng E1',
+    zone: 'Khu E - Mở rộng Cánh đồng',
     status: 'Maintenance',
     lastAction: '2024-01-14T16:30:00Z',
     nextSchedule: null,
@@ -1582,8 +1582,8 @@ export const staffDevices: StaffDevice[] = [
   },
   {
     id: 'staff-dev-6',
-    name: 'Greenhouse F1 Hydroponic System',
-    zone: 'Zone F - Hydroponic Greenhouse',
+    name: 'Hệ thống Thủy canh Nhà kính F1',
+    zone: 'Khu F - Nhà kính Thủy canh',
     status: 'Running',
     lastAction: '2024-01-15T13:10:00Z',
     nextSchedule: '2024-01-15T19:00:00Z',
@@ -1592,8 +1592,8 @@ export const staffDevices: StaffDevice[] = [
   },
   {
     id: 'staff-dev-7',
-    name: 'Storage G1 Climate Control',
-    zone: 'Zone G - Cold Storage',
+    name: 'Điều khiển Khí hậu Kho G1',
+    zone: 'Khu G - Kho lạnh',
     status: 'Running',
     lastAction: '2024-01-15T11:30:00Z',
     nextSchedule: '2024-01-15T17:30:00Z',
@@ -1602,8 +1602,8 @@ export const staffDevices: StaffDevice[] = [
   },
   {
     id: 'staff-dev-8',
-    name: 'Seedling H1 Irrigation',
-    zone: 'Zone H - Seedling Area',
+    name: 'Tưới tiêu Cây giống H1',
+    zone: 'Khu H - Khu Cây giống',
     status: 'Idle',
     lastAction: '2024-01-15T09:45:00Z',
     nextSchedule: '2024-01-16T07:00:00Z',
@@ -1613,13 +1613,13 @@ export const staffDevices: StaffDevice[] = [
   },
 ]
 
-// Work Logs for Staff
+// Nhật ký Công việc cho Nhân viên
 export const workLogs: WorkLog[] = [
   {
     id: 'log-1',
     date: '2024-01-15T14:30:00Z',
     taskType: 'Irrigation',
-    notes: 'Started morning irrigation cycle for greenhouse A1. System running normally.',
+    notes: 'Bắt đầu chu trình tưới buổi sáng cho nhà kính A1. Hệ thống hoạt động bình thường.',
     deviceId: 'staff-dev-1',
     duration: 45,
     createdBy: 'user-3',
@@ -1630,7 +1630,7 @@ export const workLogs: WorkLog[] = [
     id: 'log-2',
     date: '2024-01-15T08:15:00Z',
     taskType: 'Maintenance',
-    notes: 'Performed routine filter cleaning on drip system B2. No issues found.',
+    notes: 'Thực hiện vệ sinh bộ lọc định kỳ cho hệ thống nhỏ giọt B2. Không phát hiện vấn đề.',
     deviceId: 'staff-dev-2',
     duration: 30,
     createdBy: 'user-4',
@@ -1641,7 +1641,7 @@ export const workLogs: WorkLog[] = [
     id: 'log-3',
     date: '2024-01-15T12:00:00Z',
     taskType: 'Fertilization',
-    notes: 'Applied organic fertilizer to tomato plants in greenhouse section A2.',
+    notes: 'Áp dụng phân hữu cơ cho cây cà chua trong khu nhà kính A2.',
     duration: 60,
     createdBy: 'user-8',
     createdAt: '2024-01-15T13:00:00Z',
@@ -1651,7 +1651,7 @@ export const workLogs: WorkLog[] = [
     id: 'log-4',
     date: '2024-01-15T10:30:00Z',
     taskType: 'Pest Control',
-    notes: 'Sprayed bio-pesticide on lettuce crop. Aphid population controlled.',
+    notes: 'Phun thuốc trừ sâu sinh học lên cây rau diếp. Đã kiểm soát được quần thể rệp.',
     duration: 40,
     createdBy: 'user-14',
     createdAt: '2024-01-15T11:10:00Z',
@@ -1661,7 +1661,7 @@ export const workLogs: WorkLog[] = [
     id: 'log-5',
     date: '2024-01-15T07:00:00Z',
     taskType: 'Harvesting',
-    notes: 'Harvested 15kg of cherry tomatoes from greenhouse A1. Quality excellent.',
+    notes: 'Thu hoạch 15kg cà chua bi từ nhà kính A1. Chất lượng xuất sắc.',
     duration: 90,
     createdBy: 'user-3',
     createdAt: '2024-01-15T08:30:00Z',
@@ -1824,24 +1824,24 @@ export const workLogs: WorkLog[] = [
   },
 ]
 
-// Quality Checks for Staff
+// Kiểm tra Chất lượng cho Nhân viên
 export const qualityChecks: QualityCheck[] = [
   {
     id: 'qc-1',
     productBatchId: 'batch-2024-001',
-    productName: 'Cherry Tomatoes',
+    productName: 'Cà chua bi',
     checkedDate: '2024-01-15T14:20:00Z',
     checkedBy: 'user-14',
     items: [
-      { id: 'qci-1', name: 'Color consistency', passed: true },
-      { id: 'qci-2', name: 'Size uniformity', passed: true },
-      { id: 'qci-3', name: 'Firmness test', passed: true },
-      { id: 'qci-4', name: 'Pest damage check', passed: true },
+      { id: 'qci-1', name: 'Tính nhất quán màu sắc', passed: true },
+      { id: 'qci-2', name: 'Tính đồng nhất kích thước', passed: true },
+      { id: 'qci-3', name: 'Kiểm tra độ cứng', passed: true },
+      { id: 'qci-4', name: 'Kiểm tra hư hại sâu bệnh', passed: true },
       {
         id: 'qci-5',
-        name: 'Brix sugar content',
+        name: 'Hàm lượng đường Brix',
         passed: true,
-        comments: '8.5° Brix - excellent sweetness',
+        comments: '8.5° Brix - độ ngọt xuất sắc',
       },
     ],
     overallStatus: 'Pass',
@@ -1851,7 +1851,7 @@ export const qualityChecks: QualityCheck[] = [
   {
     id: 'qc-2',
     productBatchId: 'batch-2024-002',
-    productName: 'Romaine Lettuce',
+    productName: 'Rau diếp Romaine',
     checkedDate: '2024-01-15T11:45:00Z',
     checkedBy: 'user-8',
     items: [
@@ -1872,7 +1872,7 @@ export const qualityChecks: QualityCheck[] = [
   {
     id: 'qc-3',
     productBatchId: 'batch-2024-003',
-    productName: 'Fresh Basil',
+    productName: 'Húng quế tươi',
     checkedDate: '2024-01-15T09:30:00Z',
     checkedBy: 'user-4',
     items: [
@@ -1893,7 +1893,7 @@ export const qualityChecks: QualityCheck[] = [
   {
     id: 'qc-4',
     productBatchId: 'batch-2024-004',
-    productName: 'Bell Peppers',
+    productName: 'Ớt chuông',
     checkedDate: '2024-01-14T16:15:00Z',
     checkedBy: 'user-14',
     items: [
@@ -1915,7 +1915,7 @@ export const qualityChecks: QualityCheck[] = [
   {
     id: 'qc-5',
     productBatchId: 'batch-2024-005',
-    productName: 'Organic Carrots',
+    productName: 'Cà rốt hữu cơ',
     checkedDate: '2024-01-14T13:10:00Z',
     checkedBy: 'user-8',
     items: [
@@ -1937,7 +1937,7 @@ export const qualityChecks: QualityCheck[] = [
   {
     id: 'qc-6',
     productBatchId: 'batch-2024-006',
-    productName: 'Organic Spinach',
+    productName: 'Rau bina hữu cơ',
     checkedDate: '2024-01-14T10:25:00Z',
     checkedBy: 'user-4',
     items: [
@@ -1953,7 +1953,7 @@ export const qualityChecks: QualityCheck[] = [
   {
     id: 'qc-7',
     productBatchId: 'batch-2024-007',
-    productName: 'Green Cucumbers',
+    productName: 'Dưa chuột xanh',
     checkedDate: '2024-01-13T15:40:00Z',
     checkedBy: 'user-14',
     items: [
@@ -1974,7 +1974,7 @@ export const qualityChecks: QualityCheck[] = [
   {
     id: 'qc-8',
     productBatchId: 'batch-2024-008',
-    productName: 'Fresh Parsley',
+    productName: 'Mùi tây tươi',
     checkedDate: '2024-01-13T12:30:00Z',
     checkedBy: 'user-8',
     items: [
@@ -1990,7 +1990,7 @@ export const qualityChecks: QualityCheck[] = [
   {
     id: 'qc-9',
     productBatchId: 'batch-2024-009',
-    productName: 'Red Radishes',
+    productName: 'Củ cải đỏ',
     checkedDate: '2024-01-13T09:15:00Z',
     checkedBy: 'user-4',
     items: [
@@ -2011,7 +2011,7 @@ export const qualityChecks: QualityCheck[] = [
   {
     id: 'qc-10',
     productBatchId: 'batch-2024-010',
-    productName: 'Curly Kale',
+    productName: 'Cải xoăn',
     checkedDate: '2024-01-12T14:50:00Z',
     checkedBy: 'user-14',
     items: [
@@ -2027,7 +2027,7 @@ export const qualityChecks: QualityCheck[] = [
   {
     id: 'qc-11',
     productBatchId: 'batch-2024-011',
-    productName: 'Green Zucchini',
+    productName: 'Bí xanh',
     checkedDate: '2024-01-12T11:20:00Z',
     checkedBy: 'user-8',
     items: [
@@ -2043,7 +2043,7 @@ export const qualityChecks: QualityCheck[] = [
   {
     id: 'qc-12',
     productBatchId: 'batch-2024-012',
-    productName: 'Fresh Cilantro',
+    productName: 'Ngò tươi',
     checkedDate: '2024-01-11T16:35:00Z',
     checkedBy: 'user-4',
     items: [
@@ -2063,7 +2063,7 @@ export const qualityChecks: QualityCheck[] = [
   {
     id: 'qc-13',
     productBatchId: 'batch-2024-013',
-    productName: 'Purple Eggplant',
+    productName: 'Cà tím tím',
     checkedDate: '2024-01-11T13:45:00Z',
     checkedBy: 'user-14',
     items: [
@@ -2084,7 +2084,7 @@ export const qualityChecks: QualityCheck[] = [
   {
     id: 'qc-14',
     productBatchId: 'batch-2024-014',
-    productName: 'Detroit Beets',
+    productName: 'Củ dền Detroit',
     checkedDate: '2024-01-11T10:10:00Z',
     checkedBy: 'user-8',
     items: [
@@ -2105,7 +2105,7 @@ export const qualityChecks: QualityCheck[] = [
   {
     id: 'qc-15',
     productBatchId: 'batch-2024-015',
-    productName: 'Rocket Arugula',
+    productName: 'Rau rocket',
     checkedDate: '2024-01-10T15:25:00Z',
     checkedBy: 'user-4',
     items: [
@@ -2125,7 +2125,7 @@ export const qualityChecks: QualityCheck[] = [
   {
     id: 'qc-16',
     productBatchId: 'batch-2024-016',
-    productName: 'Fresh Chives',
+    productName: 'Hành lá tươi',
     checkedDate: '2024-01-10T12:40:00Z',
     checkedBy: 'user-14',
     items: [
@@ -2140,7 +2140,7 @@ export const qualityChecks: QualityCheck[] = [
   {
     id: 'qc-17',
     productBatchId: 'batch-2024-017',
-    productName: 'Green Broccoli',
+    productName: 'Bông cải xanh',
     checkedDate: '2024-01-09T14:15:00Z',
     checkedBy: 'user-8',
     items: [
@@ -2156,7 +2156,7 @@ export const qualityChecks: QualityCheck[] = [
   {
     id: 'qc-18',
     productBatchId: 'batch-2024-018',
-    productName: 'White Cauliflower',
+    productName: 'Súp lơ trắng',
     checkedDate: '2024-01-09T11:30:00Z',
     checkedBy: 'user-4',
     items: [
@@ -2177,7 +2177,7 @@ export const qualityChecks: QualityCheck[] = [
   {
     id: 'qc-19',
     productBatchId: 'batch-2024-019',
-    productName: 'Fresh Dill',
+    productName: 'Thì là tươi',
     checkedDate: '2024-01-08T16:20:00Z',
     checkedBy: 'user-14',
     items: [
@@ -2197,7 +2197,7 @@ export const qualityChecks: QualityCheck[] = [
   {
     id: 'qc-20',
     productBatchId: 'batch-2024-020',
-    productName: 'Green Onions',
+    productName: 'Hành lá',
     checkedDate: '2024-01-08T13:50:00Z',
     checkedBy: 'user-8',
     items: [

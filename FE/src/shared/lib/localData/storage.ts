@@ -58,7 +58,7 @@ export const storage = {
 
   clear(): void {
     try {
-      Object.values(STORAGE_KEYS).forEach((key) => {
+      Object.values(STORAGE_KEYS).forEach(key => {
         localStorage.removeItem(key)
       })
     } catch {
@@ -89,7 +89,7 @@ export const userPreferences = {
 // Simulation utilities
 export const simulateLatency = (min: number = 200, max: number = 600): Promise<void> => {
   const delay = Math.floor(Math.random() * (max - min + 1)) + min
-  return new Promise((resolve) => setTimeout(resolve, delay))
+  return new Promise(resolve => setTimeout(resolve, delay))
 }
 
 export const simulateError = (errorRate: number = 0.1): boolean => {
@@ -103,9 +103,9 @@ export const exportToCSV = (data: any[], filename: string): void => {
   const headers = Object.keys(data[0])
   const csvContent = [
     headers.join(','),
-    ...data.map((row) =>
+    ...data.map(row =>
       headers
-        .map((header) => {
+        .map(header => {
           const value = row[header]
           // Escape quotes and wrap in quotes if contains comma or quote
           if (typeof value === 'string' && (value.includes(',') || value.includes('"'))) {
@@ -120,11 +120,11 @@ export const exportToCSV = (data: any[], filename: string): void => {
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
   const link = document.createElement('a')
   const url = URL.createObjectURL(blob)
-  
+
   link.setAttribute('href', url)
   link.setAttribute('download', filename)
   link.style.visibility = 'hidden'
-  
+
   document.body.appendChild(link)
   link.click()
   document.body.removeChild(link)
@@ -132,15 +132,19 @@ export const exportToCSV = (data: any[], filename: string): void => {
 
 // Date/time utilities for the local data
 export const formatDate = (date: string | Date): string => {
-  return new Date(date).toLocaleDateString()
+  return new Date(date).toLocaleDateString('vi-VN')
 }
 
 export const formatDateTime = (date: string | Date): string => {
-  return new Date(date).toLocaleString()
+  return new Date(date).toLocaleString('vi-VN')
 }
 
 export const formatTime = (date: string | Date): string => {
-  return new Date(date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  return new Date(date).toLocaleTimeString('vi-VN', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  })
 }
 
 export const isToday = (date: string | Date): boolean => {
@@ -164,4 +168,3 @@ export const addDays = (date: string | Date, days: number): Date => {
   result.setDate(result.getDate() + days)
   return result
 }
-

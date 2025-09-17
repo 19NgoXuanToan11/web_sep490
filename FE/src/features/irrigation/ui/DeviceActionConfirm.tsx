@@ -32,30 +32,30 @@ export function DeviceActionConfirm({
   const actionConfig = {
     start: {
       icon: <Play className="h-5 w-5" />,
-      title: 'Start Device',
-      description: `Are you sure you want to start ${device.name}? This will begin the irrigation cycle according to the configured schedule.`,
-      confirmText: 'Start Device',
+      title: 'Khởi động thiết bị',
+      description: `Bạn có chắc muốn khởi động ${device.name}? Chu kỳ tưới sẽ bắt đầu theo lịch đã cấu hình.`,
+      confirmText: 'Khởi động',
       confirmVariant: 'default' as const,
     },
     stop: {
       icon: <Square className="h-5 w-5" />,
-      title: 'Stop Device',
-      description: `Are you sure you want to stop ${device.name}? This will immediately halt any active irrigation.`,
-      confirmText: 'Stop Device',
+      title: 'Dừng thiết bị',
+      description: `Bạn có chắc muốn dừng ${device.name}? Hệ thống sẽ dừng mọi hoạt động tưới đang diễn ra.`,
+      confirmText: 'Dừng',
       confirmVariant: 'destructive' as const,
     },
     pause: {
       icon: <Pause className="h-5 w-5" />,
-      title: 'Pause Device',
-      description: `Are you sure you want to pause ${device.name}? The irrigation cycle can be resumed later.`,
-      confirmText: 'Pause Device',
+      title: 'Tạm dừng thiết bị',
+      description: `Bạn có chắc muốn tạm dừng ${device.name}? Có thể tiếp tục lại sau.`,
+      confirmText: 'Tạm dừng',
       confirmVariant: 'outline' as const,
     },
     'run-now': {
       icon: <Zap className="h-5 w-5" />,
-      title: 'Run Device Now',
-      description: `Are you sure you want to run ${device.name} immediately? This will start an unscheduled irrigation cycle.`,
-      confirmText: 'Run Now',
+      title: 'Chạy ngay',
+      description: `Bạn có chắc muốn cho ${device.name} chạy ngay? Điều này sẽ bắt đầu một chu kỳ tưới ngoài lịch.`,
+      confirmText: 'Chạy ngay',
       confirmVariant: 'secondary' as const,
     },
   }
@@ -82,7 +82,13 @@ export function DeviceActionConfirm({
               <div className="flex items-center gap-2 mt-1">
                 <span className="text-sm text-muted-foreground">{device.zone}</span>
                 <Badge variant="outline" className="text-xs">
-                  {device.status}
+                  {device.status === 'Running'
+                    ? 'Đang chạy'
+                    : device.status === 'Idle'
+                      ? 'Nhàn rỗi'
+                      : device.status === 'Paused'
+                        ? 'Tạm dừng'
+                        : device.status}
                 </Badge>
               </div>
             </div>
@@ -93,8 +99,8 @@ export function DeviceActionConfirm({
 
         {action === 'run-now' && (
           <div className="bg-muted/50 rounded-lg p-3 text-sm text-muted-foreground">
-            <strong>Note:</strong> This will override any existing schedule and begin irrigation
-            immediately. The device will return to its normal schedule after completion.
+            <strong>Lưu ý:</strong> Hành động này sẽ ghi đè lịch hiện tại và bắt đầu tưới ngay.
+            Thiết bị sẽ trở về lịch bình thường sau khi hoàn tất.
           </div>
         )}
 
@@ -104,7 +110,7 @@ export function DeviceActionConfirm({
             onClick={() => onOpenChange(false)}
             className="w-full sm:w-auto"
           >
-            Cancel
+            Hủy
           </Button>
           <Button variant={config.confirmVariant} onClick={onConfirm} className="w-full sm:w-auto">
             {config.confirmText}

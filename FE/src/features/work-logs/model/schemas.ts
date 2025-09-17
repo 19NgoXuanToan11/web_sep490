@@ -39,108 +39,22 @@ export const workLogFilterSchema = z.object({
 export type WorkLogData = z.infer<typeof workLogSchema>
 export type WorkLogFilterData = z.infer<typeof workLogFilterSchema>
 
-// Validation helpers
-export const validateWorkLog = (data: unknown) => workLogSchema.safeParse(data)
-export const validateWorkLogFilter = (data: unknown) => workLogFilterSchema.safeParse(data)
-
-// Default form values
-export const defaultWorkLogValues: WorkLogData = {
-  date: new Date().toISOString().split('T')[0],
-  startTime: '',
-  endTime: '',
-  task: '',
-  zone: '',
-  description: '',
-  status: 'in-progress',
-  priority: 'medium',
-  notes: '',
-  equipment: [],
-  photos: [],
-}
-
 // Task categories
 export const taskCategories = [
-  'Irrigation Management',
-  'Crop Monitoring',
-  'Pest Control',
-  'Fertilization',
-  'Harvesting',
-  'Equipment Maintenance',
-  'Soil Testing',
-  'Planting/Seeding',
-  'Pruning',
-  'Disease Treatment',
-  'Weather Monitoring',
-  'Inventory Check',
-  'Quality Control',
-  'Other',
-]
-
-// Priority configurations
-export const priorityConfig = {
-  low: {
-    label: 'Low',
-    color: 'text-gray-600',
-    bgColor: 'bg-gray-100',
-    description: 'Can be done when time permits',
-  },
-  medium: {
-    label: 'Medium',
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-100',
-    description: 'Should be completed soon',
-  },
-  high: {
-    label: 'High',
-    color: 'text-orange-600',
-    bgColor: 'bg-orange-100',
-    description: 'Important, needs attention',
-  },
-  urgent: {
-    label: 'Urgent',
-    color: 'text-red-600',
-    bgColor: 'bg-red-100',
-    description: 'Critical, immediate action required',
-  },
-}
-
-// Status configurations
-export const statusConfig = {
-  'in-progress': {
-    label: 'In Progress',
-    color: 'text-yellow-600',
-    bgColor: 'bg-yellow-100',
-    icon: 'clock',
-  },
-  completed: {
-    label: 'Completed',
-    color: 'text-green-600',
-    bgColor: 'bg-green-100',
-    icon: 'check',
-  },
-  cancelled: {
-    label: 'Cancelled',
-    color: 'text-red-600',
-    bgColor: 'bg-red-100',
-    icon: 'x',
-  },
-}
-
-// Equipment options
-export const equipmentOptions = [
-  'Irrigation System',
-  'Tractors',
-  'Sprayers',
-  'Harvesters',
-  'Tillers',
-  'Seeders',
-  'Fertilizer Spreader',
-  'Pruning Tools',
-  'Soil Tester',
-  'Weather Station',
-  'Drones',
-  'Hand Tools',
-  'Safety Equipment',
+  'Quản lý tưới tiêu',
+  'Giám sát cây trồng',
+  'Kiểm soát sâu bệnh',
+  'Bón phân',
+  'Thu hoạch',
+  'Bảo trì thiết bị',
+  'Kiểm tra đất',
+  'Trồng/Gieo hạt',
+  'Tỉa cành',
+  'Điều trị bệnh',
+  'Theo dõi thời tiết',
+  'Kiểm kê tồn kho',
+  'Kiểm soát chất lượng',
+  'Khác',
 ]
 
 // Zone options (matching with other features)
@@ -155,14 +69,100 @@ export const zoneOptions = [
   'Zone H - Seedling Area',
 ]
 
+// Validation helpers
+export const validateWorkLog = (data: unknown) => workLogSchema.safeParse(data)
+export const validateWorkLogFilter = (data: unknown) => workLogFilterSchema.safeParse(data)
+
+// Default form values
+export const defaultWorkLogValues: WorkLogData = {
+  date: new Date().toISOString().split('T')[0],
+  startTime: '08:00',
+  endTime: '17:00',
+  task: taskCategories[0],
+  zone: zoneOptions[0],
+  description: '',
+  status: 'in-progress',
+  priority: 'medium',
+  notes: '',
+  equipment: [],
+  photos: [],
+}
+
+// Priority configurations
+export const priorityConfig = {
+  low: {
+    label: 'Thấp',
+    color: 'text-gray-600',
+    bgColor: 'bg-gray-100',
+    description: 'Có thể thực hiện khi có thời gian',
+  },
+  medium: {
+    label: 'Trung bình',
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-100',
+    description: 'Nên hoàn thành sớm',
+  },
+  high: {
+    label: 'Cao',
+    color: 'text-orange-600',
+    bgColor: 'bg-orange-100',
+    description: 'Quan trọng, cần chú ý',
+  },
+  urgent: {
+    label: 'Khẩn cấp',
+    color: 'text-red-600',
+    bgColor: 'bg-red-100',
+    description: 'Cấp bách, cần hành động ngay lập tức',
+  },
+}
+
+// Status configurations
+export const statusConfig = {
+  'in-progress': {
+    label: 'Đang thực hiện',
+    color: 'text-yellow-600',
+    bgColor: 'bg-yellow-100',
+    icon: 'clock',
+  },
+  completed: {
+    label: 'Hoàn thành',
+    color: 'text-green-600',
+    bgColor: 'bg-green-100',
+    icon: 'check',
+  },
+  cancelled: {
+    label: 'Đã hủy',
+    color: 'text-red-600',
+    bgColor: 'bg-red-100',
+    icon: 'x',
+  },
+}
+
+// Equipment options
+export const equipmentOptions = [
+  'Hệ thống tưới tiêu',
+  'Máy kéo',
+  'Máy phun thuốc',
+  'Máy thu hoạch',
+  'Máy xới đất',
+  'Máy gieo hạt',
+  'Máy rải phân',
+  'Dụng cụ tỉa cành',
+  'Máy kiểm tra đất',
+  'Trạm thời tiết',
+  'Máy bay không người lái',
+  'Dụng cụ cầm tay',
+  'Thiết bị an toàn',
+]
+
 // Sort options for work logs
 export const workLogSortOptions = [
-  { value: 'date', label: 'Date' },
-  { value: 'priority', label: 'Priority' },
-  { value: 'status', label: 'Status' },
-  { value: 'task', label: 'Task' },
-  { value: 'zone', label: 'Zone' },
-  { value: 'assignedTo', label: 'Assigned To' },
+  { value: 'date', label: 'Ngày' },
+  { value: 'priority', label: 'Độ ưu tiên' },
+  { value: 'status', label: 'Trạng thái' },
+  { value: 'task', label: 'Nhiệm vụ' },
+  { value: 'zone', label: 'Khu vực' },
+  { value: 'assignedTo', label: 'Người thực hiện' },
 ]
 
 // Time slots for scheduling

@@ -5,17 +5,17 @@ import { fadeIn, inViewProps, useSafeVariants } from '@/shared/lib/motion'
 
 const footerSections = {
   about: {
-    title: 'About IoT Farm Project',
+    title: 'Giới thiệu về dự án IoT Farm',
     content:
-      'A graduation project developing a smart farm management system using IoT technology. Supporting farmers with real-time data, automated systems, and intelligent analytics for sustainable agriculture.',
+      'Dự án tốt nghiệp xây dựng hệ thống quản lý nông trại thông minh ứng dụng công nghệ IoT. Hỗ trợ người nông dân với dữ liệu thời gian thực, hệ thống tự động và phân tích thông minh hướng tới nông nghiệp bền vững.',
   },
   quickLinks: [
-    { name: 'About', href: '#about' },
-    { name: 'System Features', href: '#features' },
-    { name: 'Documentation', href: '#' },
-    { name: 'Technical Support', href: '#contact' },
-    { name: 'Privacy Policy', href: '#' },
-    { name: 'Terms of Service', href: '#' },
+    { name: 'Giới thiệu', href: '#about' },
+    { name: 'Tính năng hệ thống', href: '#features' },
+    { name: 'Tài liệu', href: '#' },
+    { name: 'Hỗ trợ kỹ thuật', href: '#contact' },
+    { name: 'Chính sách bảo mật', href: '#' },
+    { name: 'Điều khoản dịch vụ', href: '#' },
   ],
   contact: {
     email: 'toannxse171297@fpt.edu.vn',
@@ -51,7 +51,7 @@ export const Footer: React.FC = () => {
 
             {/* Social Media */}
             <div className="space-y-4">
-              <h4 className="font-semibold text-foreground">Follow Us</h4>
+              <h4 className="font-semibold text-foreground">Theo dõi chúng tôi</h4>
               <div className="flex space-x-4">
                 {socialLinks.map((social, index) => (
                   <motion.a
@@ -73,7 +73,7 @@ export const Footer: React.FC = () => {
 
           {/* Quick Links */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-foreground">Quick Links</h3>
+            <h3 className="text-lg font-semibold text-foreground">Liên kết nhanh</h3>
             <ul className="space-y-3">
               {footerSections.quickLinks.map((link, index) => (
                 <li key={index}>
@@ -92,7 +92,7 @@ export const Footer: React.FC = () => {
 
           {/* Contact Information */}
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-foreground">Contact Us</h3>
+            <h3 className="text-lg font-semibold text-foreground">Liên hệ</h3>
             <div className="space-y-3">
               <div className="flex items-start space-x-3 text-muted-foreground">
                 <Mail className="w-5 h-5 text-brand flex-shrink-0 mt-0.5" />

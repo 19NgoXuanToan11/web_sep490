@@ -1,20 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import {
-  Users,
-  UserPlus,
-  Download,
-  UserX,
-  Shield,
-  Activity,
-  RefreshCw,
-  Settings,
-} from 'lucide-react'
+import { Users, UserX, Shield, Activity, RefreshCw } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card'
-import { Badge } from '@/shared/ui/badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs'
-import { TableDensityToggle } from '@/shared/ui/table-density-toggle'
+// import { Badge } from '@/shared/ui/badge'
+// import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs'
+// import { TableDensityToggle } from '@/shared/ui/table-density-toggle'
 import { AdminLayout } from '@/shared/layouts/AdminLayout'
 import { useToast } from '@/shared/ui/use-toast'
 import {
@@ -24,15 +15,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/shared/ui/dialog'
-import { ManagerLayout } from '@/shared/layouts/ManagerLayout'
+// import { ManagerLayout } from '@/shared/layouts/ManagerLayout'
 import { useAdminUsersStore, UsersTable, UserFormModal } from '@/features/admin-users'
 import type { User, UserRole } from '@/shared/lib/localData'
 
 const AdminUsersPage: React.FC = () => {
   const {
     users,
-    selectedUserIds,
-    tableDensity,
+    // selectedUserIds,
     loadingStates,
     initializeData,
     deleteUser,
@@ -40,9 +30,7 @@ const AdminUsersPage: React.FC = () => {
     bulkActivateUsers,
     bulkDeactivateUsers,
     bulkAssignRole,
-    exportUsersCSV,
     clearSelection,
-    setTableDensity,
     getInactiveUsersCount,
   } = useAdminUsersStore()
 
@@ -66,10 +54,7 @@ const AdminUsersPage: React.FC = () => {
   const inactiveUsers = getInactiveUsersCount()
   const adminUsers = users.filter(u => u.roles.includes('ADMIN')).length
 
-  const handleCreateUser = () => {
-    setSelectedUser(null)
-    setIsUserFormOpen(true)
-  }
+  // Removed: create user button/flow from header
 
   const handleEditUser = (user: User) => {
     setSelectedUser(user)
@@ -86,16 +71,16 @@ const AdminUsersPage: React.FC = () => {
         case 'activate':
           await bulkActivateUsers(userIds)
           toast({
-            title: 'Users activated',
-            description: `${userIds.length} user${userIds.length === 1 ? '' : 's'} activated successfully.`,
+            title: 'Kích hoạt thành công',
+            description: `${userIds.length} người dùng đã được kích hoạt.`,
           })
           break
 
         case 'deactivate':
           await bulkDeactivateUsers(userIds)
           toast({
-            title: 'Users deactivated',
-            description: `${userIds.length} user${userIds.length === 1 ? '' : 's'} deactivated successfully.`,
+            title: 'Ngưng hoạt động',
+            description: `${userIds.length} người dùng đã bị ngưng hoạt động.`,
           })
           break
 
@@ -103,8 +88,8 @@ const AdminUsersPage: React.FC = () => {
           if (role) {
             await bulkAssignRole(userIds, role)
             toast({
-              title: 'Role assigned',
-              description: `${role} role assigned to ${userIds.length} user${userIds.length === 1 ? '' : 's'}.`,
+              title: 'Gán vai trò',
+              description: `Đã gán vai trò ${role} cho ${userIds.length} người dùng.`,
             })
           }
           break
@@ -130,14 +115,14 @@ const AdminUsersPage: React.FC = () => {
       if (deleteConfirm.user) {
         await deleteUser(deleteConfirm.user.id)
         toast({
-          title: 'User deleted',
-          description: `${deleteConfirm.user.name} has been removed from the system.`,
+          title: 'Đã xóa người dùng',
+          description: `${deleteConfirm.user.name} đã được xóa khỏi hệ thống.`,
         })
       } else if (deleteConfirm.userIds) {
         await bulkDeleteUsers(deleteConfirm.userIds)
         toast({
-          title: 'Users deleted',
-          description: `${deleteConfirm.userIds.length} user${deleteConfirm.userIds.length === 1 ? '' : 's'} removed from the system.`,
+          title: 'Đã xóa người dùng',
+          description: `Đã xóa ${deleteConfirm.userIds.length} người dùng khỏi hệ thống.`,
         })
       }
     } catch (error) {
@@ -148,13 +133,7 @@ const AdminUsersPage: React.FC = () => {
     }
   }
 
-  const handleExport = () => {
-    exportUsersCSV()
-    toast({
-      title: 'Export started',
-      description: 'User data is being downloaded as CSV.',
-    })
-  }
+  // Removed: export users
 
   return (
     <AdminLayout>
@@ -162,23 +141,11 @@ const AdminUsersPage: React.FC = () => {
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">User Management</h1>
-            <p className="text-gray-600">Manage system users, roles, and permissions</p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Quản lý người dùng</h1>
+            <p className="text-gray-600">Quản lý người dùng hệ thống, vai trò và phân quyền</p>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={handleExport}>
-              <Download className="h-4 w-4 mr-2" />
-              Export
-            </Button>
-
-            <TableDensityToggle density={tableDensity} onDensityChange={setTableDensity} />
-
-            <Button onClick={handleCreateUser}>
-              <UserPlus className="h-4 w-4 mr-2" />
-              Add User
-            </Button>
-          </div>
+          <div className="flex items-center gap-2" />
         </div>
 
         {/* Statistics Cards */}
@@ -190,12 +157,12 @@ const AdminUsersPage: React.FC = () => {
           >
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+                <CardTitle className="text-sm font-medium">Tổng số người dùng</CardTitle>
                 <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{totalUsers}</div>
-                <p className="text-xs text-muted-foreground">Registered in system</p>
+                <p className="text-xs text-muted-foreground">Đăng ký trong hệ thống</p>
               </CardContent>
             </Card>
           </motion.div>
@@ -207,12 +174,12 @@ const AdminUsersPage: React.FC = () => {
           >
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Active Users</CardTitle>
+                <CardTitle className="text-sm font-medium">Đang hoạt động</CardTitle>
                 <Activity className="h-4 w-4 text-green-600" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-green-600">{activeUsers}</div>
-                <p className="text-xs text-muted-foreground">Currently active</p>
+                <p className="text-xs text-muted-foreground">Đang hoạt động</p>
               </CardContent>
             </Card>
           </motion.div>
@@ -224,12 +191,12 @@ const AdminUsersPage: React.FC = () => {
           >
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Inactive Users</CardTitle>
+                <CardTitle className="text-sm font-medium">Ngưng hoạt động</CardTitle>
                 <UserX className="h-4 w-4 text-orange-600" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-orange-600">{inactiveUsers}</div>
-                <p className="text-xs text-muted-foreground">Require attention</p>
+                <p className="text-xs text-muted-foreground">Cần xem xét</p>
               </CardContent>
             </Card>
           </motion.div>
@@ -241,12 +208,12 @@ const AdminUsersPage: React.FC = () => {
           >
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Administrators</CardTitle>
+                <CardTitle className="text-sm font-medium">Quản trị viên</CardTitle>
                 <Shield className="h-4 w-4 text-red-600" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-red-600">{adminUsers}</div>
-                <p className="text-xs text-muted-foreground">High-level access</p>
+                <p className="text-xs text-muted-foreground">Quyền truy cập cao</p>
               </CardContent>
             </Card>
           </motion.div>
@@ -257,10 +224,10 @@ const AdminUsersPage: React.FC = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Users className="h-5 w-5" />
-              All Users
+              Tất cả người dùng
             </CardTitle>
             <CardDescription>
-              View and manage all system users. Use filters and search to find specific users.
+              Xem và quản lý tất cả người dùng. Sử dụng bộ lọc và tìm kiếm để tìm người dùng cụ thể.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -286,17 +253,17 @@ const AdminUsersPage: React.FC = () => {
         <Dialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Confirm Deletion</DialogTitle>
+              <DialogTitle>Xác nhận xóa</DialogTitle>
               <DialogDescription>
                 {deleteConfirm?.user ? (
                   <>
-                    Are you sure you want to delete <strong>{deleteConfirm.user.name}</strong>? This
-                    action cannot be undone.
+                    Bạn có chắc muốn xóa <strong>{deleteConfirm.user.name}</strong>? Hành động này
+                    không thể hoàn tác.
                   </>
                 ) : deleteConfirm?.userIds ? (
                   <>
-                    Are you sure you want to delete {deleteConfirm.userIds.length} selected user
-                    {deleteConfirm.userIds.length === 1 ? '' : 's'}? This action cannot be undone.
+                    Bạn có chắc muốn xóa {deleteConfirm.userIds.length} người dùng đã chọn? Hành
+                    động này không thể hoàn tác.
                   </>
                 ) : null}
               </DialogDescription>
@@ -311,7 +278,7 @@ const AdminUsersPage: React.FC = () => {
                   loadingStates['bulk-delete-users']?.isLoading
                 }
               >
-                Cancel
+                Hủy
               </Button>
               <Button
                 variant="destructive"
@@ -325,7 +292,7 @@ const AdminUsersPage: React.FC = () => {
                 loadingStates['bulk-delete-users']?.isLoading ? (
                   <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
                 ) : null}
-                Delete
+                Xóa
               </Button>
             </div>
           </DialogContent>

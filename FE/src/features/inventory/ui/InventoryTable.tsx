@@ -61,8 +61,8 @@ export function InventoryTable({ className }: InventoryTableProps) {
   const handleSave = async (item: InventoryItem & { product: Product }) => {
     if (editValues.maxThreshold <= editValues.minThreshold) {
       toast({
-        title: 'Invalid Thresholds',
-        description: 'Maximum threshold must be greater than minimum threshold.',
+        title: 'Ngưỡng không hợp lệ',
+        description: 'Ngưỡng tối đa phải lớn hơn ngưỡng tối thiểu.',
         variant: 'destructive',
       })
       return
@@ -71,14 +71,14 @@ export function InventoryTable({ className }: InventoryTableProps) {
     try {
       await updateInventoryThresholds(item.id, editValues)
       toast({
-        title: 'Thresholds Updated',
-        description: `Updated thresholds for ${item.product.name}.`,
+        title: 'Đã cập nhật ngưỡng',
+        description: `Đã cập nhật ngưỡng cho ${item.product.name}.`,
         variant: 'success',
       })
       setEditingItem(null)
     } catch (error) {
       toast({
-        title: 'Update Failed',
+        title: 'Cập nhật thất bại',
         description: error instanceof Error ? error.message : 'Unknown error occurred.',
         variant: 'destructive',
       })
@@ -98,12 +98,12 @@ export function InventoryTable({ className }: InventoryTableProps) {
 
   const getStockStatus = (item: InventoryItem & { product: Product }) => {
     if (item.stock < item.minThreshold) {
-      return { status: 'low', label: 'Low Stock', variant: 'destructive' as const }
+      return { status: 'low', label: 'Hàng sắp hết', variant: 'destructive' as const }
     }
     if (item.stock > item.maxThreshold) {
-      return { status: 'high', label: 'Overstock', variant: 'warning' as const }
+      return { status: 'high', label: 'Tồn kho cao', variant: 'warning' as const }
     }
-    return { status: 'normal', label: 'Normal', variant: 'success' as const }
+    return { status: 'normal', label: 'Bình thường', variant: 'success' as const }
   }
 
   return (
@@ -117,11 +117,11 @@ export function InventoryTable({ className }: InventoryTableProps) {
             onClick={() => setLowStockFilter(!lowStockFilter)}
           >
             <AlertTriangle className="h-4 w-4 mr-2" />
-            Low Stock ({lowStockItems.length})
+            Hàng sắp hết ({lowStockItems.length})
           </Button>
         </div>
 
-        <div className="text-sm text-muted-foreground">{inventoryItems.length} items</div>
+        <div className="text-sm text-muted-foreground">{inventoryItems.length} mặt hàng</div>
       </div>
 
       {/* Table */}
@@ -137,7 +137,7 @@ export function InventoryTable({ className }: InventoryTableProps) {
                 onClick={() => handleSort('name')}
               >
                 <div className="flex items-center gap-2">
-                  Product
+                  Sản phẩm
                   <ArrowUpDown className="h-4 w-4" />
                 </div>
               </TableHead>
@@ -147,7 +147,7 @@ export function InventoryTable({ className }: InventoryTableProps) {
                 onClick={() => handleSort('category')}
               >
                 <div className="flex items-center gap-2">
-                  Category
+                  Danh mục
                   <ArrowUpDown className="h-4 w-4" />
                 </div>
               </TableHead>
@@ -156,20 +156,20 @@ export function InventoryTable({ className }: InventoryTableProps) {
                 onClick={() => handleSort('stock')}
               >
                 <div className="flex items-center justify-center gap-2">
-                  Stock
+                  Tồn kho
                   <ArrowUpDown className="h-4 w-4" />
                 </div>
               </TableHead>
               <TableHead className="text-center">Min</TableHead>
               <TableHead className="text-center">Max</TableHead>
-              <TableHead>Quality</TableHead>
-              <TableHead>Status</TableHead>
+              <TableHead>Chất lượng</TableHead>
+              <TableHead>Trạng thái</TableHead>
               <TableHead
                 className="cursor-pointer hover:bg-muted/50"
                 onClick={() => handleSort('updatedAt')}
               >
                 <div className="flex items-center gap-2">
-                  Updated
+                  Cập nhật
                   <ArrowUpDown className="h-4 w-4" />
                 </div>
               </TableHead>
@@ -309,7 +309,7 @@ export function InventoryTable({ className }: InventoryTableProps) {
           <div className="text-center py-12">
             <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
             <p className="text-muted-foreground">
-              {lowStockFilter ? 'No low stock items found' : 'No inventory items found'}
+              {lowStockFilter ? 'Không tìm thấy hàng sắp hết' : 'Không tìm thấy mặt hàng tồn kho'}
             </p>
           </div>
         )}

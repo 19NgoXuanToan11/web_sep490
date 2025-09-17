@@ -36,21 +36,21 @@ export function DeviceList({ className }: DeviceListProps) {
       await performDeviceAction(confirmAction.device.id, confirmAction.action)
 
       const actionMessages = {
-        start: 'started',
-        stop: 'stopped',
-        pause: 'paused',
-        'run-now': 'activated for immediate run',
+        start: 'đã khởi động',
+        stop: 'đã dừng',
+        pause: 'đã tạm dừng',
+        'run-now': 'đã kích hoạt chạy ngay',
       }
 
       toast({
-        title: 'Device Action Successful',
-        description: `${confirmAction.device.name} has been ${actionMessages[confirmAction.action]}.`,
+        title: 'Thao tác thiết bị thành công',
+        description: `${confirmAction.device.name} ${actionMessages[confirmAction.action]}.`,
         variant: 'success',
       })
     } catch (error) {
       toast({
-        title: 'Device Action Failed',
-        description: error instanceof Error ? error.message : 'Unknown error occurred.',
+        title: 'Thao tác thiết bị thất bại',
+        description: error instanceof Error ? error.message : 'Đã xảy ra lỗi không xác định.',
         variant: 'destructive',
       })
     } finally {
@@ -122,7 +122,7 @@ export function DeviceList({ className }: DeviceListProps) {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <Clock className="h-4 w-4" />
-                      Last Run
+                      Lần chạy gần nhất
                     </div>
                     <span className="font-medium">{formatTime(device.lastRun)}</span>
                   </div>
@@ -130,7 +130,7 @@ export function DeviceList({ className }: DeviceListProps) {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <Clock className="h-4 w-4" />
-                      Next Run
+                      Lần chạy kế tiếp
                     </div>
                     <span className="font-medium">{formatTime(device.nextRun)}</span>
                   </div>
@@ -138,7 +138,7 @@ export function DeviceList({ className }: DeviceListProps) {
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <Activity className="h-4 w-4" />
-                      Uptime
+                      Thời gian hoạt động
                     </div>
                     <span className="font-medium">{device.uptimePct.toFixed(1)}%</span>
                   </div>
@@ -155,7 +155,7 @@ export function DeviceList({ className }: DeviceListProps) {
                         className="flex items-center gap-1"
                       >
                         <Play className="h-3 w-3" />
-                        Start
+                        Khởi động
                       </Button>
                       <Button
                         size="sm"
@@ -165,7 +165,7 @@ export function DeviceList({ className }: DeviceListProps) {
                         className="flex items-center gap-1"
                       >
                         <Zap className="h-3 w-3" />
-                        Run Now
+                        Chạy ngay
                       </Button>
                     </>
                   )}
@@ -180,7 +180,7 @@ export function DeviceList({ className }: DeviceListProps) {
                         className="flex items-center gap-1"
                       >
                         <Pause className="h-3 w-3" />
-                        Pause
+                        Tạm dừng
                       </Button>
                       <Button
                         size="sm"
@@ -190,7 +190,7 @@ export function DeviceList({ className }: DeviceListProps) {
                         className="flex items-center gap-1"
                       >
                         <Square className="h-3 w-3" />
-                        Stop
+                        Dừng
                       </Button>
                     </>
                   )}
@@ -205,7 +205,7 @@ export function DeviceList({ className }: DeviceListProps) {
                         className="flex items-center gap-1"
                       >
                         <Play className="h-3 w-3" />
-                        Resume
+                        Tiếp tục
                       </Button>
                       <Button
                         size="sm"
@@ -215,7 +215,7 @@ export function DeviceList({ className }: DeviceListProps) {
                         className="flex items-center gap-1"
                       >
                         <Square className="h-3 w-3" />
-                        Stop
+                        Dừng
                       </Button>
                     </>
                   )}
@@ -226,7 +226,7 @@ export function DeviceList({ className }: DeviceListProps) {
                 <div className="absolute inset-0 bg-background/80 flex items-center justify-center rounded-lg">
                   <div className="flex items-center gap-2">
                     <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent" />
-                    <span className="text-sm text-muted-foreground">Processing...</span>
+                    <span className="text-sm text-muted-foreground">Đang xử lý...</span>
                   </div>
                 </div>
               )}
@@ -252,9 +252,9 @@ interface DeviceStatusBadgeProps {
 
 function DeviceStatusBadge({ status }: DeviceStatusBadgeProps) {
   const statusConfig = {
-    Idle: { variant: 'secondary' as const, label: 'Idle' },
-    Running: { variant: 'success' as const, label: 'Running' },
-    Paused: { variant: 'warning' as const, label: 'Paused' },
+    Idle: { variant: 'secondary' as const, label: 'Nhàn rỗi' },
+    Running: { variant: 'success' as const, label: 'Đang chạy' },
+    Paused: { variant: 'warning' as const, label: 'Tạm dừng' },
   }
 
   const config = statusConfig[status]

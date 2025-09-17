@@ -76,7 +76,7 @@ export const LoginPage: React.FC = () => {
           onClick={() => navigate('/')}
         >
           <Home className="w-4 h-4 mr-2" />
-          Back to Home
+          Về trang chủ
         </Button>
       </motion.div>
 
@@ -90,8 +90,8 @@ export const LoginPage: React.FC = () => {
           >
             <Card className="bg-white/10 backdrop-blur-xl border-white/20 shadow-2xl">
               <CardHeader className="text-center">
-                <CardTitle className="text-3xl font-bold text-white">Welcome Back</CardTitle>
-                <p className="text-white/70 text-sm">Log in to manage your smart farm</p>
+                <CardTitle className="text-3xl font-bold text-white">Chào mừng trở lại</CardTitle>
+                <p className="text-white/70 text-sm">Đăng nhập để quản lý nông trại thông minh</p>
               </CardHeader>
               <CardContent>
                 <form className="space-y-5" onSubmit={handleSubmit}>
@@ -111,7 +111,7 @@ export const LoginPage: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-white/90 mb-2">Password</label>
+                    <label className="block text-sm font-medium text-white/90 mb-2">Mật khẩu</label>
                     <div className="relative">
                       <Lock className="w-4 h-4 text-white/60 absolute left-3 top-1/2 -translate-y-1/2" />
                       <input
@@ -131,7 +131,7 @@ export const LoginPage: React.FC = () => {
                     className="w-full bg-brand text-white hover:bg-brand-hover"
                     disabled={isSubmitting}
                   >
-                    {isSubmitting ? 'Signing in…' : 'Sign In'}
+                    {isSubmitting ? 'Đang đăng nhập…' : 'Đăng nhập'}
                     <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
                 </form>

@@ -36,14 +36,14 @@ export function ScheduleCalendar({ className }: ScheduleCalendarProps) {
     try {
       await deleteSchedule(schedule.id)
       toast({
-        title: 'Schedule Deleted',
-        description: `"${schedule.title}" has been deleted successfully.`,
+        title: 'Đã xóa lịch',
+        description: `"${schedule.title}" đã được xóa thành công.`,
         variant: 'success',
       })
     } catch (error) {
       toast({
-        title: 'Delete Failed',
-        description: error instanceof Error ? error.message : 'Unknown error occurred.',
+        title: 'Xóa thất bại',
+        description: error instanceof Error ? error.message : 'Đã xảy ra lỗi không xác định.',
         variant: 'destructive',
       })
     }
@@ -53,14 +53,14 @@ export function ScheduleCalendar({ className }: ScheduleCalendarProps) {
     try {
       await toggleSchedule(schedule.id, !schedule.enabled)
       toast({
-        title: 'Schedule Updated',
-        description: `"${schedule.title}" has been ${!schedule.enabled ? 'enabled' : 'disabled'}.`,
+        title: 'Đã cập nhật lịch',
+        description: `"${schedule.title}" đã được ${!schedule.enabled ? 'kích hoạt' : 'tắt'}.`,
         variant: 'success',
       })
     } catch (error) {
       toast({
-        title: 'Update Failed',
-        description: error instanceof Error ? error.message : 'Unknown error occurred.',
+        title: 'Cập nhật thất bại',
+        description: error instanceof Error ? error.message : 'Đã xảy ra lỗi không xác định.',
         variant: 'destructive',
       })
     }
@@ -103,13 +103,13 @@ export function ScheduleCalendar({ className }: ScheduleCalendarProps) {
       <div className={className}>
         <div className="text-center py-12">
           <Calendar className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-semibold mb-2">No Irrigation Schedules</h3>
+          <h3 className="text-lg font-semibold mb-2">Không có lịch tưới</h3>
           <p className="text-muted-foreground mb-6">
-            Get started by creating your first irrigation schedule.
+            Bắt đầu bằng cách tạo lịch tưới đầu tiên của bạn.
           </p>
           <Button onClick={() => setShowScheduleForm(true)}>
             <Plus className="h-4 w-4 mr-2" />
-            Create Schedule
+            Tạo lịch tưới
           </Button>
         </div>
 
@@ -127,12 +127,12 @@ export function ScheduleCalendar({ className }: ScheduleCalendarProps) {
     <div className={className}>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-semibold">Irrigation Calendar</h2>
-          <p className="text-muted-foreground">Manage your irrigation schedules</p>
+          <h2 className="text-2xl font-semibold">Lịch tưới</h2>
+          <p className="text-muted-foreground">Quản lý các lịch tưới nước của bạn</p>
         </div>
         <Button onClick={() => setShowScheduleForm(true)}>
           <Plus className="h-4 w-4 mr-2" />
-          New Schedule
+          Lịch mới
         </Button>
       </div>
 
@@ -144,7 +144,7 @@ export function ScheduleCalendar({ className }: ScheduleCalendarProps) {
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
                   <Calendar className="h-5 w-5" />
-                  {selectedDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                  {selectedDate.toLocaleDateString('vi-VN', { month: 'long', year: 'numeric' })}
                 </CardTitle>
                 <div className="flex gap-1">
                   <Button variant="outline" size="sm" onClick={() => navigateMonth('prev')}>
@@ -171,11 +171,11 @@ export function ScheduleCalendar({ className }: ScheduleCalendarProps) {
           {/* Today's Schedules */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Today's Schedules</CardTitle>
+              <CardTitle className="text-lg">Lịch hôm nay</CardTitle>
             </CardHeader>
             <CardContent>
               {todaySchedules.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No schedules for today</p>
+                <p className="text-sm text-muted-foreground">Hôm nay không có lịch</p>
               ) : (
                 <div className="space-y-3">
                   {todaySchedules.map(schedule => (
@@ -197,7 +197,7 @@ export function ScheduleCalendar({ className }: ScheduleCalendarProps) {
           {/* Upcoming Schedules */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Upcoming</CardTitle>
+              <CardTitle className="text-lg">Sắp diễn ra</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
@@ -213,7 +213,13 @@ export function ScheduleCalendar({ className }: ScheduleCalendarProps) {
                       </p>
                     </div>
                     <Badge variant={schedule.enabled ? 'success' : 'secondary'} className="text-xs">
-                      {schedule.status}
+                      {schedule.status === 'Running'
+                        ? 'Đang chạy'
+                        : schedule.status === 'Scheduled'
+                          ? 'Đã lên lịch'
+                          : schedule.status === 'Paused'
+                            ? 'Tạm dừng'
+                            : schedule.status}
                     </Badge>
                   </div>
                 ))}
@@ -254,7 +260,7 @@ function CalendarGrid({ selectedDate, schedules, onEditSchedule }: CalendarGridP
     currentDate.setDate(currentDate.getDate() + 1)
   }
 
-  const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+  const weekdays = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']
 
   return (
     <div className="w-full">
@@ -333,10 +339,18 @@ function ScheduleCard({
       <div className="flex items-start justify-between mb-2">
         <div>
           <h4 className="font-medium">{schedule.title}</h4>
-          <p className="text-sm text-muted-foreground">{device?.name || 'Unknown Device'}</p>
+          <p className="text-sm text-muted-foreground">
+            {device?.name || 'Thiết bị không xác định'}
+          </p>
         </div>
         <Badge variant={schedule.enabled ? 'success' : 'secondary'} className="text-xs">
-          {schedule.status}
+          {schedule.status === 'Running'
+            ? 'Đang chạy'
+            : schedule.status === 'Scheduled'
+              ? 'Đã lên lịch'
+              : schedule.status === 'Paused'
+                ? 'Tạm dừng'
+                : schedule.status}
         </Badge>
       </div>
 
@@ -347,7 +361,7 @@ function ScheduleCard({
         </div>
         <div className="flex items-center gap-2">
           <Droplets className="h-3 w-3" />
-          {schedule.moistureThresholdPct}% threshold
+          {schedule.moistureThresholdPct}% ngưỡng
         </div>
         <p className="text-xs">{schedule.recurrenceText}</p>
       </div>

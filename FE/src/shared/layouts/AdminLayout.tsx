@@ -1,10 +1,10 @@
 import React, { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Users, Shield, Menu, X, Bell, Search, User, ChevronRight, Home } from 'lucide-react'
+import { Users, Shield, Menu, X, Bell, User, ChevronRight, Home } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import LogoutButton from '@/shared/ui/LogoutButton'
-import { Input } from '@/shared/ui/input'
+// removed search input
 import { Badge } from '@/shared/ui/badge'
 
 interface AdminLayoutProps {
@@ -21,17 +21,10 @@ interface NavItem {
 
 const navigationItems: NavItem[] = [
   {
-    name: 'User Management',
+    name: 'Quản lý người dùng',
     href: '/admin/users',
     icon: Users,
-    description: 'Manage system users',
-  },
-  {
-    name: 'Roles & Permissions',
-    href: '/admin/roles',
-    icon: Shield,
-    badge: 2,
-    description: 'Configure access control',
+    description: 'Quản lý người dùng hệ thống',
   },
 ]
 
@@ -54,7 +47,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     const breadcrumbs = []
 
     if (pathSegments[0] === 'admin') {
-      breadcrumbs.push({ name: 'Admin Portal', href: '/admin/users' })
+      breadcrumbs.push({ name: 'Cổng quản trị', href: '/admin/users' })
 
       if (pathSegments[1]) {
         const currentPage = navigationItems.find(item => item.href.includes(pathSegments[1]))
@@ -139,8 +132,8 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <h1 className="text-xl font-bold text-gray-900">Admin Portal</h1>
-                  <p className="text-sm text-gray-500">System Administration</p>
+                  <h1 className="text-xl font-bold text-gray-900">Cổng quản trị</h1>
+                  <p className="text-sm text-gray-500">Quản trị hệ thống</p>
                 </motion.div>
               </div>
               <Button
@@ -229,8 +222,8 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                     <Shield className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h1 className="text-xl font-bold text-gray-900">Admin Portal</h1>
-                    <p className="text-sm text-gray-500">System Administration</p>
+                    <h1 className="text-xl font-bold text-gray-900">Cổng quản trị</h1>
+                    <p className="text-sm text-gray-500">Quản trị hệ thống</p>
                   </div>
                 </div>
                 <Button
@@ -296,23 +289,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
               </div>
 
               <div className="flex items-center space-x-2 sm:space-x-4">
-                <div className="hidden md:block">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <Input
-                      placeholder="Search..."
-                      className="pl-9 w-48 lg:w-64 bg-gray-50 border-gray-200 focus:border-blue-300 focus:ring-blue-200"
-                    />
-                  </div>
-                </div>
-
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="md:hidden text-gray-500 hover:text-gray-700"
-                >
-                  <Search className="h-5 w-5" />
-                </Button>
+                {/* Removed header search */}
 
                 <Button
                   variant="ghost"
@@ -324,15 +301,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                     2
                   </Badge>
                 </Button>
-
-                <div className="flex items-center space-x-2">
-                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-sm">
-                    <User className="w-4 h-4 text-white" />
-                  </div>
-                  <span className="hidden lg:block text-sm font-medium text-gray-700 truncate max-w-32">
-                    System Admin
-                  </span>
-                </div>
+                {/* Removed user avatar/name */}
               </div>
             </div>
           </div>

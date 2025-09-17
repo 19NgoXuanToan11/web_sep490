@@ -3,7 +3,6 @@ import { motion } from 'framer-motion'
 import {
   Plus,
   Search,
-  Download,
   CheckCircle,
   XCircle,
   AlertTriangle,
@@ -20,9 +19,8 @@ import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
 import { Card } from '@/shared/ui/card'
 import { Badge } from '@/shared/ui/badge'
-import { Select } from '@/shared/ui/select'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { Table } from '@/shared/ui/table'
-import { Dialog } from '@/shared/ui/dialog'
 import { StaffLayout } from '@/shared/layouts/StaffLayout'
 import { useQualityChecksStore } from '@/features/quality-checks/store/qualityChecksStore'
 import { useToast } from '@/shared/ui/use-toast'
@@ -34,12 +32,14 @@ import {
   zoneOptions,
 } from '@/features/quality-checks/model/schemas'
 import type { QualityCheckData } from '@/features/quality-checks/model/schemas'
+import { QualityCheckDetailsModal } from '@/features/quality-checks/ui/QualityCheckDetailsModal'
+import { QualityCheckEditModal } from '@/features/quality-checks/ui/QualityCheckEditModal'
 
 const StaffQualityChecksPage: React.FC = () => {
   const { toast } = useToast()
   const [selectedCheck, setSelectedCheck] = useState<QualityCheckData | null>(null)
   const [viewModalOpen, setViewModalOpen] = useState(false)
-  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
+  const [editModalOpen, setEditModalOpen] = useState(false)
   const [createModalOpen, setCreateModalOpen] = useState(false)
 
   const {
@@ -47,12 +47,12 @@ const StaffQualityChecksPage: React.FC = () => {
     searchState,
     selectedCheckIds,
     filters,
-    loadingStates,
     setSearch,
     setFilters,
     clearFilters,
     deleteQualityCheck,
-    exportQualityChecksCSV,
+    updateQualityCheck,
+    createQualityCheck,
     clearSelection,
     getPaginatedQualityChecks,
     getTodayChecks,
@@ -79,26 +79,65 @@ const StaffQualityChecksPage: React.FC = () => {
     setViewModalOpen(true)
   }
 
-  const handleDeleteCheck = (check: QualityCheckData) => {
+  const handleEditCheck = (check: QualityCheckData) => {
     setSelectedCheck(check)
-    setDeleteConfirmOpen(true)
+    setViewModalOpen(false)
+    setEditModalOpen(true)
   }
 
-  const confirmDelete = async () => {
-    if (!selectedCheck?.id) return
+  const handleSaveCheck = async (data: QualityCheckData) => {
+    if (!data.id) return
 
     try {
-      await deleteQualityCheck(selectedCheck.id)
+      await updateQualityCheck(data.id, data)
       toast({
-        title: 'Quality Check Deleted',
-        description: 'Quality check has been successfully deleted.',
+        title: 'Đã cập nhật kiểm tra chất lượng',
+        description: 'Thông tin kiểm tra chất lượng đã được cập nhật thành công.',
       })
-      setDeleteConfirmOpen(false)
+      setEditModalOpen(false)
       setSelectedCheck(null)
     } catch (error) {
       toast({
-        title: 'Delete Failed',
-        description: error instanceof Error ? error.message : 'Failed to delete quality check',
+        title: 'Cập nhật thất bại',
+        description:
+          error instanceof Error ? error.message : 'Không thể cập nhật kiểm tra chất lượng',
+        variant: 'destructive',
+      })
+    }
+  }
+
+  const handleCreateCheck = async (data: Omit<QualityCheckData, 'id'>) => {
+    try {
+      await createQualityCheck(data)
+      toast({
+        title: 'Đã tạo kiểm tra chất lượng',
+        description: 'Kiểm tra chất lượng mới đã được tạo thành công.',
+      })
+      setCreateModalOpen(false)
+    } catch (error) {
+      toast({
+        title: 'Tạo thất bại',
+        description: error instanceof Error ? error.message : 'Không thể tạo kiểm tra chất lượng',
+        variant: 'destructive',
+      })
+    }
+  }
+
+  const handleDeleteCheck = async (check: QualityCheckData) => {
+    if (!check?.id) return
+
+    try {
+      await deleteQualityCheck(check.id)
+      toast({
+        title: 'Đã xóa kiểm tra chất lượng',
+        description: 'Kiểm tra chất lượng đã được xóa thành công.',
+      })
+      setViewModalOpen(false)
+      setSelectedCheck(null)
+    } catch (error) {
+      toast({
+        title: 'Xóa thất bại',
+        description: error instanceof Error ? error.message : 'Không thể xóa kiểm tra chất lượng',
         variant: 'destructive',
       })
     }
@@ -162,20 +201,15 @@ const StaffQualityChecksPage: React.FC = () => {
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center">
               <Shield className="h-8 w-8 mr-3 text-blue-600" />
-              Quality Checks
+              Kiểm tra chất lượng
             </h1>
-            <p className="text-gray-600">Monitor crop health and quality standards</p>
+            <p className="text-gray-600">Giám sát sức khỏe cây trồng và tiêu chuẩn chất lượng</p>
           </div>
 
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={exportQualityChecksCSV}>
-              <Download className="h-4 w-4 mr-2" />
-              Export
-            </Button>
-
             <Button onClick={() => setCreateModalOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
-              New Quality Check
+              Kiểm tra chất lượng mới
             </Button>
           </div>
         </div>
@@ -193,7 +227,7 @@ const StaffQualityChecksPage: React.FC = () => {
                   <Activity className="h-8 w-8 text-blue-600" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">Today's Checks</p>
+                  <p className="text-sm font-medium text-gray-500">Kiểm tra hôm nay</p>
                   <p className="text-2xl font-bold text-gray-900">{todayChecks.length}</p>
                 </div>
               </div>
@@ -211,7 +245,7 @@ const StaffQualityChecksPage: React.FC = () => {
                   <TrendingUp className={`h-8 w-8 ${getHealthScoreColor(averageHealth)}`} />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">Avg Health Score</p>
+                  <p className="text-sm font-medium text-gray-500">Điểm sức khỏe TB</p>
                   <p className={`text-2xl font-bold ${getHealthScoreColor(averageHealth)}`}>
                     {averageHealth}/10
                   </p>
@@ -231,7 +265,7 @@ const StaffQualityChecksPage: React.FC = () => {
                   <XCircle className="h-8 w-8 text-red-600" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">Failed Checks</p>
+                  <p className="text-sm font-medium text-gray-500">Kiểm tra thất bại</p>
                   <p className="text-2xl font-bold text-gray-900">{failedChecks.length}</p>
                 </div>
               </div>
@@ -249,7 +283,7 @@ const StaffQualityChecksPage: React.FC = () => {
                   <AlertTriangle className="h-8 w-8 text-orange-600" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">Need Follow-up</p>
+                  <p className="text-sm font-medium text-gray-500">Cần theo dõi</p>
                   <p className="text-2xl font-bold text-gray-900">{followUpChecks.length}</p>
                 </div>
               </div>
@@ -268,10 +302,11 @@ const StaffQualityChecksPage: React.FC = () => {
               <div className="flex items-center">
                 <AlertTriangle className="h-5 w-5 text-red-600 mr-3" />
                 <div>
-                  <h3 className="text-sm font-medium text-red-800">Critical Issues Detected</h3>
+                  <h3 className="text-sm font-medium text-red-800">
+                    Phát hiện vấn đề nghiêm trọng
+                  </h3>
                   <p className="text-sm text-red-700">
-                    {criticalIssues.length} quality check{criticalIssues.length === 1 ? '' : 's'}{' '}
-                    require immediate attention
+                    {criticalIssues.length} kiểm tra chất lượng cần chú ý ngay lập tức
                   </p>
                 </div>
               </div>
@@ -286,7 +321,7 @@ const StaffQualityChecksPage: React.FC = () => {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
-                placeholder="Search quality checks by crop, zone, or inspector..."
+                placeholder="Tìm kiếm kiểm tra chất lượng theo cây trồng, khu vực hoặc người kiểm tra..."
                 value={searchState.query}
                 onChange={e => setSearch(e.target.value)}
                 className="pl-10"
@@ -295,54 +330,72 @@ const StaffQualityChecksPage: React.FC = () => {
 
             {/* Filters */}
             <div className="flex flex-wrap gap-3 items-center">
-              <span className="text-sm font-medium text-gray-700 whitespace-nowrap">
-                Filter by:
-              </span>
+              <span className="text-sm font-medium text-gray-700 whitespace-nowrap">Lọc theo:</span>
               <div className="flex flex-wrap gap-2">
                 <Select
                   value={filters.status || 'all'}
                   onValueChange={value => setFilters({ status: value as any })}
                 >
-                  <option value="all">All Status</option>
-                  <option value="pass">Pass</option>
-                  <option value="fail">Fail</option>
-                  <option value="warning">Warning</option>
-                  <option value="pending">Pending</option>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Chọn trạng thái" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tất cả trạng thái</SelectItem>
+                    <SelectItem value="pass">Đạt</SelectItem>
+                    <SelectItem value="fail">Không đạt</SelectItem>
+                    <SelectItem value="warning">Cảnh báo</SelectItem>
+                    <SelectItem value="pending">Đang chờ</SelectItem>
+                  </SelectContent>
                 </Select>
 
                 <Select
                   value={filters.checkType || 'all'}
                   onValueChange={value => setFilters({ checkType: value as any })}
                 >
-                  <option value="all">All Types</option>
-                  <option value="routine">Routine</option>
-                  <option value="disease">Disease</option>
-                  <option value="pest">Pest</option>
-                  <option value="growth">Growth</option>
-                  <option value="harvest-ready">Harvest Ready</option>
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="Chọn loại kiểm tra" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tất cả loại</SelectItem>
+                    <SelectItem value="routine">Kiểm tra định kỳ</SelectItem>
+                    <SelectItem value="disease">Kiểm tra bệnh tật</SelectItem>
+                    <SelectItem value="pest">Kiểm tra sâu bệnh</SelectItem>
+                    <SelectItem value="growth">Kiểm tra tăng trưởng</SelectItem>
+                    <SelectItem value="harvest-ready">Sẵn sàng thu hoạch</SelectItem>
+                  </SelectContent>
                 </Select>
 
                 <Select
                   value={filters.priority || 'all'}
                   onValueChange={value => setFilters({ priority: value as any })}
                 >
-                  <option value="all">All Priority</option>
-                  <option value="critical">Critical</option>
-                  <option value="high">High</option>
-                  <option value="medium">Medium</option>
-                  <option value="low">Low</option>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Chọn độ ưu tiên" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tất cả độ ưu tiên</SelectItem>
+                    <SelectItem value="critical">Khẩn cấp</SelectItem>
+                    <SelectItem value="high">Cao</SelectItem>
+                    <SelectItem value="medium">Trung bình</SelectItem>
+                    <SelectItem value="low">Thấp</SelectItem>
+                  </SelectContent>
                 </Select>
 
                 <Select
-                  value={filters.zone || ''}
-                  onValueChange={value => setFilters({ zone: value })}
+                  value={filters.zone || 'all'}
+                  onValueChange={value => setFilters({ zone: value === 'all' ? '' : value })}
                 >
-                  <option value="">All Zones</option>
-                  {zoneOptions.map(zone => (
-                    <option key={zone} value={zone}>
-                      {zone}
-                    </option>
-                  ))}
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="Chọn khu vực" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tất cả khu vực</SelectItem>
+                    {zoneOptions.map(zone => (
+                      <SelectItem key={zone} value={zone}>
+                        {zone}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
                 </Select>
 
                 <Button
@@ -351,7 +404,7 @@ const StaffQualityChecksPage: React.FC = () => {
                   size="sm"
                   className="whitespace-nowrap"
                 >
-                  Clear Filters
+                  Xóa bộ lọc
                 </Button>
               </div>
             </div>
@@ -361,14 +414,14 @@ const StaffQualityChecksPage: React.FC = () => {
           {selectedCheckIds.length > 0 && (
             <div className="mt-4 flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
               <span className="text-sm font-medium text-blue-700">
-                {selectedCheckIds.length} check{selectedCheckIds.length === 1 ? '' : 's'} selected
+                {selectedCheckIds.length} kiểm tra đã chọn
               </span>
               <div className="flex space-x-2">
                 <Button size="sm" variant="outline" onClick={clearSelection}>
-                  Clear Selection
+                  Xóa lựa chọn
                 </Button>
                 <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
-                  Bulk Actions
+                  Thao tác hàng loạt
                 </Button>
               </div>
             </div>
@@ -382,28 +435,28 @@ const StaffQualityChecksPage: React.FC = () => {
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50">
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Date & Time
+                    Ngày & Giờ
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Crop & Zone
+                    Cây trồng & Khu vực
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Check Type
+                    Loại kiểm tra
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
+                    Trạng thái
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Health Score
+                    Điểm sức khỏe
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Priority
+                    Độ ưu tiên
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Inspector
+                    Người kiểm tra
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
+                    Thao tác
                   </th>
                 </tr>
               </thead>
@@ -453,6 +506,7 @@ const StaffQualityChecksPage: React.FC = () => {
                         <Button
                           size="sm"
                           variant="ghost"
+                          onClick={() => handleEditCheck(check)}
                           className="text-green-600 hover:text-green-700"
                         >
                           <Edit className="h-4 w-4" />
@@ -476,199 +530,41 @@ const StaffQualityChecksPage: React.FC = () => {
           {paginatedChecks.length === 0 && (
             <div className="text-center py-12">
               <Shield className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No quality checks found</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                Không tìm thấy kiểm tra chất lượng
+              </h3>
               <p className="text-gray-500">
-                No quality checks match your current filters. Try adjusting your search criteria.
+                Không có kiểm tra chất lượng nào phù hợp với bộ lọc hiện tại. Hãy thử điều chỉnh
+                tiêu chí tìm kiếm.
               </p>
             </div>
           )}
         </Card>
 
-        {/* View Modal */}
-        {selectedCheck && (
-          <Dialog open={viewModalOpen} onOpenChange={setViewModalOpen}>
-            <div className="max-w-4xl mx-auto p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Quality Check Details</h3>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Basic Information */}
-                <div className="space-y-4">
-                  <h4 className="font-medium text-gray-900">Basic Information</h4>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">Date</label>
-                      <p className="text-sm text-gray-900">{selectedCheck.date}</p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">Time</label>
-                      <p className="text-sm text-gray-900">{selectedCheck.time}</p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">Crop Type</label>
-                      <p className="text-sm text-gray-900">{selectedCheck.cropType}</p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">Zone</label>
-                      <p className="text-sm text-gray-900">{selectedCheck.zone}</p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">Inspector</label>
-                      <p className="text-sm text-gray-900">{selectedCheck.inspector}</p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">Check Type</label>
-                      <p className="text-sm text-gray-900">
-                        {checkTypeConfig[selectedCheck.checkType].label}
-                      </p>
-                    </div>
-                  </div>
-                </div>
+        {/* Details Modal */}
+        <QualityCheckDetailsModal
+          isOpen={viewModalOpen}
+          onClose={() => setViewModalOpen(false)}
+          qualityCheck={selectedCheck}
+          onEdit={handleEditCheck}
+          onDelete={handleDeleteCheck}
+        />
 
-                {/* Health Assessment */}
-                <div className="space-y-4">
-                  <h4 className="font-medium text-gray-900">Health Assessment</h4>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">
-                        Overall Health
-                      </label>
-                      <p
-                        className={`text-sm font-medium ${getHealthScoreColor(selectedCheck.overallHealth)}`}
-                      >
-                        {selectedCheck.overallHealth}/10
-                      </p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">
-                        Growth Stage
-                      </label>
-                      <p className="text-sm text-gray-900">
-                        {growthStageConfig[selectedCheck.growthStage].label}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">
-                        Disease Present
-                      </label>
-                      <p className="text-sm text-gray-900">
-                        {selectedCheck.diseasePresent ? 'Yes' : 'No'}
-                      </p>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">
-                        Pest Present
-                      </label>
-                      <p className="text-sm text-gray-900">
-                        {selectedCheck.pestPresent ? 'Yes' : 'No'}
-                      </p>
-                    </div>
-                  </div>
-                </div>
+        {/* Edit Modal */}
+        <QualityCheckEditModal
+          isOpen={editModalOpen}
+          onClose={() => setEditModalOpen(false)}
+          qualityCheck={selectedCheck}
+          onSave={handleSaveCheck}
+        />
 
-                {/* Environmental Data */}
-                {(selectedCheck.soilMoisture ||
-                  selectedCheck.temperature ||
-                  selectedCheck.humidity) && (
-                  <div className="space-y-4">
-                    <h4 className="font-medium text-gray-900">Environmental Data</h4>
-                    <div className="grid grid-cols-3 gap-4">
-                      {selectedCheck.soilMoisture && (
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700">
-                            Soil Moisture
-                          </label>
-                          <p className="text-sm text-gray-900">{selectedCheck.soilMoisture}%</p>
-                        </div>
-                      )}
-                      {selectedCheck.temperature && (
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700">
-                            Temperature
-                          </label>
-                          <p className="text-sm text-gray-900">{selectedCheck.temperature}°C</p>
-                        </div>
-                      )}
-                      {selectedCheck.humidity && (
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700">
-                            Humidity
-                          </label>
-                          <p className="text-sm text-gray-900">{selectedCheck.humidity}%</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Issues and Actions */}
-                <div className="space-y-4">
-                  <h4 className="font-medium text-gray-900">Issues & Actions</h4>
-                  {selectedCheck.issues && selectedCheck.issues.length > 0 && (
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">
-                        Issues Detected
-                      </label>
-                      <ul className="text-sm text-gray-900 list-disc list-inside">
-                        {selectedCheck.issues.map((issue, index) => (
-                          <li key={index}>{issue}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                  {selectedCheck.recommendedActions &&
-                    selectedCheck.recommendedActions.length > 0 && (
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700">
-                          Recommended Actions
-                        </label>
-                        <ul className="text-sm text-gray-900 list-disc list-inside">
-                          {selectedCheck.recommendedActions.map((action, index) => (
-                            <li key={index}>{action}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
-                </div>
-              </div>
-
-              {selectedCheck.notes && (
-                <div className="mt-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Notes</label>
-                  <p className="text-sm text-gray-900 bg-gray-50 p-3 rounded-lg">
-                    {selectedCheck.notes}
-                  </p>
-                </div>
-              )}
-
-              <div className="mt-6 flex justify-end space-x-3">
-                <Button variant="outline" onClick={() => setViewModalOpen(false)}>
-                  Close
-                </Button>
-              </div>
-            </div>
-          </Dialog>
-        )}
-
-        {/* Delete Confirmation Modal */}
-        <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
-          <div className="max-w-md mx-auto p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Delete Quality Check</h3>
-            <p className="text-sm text-gray-600 mb-6">
-              Are you sure you want to delete this quality check? This action cannot be undone.
-            </p>
-            <div className="flex justify-end space-x-3">
-              <Button variant="outline" onClick={() => setDeleteConfirmOpen(false)}>
-                Cancel
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={confirmDelete}
-                disabled={loadingStates[`delete-quality-check-${selectedCheck?.id}`]?.isLoading}
-              >
-                Delete
-              </Button>
-            </div>
-          </div>
-        </Dialog>
+        {/* Create Modal */}
+        <QualityCheckEditModal
+          isOpen={createModalOpen}
+          onClose={() => setCreateModalOpen(false)}
+          qualityCheck={null}
+          onSave={handleCreateCheck as any}
+        />
       </div>
     </StaffLayout>
   )

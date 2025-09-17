@@ -62,7 +62,7 @@ export const HeroSection: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.6 }}
             >
-              IOT FARM SYSTEM
+              HỆ THỐNG NÔNG TRẠI IOT
             </motion.p>
 
             {/* Main heading */}
@@ -73,8 +73,10 @@ export const HeroSection: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4, duration: 0.8 }}
             >
-              SMART FARM{' '}
-              <span className="text-brand-foreground block lg:inline">MANAGEMENT SYSTEM</span>
+              HỆ THỐNG{' '}
+              <span className="text-brand-foreground block lg:inline">
+                QUẢN LÝ NÔNG TRẠI THÔNG MINH
+              </span>
             </motion.h1>
 
             {/* Description */}
@@ -84,10 +86,10 @@ export const HeroSection: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6, duration: 0.8 }}
             >
-              A comprehensive graduation project developing an IoT-based smart farm management
-              system. The system supports three main roles: System Administrator, Farm Manager, and
-              Staff, providing real-time monitoring, automated irrigation, and data-driven decision
-              making for sustainable agriculture.
+              Dự án tốt nghiệp xây dựng hệ thống quản lý nông trại thông minh dựa trên IoT. Hệ thống
+              hỗ trợ ba vai trò chính: Quản trị hệ thống, Quản lý nông trại và Nhân viên, cung cấp
+              giám sát thời gian thực, tưới tiêu tự động và ra quyết định dựa trên dữ liệu hướng tới
+              nông nghiệp bền vững.
             </motion.p>
 
             {/* CTA Button */}
@@ -103,7 +105,7 @@ export const HeroSection: React.FC = () => {
                 className="bg-brand hover:bg-brand-hover text-brand-foreground px-8 py-4 text-base rounded-full transform transition-all duration-200"
                 onClick={() => navigate('/login')}
               >
-                Access System
+                Truy cập hệ thống
               </Button>
             </motion.div>
           </motion.div>

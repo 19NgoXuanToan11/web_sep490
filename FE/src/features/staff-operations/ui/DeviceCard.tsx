@@ -2,10 +2,8 @@ import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import {
   Play,
-  Square,
   Pause,
   Zap,
-  Wrench,
   MoreHorizontal,
   Battery,
   AlertTriangle,
@@ -21,12 +19,11 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/shared/ui/dropdown-menu'
-import { deviceStatusConfig, actionConfig, batteryLevelConfig } from '../model/schemas'
+import { deviceStatusConfig, batteryLevelConfig } from '../model/schemas'
 import type { StaffDevice } from '@/shared/lib/localData'
-import { formatDateTime, formatTime } from '@/shared/lib/localData/storage'
+import { formatTime } from '@/shared/lib/localData/storage'
 
 interface DeviceCardProps {
   device: StaffDevice
@@ -56,47 +53,6 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({
   }
 
   const batteryConfig = getBatteryConfig()
-
-  const getActionIcon = (action: string) => {
-    switch (action) {
-      case 'start':
-        return Play
-      case 'stop':
-        return Square
-      case 'pause':
-        return Pause
-      case 'run-now':
-        return Zap
-      case 'maintenance':
-        return Wrench
-      default:
-        return Play
-    }
-  }
-
-  const getAvailableActions = () => {
-    const actions = []
-
-    switch (device.status) {
-      case 'Idle':
-        actions.push('start', 'run-now')
-        if (!device.needsMaintenance) actions.push('maintenance')
-        break
-      case 'Running':
-        actions.push('pause', 'stop')
-        break
-      case 'Paused':
-        actions.push('start', 'stop')
-        break
-      case 'Maintenance':
-        actions.push('start')
-        break
-    }
-
-    return actions
-  }
-
-  const availableActions = getAvailableActions()
 
   return (
     <motion.div
@@ -144,21 +100,9 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  {availableActions.map(action => {
-                    const config = actionConfig[action]
-                    const IconComponent = getActionIcon(action)
-
-                    return (
-                      <DropdownMenuItem key={action} onClick={() => onAction?.(device.id, action)}>
-                        <IconComponent className={`h-4 w-4 mr-2 ${config.color}`} />
-                        {config.label}
-                      </DropdownMenuItem>
-                    )
-                  })}
-                  {availableActions.length > 0 && <DropdownMenuSeparator />}
-                  <DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onAction?.(device.id, 'view-details')}>
                     <Activity className="h-4 w-4 mr-2" />
-                    View Details
+                    Xem chi tiết
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -172,7 +116,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({
             {/* Uptime */}
             <div className="flex items-center gap-2">
               <Wifi className="h-3 w-3 text-green-600" />
-              <span className="text-gray-600">Uptime:</span>
+              <span className="text-gray-600">Thời gian hoạt động:</span>
               <span className="font-medium">{device.uptimePct}%</span>
             </div>
 
@@ -180,7 +124,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({
             {device.batteryLevel !== undefined && batteryConfig && (
               <div className="flex items-center gap-2">
                 <Battery className={`h-3 w-3 ${batteryConfig.color}`} />
-                <span className="text-gray-600">Battery:</span>
+                <span className="text-gray-600">Pin:</span>
                 <span className={`font-medium ${batteryConfig.color}`}>{device.batteryLevel}%</span>
               </div>
             )}
@@ -190,14 +134,16 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({
           <div className="space-y-2 text-xs">
             <div className="flex items-center gap-2">
               <Clock className="h-3 w-3 text-blue-600" />
-              <span className="text-gray-600">Last Action:</span>
-              <span className="font-medium">{formatTime(device.lastAction)}</span>
+              <span className="text-gray-600">Thao tác cuối:</span>
+              <span className="font-medium">
+                {device.lastAction ? formatTime(device.lastAction) : '--'}
+              </span>
             </div>
 
             {device.nextSchedule && (
               <div className="flex items-center gap-2">
                 <Clock className="h-3 w-3 text-orange-600" />
-                <span className="text-gray-600">Next Run:</span>
+                <span className="text-gray-600">Chạy tiếp theo:</span>
                 <span className="font-medium">{formatTime(device.nextSchedule)}</span>
               </div>
             )}
@@ -208,7 +154,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({
             {device.needsMaintenance && (
               <div className="flex items-center gap-2 p-2 bg-red-50 border border-red-200 rounded-lg">
                 <AlertTriangle className="h-3 w-3 text-red-600 flex-shrink-0" />
-                <span className="text-xs text-red-700 font-medium">Maintenance Required</span>
+                <span className="text-xs text-red-700 font-medium">Cần bảo trì</span>
               </div>
             )}
 
@@ -216,35 +162,63 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({
               <div className="flex items-center gap-2 p-2 bg-yellow-50 border border-yellow-200 rounded-lg">
                 <Battery className="h-3 w-3 text-yellow-600 flex-shrink-0" />
                 <span className="text-xs text-yellow-700 font-medium">
-                  Low Battery ({device.batteryLevel}%)
+                  Pin yếu ({device.batteryLevel}%)
                 </span>
               </div>
             )}
           </div>
 
-          {/* Quick Actions */}
-          {availableActions.length > 0 && (
-            <div className="flex gap-2 pt-2 border-t">
-              {availableActions.slice(0, 2).map(action => {
-                const config = actionConfig[action]
-                const IconComponent = getActionIcon(action)
-
-                return (
-                  <Button
-                    key={action}
-                    variant="outline"
-                    size="sm"
-                    onClick={() => onAction?.(device.id, action)}
-                    disabled={isLoading}
-                    className="flex-1 text-xs"
-                  >
-                    <IconComponent className={`h-3 w-3 mr-1 ${config.color}`} />
-                    {config.label}
-                  </Button>
-                )
-              })}
-            </div>
-          )}
+          {/* Quick Actions - Show only main actions based on status */}
+          <div className="flex gap-2 pt-2 border-t">
+            {device.status === 'Idle' && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onAction?.(device.id, 'start')}
+                disabled={isLoading}
+                className="flex-1 text-xs"
+              >
+                <Play className="h-3 w-3 mr-1 text-green-600" />
+                Khởi động
+              </Button>
+            )}
+            {device.status === 'Running' && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onAction?.(device.id, 'pause')}
+                disabled={isLoading}
+                className="flex-1 text-xs"
+              >
+                <Pause className="h-3 w-3 mr-1 text-yellow-600" />
+                Tạm dừng
+              </Button>
+            )}
+            {device.status === 'Paused' && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onAction?.(device.id, 'start')}
+                disabled={isLoading}
+                className="flex-1 text-xs"
+              >
+                <Play className="h-3 w-3 mr-1 text-green-600" />
+                Khởi động
+              </Button>
+            )}
+            {(device.status === 'Idle' || device.status === 'Paused') && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onAction?.(device.id, 'run-now')}
+                disabled={isLoading}
+                className="flex-1 text-xs"
+              >
+                <Zap className="h-3 w-3 mr-1 text-blue-600" />
+                Chạy ngay
+              </Button>
+            )}
+          </div>
 
           {/* Loading Overlay */}
           {isLoading && (

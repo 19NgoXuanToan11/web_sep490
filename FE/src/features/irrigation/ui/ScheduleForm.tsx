@@ -87,23 +87,23 @@ export function ScheduleForm({ open, onOpenChange, editingSchedule, onClose }: S
           recurrenceText: generateRecurrenceText(data.recurrenceType, data.startTime),
         })
         toast({
-          title: 'Schedule Updated',
-          description: `"${data.title}" has been updated successfully.`,
+          title: 'Lịch đã được cập nhật',
+          description: `"${data.title}" cập nhật thành công.`,
           variant: 'success',
         })
       } else {
         await createSchedule(data)
         toast({
-          title: 'Schedule Created',
-          description: `"${data.title}" has been created successfully.`,
+          title: 'Tạo lịch thành công',
+          description: `"${data.title}" đã được tạo.`,
           variant: 'success',
         })
       }
       handleClose()
     } catch (error) {
       toast({
-        title: isEditing ? 'Update Failed' : 'Creation Failed',
-        description: error instanceof Error ? error.message : 'Unknown error occurred.',
+        title: isEditing ? 'Cập nhật thất bại' : 'Tạo mới thất bại',
+        description: error instanceof Error ? error.message : 'Đã xảy ra lỗi không xác định.',
         variant: 'destructive',
       })
     }
@@ -117,19 +117,17 @@ export function ScheduleForm({ open, onOpenChange, editingSchedule, onClose }: S
   const generateRecurrenceText = (type: string, startTime: string): string => {
     const [hour, minute] = startTime.split(':')
     const hourNum = parseInt(hour)
-    const ampm = hourNum >= 12 ? 'PM' : 'AM'
-    const displayHour = hourNum === 0 ? 12 : hourNum > 12 ? hourNum - 12 : hourNum
-    const formattedTime = `${displayHour}:${minute} ${ampm}`
+    const formattedTime = `${hourNum.toString().padStart(2, '0')}:${minute}`
 
     switch (type) {
       case 'daily':
-        return `Daily at ${formattedTime}`
+        return `Hằng ngày lúc ${formattedTime}`
       case 'weekly':
-        return `Weekly at ${formattedTime}`
+        return `Hằng tuần lúc ${formattedTime}`
       case 'interval':
-        return `Every 6 hours starting at ${formattedTime}`
+        return `Mỗi 6 giờ bắt đầu từ ${formattedTime}`
       default:
-        return `Custom schedule at ${formattedTime}`
+        return `Tùy chỉnh lúc ${formattedTime}`
     }
   }
 
@@ -139,12 +137,10 @@ export function ScheduleForm({ open, onOpenChange, editingSchedule, onClose }: S
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Settings className="h-5 w-5" />
-            {isEditing ? 'Edit Schedule' : 'Create Schedule'}
+            {isEditing ? 'Sửa lịch' : 'Tạo lịch'}
           </DialogTitle>
           <DialogDescription>
-            {isEditing
-              ? 'Update the irrigation schedule details.'
-              : 'Create a new automated irrigation schedule.'}
+            {isEditing ? 'Cập nhật chi tiết lịch tưới.' : 'Tạo lịch tưới tự động mới.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -152,10 +148,10 @@ export function ScheduleForm({ open, onOpenChange, editingSchedule, onClose }: S
           <div className="space-y-4">
             {/* Title */}
             <div className="space-y-2">
-              <Label htmlFor="title">Schedule Title</Label>
+              <Label htmlFor="title">Tên lịch</Label>
               <InputWithError
                 id="title"
-                placeholder="e.g., Morning Greenhouse Watering"
+                placeholder="VD: Tưới buổi sáng nhà kính"
                 {...form.register('title')}
                 error={form.formState.errors.title?.message}
               />
@@ -163,13 +159,13 @@ export function ScheduleForm({ open, onOpenChange, editingSchedule, onClose }: S
 
             {/* Device Selection */}
             <div className="space-y-2">
-              <Label htmlFor="device">Irrigation Device</Label>
+              <Label htmlFor="device">Thiết bị tưới</Label>
               <Select
                 value={form.watch('deviceId')}
                 onValueChange={value => form.setValue('deviceId', value)}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select a device" />
+                  <SelectValue placeholder="Chọn thiết bị" />
                 </SelectTrigger>
                 <SelectContent>
                   {devices.map(device => (
@@ -189,7 +185,7 @@ export function ScheduleForm({ open, onOpenChange, editingSchedule, onClose }: S
 
             {/* Recurrence Type */}
             <div className="space-y-2">
-              <Label htmlFor="recurrence">Recurrence Pattern</Label>
+              <Label htmlFor="recurrence">Kiểu lặp</Label>
               <Select
                 value={form.watch('recurrenceType')}
                 onValueChange={(value: any) => form.setValue('recurrenceType', value)}
@@ -198,9 +194,9 @@ export function ScheduleForm({ open, onOpenChange, editingSchedule, onClose }: S
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="daily">Daily</SelectItem>
-                  <SelectItem value="weekly">Weekly</SelectItem>
-                  <SelectItem value="interval">Every 6 Hours</SelectItem>
+                  <SelectItem value="daily">Hằng ngày</SelectItem>
+                  <SelectItem value="weekly">Hằng tuần</SelectItem>
+                  <SelectItem value="interval">Mỗi 6 giờ</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -210,7 +206,7 @@ export function ScheduleForm({ open, onOpenChange, editingSchedule, onClose }: S
               <div className="space-y-2">
                 <Label htmlFor="startTime" className="flex items-center gap-1">
                   <Clock className="h-3 w-3" />
-                  Start Time
+                  Bắt đầu
                 </Label>
                 <InputWithError
                   id="startTime"
@@ -222,7 +218,7 @@ export function ScheduleForm({ open, onOpenChange, editingSchedule, onClose }: S
               <div className="space-y-2">
                 <Label htmlFor="endTime" className="flex items-center gap-1">
                   <Clock className="h-3 w-3" />
-                  End Time
+                  Kết thúc
                 </Label>
                 <InputWithError
                   id="endTime"
@@ -237,7 +233,7 @@ export function ScheduleForm({ open, onOpenChange, editingSchedule, onClose }: S
             <div className="space-y-2">
               <Label htmlFor="threshold" className="flex items-center gap-1">
                 <Droplets className="h-3 w-3" />
-                Moisture Threshold (%)
+                Ngưỡng độ ẩm (%)
               </Label>
               <InputWithError
                 id="threshold"
@@ -249,7 +245,7 @@ export function ScheduleForm({ open, onOpenChange, editingSchedule, onClose }: S
                 error={form.formState.errors.moistureThresholdPct?.message}
               />
               <p className="text-xs text-muted-foreground">
-                Irrigation will start when soil moisture falls below this percentage
+                Tưới sẽ bắt đầu khi độ ẩm đất thấp hơn giá trị này
               </p>
             </div>
 
@@ -262,18 +258,18 @@ export function ScheduleForm({ open, onOpenChange, editingSchedule, onClose }: S
                 {...form.register('enabled')}
               />
               <Label htmlFor="enabled" className="text-sm font-medium">
-                Enable schedule immediately
+                Kích hoạt ngay
               </Label>
             </div>
           </div>
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={handleClose}>
-              Cancel
+              Hủy
             </Button>
             <Button type="submit" disabled={isLoading}>
               {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              {isEditing ? 'Update Schedule' : 'Create Schedule'}
+              {isEditing ? 'Cập nhật' : 'Tạo lịch'}
             </Button>
           </DialogFooter>
         </form>

@@ -3,7 +3,6 @@ import { motion } from 'framer-motion'
 import {
   Plus,
   Search,
-  Filter,
   Download,
   Calendar,
   Clock,
@@ -14,41 +13,33 @@ import {
   Trash2,
   Eye,
   FileText,
-  Users,
-  TrendingUp,
 } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
 import { Card } from '@/shared/ui/card'
 import { Badge } from '@/shared/ui/badge'
-import { Select } from '@/shared/ui/select'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { Table } from '@/shared/ui/table'
-import { Dialog } from '@/shared/ui/dialog'
 import { StaffLayout } from '@/shared/layouts/StaffLayout'
 import { useWorkLogsStore } from '@/features/work-logs/store/workLogsStore'
 import { useToast } from '@/shared/ui/use-toast'
-import {
-  priorityConfig,
-  statusConfig,
-  taskCategories,
-  zoneOptions,
-} from '@/features/work-logs/model/schemas'
+import { priorityConfig, statusConfig, zoneOptions } from '@/features/work-logs/model/schemas'
 import type { WorkLogData } from '@/features/work-logs/model/schemas'
+import { WorkLogDetailsModal } from '@/features/work-logs/ui/WorkLogDetailsModal'
+import { WorkLogEditModal } from '@/features/work-logs/ui/WorkLogEditModal'
 
 const StaffWorkLogsPage: React.FC = () => {
   const { toast } = useToast()
   const [selectedLog, setSelectedLog] = useState<WorkLogData | null>(null)
   const [viewModalOpen, setViewModalOpen] = useState(false)
-  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
+  const [editModalOpen, setEditModalOpen] = useState(false)
   const [createModalOpen, setCreateModalOpen] = useState(false)
 
   const {
     initializeData,
-    workLogs,
     searchState,
     selectedLogIds,
     filters,
-    loadingStates,
     setSearch,
     setFilters,
     clearFilters,
@@ -56,11 +47,8 @@ const StaffWorkLogsPage: React.FC = () => {
     exportWorkLogsCSV,
     clearSelection,
     getPaginatedWorkLogs,
-    getTotalCount,
     getWorkLogsByStatus,
-    getWorkLogsByPriority,
     getTodayWorkLogs,
-    getUpcomingTasks,
     getOverdueTasks,
   } = useWorkLogsStore()
 
@@ -70,11 +58,8 @@ const StaffWorkLogsPage: React.FC = () => {
   }, [initializeData])
 
   const paginatedLogs = getPaginatedWorkLogs()
-  const totalCount = getTotalCount()
   const statusCounts = getWorkLogsByStatus()
-  const priorityCounts = getWorkLogsByPriority()
   const todayLogs = getTodayWorkLogs()
-  const upcomingTasks = getUpcomingTasks()
   const overdueTasks = getOverdueTasks()
 
   const handleViewLog = (log: WorkLogData) => {
@@ -82,26 +67,26 @@ const StaffWorkLogsPage: React.FC = () => {
     setViewModalOpen(true)
   }
 
-  const handleDeleteLog = (log: WorkLogData) => {
+  const handleEditLog = (log: WorkLogData) => {
     setSelectedLog(log)
-    setDeleteConfirmOpen(true)
+    setEditModalOpen(true)
   }
 
-  const confirmDelete = async () => {
-    if (!selectedLog?.id) return
+  const handleDeleteLog = async (log: WorkLogData) => {
+    if (!log?.id) return
 
     try {
-      await deleteWorkLog(selectedLog.id)
+      await deleteWorkLog(log.id)
       toast({
-        title: 'Work Log Deleted',
-        description: 'Work log has been successfully deleted.',
+        title: 'Đã xóa nhật ký công việc',
+        description: 'Nhật ký công việc đã được xóa thành công.',
       })
-      setDeleteConfirmOpen(false)
+      setViewModalOpen(false)
       setSelectedLog(null)
     } catch (error) {
       toast({
-        title: 'Delete Failed',
-        description: error instanceof Error ? error.message : 'Failed to delete work log',
+        title: 'Xóa thất bại',
+        description: error instanceof Error ? error.message : 'Không thể xóa nhật ký công việc',
         variant: 'destructive',
       })
     }
@@ -147,20 +132,20 @@ const StaffWorkLogsPage: React.FC = () => {
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center">
               <FileText className="h-8 w-8 mr-3 text-green-600" />
-              Work Logs
+              Nhật ký công việc
             </h1>
-            <p className="text-gray-600">Track daily operations and task management</p>
+            <p className="text-gray-600">Theo dõi hoạt động hàng ngày và quản lý nhiệm vụ</p>
           </div>
 
           <div className="flex items-center gap-2">
             <Button variant="outline" onClick={exportWorkLogsCSV}>
               <Download className="h-4 w-4 mr-2" />
-              Export
+              Xuất file
             </Button>
 
             <Button onClick={() => setCreateModalOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
-              New Work Log
+              Nhật ký mới
             </Button>
           </div>
         </div>
@@ -178,7 +163,7 @@ const StaffWorkLogsPage: React.FC = () => {
                   <Calendar className="h-8 w-8 text-blue-600" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">Today's Tasks</p>
+                  <p className="text-sm font-medium text-gray-500">Nhiệm vụ hôm nay</p>
                   <p className="text-2xl font-bold text-gray-900">{todayLogs.length}</p>
                 </div>
               </div>
@@ -196,7 +181,7 @@ const StaffWorkLogsPage: React.FC = () => {
                   <CheckCircle className="h-8 w-8 text-green-600" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">Completed</p>
+                  <p className="text-sm font-medium text-gray-500">Hoàn thành</p>
                   <p className="text-2xl font-bold text-gray-900">{statusCounts.completed || 0}</p>
                 </div>
               </div>
@@ -214,7 +199,7 @@ const StaffWorkLogsPage: React.FC = () => {
                   <Clock className="h-8 w-8 text-yellow-600" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">In Progress</p>
+                  <p className="text-sm font-medium text-gray-500">Đang thực hiện</p>
                   <p className="text-2xl font-bold text-gray-900">
                     {statusCounts['in-progress'] || 0}
                   </p>
@@ -234,7 +219,7 @@ const StaffWorkLogsPage: React.FC = () => {
                   <AlertCircle className="h-8 w-8 text-red-600" />
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">Overdue</p>
+                  <p className="text-sm font-medium text-gray-500">Quá hạn</p>
                   <p className="text-2xl font-bold text-gray-900">{overdueTasks.length}</p>
                 </div>
               </div>
@@ -249,7 +234,7 @@ const StaffWorkLogsPage: React.FC = () => {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
-                placeholder="Search work logs by task, zone, or description..."
+                placeholder="Tìm kiếm nhật ký công việc theo nhiệm vụ, khu vực hoặc mô tả..."
                 value={searchState.query}
                 onChange={e => setSearch(e.target.value)}
                 className="pl-10"
@@ -258,41 +243,54 @@ const StaffWorkLogsPage: React.FC = () => {
 
             {/* Filters */}
             <div className="flex flex-wrap gap-3 items-center">
-              <span className="text-sm font-medium text-gray-700 whitespace-nowrap">
-                Filter by:
-              </span>
+              <span className="text-sm font-medium text-gray-700 whitespace-nowrap">Lọc theo:</span>
               <div className="flex flex-wrap gap-2">
                 <Select
                   value={filters.status || 'all'}
                   onValueChange={value => setFilters({ status: value as any })}
                 >
-                  <option value="all">All Status</option>
-                  <option value="completed">Completed</option>
-                  <option value="in-progress">In Progress</option>
-                  <option value="cancelled">Cancelled</option>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Chọn trạng thái" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tất cả trạng thái</SelectItem>
+                    <SelectItem value="completed">Hoàn thành</SelectItem>
+                    <SelectItem value="in-progress">Đang thực hiện</SelectItem>
+                    <SelectItem value="cancelled">Đã hủy</SelectItem>
+                  </SelectContent>
                 </Select>
 
                 <Select
                   value={filters.priority || 'all'}
                   onValueChange={value => setFilters({ priority: value as any })}
                 >
-                  <option value="all">All Priority</option>
-                  <option value="urgent">Urgent</option>
-                  <option value="high">High</option>
-                  <option value="medium">Medium</option>
-                  <option value="low">Low</option>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Chọn độ ưu tiên" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tất cả độ ưu tiên</SelectItem>
+                    <SelectItem value="urgent">Khẩn cấp</SelectItem>
+                    <SelectItem value="high">Cao</SelectItem>
+                    <SelectItem value="medium">Trung bình</SelectItem>
+                    <SelectItem value="low">Thấp</SelectItem>
+                  </SelectContent>
                 </Select>
 
                 <Select
-                  value={filters.zone || ''}
-                  onValueChange={value => setFilters({ zone: value })}
+                  value={filters.zone || 'all'}
+                  onValueChange={value => setFilters({ zone: value === 'all' ? '' : value })}
                 >
-                  <option value="">All Zones</option>
-                  {zoneOptions.map(zone => (
-                    <option key={zone} value={zone}>
-                      {zone}
-                    </option>
-                  ))}
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="Chọn khu vực" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tất cả khu vực</SelectItem>
+                    {zoneOptions.map(zone => (
+                      <SelectItem key={zone} value={zone}>
+                        {zone}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
                 </Select>
 
                 <Button
@@ -301,7 +299,7 @@ const StaffWorkLogsPage: React.FC = () => {
                   size="sm"
                   className="whitespace-nowrap"
                 >
-                  Clear Filters
+                  Xóa bộ lọc
                 </Button>
               </div>
             </div>
@@ -311,14 +309,14 @@ const StaffWorkLogsPage: React.FC = () => {
           {selectedLogIds.length > 0 && (
             <div className="mt-4 flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
               <span className="text-sm font-medium text-blue-700">
-                {selectedLogIds.length} log{selectedLogIds.length === 1 ? '' : 's'} selected
+                {selectedLogIds.length} nhật ký đã chọn
               </span>
               <div className="flex space-x-2">
                 <Button size="sm" variant="outline" onClick={clearSelection}>
-                  Clear Selection
+                  Xóa lựa chọn
                 </Button>
                 <Button size="sm" className="bg-blue-600 hover:bg-blue-700">
-                  Bulk Actions
+                  Thao tác hàng loạt
                 </Button>
               </div>
             </div>
@@ -332,22 +330,22 @@ const StaffWorkLogsPage: React.FC = () => {
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50">
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Date & Time
+                    Ngày & Giờ
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Task & Zone
+                    Nhiệm vụ & Khu vực
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
+                    Trạng thái
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Priority
+                    Độ ưu tiên
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Assigned To
+                    Người thực hiện
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
+                    Thao tác
                   </th>
                 </tr>
               </thead>
@@ -373,7 +371,9 @@ const StaffWorkLogsPage: React.FC = () => {
                       {getPriorityBadge(log.priority)}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{log.assignedTo || 'Unassigned'}</div>
+                      <div className="text-sm text-gray-900">
+                        {log.assignedTo || 'Chưa phân công'}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex justify-end space-x-2">
@@ -388,6 +388,7 @@ const StaffWorkLogsPage: React.FC = () => {
                         <Button
                           size="sm"
                           variant="ghost"
+                          onClick={() => handleEditLog(log)}
                           className="text-green-600 hover:text-green-700"
                         >
                           <Edit className="h-4 w-4" />
@@ -411,81 +412,72 @@ const StaffWorkLogsPage: React.FC = () => {
           {paginatedLogs.length === 0 && (
             <div className="text-center py-12">
               <FileText className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No work logs found</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                Không tìm thấy nhật ký công việc
+              </h3>
               <p className="text-gray-500">
-                No work logs match your current filters. Try adjusting your search criteria.
+                Không có nhật ký công việc nào phù hợp với bộ lọc hiện tại. Hãy thử điều chỉnh tiêu
+                chí tìm kiếm.
               </p>
             </div>
           )}
         </Card>
 
-        {/* View Modal */}
-        {selectedLog && (
-          <Dialog open={viewModalOpen} onOpenChange={setViewModalOpen}>
-            <div className="max-w-2xl mx-auto p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Work Log Details</h3>
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Date</label>
-                    <p className="text-sm text-gray-900">{selectedLog.date}</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Time</label>
-                    <p className="text-sm text-gray-900">
-                      {selectedLog.startTime} - {selectedLog.endTime}
-                    </p>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Task</label>
-                  <p className="text-sm text-gray-900">{selectedLog.task}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Zone</label>
-                  <p className="text-sm text-gray-900">{selectedLog.zone}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Description</label>
-                  <p className="text-sm text-gray-900">{selectedLog.description}</p>
-                </div>
-                {selectedLog.notes && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700">Notes</label>
-                    <p className="text-sm text-gray-900">{selectedLog.notes}</p>
-                  </div>
-                )}
-              </div>
-              <div className="mt-6 flex justify-end space-x-3">
-                <Button variant="outline" onClick={() => setViewModalOpen(false)}>
-                  Close
-                </Button>
-              </div>
-            </div>
-          </Dialog>
-        )}
+        {/* Details Modal */}
+        <WorkLogDetailsModal
+          isOpen={viewModalOpen}
+          onClose={() => setViewModalOpen(false)}
+          workLog={selectedLog}
+          onEdit={handleEditLog}
+          onDelete={handleDeleteLog}
+        />
 
-        {/* Delete Confirmation Modal */}
-        <Dialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
-          <div className="max-w-md mx-auto p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Delete Work Log</h3>
-            <p className="text-sm text-gray-600 mb-6">
-              Are you sure you want to delete this work log? This action cannot be undone.
-            </p>
-            <div className="flex justify-end space-x-3">
-              <Button variant="outline" onClick={() => setDeleteConfirmOpen(false)}>
-                Cancel
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={confirmDelete}
-                disabled={loadingStates[`delete-work-log-${selectedLog?.id}`]?.isLoading}
-              >
-                Delete
-              </Button>
-            </div>
-          </div>
-        </Dialog>
+        {/* Edit Modal */}
+        <WorkLogEditModal
+          isOpen={editModalOpen}
+          onClose={() => setEditModalOpen(false)}
+          workLog={selectedLog}
+          onSave={async _workLogData => {
+            try {
+              // TODO: Implement save logic
+              toast({
+                title: 'Cập nhật thành công',
+                description: 'Nhật ký công việc đã được cập nhật.',
+              })
+              setEditModalOpen(false)
+              setSelectedLog(null)
+            } catch (error) {
+              toast({
+                title: 'Cập nhật thất bại',
+                description: error instanceof Error ? error.message : 'Không thể cập nhật nhật ký',
+                variant: 'destructive',
+              })
+            }
+          }}
+        />
+
+        {/* Create Modal */}
+        <WorkLogEditModal
+          isOpen={createModalOpen}
+          onClose={() => setCreateModalOpen(false)}
+          workLog={null}
+          onSave={async _workLogData => {
+            try {
+              // TODO: Implement create logic
+              toast({
+                title: 'Tạo thành công',
+                description: 'Nhật ký công việc mới đã được tạo.',
+              })
+              setCreateModalOpen(false)
+            } catch (error) {
+              toast({
+                title: 'Tạo thất bại',
+                description: error instanceof Error ? error.message : 'Không thể tạo nhật ký mới',
+                variant: 'destructive',
+              })
+            }
+          }}
+        />
       </div>
     </StaffLayout>
   )

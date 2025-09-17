@@ -5,12 +5,7 @@ import type {
   PaginationState,
   TableDensity,
 } from '@/shared/lib/localData'
-import {
-  simulateLatency,
-  simulateError,
-  exportToCSV,
-  userPreferences,
-} from '@/shared/lib/localData/storage'
+import { simulateLatency, simulateError, userPreferences } from '@/shared/lib/localData/storage'
 import type { QualityCheckData, QualityCheckFilterData } from '../model/schemas'
 
 // Mock quality check data
@@ -20,7 +15,7 @@ const mockQualityChecks: QualityCheckData[] = [
     date: '2024-01-15',
     time: '09:00',
     zone: 'Zone A - Greenhouse 1',
-    cropType: 'Tomatoes',
+    cropType: 'Cà chua',
     checkType: 'routine',
     status: 'pass',
     inspector: 'John Smith',
@@ -36,8 +31,8 @@ const mockQualityChecks: QualityCheckData[] = [
     temperature: 24,
     humidity: 68,
     issues: [],
-    recommendedActions: ['Monitor closely'],
-    notes: 'Plants showing excellent growth and fruit development',
+    recommendedActions: ['Theo dõi chặt chẽ'],
+    notes: 'Cây trồng cho thấy sự tăng trưởng và phát triển quả tuyệt vời',
     requiresFollowUp: false,
     priority: 'low',
   },
@@ -46,7 +41,7 @@ const mockQualityChecks: QualityCheckData[] = [
     date: '2024-01-15',
     time: '11:30',
     zone: 'Zone B - Outdoor Field',
-    cropType: 'Lettuce',
+    cropType: 'Xà lách',
     checkType: 'disease',
     status: 'warning',
     inspector: 'Maria Garcia',
@@ -60,9 +55,9 @@ const mockQualityChecks: QualityCheckData[] = [
     soilMoisture: 45,
     temperature: 22,
     humidity: 75,
-    issues: ['Leaf yellowing', 'Disease symptoms'],
-    recommendedActions: ['Apply disease treatment', 'Monitor closely'],
-    notes: 'Early signs of fungal infection detected on lower leaves',
+    issues: ['Lá vàng', 'Triệu chứng bệnh tật'],
+    recommendedActions: ['Điều trị bệnh tật', 'Theo dõi chặt chẽ'],
+    notes: 'Phát hiện dấu hiệu sớm của bệnh nấm ở lá dưới',
     requiresFollowUp: true,
     followUpDate: '2024-01-18',
     priority: 'high',
@@ -72,7 +67,7 @@ const mockQualityChecks: QualityCheckData[] = [
     date: '2024-01-16',
     time: '08:15',
     zone: 'Zone C - Nursery',
-    cropType: 'Peppers',
+    cropType: 'Ớt',
     checkType: 'pest',
     status: 'fail',
     inspector: 'David Chen',
@@ -86,9 +81,9 @@ const mockQualityChecks: QualityCheckData[] = [
     soilMoisture: 35,
     temperature: 26,
     humidity: 55,
-    issues: ['Pest infestation', 'Nutrient deficiency', 'Stunted growth'],
-    recommendedActions: ['Apply pest treatment', 'Apply fertilizer', 'Increase watering frequency'],
-    notes: 'Significant aphid infestation affecting multiple plants',
+    issues: ['Sâu bệnh tấn công', 'Thiếu dinh dưỡng', 'Tăng trưởng chậm'],
+    recommendedActions: ['Xử lý sâu bệnh', 'Bón phân', 'Tăng tần suất tưới nước'],
+    notes: 'Sâu rệp tấn công nghiêm trọng ảnh hưởng đến nhiều cây',
     requiresFollowUp: true,
     followUpDate: '2024-01-17',
     priority: 'critical',
@@ -98,7 +93,7 @@ const mockQualityChecks: QualityCheckData[] = [
     date: '2024-01-16',
     time: '14:00',
     zone: 'Zone F - Hydroponic Greenhouse',
-    cropType: 'Cucumbers',
+    cropType: 'Dưa chuột',
     checkType: 'growth',
     status: 'pass',
     inspector: 'Sarah Johnson',
@@ -114,8 +109,8 @@ const mockQualityChecks: QualityCheckData[] = [
     temperature: 25,
     humidity: 65,
     issues: [],
-    recommendedActions: ['Continue current care routine'],
-    notes: 'Excellent growth rate and fruit development in hydroponic system',
+    recommendedActions: ['Tiếp tục quy trình chăm sóc hiện tại'],
+    notes: 'Tốc độ tăng trưởng và phát triển quả tuyệt vời trong hệ thống thủy canh',
     requiresFollowUp: false,
     priority: 'low',
   },
@@ -124,7 +119,7 @@ const mockQualityChecks: QualityCheckData[] = [
     date: '2024-01-17',
     time: '10:30',
     zone: 'Zone E - Field Extension',
-    cropType: 'Strawberries',
+    cropType: 'Dâu tây',
     checkType: 'harvest-ready',
     status: 'pass',
     inspector: 'Mike Wilson',
@@ -140,8 +135,8 @@ const mockQualityChecks: QualityCheckData[] = [
     temperature: 20,
     humidity: 70,
     issues: [],
-    recommendedActions: ['Harvest immediately', 'Prepare for market'],
-    notes: 'Strawberries are at optimal ripeness for harvest',
+    recommendedActions: ['Thu hoạch ngay lập tức', 'Chuẩn bị cho thị trường'],
+    notes: 'Dâu tây đã đạt độ chín tối ưu để thu hoạch',
     requiresFollowUp: false,
     priority: 'medium',
   },
@@ -168,7 +163,6 @@ interface QualityChecksState {
   createQualityCheck: (data: Omit<QualityCheckData, 'id'>) => Promise<void>
   updateQualityCheck: (id: string, data: Partial<QualityCheckData>) => Promise<void>
   deleteQualityCheck: (id: string) => Promise<void>
-  exportQualityChecksCSV: () => void
 
   // Search and filter actions
   setSearch: (query: string) => void
@@ -237,7 +231,7 @@ export const useQualityChecksStore = create<QualityChecksState>((set, get) => ({
       await simulateLatency(400, 800)
 
       if (simulateError(0.1)) {
-        throw new Error('Failed to create quality check. Please try again.')
+        throw new Error('Không thể tạo kiểm tra chất lượng. Vui lòng thử lại.')
       }
 
       const newCheck: QualityCheckData = {
@@ -253,7 +247,7 @@ export const useQualityChecksStore = create<QualityChecksState>((set, get) => ({
     } catch (error) {
       get().setLoadingState(key, {
         isLoading: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : 'Lỗi không xác định',
       })
       throw error
     }
@@ -267,7 +261,7 @@ export const useQualityChecksStore = create<QualityChecksState>((set, get) => ({
       await simulateLatency(300, 600)
 
       if (simulateError(0.08)) {
-        throw new Error('Failed to update quality check. Please try again.')
+        throw new Error('Không thể cập nhật kiểm tra chất lượng. Vui lòng thử lại.')
       }
 
       set(state => ({
@@ -280,7 +274,7 @@ export const useQualityChecksStore = create<QualityChecksState>((set, get) => ({
     } catch (error) {
       get().setLoadingState(key, {
         isLoading: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : 'Lỗi không xác định',
       })
       throw error
     }
@@ -294,7 +288,7 @@ export const useQualityChecksStore = create<QualityChecksState>((set, get) => ({
       await simulateLatency(200, 400)
 
       if (simulateError(0.05)) {
-        throw new Error('Failed to delete quality check. Please try again.')
+        throw new Error('Không thể xóa kiểm tra chất lượng. Vui lòng thử lại.')
       }
 
       set(state => ({
@@ -306,35 +300,10 @@ export const useQualityChecksStore = create<QualityChecksState>((set, get) => ({
     } catch (error) {
       get().setLoadingState(key, {
         isLoading: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : 'Lỗi không xác định',
       })
       throw error
     }
-  },
-
-  exportQualityChecksCSV: () => {
-    const checkData = get().getFilteredQualityChecks()
-    const csvData = checkData.map(check => ({
-      Date: check.date,
-      Time: check.time,
-      Zone: check.zone,
-      'Crop Type': check.cropType,
-      'Check Type': check.checkType,
-      Status: check.status,
-      Inspector: check.inspector,
-      'Overall Health': check.overallHealth,
-      'Growth Stage': check.growthStage,
-      'Disease Present': check.diseasePresent ? 'Yes' : 'No',
-      'Pest Present': check.pestPresent ? 'Yes' : 'No',
-      'Nutrient Deficiency': check.nutrientDeficiency ? 'Yes' : 'No',
-      'Plant Height': check.plantHeight || 'N/A',
-      'Fruit Count': check.fruitCount || 'N/A',
-      Priority: check.priority,
-      'Requires Follow-up': check.requiresFollowUp ? 'Yes' : 'No',
-      Notes: check.notes || '',
-    }))
-
-    exportToCSV(csvData, `quality-checks-${new Date().toISOString().split('T')[0]}.csv`)
   },
 
   // Search and filter actions

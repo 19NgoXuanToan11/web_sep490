@@ -42,14 +42,14 @@ export function RuleBuilder({ className }: RuleBuilderProps) {
     try {
       await deleteRule(rule.id)
       toast({
-        title: 'Rule Deleted',
-        description: `"${rule.name}" has been deleted successfully.`,
+        title: 'Đã xóa quy tắc',
+        description: `"${rule.name}" đã được xóa thành công.`,
         variant: 'success',
       })
     } catch (error) {
       toast({
-        title: 'Delete Failed',
-        description: error instanceof Error ? error.message : 'Unknown error occurred.',
+        title: 'Xóa thất bại',
+        description: error instanceof Error ? error.message : 'Đã xảy ra lỗi không xác định.',
         variant: 'destructive',
       })
     }
@@ -59,14 +59,14 @@ export function RuleBuilder({ className }: RuleBuilderProps) {
     try {
       await toggleRule(rule.id, !rule.enabled)
       toast({
-        title: 'Rule Updated',
-        description: `"${rule.name}" has been ${!rule.enabled ? 'enabled' : 'disabled'}.`,
+        title: 'Đã cập nhật quy tắc',
+        description: `"${rule.name}" đã được ${!rule.enabled ? 'kích hoạt' : 'tắt'}.`,
         variant: 'success',
       })
     } catch (error) {
       toast({
-        title: 'Update Failed',
-        description: error instanceof Error ? error.message : 'Unknown error occurred.',
+        title: 'Cập nhật thất bại',
+        description: error instanceof Error ? error.message : 'Đã xảy ra lỗi không xác định.',
         variant: 'destructive',
       })
     }
@@ -77,13 +77,13 @@ export function RuleBuilder({ className }: RuleBuilderProps) {
       <div className={className}>
         <div className="text-center py-12">
           <Brain className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-semibold mb-2">No Irrigation Rules</h3>
+          <h3 className="text-lg font-semibold mb-2">Chưa có quy tắc tưới</h3>
           <p className="text-muted-foreground mb-6">
-            Create intelligent rules to automate your irrigation system based on conditions.
+            Tạo các quy tắc thông minh để tự động hoá hệ thống tưới dựa trên điều kiện.
           </p>
           <Button onClick={() => setShowCreateForm(true)}>
             <Plus className="h-4 w-4 mr-2" />
-            Create Rule
+            Tạo quy tắc
           </Button>
         </div>
 
@@ -101,14 +101,12 @@ export function RuleBuilder({ className }: RuleBuilderProps) {
     <div className={className}>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-semibold">Rule Builder</h2>
-          <p className="text-muted-foreground">
-            Create smart automation rules for your irrigation system
-          </p>
+          <h2 className="text-2xl font-semibold">Trình tạo quy tắc</h2>
+          <p className="text-muted-foreground">Tạo các quy tắc tự động cho hệ thống tưới</p>
         </div>
         <Button onClick={() => setShowCreateForm(true)}>
           <Plus className="h-4 w-4 mr-2" />
-          New Rule
+          Quy tắc mới
         </Button>
       </div>
 
@@ -175,23 +173,23 @@ function RuleForm({ editingRule, onSuccess, onCancel }: RuleFormProps) {
       if (isEditing && editingRule) {
         await updateRule(editingRule.id, data)
         toast({
-          title: 'Rule Updated',
-          description: `"${data.name}" has been updated successfully.`,
+          title: 'Đã cập nhật quy tắc',
+          description: `Đã cập nhật "${data.name}" thành công.`,
           variant: 'success',
         })
       } else {
         await createRule(data)
         toast({
-          title: 'Rule Created',
-          description: `"${data.name}" has been created successfully.`,
+          title: 'Đã tạo quy tắc',
+          description: `Đã tạo "${data.name}" thành công.`,
           variant: 'success',
         })
       }
       onSuccess()
     } catch (error) {
       toast({
-        title: isEditing ? 'Update Failed' : 'Creation Failed',
-        description: error instanceof Error ? error.message : 'Unknown error occurred.',
+        title: isEditing ? 'Cập nhật thất bại' : 'Tạo thất bại',
+        description: error instanceof Error ? error.message : 'Đã xảy ra lỗi không xác định.',
         variant: 'destructive',
       })
     }
@@ -203,7 +201,7 @@ function RuleForm({ editingRule, onSuccess, onCancel }: RuleFormProps) {
 
     if (!name || !condition) return null
 
-    return `When ${condition.toLowerCase()}, the system will automatically adjust irrigation according to the rule "${name}".`
+    return `Khi ${condition.toLowerCase()}, hệ thống sẽ tự động điều chỉnh tưới theo quy tắc "${name}".`
   }
 
   return (
@@ -211,7 +209,7 @@ function RuleForm({ editingRule, onSuccess, onCancel }: RuleFormProps) {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Settings className="h-5 w-5" />
-          {isEditing ? 'Edit Rule' : 'Create New Rule'}
+          {isEditing ? 'Sửa quy tắc' : 'Tạo quy tắc mới'}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -219,12 +217,8 @@ function RuleForm({ editingRule, onSuccess, onCancel }: RuleFormProps) {
           <div className="space-y-4">
             {/* Rule Name */}
             <div className="space-y-2">
-              <Label htmlFor="name">Rule Name</Label>
-              <Input
-                id="name"
-                placeholder="e.g., Low Moisture Emergency Response"
-                {...form.register('name')}
-              />
+              <Label htmlFor="name">Tên quy tắc</Label>
+              <Input id="name" placeholder="VD: Ứng phó độ ẩm thấp" {...form.register('name')} />
               {form.formState.errors.name && (
                 <p className="text-sm text-destructive">{form.formState.errors.name.message}</p>
               )}
@@ -232,12 +226,12 @@ function RuleForm({ editingRule, onSuccess, onCancel }: RuleFormProps) {
 
             {/* Rule Condition */}
             <div className="space-y-2">
-              <Label htmlFor="condition">Rule Condition</Label>
+              <Label htmlFor="condition">Điều kiện</Label>
               <textarea
                 id="condition"
                 rows={3}
                 className="flex min-h-[80px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 resize-none"
-                placeholder="e.g., If soil moisture < 15%, run for 30 minutes immediately"
+                placeholder="VD: Nếu độ ẩm đất < 15%, chạy ngay trong 30 phút"
                 {...form.register('conditionText')}
               />
               {form.formState.errors.conditionText && (
@@ -246,7 +240,7 @@ function RuleForm({ editingRule, onSuccess, onCancel }: RuleFormProps) {
                 </p>
               )}
               <p className="text-xs text-muted-foreground">
-                Describe the condition and action in plain language
+                Mô tả điều kiện và hành động bằng ngôn ngữ tự nhiên
               </p>
             </div>
 
@@ -255,7 +249,7 @@ function RuleForm({ editingRule, onSuccess, onCancel }: RuleFormProps) {
               <div className="p-3 bg-muted/50 rounded-lg">
                 <div className="flex items-center gap-2 mb-2">
                   <Eye className="h-4 w-4 text-primary" />
-                  <span className="text-sm font-medium">Preview</span>
+                  <span className="text-sm font-medium">Xem trước</span>
                 </div>
                 <p className="text-sm text-muted-foreground italic">{previewRule()}</p>
               </div>
@@ -270,7 +264,7 @@ function RuleForm({ editingRule, onSuccess, onCancel }: RuleFormProps) {
                 {...form.register('enabled')}
               />
               <Label htmlFor="enabled" className="text-sm font-medium">
-                Enable rule immediately
+                Kích hoạt ngay
               </Label>
             </div>
           </div>
@@ -278,7 +272,7 @@ function RuleForm({ editingRule, onSuccess, onCancel }: RuleFormProps) {
           <div className="flex justify-end gap-2">
             <Button type="button" variant="outline" onClick={onCancel}>
               <X className="h-4 w-4 mr-2" />
-              Cancel
+              Hủy
             </Button>
             <Button type="submit" disabled={isLoading}>
               {isLoading ? (
@@ -286,7 +280,7 @@ function RuleForm({ editingRule, onSuccess, onCancel }: RuleFormProps) {
               ) : (
                 <Save className="h-4 w-4 mr-2" />
               )}
-              {isEditing ? 'Update Rule' : 'Create Rule'}
+              {isEditing ? 'Cập nhật' : 'Tạo quy tắc'}
             </Button>
           </div>
         </form>
@@ -310,18 +304,18 @@ function RuleCard({ rule, onEdit, onDelete, onToggle, loading }: RuleCardProps) 
         <div className="flex items-start justify-between">
           <div>
             <CardTitle className="text-lg">{rule.name}</CardTitle>
-            <p className="text-sm text-muted-foreground">Created {formatDate(rule.createdAt)}</p>
+            <p className="text-sm text-muted-foreground">Tạo ngày {formatDate(rule.createdAt)}</p>
           </div>
           <Badge variant={rule.enabled ? 'success' : 'secondary'} className="text-xs">
             {rule.enabled ? (
               <>
                 <CheckCircle className="h-3 w-3 mr-1" />
-                Active
+                Đang bật
               </>
             ) : (
               <>
                 <AlertTriangle className="h-3 w-3 mr-1" />
-                Inactive
+                Đang tắt
               </>
             )}
           </Badge>
@@ -356,7 +350,7 @@ function RuleCard({ rule, onEdit, onDelete, onToggle, loading }: RuleCardProps) 
         <div className="absolute inset-0 bg-background/80 flex items-center justify-center rounded-lg">
           <div className="flex items-center gap-2">
             <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent" />
-            <span className="text-sm text-muted-foreground">Processing...</span>
+            <span className="text-sm text-muted-foreground">Đang xử lý...</span>
           </div>
         </div>
       )}

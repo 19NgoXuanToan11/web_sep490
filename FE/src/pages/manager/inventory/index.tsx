@@ -35,10 +35,8 @@ export default function InventoryPage() {
         <div className="space-y-8">
           {/* Header */}
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Inventory & Product Management</h1>
-            <p className="text-gray-600 mt-2">
-              Manage your product catalog and inventory levels with smart tracking and alerts.
-            </p>
+            <h1 className="text-3xl font-bold text-gray-900">Quản lý kho & sản phẩm</h1>
+            <p className="text-gray-600 mt-2">Quản lý danh mục sản phẩm và tồn kho với cảnh báo thông minh.</p>
           </div>
 
           {/* Global Search & Alerts */}
@@ -46,7 +44,7 @@ export default function InventoryPage() {
             <div className="relative flex-1 max-w-md">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
-                placeholder="Search products and inventory..."
+                placeholder="Tìm kiếm sản phẩm và tồn kho..."
                 value={searchState.query}
                 onChange={e => setSearch(e.target.value)}
                 className="pl-9 bg-white border-gray-200 shadow-sm"
@@ -56,9 +54,7 @@ export default function InventoryPage() {
             {lowStockItems.length > 0 && (
               <div className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-700 rounded-lg border border-red-200">
                 <Package className="h-4 w-4" />
-                <span className="text-sm font-medium">
-                  {lowStockItems.length} low stock alert{lowStockItems.length !== 1 ? 's' : ''}
-                </span>
+                <span className="text-sm font-medium">{lowStockItems.length} cảnh báo sắp hết hàng</span>
               </div>
             )}
           </div>
@@ -68,21 +64,19 @@ export default function InventoryPage() {
             <TabsList className="grid w-full grid-cols-2 max-w-md bg-white shadow-sm border border-gray-200">
               <TabsTrigger value="products" className="flex items-center gap-2 data-[state=active]:bg-green-50 data-[state=active]:text-green-700">
                 <Package className="h-4 w-4" />
-                <span>Product Catalog</span>
+                <span>Danh mục sản phẩm</span>
               </TabsTrigger>
               <TabsTrigger value="inventory" className="flex items-center gap-2 data-[state=active]:bg-green-50 data-[state=active]:text-green-700">
                 <Warehouse className="h-4 w-4" />
-                <span>Stock Control</span>
+                <span>Quản lý tồn kho</span>
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="products" className="space-y-6">
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <div className="mb-6">
-                  <h2 className="text-2xl font-semibold text-gray-900">Product Catalog Management</h2>
-                  <p className="text-gray-600">
-                    Manage your product information, categories, pricing, and specifications.
-                  </p>
+                  <h2 className="text-2xl font-semibold text-gray-900">Quản lý danh mục sản phẩm</h2>
+                  <p className="text-gray-600">Quản lý thông tin, danh mục, giá và thuộc tính sản phẩm.</p>
                 </div>
                 <ProductsTable />
               </div>
@@ -91,10 +85,8 @@ export default function InventoryPage() {
             <TabsContent value="inventory" className="space-y-6">
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <div className="mb-6">
-                  <h2 className="text-2xl font-semibold text-gray-900">Stock Management System</h2>
-                  <p className="text-gray-600">
-                    Monitor inventory levels, set thresholds, track quality indicators, and manage stock movements.
-                  </p>
+                  <h2 className="text-2xl font-semibold text-gray-900">Hệ thống quản lý tồn kho</h2>
+                  <p className="text-gray-600">Theo dõi mức tồn, đặt ngưỡng, theo dõi chất lượng và phiếu xuất/nhập.</p>
                 </div>
                 <InventoryTable />
               </div>

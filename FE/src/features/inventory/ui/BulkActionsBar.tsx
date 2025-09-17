@@ -5,7 +5,7 @@ import { Input } from '@/shared/ui/input'
 import { Label } from '@/shared/ui/label'
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/shared/ui/dialog'
 import { useToast } from '@/shared/ui/use-toast'
-import { X, Download, Tag, Settings, Loader2 } from 'lucide-react'
+import { X, Tag, Settings, Loader2 } from 'lucide-react'
 import { useInventoryStore } from '../store/inventoryStore'
 import { cn } from '@/shared/lib/utils'
 
@@ -15,16 +15,19 @@ interface BulkActionsBarProps {
   className?: string
 }
 
-export function BulkActionsBar({ selectedCount, onClearSelection, className }: BulkActionsBarProps) {
+export function BulkActionsBar({
+  selectedCount,
+  onClearSelection,
+  className,
+}: BulkActionsBarProps) {
   const {
     selectedProductIds,
     getCategories,
     bulkSetCategory,
     bulkUpdateThresholds,
-    exportInventoryCSV,
     loadingStates,
   } = useInventoryStore()
-  
+
   const { toast } = useToast()
   const [showCategoryDialog, setShowCategoryDialog] = React.useState(false)
   const [showThresholdsDialog, setShowThresholdsDialog] = React.useState(false)
@@ -39,8 +42,8 @@ export function BulkActionsBar({ selectedCount, onClearSelection, className }: B
   const handleSetCategory = async () => {
     if (!selectedCategory) {
       toast({
-        title: 'Category Required',
-        description: 'Please select a category.',
+        title: 'Cần chọn danh mục',
+        description: 'Vui lòng chọn danh mục.',
         variant: 'destructive',
       })
       return
@@ -49,15 +52,15 @@ export function BulkActionsBar({ selectedCount, onClearSelection, className }: B
     try {
       await bulkSetCategory(selectedProductIds, selectedCategory)
       toast({
-        title: 'Categories Updated',
-        description: `Updated category for ${selectedCount} products.`,
+        title: 'Đã cập nhật danh mục',
+        description: `Đã cập nhật danh mục cho ${selectedCount} sản phẩm.`,
         variant: 'success',
       })
       setShowCategoryDialog(false)
       onClearSelection()
     } catch (error) {
       toast({
-        title: 'Update Failed',
+        title: 'Cập nhật thất bại',
         description: error instanceof Error ? error.message : 'Unknown error occurred.',
         variant: 'destructive',
       })
@@ -67,8 +70,8 @@ export function BulkActionsBar({ selectedCount, onClearSelection, className }: B
   const handleUpdateThresholds = async () => {
     if (maxThreshold <= minThreshold) {
       toast({
-        title: 'Invalid Thresholds',
-        description: 'Maximum threshold must be greater than minimum threshold.',
+        title: 'Ngưỡng không hợp lệ',
+        description: 'Ngưỡng tối đa phải lớn hơn ngưỡng tối thiểu.',
         variant: 'destructive',
       })
       return
@@ -77,69 +80,44 @@ export function BulkActionsBar({ selectedCount, onClearSelection, className }: B
     try {
       await bulkUpdateThresholds(selectedProductIds, { minThreshold, maxThreshold })
       toast({
-        title: 'Thresholds Updated',
-        description: `Updated thresholds for ${selectedCount} products.`,
+        title: 'Đã cập nhật ngưỡng',
+        description: `Đã cập nhật ngưỡng cho ${selectedCount} sản phẩm.`,
         variant: 'success',
       })
       setShowThresholdsDialog(false)
       onClearSelection()
     } catch (error) {
       toast({
-        title: 'Update Failed',
+        title: 'Cập nhật thất bại',
         description: error instanceof Error ? error.message : 'Unknown error occurred.',
         variant: 'destructive',
       })
     }
   }
 
-  const handleExportCSV = () => {
-    exportInventoryCSV()
-    toast({
-      title: 'Export Started',
-      description: 'Your inventory CSV will download shortly.',
-      variant: 'success',
-    })
-  }
-
   return (
     <>
-      <div className={cn(
-        'flex items-center justify-between p-3 bg-primary/5 border border-primary/20 rounded-lg',
-        className
-      )}>
+      <div
+        className={cn(
+          'flex items-center justify-between p-3 bg-primary/5 border border-primary/20 rounded-lg',
+          className
+        )}
+      >
         <div className="flex items-center gap-3">
-          <span className="text-sm font-medium">
-            {selectedCount} item{selectedCount !== 1 ? 's' : ''} selected
-          </span>
+          <span className="text-sm font-medium">{selectedCount} mặt hàng được chọn</span>
           <Button variant="ghost" size="sm" onClick={onClearSelection}>
             <X className="h-4 w-4" />
           </Button>
         </div>
 
         <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowCategoryDialog(true)}
-          >
+          <Button variant="outline" size="sm" onClick={() => setShowCategoryDialog(true)}>
             <Tag className="h-4 w-4 mr-2" />
-            Set Category
+            Đặt danh mục
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowThresholdsDialog(true)}
-          >
+          <Button variant="outline" size="sm" onClick={() => setShowThresholdsDialog(true)}>
             <Settings className="h-4 w-4 mr-2" />
-            Update Thresholds
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleExportCSV}
-          >
-            <Download className="h-4 w-4 mr-2" />
-            Export CSV
+            Cập nhật ngưỡng
           </Button>
         </div>
       </div>
@@ -148,15 +126,15 @@ export function BulkActionsBar({ selectedCount, onClearSelection, className }: B
       <Dialog open={showCategoryDialog} onOpenChange={setShowCategoryDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Set Category for {selectedCount} Products</DialogTitle>
+            <DialogTitle>Đặt danh mục cho {selectedCount} sản phẩm</DialogTitle>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>Select Category</Label>
+              <Label>Chọn danh mục</Label>
               <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Choose a category" />
+                  <SelectValue placeholder="Chọn danh mục" />
                 </SelectTrigger>
                 <SelectContent>
                   {categories.map(category => (
@@ -170,18 +148,12 @@ export function BulkActionsBar({ selectedCount, onClearSelection, className }: B
           </div>
 
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setShowCategoryDialog(false)}
-            >
-              Cancel
+            <Button variant="outline" onClick={() => setShowCategoryDialog(false)}>
+              Hủy
             </Button>
-            <Button
-              onClick={handleSetCategory}
-              disabled={isCategoryLoading || !selectedCategory}
-            >
+            <Button onClick={handleSetCategory} disabled={isCategoryLoading || !selectedCategory}>
               {isCategoryLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Update Category
+              Cập nhật danh mục
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -191,45 +163,39 @@ export function BulkActionsBar({ selectedCount, onClearSelection, className }: B
       <Dialog open={showThresholdsDialog} onOpenChange={setShowThresholdsDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Update Thresholds for {selectedCount} Products</DialogTitle>
+            <DialogTitle>Cập nhật ngưỡng cho {selectedCount} sản phẩm</DialogTitle>
           </DialogHeader>
-          
+
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Minimum Threshold</Label>
+                <Label>Ngưỡng tối thiểu</Label>
                 <Input
                   type="number"
                   min="0"
                   value={minThreshold}
-                  onChange={(e) => setMinThreshold(Number(e.target.value))}
+                  onChange={e => setMinThreshold(Number(e.target.value))}
                 />
               </div>
               <div className="space-y-2">
-                <Label>Maximum Threshold</Label>
+                <Label>Ngưỡng tối đa</Label>
                 <Input
                   type="number"
                   min="1"
                   value={maxThreshold}
-                  onChange={(e) => setMaxThreshold(Number(e.target.value))}
+                  onChange={e => setMaxThreshold(Number(e.target.value))}
                 />
               </div>
             </div>
           </div>
 
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setShowThresholdsDialog(false)}
-            >
-              Cancel
+            <Button variant="outline" onClick={() => setShowThresholdsDialog(false)}>
+              Hủy
             </Button>
-            <Button
-              onClick={handleUpdateThresholds}
-              disabled={isThresholdsLoading}
-            >
+            <Button onClick={handleUpdateThresholds} disabled={isThresholdsLoading}>
               {isThresholdsLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Update Thresholds
+              Cập nhật ngưỡng
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -237,4 +203,3 @@ export function BulkActionsBar({ selectedCount, onClearSelection, className }: B
     </>
   )
 }
-

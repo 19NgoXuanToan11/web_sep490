@@ -5,7 +5,6 @@ import { Input } from '@/shared/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { Badge } from '@/shared/ui/badge'
 import { Skeleton } from '@/shared/ui/skeleton'
-import { TableDensityToggle } from '@/shared/ui/table-density-toggle'
 import { useToast } from '@/shared/ui/use-toast'
 import {
   Plus,
@@ -41,7 +40,6 @@ export function ProductsTable({ className }: ProductsTableProps) {
     setSearch,
     setSort,
     setCategoryFilter,
-    setTableDensity,
     toggleProductSelection,
     selectAllProducts,
     clearSelection,
@@ -63,13 +61,13 @@ export function ProductsTable({ className }: ProductsTableProps) {
     try {
       await deleteProduct(product.id)
       toast({
-        title: 'Product Deleted',
-        description: `${product.name} has been deleted.`,
+        title: 'Đã xóa sản phẩm',
+        description: `Đã xóa ${product.name}.`,
         variant: 'success',
       })
     } catch (error) {
       toast({
-        title: 'Delete Failed',
+        title: 'Xóa thất bại',
         description: error instanceof Error ? error.message : 'Unknown error occurred.',
         variant: 'destructive',
       })
@@ -105,7 +103,7 @@ export function ProductsTable({ className }: ProductsTableProps) {
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search products..."
+              placeholder="Tìm kiếm sản phẩm..."
               value={searchState.query}
               onChange={e => setSearch(e.target.value)}
               className="pl-9"
@@ -115,10 +113,10 @@ export function ProductsTable({ className }: ProductsTableProps) {
           <Select value={categoryFilter || '__all__'} onValueChange={setCategoryFilter}>
             <SelectTrigger className="w-48">
               <Filter className="h-4 w-4 mr-2" />
-              <SelectValue placeholder="All Categories" />
+              <SelectValue placeholder="Tất cả danh mục" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="__all__">All Categories</SelectItem>
+              <SelectItem value="__all__">Tất cả danh mục</SelectItem>
               {categories.map(category => (
                 <SelectItem key={category} value={category}>
                   {category}
@@ -129,10 +127,9 @@ export function ProductsTable({ className }: ProductsTableProps) {
         </div>
 
         <div className="flex gap-2">
-          <TableDensityToggle value={tableDensity} onChange={setTableDensity} />
           <Button onClick={() => setShowProductDrawer(true)}>
             <Plus className="h-4 w-4 mr-2" />
-            Add Product
+            Thêm sản phẩm
           </Button>
         </div>
       </div>
@@ -169,7 +166,7 @@ export function ProductsTable({ className }: ProductsTableProps) {
                 onClick={() => handleSort('name')}
               >
                 <div className="flex items-center gap-2">
-                  Name
+                  Tên
                   <ArrowUpDown className="h-4 w-4" />
                 </div>
               </TableHead>
@@ -179,17 +176,17 @@ export function ProductsTable({ className }: ProductsTableProps) {
                 onClick={() => handleSort('category')}
               >
                 <div className="flex items-center gap-2">
-                  Category
+                  Danh mục
                   <ArrowUpDown className="h-4 w-4" />
                 </div>
               </TableHead>
-              <TableHead className="text-right">Price</TableHead>
+              <TableHead className="text-right">Giá</TableHead>
               <TableHead
                 className="cursor-pointer hover:bg-muted/50"
                 onClick={() => handleSort('updatedAt')}
               >
                 <div className="flex items-center gap-2">
-                  Updated
+                  Cập nhật
                   <ArrowUpDown className="h-4 w-4" />
                 </div>
               </TableHead>
@@ -232,7 +229,9 @@ export function ProductsTable({ className }: ProductsTableProps) {
                     <Badge variant="outline">{product.sku}</Badge>
                   </TableCell>
                   <TableCell>{product.category}</TableCell>
-                  <TableCell className="text-right">${product.price.toFixed(2)}</TableCell>
+                  <TableCell className="text-right">
+                    {product.price.toLocaleString('vi-VN')} VND
+                  </TableCell>
                   <TableCell className="text-sm text-muted-foreground">
                     {formatDate(product.updatedAt)}
                   </TableCell>
@@ -264,7 +263,7 @@ export function ProductsTable({ className }: ProductsTableProps) {
 
         {products.length === 0 && (
           <div className="text-center py-12">
-            <p className="text-muted-foreground">No products found</p>
+            <p className="text-muted-foreground">Không tìm thấy sản phẩm</p>
           </div>
         )}
       </div>
@@ -273,7 +272,7 @@ export function ProductsTable({ className }: ProductsTableProps) {
       {totalPages > 1 && (
         <div className="flex items-center justify-between mt-4">
           <div className="text-sm text-muted-foreground">
-            Showing {startItem}-{endItem} of {totalCount} products
+            Hiển thị {startItem}-{endItem} trong {totalCount} sản phẩm
           </div>
           <div className="flex items-center gap-2">
             <Button
@@ -285,7 +284,7 @@ export function ProductsTable({ className }: ProductsTableProps) {
               <ChevronLeft className="h-4 w-4" />
             </Button>
             <span className="text-sm">
-              Page {paginationState.page} of {totalPages}
+              Trang {paginationState.page} / {totalPages}
             </span>
             <Button
               variant="outline"

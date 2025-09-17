@@ -1,19 +1,10 @@
 import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import {
-  Shield,
-  ShieldPlus,
-  Download,
-  Users,
-  Settings,
-  Lock,
-  RefreshCw,
-  AlertTriangle,
-} from 'lucide-react'
+import { Shield, Users, Settings, Lock, RefreshCw, AlertTriangle } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card'
-import { Badge } from '@/shared/ui/badge'
-import { TableDensityToggle } from '@/shared/ui/table-density-toggle'
+// import { Badge } from '@/shared/ui/badge'
+// import { TableDensityToggle } from '@/shared/ui/table-density-toggle'
 import { useToast } from '@/shared/ui/use-toast'
 import {
   Dialog,
@@ -34,15 +25,12 @@ import type { Role } from '@/shared/lib/localData'
 const AdminRolesPage: React.FC = () => {
   const {
     roles,
-    selectedRoleIds,
-    tableDensity,
+    // selectedRoleIds,
     loadingStates,
     initializeData,
     deleteRole,
     bulkDeleteRoles,
-    exportRolesCSV,
     clearSelection,
-    setTableDensity,
     getSystemRolesCount,
     getCustomRolesCount,
   } = useAdminRolesStore()
@@ -71,10 +59,7 @@ const AdminRolesPage: React.FC = () => {
       ? Math.round(roles.reduce((sum, role) => sum + role.permissions.length, 0) / totalRoles)
       : 0
 
-  const handleCreateRole = () => {
-    setSelectedRole(null)
-    setIsRoleFormOpen(true)
-  }
+  // Removed: create role flow from header
 
   const handleEditRole = (role: Role) => {
     setSelectedRole(role)
@@ -131,13 +116,7 @@ const AdminRolesPage: React.FC = () => {
     }
   }
 
-  const handleExport = () => {
-    exportRolesCSV()
-    toast({
-      title: 'Export started',
-      description: 'Role data is being downloaded as CSV.',
-    })
-  }
+  // Removed: export roles
 
   return (
     <AdminLayout>
@@ -145,23 +124,11 @@ const AdminRolesPage: React.FC = () => {
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Role Management</h1>
-            <p className="text-gray-600">Configure user roles and permissions for access control</p>
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Quản lý vai trò</h1>
+            <p className="text-gray-600">Cấu hình vai trò người dùng và quyền truy cập</p>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={handleExport}>
-              <Download className="h-4 w-4 mr-2" />
-              Export
-            </Button>
-
-            <TableDensityToggle density={tableDensity} onDensityChange={setTableDensity} />
-
-            <Button onClick={handleCreateRole}>
-              <ShieldPlus className="h-4 w-4 mr-2" />
-              Create Role
-            </Button>
-          </div>
+          <div className="flex items-center gap-2" />
         </div>
 
         {/* Statistics Cards */}
@@ -173,12 +140,12 @@ const AdminRolesPage: React.FC = () => {
           >
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Roles</CardTitle>
+                <CardTitle className="text-sm font-medium">Tổng số vai trò</CardTitle>
                 <Shield className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{totalRoles}</div>
-                <p className="text-xs text-muted-foreground">Configured in system</p>
+                <p className="text-xs text-muted-foreground">Được cấu hình trong hệ thống</p>
               </CardContent>
             </Card>
           </motion.div>
@@ -190,12 +157,12 @@ const AdminRolesPage: React.FC = () => {
           >
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">System Roles</CardTitle>
+                <CardTitle className="text-sm font-medium">Vai trò hệ thống</CardTitle>
                 <Lock className="h-4 w-4 text-blue-600" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-blue-600">{systemRoles}</div>
-                <p className="text-xs text-muted-foreground">Built-in roles</p>
+                <p className="text-xs text-muted-foreground">Vai trò tích hợp sẵn</p>
               </CardContent>
             </Card>
           </motion.div>
@@ -207,12 +174,12 @@ const AdminRolesPage: React.FC = () => {
           >
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Custom Roles</CardTitle>
+                <CardTitle className="text-sm font-medium">Vai trò tùy chỉnh</CardTitle>
                 <Settings className="h-4 w-4 text-green-600" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-green-600">{customRoles}</div>
-                <p className="text-xs text-muted-foreground">Organization-specific</p>
+                <p className="text-xs text-muted-foreground">Theo tổ chức</p>
               </CardContent>
             </Card>
           </motion.div>
@@ -224,12 +191,12 @@ const AdminRolesPage: React.FC = () => {
           >
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Avg Permissions</CardTitle>
+                <CardTitle className="text-sm font-medium">Quyền trung bình</CardTitle>
                 <Users className="h-4 w-4 text-purple-600" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-purple-600">{averagePermissions}</div>
-                <p className="text-xs text-muted-foreground">Per role average</p>
+                <p className="text-xs text-muted-foreground">Trung bình mỗi vai trò</p>
               </CardContent>
             </Card>
           </motion.div>
@@ -240,10 +207,10 @@ const AdminRolesPage: React.FC = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Shield className="h-5 w-5" />
-              All Roles
+              Tất cả vai trò
             </CardTitle>
             <CardDescription>
-              View and manage user roles. System roles are protected and cannot be deleted.
+              Xem và quản lý vai trò người dùng. Vai trò hệ thống được bảo vệ và không thể xóa.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -279,19 +246,18 @@ const AdminRolesPage: React.FC = () => {
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <AlertTriangle className="h-5 w-5 text-red-600" />
-                Confirm Deletion
+                Xác nhận xóa
               </DialogTitle>
               <DialogDescription>
                 {deleteConfirm?.role ? (
                   <>
-                    Are you sure you want to delete the <strong>{deleteConfirm.role.name}</strong>{' '}
-                    role? This action cannot be undone and may affect users assigned to this role.
+                    Bạn có chắc muốn xóa vai trò <strong>{deleteConfirm.role.name}</strong>? Hành
+                    động này không thể hoàn tác và có thể ảnh hưởng tới người dùng đang được gán.
                   </>
                 ) : deleteConfirm?.roleIds ? (
                   <>
-                    Are you sure you want to delete {deleteConfirm.roleIds.length} selected role
-                    {deleteConfirm.roleIds.length === 1 ? '' : 's'}? This action cannot be undone
-                    and may affect users assigned to these roles.
+                    Bạn có chắc muốn xóa {deleteConfirm.roleIds.length} vai trò đã chọn? Hành động
+                    này không thể hoàn tác và có thể ảnh hưởng tới người dùng đang được gán.
                   </>
                 ) : null}
               </DialogDescription>
@@ -306,7 +272,7 @@ const AdminRolesPage: React.FC = () => {
                   loadingStates['bulk-delete-roles']?.isLoading
                 }
               >
-                Cancel
+                Hủy
               </Button>
               <Button
                 variant="destructive"
@@ -320,7 +286,7 @@ const AdminRolesPage: React.FC = () => {
                 loadingStates['bulk-delete-roles']?.isLoading ? (
                   <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
                 ) : null}
-                Delete Role{deleteConfirm?.roleIds && deleteConfirm.roleIds.length > 1 ? 's' : ''}
+                Xóa vai trò
               </Button>
             </div>
           </DialogContent>

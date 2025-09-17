@@ -3,13 +3,13 @@ import { z } from 'zod'
 // Quality check entry schema
 export const qualityCheckSchema = z.object({
   id: z.string().optional(),
-  date: z.string().min(1, 'Date is required'),
-  time: z.string().min(1, 'Time is required'),
-  zone: z.string().min(1, 'Zone is required'),
-  cropType: z.string().min(1, 'Crop type is required'),
+  date: z.string().min(1, 'Ngày là bắt buộc'),
+  time: z.string().min(1, 'Thời gian là bắt buộc'),
+  zone: z.string().min(1, 'Khu vực là bắt buộc'),
+  cropType: z.string().min(1, 'Loại cây trồng là bắt buộc'),
   checkType: z.enum(['routine', 'disease', 'pest', 'growth', 'harvest-ready']),
   status: z.enum(['pass', 'fail', 'warning', 'pending']),
-  inspector: z.string().min(1, 'Inspector is required'),
+  inspector: z.string().min(1, 'Người kiểm tra là bắt buộc'),
 
   // Quality metrics
   overallHealth: z.number().min(1).max(10),
@@ -66,12 +66,41 @@ export const validateQualityCheck = (data: unknown) => qualityCheckSchema.safePa
 export const validateQualityCheckFilter = (data: unknown) =>
   qualityCheckFilterSchema.safeParse(data)
 
+// Crop types
+export const cropTypes = [
+  'Cà chua',
+  'Dưa chuột',
+  'Ớt',
+  'Xà lách',
+  'Rau bina',
+  'Rau thơm',
+  'Dâu tây',
+  'Cà tím',
+  'Đậu',
+  'Đậu Hà Lan',
+  'Cà rốt',
+  'Củ cải',
+  'Khác',
+]
+
+// Zone options (matching with other features)
+export const zoneOptions = [
+  'Zone A - Greenhouse 1',
+  'Zone B - Outdoor Field',
+  'Zone C - Nursery',
+  'Zone D - Research Area',
+  'Zone E - Field Extension',
+  'Zone F - Hydroponic Greenhouse',
+  'Zone G - Cold Storage',
+  'Zone H - Seedling Area',
+]
+
 // Default form values
 export const defaultQualityCheckValues: QualityCheckData = {
   date: new Date().toISOString().split('T')[0],
   time: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
-  zone: '',
-  cropType: '',
+  zone: zoneOptions[0],
+  cropType: cropTypes[0],
   checkType: 'routine',
   status: 'pending',
   inspector: '',
@@ -92,188 +121,159 @@ export const defaultQualityCheckValues: QualityCheckData = {
 // Check type configurations
 export const checkTypeConfig = {
   routine: {
-    label: 'Routine Check',
+    label: 'Kiểm tra định kỳ',
     color: 'text-blue-600',
     bgColor: 'bg-blue-100',
     icon: 'calendar',
-    description: 'Regular scheduled inspection',
+    description: 'Kiểm tra thường xuyên theo lịch',
   },
   disease: {
-    label: 'Disease Check',
+    label: 'Kiểm tra bệnh tật',
     color: 'text-red-600',
     bgColor: 'bg-red-100',
     icon: 'alert-triangle',
-    description: 'Disease detection and monitoring',
+    description: 'Phát hiện và theo dõi bệnh tật',
   },
   pest: {
-    label: 'Pest Check',
+    label: 'Kiểm tra sâu bệnh',
     color: 'text-orange-600',
     bgColor: 'bg-orange-100',
     icon: 'bug',
-    description: 'Pest infestation assessment',
+    description: 'Đánh giá tình trạng sâu bệnh',
   },
   growth: {
-    label: 'Growth Check',
+    label: 'Kiểm tra tăng trưởng',
     color: 'text-green-600',
     bgColor: 'bg-green-100',
     icon: 'trending-up',
-    description: 'Growth progress evaluation',
+    description: 'Đánh giá tiến độ tăng trưởng',
   },
   'harvest-ready': {
-    label: 'Harvest Ready',
+    label: 'Sẵn sàng thu hoạch',
     color: 'text-purple-600',
     bgColor: 'bg-purple-100',
     icon: 'harvest',
-    description: 'Harvest readiness assessment',
+    description: 'Đánh giá sẵn sàng thu hoạch',
   },
 }
 
 // Status configurations
 export const statusConfig = {
   pass: {
-    label: 'Pass',
+    label: 'Đạt',
     color: 'text-green-600',
     bgColor: 'bg-green-100',
     icon: 'check-circle',
-    description: 'Quality standards met',
+    description: 'Đạt tiêu chuẩn chất lượng',
   },
   fail: {
-    label: 'Fail',
+    label: 'Không đạt',
     color: 'text-red-600',
     bgColor: 'bg-red-100',
     icon: 'x-circle',
-    description: 'Quality standards not met',
+    description: 'Không đạt tiêu chuẩn chất lượng',
   },
   warning: {
-    label: 'Warning',
+    label: 'Cảnh báo',
     color: 'text-yellow-600',
     bgColor: 'bg-yellow-100',
     icon: 'alert-triangle',
-    description: 'Issues detected, monitoring required',
+    description: 'Phát hiện vấn đề, cần theo dõi',
   },
   pending: {
-    label: 'Pending',
+    label: 'Đang chờ',
     color: 'text-gray-600',
     bgColor: 'bg-gray-100',
     icon: 'clock',
-    description: 'Assessment in progress',
+    description: 'Đang trong quá trình đánh giá',
   },
 }
 
 // Priority configurations
 export const priorityConfig = {
   low: {
-    label: 'Low',
+    label: 'Thấp',
     color: 'text-gray-600',
     bgColor: 'bg-gray-100',
-    description: 'Monitor during next routine check',
+    description: 'Theo dõi trong lần kiểm tra định kỳ tiếp theo',
   },
   medium: {
-    label: 'Medium',
+    label: 'Trung bình',
     color: 'text-blue-600',
     bgColor: 'bg-blue-100',
-    description: 'Address within a few days',
+    description: 'Xử lý trong vài ngày tới',
   },
   high: {
-    label: 'High',
+    label: 'Cao',
     color: 'text-orange-600',
     bgColor: 'bg-orange-100',
-    description: 'Requires prompt attention',
+    description: 'Cần chú ý ngay lập tức',
   },
   critical: {
-    label: 'Critical',
+    label: 'Khẩn cấp',
     color: 'text-red-600',
     bgColor: 'bg-red-100',
-    description: 'Immediate action required',
+    description: 'Cần hành động tức thì',
   },
 }
 
 // Growth stage configurations
 export const growthStageConfig = {
-  seedling: { label: 'Seedling', color: 'text-green-400' },
-  vegetative: { label: 'Vegetative', color: 'text-green-600' },
-  flowering: { label: 'Flowering', color: 'text-pink-600' },
-  fruiting: { label: 'Fruiting', color: 'text-orange-600' },
-  mature: { label: 'Mature', color: 'text-purple-600' },
+  seedling: { label: 'Cây con', color: 'text-green-400' },
+  vegetative: { label: 'Sinh trưởng', color: 'text-green-600' },
+  flowering: { label: 'Ra hoa', color: 'text-pink-600' },
+  fruiting: { label: 'Kết quả', color: 'text-orange-600' },
+  mature: { label: 'Chín', color: 'text-purple-600' },
 }
 
 // Leaf color options
 export const leafColorOptions = [
-  { value: 'healthy-green', label: 'Healthy Green', color: 'bg-green-500' },
-  { value: 'light-green', label: 'Light Green', color: 'bg-green-300' },
-  { value: 'yellow', label: 'Yellow', color: 'bg-yellow-400' },
-  { value: 'brown', label: 'Brown', color: 'bg-yellow-800' },
-  { value: 'other', label: 'Other', color: 'bg-gray-400' },
-]
-
-// Crop types
-export const cropTypes = [
-  'Tomatoes',
-  'Cucumbers',
-  'Peppers',
-  'Lettuce',
-  'Spinach',
-  'Herbs',
-  'Strawberries',
-  'Eggplant',
-  'Beans',
-  'Peas',
-  'Carrots',
-  'Radishes',
-  'Other',
-]
-
-// Zone options (matching with other features)
-export const zoneOptions = [
-  'Zone A - Greenhouse 1',
-  'Zone B - Outdoor Field',
-  'Zone C - Nursery',
-  'Zone D - Research Area',
-  'Zone E - Field Extension',
-  'Zone F - Hydroponic Greenhouse',
-  'Zone G - Cold Storage',
-  'Zone H - Seedling Area',
+  { value: 'healthy-green', label: 'Xanh khỏe mạnh', color: 'bg-green-500' },
+  { value: 'light-green', label: 'Xanh nhạt', color: 'bg-green-300' },
+  { value: 'yellow', label: 'Vàng', color: 'bg-yellow-400' },
+  { value: 'brown', label: 'Nâu', color: 'bg-yellow-800' },
+  { value: 'other', label: 'Khác', color: 'bg-gray-400' },
 ]
 
 // Common issues
 export const commonIssues = [
-  'Leaf yellowing',
-  'Stunted growth',
-  'Pest infestation',
-  'Disease symptoms',
-  'Nutrient deficiency',
-  'Overwatering',
-  'Underwatering',
-  'Temperature stress',
-  'Poor fruit development',
-  'Wilting',
-  'Discoloration',
-  'Abnormal growth pattern',
+  'Lá vàng',
+  'Tăng trưởng chậm',
+  'Sâu bệnh tấn công',
+  'Triệu chứng bệnh tật',
+  'Thiếu dinh dưỡng',
+  'Tưới quá nhiều nước',
+  'Thiếu nước',
+  'Căng thẳng nhiệt độ',
+  'Phát triển quả kém',
+  'Héo úa',
+  'Đổi màu',
+  'Mô hình tăng trưởng bất thường',
 ]
 
 // Recommended actions
 export const recommendedActions = [
-  'Increase watering frequency',
-  'Reduce watering frequency',
-  'Apply fertilizer',
-  'Apply pest treatment',
-  'Apply disease treatment',
-  'Adjust temperature',
-  'Improve ventilation',
-  'Prune affected areas',
-  'Harvest immediately',
-  'Monitor closely',
-  'Isolate affected plants',
-  'Consult specialist',
+  'Tăng tần suất tưới nước',
+  'Giảm tần suất tưới nước',
+  'Bón phân',
+  'Xử lý sâu bệnh',
+  'Điều trị bệnh tật',
+  'Điều chỉnh nhiệt độ',
+  'Cải thiện thông gió',
+  'Cắt tỉa vùng bị ảnh hưởng',
+  'Thu hoạch ngay lập tức',
+  'Theo dõi chặt chẽ',
+  'Cách ly cây bị ảnh hưởng',
+  'Tham khảo chuyên gia',
 ]
 
 // Sort options for quality checks
 export const qualityCheckSortOptions = [
-  { value: 'date', label: 'Date' },
-  { value: 'priority', label: 'Priority' },
-  { value: 'status', label: 'Status' },
-  { value: 'overallHealth', label: 'Overall Health' },
-  { value: 'zone', label: 'Zone' },
-  { value: 'cropType', label: 'Crop Type' },
-  { value: 'inspector', label: 'Inspector' },
+  { value: 'date', label: 'Ngày' },
+  { value: 'priority', label: 'Độ ưu tiên' },
+  { value: 'status', label: 'Trạng thái' },
+  { value: 'overallHealth', label: 'Sức khỏe tổng thể' },
+  { value: 'zone', label: 'Khu vực' },
+  { value: 'cropType', label: 'Loại cây trồng' },
+  { value: 'inspector', label: 'Người kiểm tra' },
 ]

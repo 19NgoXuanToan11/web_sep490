@@ -82,9 +82,10 @@ export const DeviceGridView: React.FC<DeviceGridViewProps> = ({
         className="flex flex-col items-center justify-center py-16 text-center"
       >
         <Grid3X3 className="h-16 w-16 text-gray-300 mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">No devices found</h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-2">Không tìm thấy thiết bị</h3>
         <p className="text-gray-500 max-w-md">
-          No devices match your current filters. Try adjusting your search or filter criteria.
+          Không có thiết bị nào phù hợp với bộ lọc hiện tại. Hãy thử điều chỉnh tiêu chí tìm kiếm
+          hoặc bộ lọc.
         </p>
       </motion.div>
     )
@@ -100,7 +101,9 @@ export const DeviceGridView: React.FC<DeviceGridViewProps> = ({
           className="flex items-center justify-center p-2 bg-blue-50 border border-blue-200 rounded-lg"
         >
           <Loader2 className="h-4 w-4 animate-spin text-blue-600 mr-2" />
-          <span className="text-sm text-blue-700 font-medium">Refreshing device status...</span>
+          <span className="text-sm text-blue-700 font-medium">
+            Đang làm mới trạng thái thiết bị...
+          </span>
         </motion.div>
       )}
 
@@ -134,7 +137,7 @@ export const DeviceGridView: React.FC<DeviceGridViewProps> = ({
       {/* Results summary */}
       <div className="flex items-center justify-between text-sm text-gray-600 pt-4 border-t">
         <span>
-          Showing {devices.length} of {totalCount} device{totalCount === 1 ? '' : 's'}
+          Hiển thị {devices.length} trong tổng số {totalCount} thiết bị
         </span>
         {selectedDeviceIds.length > 0 && (
           <motion.span
@@ -142,7 +145,7 @@ export const DeviceGridView: React.FC<DeviceGridViewProps> = ({
             animate={{ opacity: 1, scale: 1 }}
             className="text-green-600 font-medium"
           >
-            {selectedDeviceIds.length} selected
+            {selectedDeviceIds.length} đã chọn
           </motion.span>
         )}
       </div>

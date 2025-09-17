@@ -17,7 +17,7 @@ const LogoutButton: React.FC<{ className?: string; iconOnly?: boolean }> = ({
         logout()
         navigate('/login', { replace: true })
       }}
-      title="Logout"
+      title="Đăng xuất"
     >
       {iconOnly ? (
         <svg
@@ -33,7 +33,7 @@ const LogoutButton: React.FC<{ className?: string; iconOnly?: boolean }> = ({
           <path d="M21 12H9" />
         </svg>
       ) : (
-        'Logout'
+        'Đăng xuất'
       )}
     </Button>
   )

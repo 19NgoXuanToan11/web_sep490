@@ -16,47 +16,47 @@ import { fadeInUp, staggerContainer, inViewProps, useSafeVariants } from '@/shar
 const features = [
   {
     icon: Thermometer,
-    title: 'ENVIRONMENTAL MONITORING',
+    title: 'GIÁM SÁT MÔI TRƯỜNG',
     description:
-      'Track temperature, air humidity, soil moisture and other environmental parameters through IoT sensors.',
+      'Theo dõi nhiệt độ, độ ẩm không khí, độ ẩm đất và các thông số môi trường khác qua cảm biến IoT.',
   },
   {
     icon: Droplets,
-    title: 'AUTOMATED IRRIGATION',
+    title: 'TƯỚI TIÊU TỰ ĐỘNG',
     description:
-      'Smart irrigation system that operates automatically based on soil moisture data and crop requirements.',
+      'Hệ thống tưới thông minh hoạt động tự động dựa trên dữ liệu độ ẩm đất và nhu cầu cây trồng.',
   },
   {
     icon: BarChart3,
-    title: 'DATA ANALYTICS',
-    description: 'Collect, process and analyze data to make effective farm management decisions.',
+    title: 'PHÂN TÍCH DỮ LIỆU',
+    description: 'Thu thập, xử lý và phân tích dữ liệu để đưa ra quyết định quản lý hiệu quả.',
   },
   {
     icon: Users,
-    title: 'USER MANAGEMENT',
+    title: 'QUẢN LÝ NGƯỜI DÙNG',
     description:
-      'Role-based system with three roles: System Administrator, Farm Manager, and Staff.',
+      'Hệ thống phân quyền với ba vai trò: Quản trị hệ thống, Quản lý nông trại và Nhân viên.',
   },
   {
     icon: Monitor,
-    title: 'VISUAL DASHBOARD',
-    description:
-      'User-friendly web interface displaying real-time information and detailed reports.',
+    title: 'BẢNG ĐIỀU KHIỂN TRỰC QUAN',
+    description: 'Giao diện web thân thiện hiển thị thông tin thời gian thực và báo cáo chi tiết.',
   },
   {
     icon: Database,
-    title: 'DATA STORAGE',
-    description: 'Centralized database storing all sensor information and farm activities.',
+    title: 'LƯU TRỮ DỮ LIỆU',
+    description:
+      'Cơ sở dữ liệu tập trung lưu trữ toàn bộ thông tin cảm biến và hoạt động nông trại.',
   },
   {
     icon: Activity,
-    title: 'SMART ALERTS',
-    description: 'Automatic alert system when parameters exceed predefined safety thresholds.',
+    title: 'CẢNH BÁO THÔNG MINH',
+    description: 'Hệ thống cảnh báo tự động khi các chỉ số vượt ngưỡng an toàn đã thiết lập.',
   },
   {
     icon: Cpu,
-    title: 'IOT INTEGRATION',
-    description: 'Connect and manage multiple IoT devices through standard protocols.',
+    title: 'TÍCH HỢP IOT',
+    description: 'Kết nối và quản lý nhiều thiết bị IoT thông qua các giao thức tiêu chuẩn.',
   },
 ]
 
@@ -69,7 +69,9 @@ export const FeaturesSection: React.FC = () => {
       <div className="container mx-auto px-4">
         {/* Section title */}
         <motion.div className="text-center mb-16" {...inViewProps} variants={itemVariants}>
-          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">SYSTEM FEATURES</h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+            TÍNH NĂNG HỆ THỐNG
+          </h2>
           <div className="w-24 h-1 bg-brand mx-auto rounded-full" />
         </motion.div>
 

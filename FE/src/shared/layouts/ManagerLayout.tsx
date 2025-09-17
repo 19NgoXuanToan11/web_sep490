@@ -9,15 +9,16 @@ import {
   Menu,
   X,
   Bell,
-  Search,
-  User,
   ChevronRight,
   Sprout,
+  Trees,
   Home,
+  User,
+  Activity,
 } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import LogoutButton from '@/shared/ui/LogoutButton'
-import { Input } from '@/shared/ui/input'
+// Removed search & avatar; input no longer needed
 import { Badge } from '@/shared/ui/badge'
 // removed unused Card import
 
@@ -35,30 +36,48 @@ interface NavItem {
 
 const navigationItems: NavItem[] = [
   {
-    name: 'Dashboard',
+    name: 'Bảng điều khiển',
     href: '/manager/dashboard',
     icon: LayoutDashboard,
-    description: 'Overview & Analytics',
+    description: 'Tổng quan & Phân tích',
   },
   {
-    name: 'Smart Irrigation',
+    name: 'Tưới tiêu thông minh',
     href: '/manager/irrigation',
     icon: Droplets,
     badge: 3,
-    description: 'Automated Water Management',
+    description: 'Quản lý tưới nước tự động',
   },
   {
-    name: 'Inventory & Products',
+    name: 'Kho & Sản phẩm',
     href: '/manager/inventory',
     icon: Package,
     badge: 5,
-    description: 'Stock & Product Catalog',
+    description: 'Tồn kho & Danh mục sản phẩm',
   },
   {
-    name: 'Reports & Analytics',
+    name: 'Danh mục',
+    href: '/manager/categories',
+    icon: Sprout,
+    description: 'Quản lý danh mục sản phẩm',
+  },
+  {
+    name: 'Quản lý cây trồng',
+    href: '/manager/crops',
+    icon: Trees,
+    description: 'Lập kế hoạch & theo dõi',
+  },
+  {
+    name: 'Hoạt động nông trại',
+    href: '/manager/farm-activities',
+    icon: Activity,
+    description: 'Lập kế hoạch & quản lý hoạt động',
+  },
+  {
+    name: 'Báo cáo & Phân tích',
     href: '/manager/reports',
     icon: BarChart3,
-    description: 'Performance Metrics',
+    description: 'Chỉ số hiệu suất',
   },
 ]
 
@@ -83,7 +102,7 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
     const breadcrumbs = []
 
     if (pathSegments[0] === 'manager') {
-      breadcrumbs.push({ name: 'Manager Portal', href: '/manager/dashboard' })
+      breadcrumbs.push({ name: 'Cổng quản lý', href: '/manager/dashboard' })
 
       if (pathSegments[1]) {
         const currentPage = navigationItems.find(item => item.href.includes(pathSegments[1]))
@@ -169,8 +188,8 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <h1 className="text-xl font-bold text-gray-900">Farm Manager</h1>
-                  <p className="text-sm text-gray-500">Smart Agriculture</p>
+                  <h1 className="text-xl font-bold text-gray-900">Quản lý nông trại</h1>
+                  <p className="text-sm text-gray-500">Nông nghiệp thông minh</p>
                 </motion.div>
               </div>
               <Button
@@ -178,7 +197,7 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
                 size="sm"
                 onClick={() => handleSidebarToggle(!isSidebarOpen)}
                 className="text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg p-2"
-                title="Thu nhỏ sidebar"
+                title="Thu nhỏ thanh bên"
               >
                 <Menu className="h-5 w-5" />
               </Button>
@@ -194,7 +213,7 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
                 size="sm"
                 onClick={() => handleSidebarToggle(!isSidebarOpen)}
                 className="w-10 h-10 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg p-2 border-gray-300 shadow-sm bg-white"
-                title="Mở rộng sidebar"
+                title="Mở rộng thanh bên"
               >
                 <Menu className="h-4 w-4" />
               </Button>
@@ -221,7 +240,7 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
             </div>
             {isSidebarOpen && (
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">Farm Manager</p>
+                <p className="text-sm font-medium text-gray-900 truncate">Quản lý nông trại</p>
                 <p className="text-xs text-gray-500 truncate">manager@farm.com</p>
               </div>
             )}
@@ -319,7 +338,7 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
                   >
                     <Home className="h-4 w-4" />
                   </Button>
-                  {breadcrumbs.map((crumb, index) => (
+                  {breadcrumbs.map(crumb => (
                     <React.Fragment key={crumb.href}>
                       <ChevronRight className="h-4 w-4 text-gray-400 flex-shrink-0" />
                       <button
@@ -336,27 +355,6 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
               </div>
 
               <div className="flex items-center space-x-2 sm:space-x-4">
-                {/* Search - Hidden on small screens */}
-                <div className="hidden md:block">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <Input
-                      placeholder="Tìm kiếm..."
-                      className="pl-9 w-48 lg:w-64 bg-gray-50 border-gray-200 focus:border-green-300 focus:ring-green-200"
-                    />
-                  </div>
-                </div>
-
-                {/* Mobile Search Button */}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="md:hidden text-gray-500 hover:text-gray-700"
-                  title="Tìm kiếm"
-                >
-                  <Search className="h-5 w-5" />
-                </Button>
-
                 {/* Notifications */}
                 <Button
                   variant="ghost"
@@ -369,16 +367,6 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
                     3
                   </Badge>
                 </Button>
-
-                {/* User Menu */}
-                <div className="flex items-center space-x-2">
-                  <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center shadow-sm">
-                    <User className="w-4 h-4 text-white" />
-                  </div>
-                  <span className="hidden lg:block text-sm font-medium text-gray-700 truncate max-w-32">
-                    Farm Manager
-                  </span>
-                </div>
               </div>
             </div>
           </div>

@@ -52,32 +52,32 @@ export const deviceStatusConfig: Record<
   }
 > = {
   Idle: {
-    label: 'Idle',
+    label: 'Nghỉ',
     color: 'text-gray-600',
     bgColor: 'bg-gray-100',
     icon: 'pause',
-    description: 'Device is ready but not currently active',
+    description: 'Thiết bị sẵn sàng nhưng chưa hoạt động',
   },
   Running: {
-    label: 'Running',
+    label: 'Đang chạy',
     color: 'text-green-600',
     bgColor: 'bg-green-100',
     icon: 'play',
-    description: 'Device is currently operating',
+    description: 'Thiết bị đang hoạt động',
   },
   Paused: {
-    label: 'Paused',
+    label: 'Tạm dừng',
     color: 'text-yellow-600',
     bgColor: 'bg-yellow-100',
     icon: 'pause',
-    description: 'Device operation is temporarily paused',
+    description: 'Thiết bị tạm dừng hoạt động',
   },
   Maintenance: {
-    label: 'Maintenance',
+    label: 'Bảo trì',
     color: 'text-red-600',
     bgColor: 'bg-red-100',
     icon: 'wrench',
-    description: 'Device is under maintenance',
+    description: 'Thiết bị đang được bảo trì',
   },
 }
 
@@ -93,38 +93,38 @@ export const actionConfig: Record<
   }
 > = {
   start: {
-    label: 'Start',
+    label: 'Khởi động',
     icon: 'play',
     color: 'text-green-600',
-    description: 'Begin device operation',
+    description: 'Bắt đầu vận hành thiết bị',
     confirmRequired: false,
   },
   stop: {
-    label: 'Stop',
+    label: 'Dừng',
     icon: 'square',
     color: 'text-red-600',
-    description: 'Stop device operation',
+    description: 'Dừng vận hành thiết bị',
     confirmRequired: true,
   },
   pause: {
-    label: 'Pause',
+    label: 'Tạm dừng',
     icon: 'pause',
     color: 'text-yellow-600',
-    description: 'Temporarily pause operation',
+    description: 'Tạm dừng vận hành',
     confirmRequired: false,
   },
   'run-now': {
-    label: 'Run Now',
+    label: 'Chạy ngay',
     icon: 'zap',
     color: 'text-blue-600',
-    description: 'Start immediate operation',
+    description: 'Khởi động ngay lập tức',
     confirmRequired: false,
   },
   maintenance: {
-    label: 'Maintenance',
+    label: 'Bảo trì',
     icon: 'wrench',
     color: 'text-orange-600',
-    description: 'Enter maintenance mode',
+    description: 'Chế độ bảo trì',
     confirmRequired: true,
   },
 }
@@ -138,43 +138,43 @@ export const batteryLevelConfig = {
 
 // Zone options for filtering
 export const zoneOptions = [
-  { value: 'Zone A - Greenhouse 1', label: 'Greenhouse 1' },
-  { value: 'Zone B - Outdoor Field', label: 'Outdoor Field' },
-  { value: 'Zone C - Nursery', label: 'Nursery' },
-  { value: 'Zone D - Research Area', label: 'Research Area' },
-  { value: 'Zone E - Field Extension', label: 'Field Extension' },
-  { value: 'Zone F - Hydroponic Greenhouse', label: 'Hydroponic Greenhouse' },
-  { value: 'Zone G - Cold Storage', label: 'Cold Storage' },
-  { value: 'Zone H - Seedling Area', label: 'Seedling Area' },
+  { value: 'Zone A - Greenhouse 1', label: 'Nhà kính 1' },
+  { value: 'Zone B - Outdoor Field', label: 'Cánh đồng ngoài trời' },
+  { value: 'Zone C - Nursery', label: 'Vườn ươm' },
+  { value: 'Zone D - Research Area', label: 'Khu nghiên cứu' },
+  { value: 'Zone E - Field Extension', label: 'Mở rộng cánh đồng' },
+  { value: 'Zone F - Hydroponic Greenhouse', label: 'Nhà kính thủy canh' },
+  { value: 'Zone G - Cold Storage', label: 'Kho lạnh' },
+  { value: 'Zone H - Seedling Area', label: 'Khu cây giống' },
 ]
 
 // Quick action presets for common operations
 export const quickActionPresets = [
   {
     id: 'morning-routine',
-    name: 'Morning Startup',
-    description: 'Start all greenhouse systems for morning cycle',
+    name: 'Khởi động buổi sáng',
+    description: 'Khởi động tất cả hệ thống nhà kính cho chu kỳ buổi sáng',
     action: 'start',
     zones: ['Zone A - Greenhouse 1', 'Zone F - Hydroponic Greenhouse'],
   },
   {
     id: 'evening-shutdown',
-    name: 'Evening Shutdown',
-    description: 'Pause non-essential systems for evening',
+    name: 'Tắt buổi tối',
+    description: 'Tạm dừng các hệ thống không cần thiết vào buổi tối',
     action: 'pause',
     zones: ['Zone B - Outdoor Field', 'Zone E - Field Extension'],
   },
   {
     id: 'emergency-stop',
-    name: 'Emergency Stop',
-    description: 'Stop all devices immediately',
+    name: 'Dừng khẩn cấp',
+    description: 'Dừng tất cả thiết bị ngay lập tức',
     action: 'stop',
     zones: [], // All zones
   },
   {
     id: 'maintenance-mode',
-    name: 'Maintenance Mode',
-    description: 'Put selected devices into maintenance mode',
+    name: 'Chế độ bảo trì',
+    description: 'Đưa các thiết bị đã chọn vào chế độ bảo trì',
     action: 'maintenance',
     zones: [],
   },
@@ -185,10 +185,10 @@ export type DeviceViewMode = 'table' | 'grid' | 'map'
 
 // Sort options for devices
 export const deviceSortOptions = [
-  { value: 'name', label: 'Name' },
-  { value: 'zone', label: 'Zone' },
-  { value: 'status', label: 'Status' },
-  { value: 'lastAction', label: 'Last Action' },
-  { value: 'uptimePct', label: 'Uptime' },
-  { value: 'batteryLevel', label: 'Battery Level' },
+  { value: 'name', label: 'Tên thiết bị' },
+  { value: 'zone', label: 'Khu vực' },
+  { value: 'status', label: 'Trạng thái' },
+  { value: 'lastAction', label: 'Thao tác cuối' },
+  { value: 'uptimePct', label: 'Thời gian hoạt động' },
+  { value: 'batteryLevel', label: 'Mức pin' },
 ]

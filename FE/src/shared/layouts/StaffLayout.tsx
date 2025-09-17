@@ -1,22 +1,11 @@
 import React, { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import {
-  Cpu,
-  FileText,
-  Shield,
-  Menu,
-  X,
-  Bell,
-  Search,
-  User,
-  ChevronRight,
-  Home,
-} from 'lucide-react'
+import { Cpu, FileText, Shield, Menu, X, Bell, ChevronRight, Home } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import LogoutButton from '@/shared/ui/LogoutButton'
-import { Input } from '@/shared/ui/input'
 import { Badge } from '@/shared/ui/badge'
+import { User } from 'lucide-react'
 
 interface StaffLayoutProps {
   children: React.ReactNode
@@ -32,24 +21,24 @@ interface NavItem {
 
 const navigationItems: NavItem[] = [
   {
-    name: 'Device Operations',
+    name: 'Điều khiển thiết bị',
     href: '/staff/operations',
     icon: Cpu,
     badge: 3,
-    description: 'IoT Device Management',
+    description: 'Quản lý thiết bị IoT',
   },
   {
-    name: 'Work Logs',
+    name: 'Nhật ký công việc',
     href: '/staff/work-logs',
     icon: FileText,
-    description: 'Daily Task Tracking',
+    description: 'Theo dõi nhiệm vụ hàng ngày',
   },
   {
-    name: 'Quality Checks',
+    name: 'Kiểm tra chất lượng',
     href: '/staff/quality-checks',
     icon: Shield,
     badge: 2,
-    description: 'Crop Quality Monitoring',
+    description: 'Giám sát chất lượng cây trồng',
   },
 ]
 
@@ -72,7 +61,7 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({ children }) => {
     const breadcrumbs = []
 
     if (pathSegments[0] === 'staff') {
-      breadcrumbs.push({ name: 'Staff Portal', href: '/staff/operations' })
+      breadcrumbs.push({ name: 'Cổng nhân viên', href: '/staff/operations' })
 
       if (pathSegments[1]) {
         const currentPage = navigationItems.find(item => item.href.includes(pathSegments[1]))
@@ -157,8 +146,8 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({ children }) => {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <h1 className="text-xl font-bold text-gray-900">Staff Portal</h1>
-                  <p className="text-sm text-gray-500">Field Operations</p>
+                  <h1 className="text-xl font-bold text-gray-900">Cổng nhân viên</h1>
+                  <p className="text-sm text-gray-500">Hoạt động thực địa</p>
                 </motion.div>
               </div>
               <Button
@@ -206,7 +195,7 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({ children }) => {
             </div>
             {isSidebarOpen && (
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">Field Staff</p>
+                <p className="text-sm font-medium text-gray-900 truncate">Nhân viên thực địa</p>
                 <p className="text-xs text-gray-500 truncate">staff@farm.com</p>
               </div>
             )}
@@ -247,8 +236,8 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({ children }) => {
                     <Cpu className="w-6 h-6 text-white" />
                   </div>
                   <div>
-                    <h1 className="text-xl font-bold text-gray-900">Staff Portal</h1>
-                    <p className="text-sm text-gray-500">Field Operations</p>
+                    <h1 className="text-xl font-bold text-gray-900">Cổng nhân viên</h1>
+                    <p className="text-sm text-gray-500">Hoạt động thực địa</p>
                   </div>
                 </div>
                 <Button
@@ -299,7 +288,7 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({ children }) => {
                   >
                     <Home className="h-4 w-4" />
                   </Button>
-                  {breadcrumbs.map((crumb, index) => (
+                  {breadcrumbs.map(crumb => (
                     <React.Fragment key={crumb.href}>
                       <ChevronRight className="h-4 w-4 text-gray-400 flex-shrink-0" />
                       <button
@@ -314,24 +303,6 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({ children }) => {
               </div>
 
               <div className="flex items-center space-x-2 sm:space-x-4">
-                <div className="hidden md:block">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <Input
-                      placeholder="Search..."
-                      className="pl-9 w-48 lg:w-64 bg-gray-50 border-gray-200 focus:border-purple-300 focus:ring-purple-200"
-                    />
-                  </div>
-                </div>
-
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="md:hidden text-gray-500 hover:text-gray-700"
-                >
-                  <Search className="h-5 w-5" />
-                </Button>
-
                 <Button
                   variant="ghost"
                   size="sm"
@@ -342,15 +313,6 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({ children }) => {
                     5
                   </Badge>
                 </Button>
-
-                <div className="flex items-center space-x-2">
-                  <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center shadow-sm">
-                    <User className="w-4 h-4 text-white" />
-                  </div>
-                  <span className="hidden lg:block text-sm font-medium text-gray-700 truncate max-w-32">
-                    Field Staff
-                  </span>
-                </div>
               </div>
             </div>
           </div>

@@ -11,12 +11,7 @@ import {
   products as initialProducts,
   inventoryItems as initialInventoryItems,
 } from '@/shared/lib/localData/fixtures'
-import {
-  simulateLatency,
-  simulateError,
-  exportToCSV,
-  userPreferences,
-} from '@/shared/lib/localData/storage'
+import { simulateLatency, simulateError, userPreferences } from '@/shared/lib/localData/storage'
 import type { ProductFormData, InventoryThresholdData } from '../model/schemas'
 
 interface InventoryState {
@@ -48,7 +43,6 @@ interface InventoryState {
   updateInventoryThresholds: (id: string, data: InventoryThresholdData) => Promise<void>
   bulkUpdateThresholds: (productIds: string[], data: InventoryThresholdData) => Promise<void>
   bulkSetCategory: (productIds: string[], category: string) => Promise<void>
-  exportInventoryCSV: () => void
 
   // Search and filter actions
   setSearch: (query: string) => void
@@ -316,22 +310,6 @@ export const useInventoryStore = create<InventoryState>((set, get) => ({
       })
       throw error
     }
-  },
-
-  exportInventoryCSV: () => {
-    const inventoryData = get().getFilteredInventoryItems()
-    const csvData = inventoryData.map(item => ({
-      Product: item.product.name,
-      SKU: item.product.sku,
-      Category: item.product.category,
-      Stock: item.stock,
-      'Min Threshold': item.minThreshold,
-      'Max Threshold': item.maxThreshold,
-      'Quality Flags': item.qualityFlags.join(', '),
-      'Updated At': new Date(item.updatedAt).toLocaleDateString(),
-    }))
-
-    exportToCSV(csvData, `inventory-${new Date().toISOString().split('T')[0]}.csv`)
   },
 
   // Search and filter actions

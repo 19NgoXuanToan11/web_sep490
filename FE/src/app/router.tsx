@@ -2,7 +2,6 @@ import React from 'react'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import { HomePage } from '../pages/home'
 import { LoginPage } from '@/pages/auth/LoginPage'
-import { RegisterPage } from '@/pages/auth/RegisterPage'
 import ManagerDashboard from '@/pages/manager/dashboard'
 import IrrigationPage from '@/pages/manager/irrigation'
 import InventoryPage from '@/pages/manager/inventory'
@@ -10,13 +9,18 @@ import ReportsPage from '@/pages/manager/reports'
 
 // Admin route imports
 import AdminUsersPage from '@/pages/admin/users'
-import AdminRolesPage from '@/pages/admin/roles'
+// import AdminRolesPage from '@/pages/admin/roles'
 import ProfilePage from '@/pages/profile'
 
 // Staff route imports
 import StaffOperationsPage from '@/pages/staff/operations'
 import StaffWorkLogsPage from '@/pages/staff/work-logs'
 import StaffQualityChecksPage from '@/pages/staff/quality-checks'
+
+// Manager route imports
+import ManagerCategoriesPage from '@/pages/manager/categories'
+import ManagerCropsPage from '@/pages/manager/crops'
+import ManagerFarmActivitiesPage from '@/pages/manager/farm-activities'
 
 // RBAC components
 const Unauthorized = React.lazy(() => import('@/pages/Unauthorized'))
@@ -73,6 +77,30 @@ const routerConfig = [
       </RoleGuard>
     ),
   },
+  {
+    path: '/manager/categories',
+    element: (
+      <RoleGuard allowed={['Manager']}>
+        <ManagerCategoriesPage />
+      </RoleGuard>
+    ),
+  },
+  {
+    path: '/manager/crops',
+    element: (
+      <RoleGuard allowed={['Manager']}>
+        <ManagerCropsPage />
+      </RoleGuard>
+    ),
+  },
+  {
+    path: '/manager/farm-activities',
+    element: (
+      <RoleGuard allowed={['Manager']}>
+        <ManagerFarmActivitiesPage />
+      </RoleGuard>
+    ),
+  },
   // Admin routes for system administration
   {
     path: '/admin/users',
@@ -82,14 +110,7 @@ const routerConfig = [
       </RoleGuard>
     ),
   },
-  {
-    path: '/admin/roles',
-    element: (
-      <RoleGuard allowed={['Admin']}>
-        <AdminRolesPage />
-      </RoleGuard>
-    ),
-  },
+  // Removed admin roles route
 
   // Staff routes for field operations
   {

@@ -97,7 +97,7 @@ export const Header: React.FC = () => {
               className="hidden lg:inline-flex bg-brand hover:bg-brand-hover text-white"
               onClick={() => navigate('/login')}
             >
-              Login
+              Đăng nhập
             </Button>
 
             {/* Mobile menu button */}
@@ -149,7 +149,7 @@ export const Header: React.FC = () => {
                       className="w-full bg-brand hover:bg-brand-hover text-white mt-4"
                       onClick={() => navigate('/login')}
                     >
-                      Login
+                      Đăng nhập
                     </Button>
                   </motion.div>
 
@@ -163,7 +163,7 @@ export const Header: React.FC = () => {
                       className="w-full mt-2"
                       onClick={() => navigate('/register')}
                     >
-                      Register
+                      Đăng ký
                     </Button>
                   </motion.div>
                 </div>

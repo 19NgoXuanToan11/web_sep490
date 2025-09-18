@@ -51,7 +51,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
 
       if (pathSegments[1]) {
         const currentPage = navigationItems.find(item => item.href.includes(pathSegments[1]))
-        if (currentPage) {
+        if (currentPage && currentPage.href !== '/admin/users') {
           breadcrumbs.push({ name: currentPage.name, href: currentPage.href })
         }
       }
@@ -274,8 +274,8 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                   >
                     <Home className="h-4 w-4" />
                   </Button>
-                  {breadcrumbs.map(crumb => (
-                    <React.Fragment key={crumb.href}>
+                  {breadcrumbs.map((crumb, index) => (
+                    <React.Fragment key={`${crumb.href}-${index}`}>
                       <ChevronRight className="h-4 w-4 text-gray-400 flex-shrink-0" />
                       <button
                         onClick={() => navigate(crumb.href)}

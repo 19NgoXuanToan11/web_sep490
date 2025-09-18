@@ -3,18 +3,19 @@ import type { UserRole, UserStatus } from '@/shared/lib/localData'
 
 // Form schemas for Admin User Management
 export const userFormSchema = z.object({
-  name: z.string().min(1, 'Name is required').min(2, 'Name must be at least 2 characters'),
-  email: z.string().email('Please enter a valid email address'),
-  roles: z
-    .array(z.enum(['ADMIN', 'MANAGER', 'STAFF', 'VIEWER', 'OPERATOR']))
-    .min(1, 'At least one role is required'),
+  name: z.string().min(1, 'Họ và tên là bắt buộc').min(2, 'Họ và tên phải có ít nhất 2 ký tự'),
+  email: z.string().email('Vui lòng nhập địa chỉ email hợp lệ'),
+  role: z.enum(['CUSTOMER', 'MANAGER', 'STAFF'], {
+    required_error: 'Phải chọn một vai trò',
+    invalid_type_error: 'Vai trò không hợp lệ',
+  }),
   status: z.enum(['Active', 'Inactive']),
 })
 
 export const bulkUserActionSchema = z.object({
   type: z.enum(['activate', 'deactivate', 'assign-role', 'delete']),
-  userIds: z.array(z.string()).min(1, 'At least one user must be selected'),
-  role: z.enum(['ADMIN', 'MANAGER', 'STAFF', 'VIEWER', 'OPERATOR']).optional(),
+  userIds: z.array(z.string()).min(1, 'Phải chọn ít nhất một người dùng'),
+  role: z.enum(['CUSTOMER', 'MANAGER', 'STAFF']).optional(),
 })
 
 // Type exports
@@ -29,36 +30,26 @@ export const validateBulkAction = (data: unknown) => bulkUserActionSchema.safePa
 export const defaultUserFormValues: UserFormData = {
   name: '',
   email: '',
-  roles: [],
+  role: 'STAFF', // Default role
   status: 'Active',
 }
 
-// Available roles list with descriptions
+// Available roles list with descriptions (matching backend Roles enum)
 export const availableRoles: { value: UserRole; label: string; description: string }[] = [
   {
-    value: 'ADMIN',
-    label: 'Administrator',
-    description: 'Full system access with administrative privileges',
+    value: 'CUSTOMER',
+    label: 'Khách hàng',
+    description: 'Quyền truy cập khách hàng với các đặc quyền cơ bản',
   },
   {
     value: 'MANAGER',
-    label: 'Farm Manager',
-    description: 'Operational control over farm management features',
+    label: 'Quản lý nông trại',
+    description: 'Kiểm soát hoạt động các tính năng quản lý nông trại',
   },
   {
     value: 'STAFF',
-    label: 'Field Staff',
-    description: 'Limited access for field operations and quality checks',
-  },
-  {
-    value: 'VIEWER',
-    label: 'Viewer',
-    description: 'Read-only access to reports and system status',
-  },
-  {
-    value: 'OPERATOR',
-    label: 'Device Operator',
-    description: 'Control access for irrigation devices and schedules',
+    label: 'Nhân viên đồng ruộng',
+    description: 'Quyền truy cập hạn chế cho hoạt động đồng ruộng và quản lý nhiệm vụ',
   },
 ]
 
@@ -68,6 +59,6 @@ export const statusOptions: {
   label: string
   variant: 'default' | 'secondary'
 }[] = [
-  { value: 'Active', label: 'Active', variant: 'default' },
-  { value: 'Inactive', label: 'Inactive', variant: 'secondary' },
+  { value: 'Active', label: 'Hoạt động', variant: 'default' },
+  { value: 'Inactive', label: 'Ngưng hoạt động', variant: 'secondary' },
 ]

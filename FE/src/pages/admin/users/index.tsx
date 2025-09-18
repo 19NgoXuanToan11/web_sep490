@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import { Users, UserX, Shield, Activity, RefreshCw } from 'lucide-react'
+import { Users, UserX, Activity, RefreshCw } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card'
 // import { Badge } from '@/shared/ui/badge'
@@ -16,29 +16,25 @@ import {
   DialogTitle,
 } from '@/shared/ui/dialog'
 // import { ManagerLayout } from '@/shared/layouts/ManagerLayout'
-import { useAdminUsersStore, UsersTable, UserFormModal } from '@/features/admin-users'
-import type { User, UserRole } from '@/shared/lib/localData'
+import {
+  useAdminUsersStore,
+  UsersTable,
+  UserFormModal,
+  PasswordUpdateModal,
+} from '@/features/admin-users'
+import type { User } from '@/shared/lib/localData'
 
 const AdminUsersPage: React.FC = () => {
-  const {
-    users,
-    // selectedUserIds,
-    loadingStates,
-    initializeData,
-    deleteUser,
-    bulkDeleteUsers,
-    bulkActivateUsers,
-    bulkDeactivateUsers,
-    bulkAssignRole,
-    clearSelection,
-    getInactiveUsersCount,
-  } = useAdminUsersStore()
+  const { users, loadingStates, initializeData, deleteUser, getInactiveUsersCount } =
+    useAdminUsersStore()
 
   const { toast } = useToast()
 
   // Modal states
   const [isUserFormOpen, setIsUserFormOpen] = useState(false)
+  const [isPasswordUpdateOpen, setIsPasswordUpdateOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
+  const [passwordUpdateUser, setPasswordUpdateUser] = useState<User | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<{ user?: User; userIds?: string[] } | null>(
     null
   )
@@ -52,59 +48,32 @@ const AdminUsersPage: React.FC = () => {
   const totalUsers = users.length
   const activeUsers = users.filter(u => u.status === 'Active').length
   const inactiveUsers = getInactiveUsersCount()
-  const adminUsers = users.filter(u => u.roles.includes('ADMIN')).length
 
   // Removed: create user button/flow from header
 
   const handleEditUser = (user: User) => {
-    setSelectedUser(user)
-    setIsUserFormOpen(true)
+    try {
+      setSelectedUser(user)
+      setIsUserFormOpen(true)
+    } catch (error) {
+      console.error('Error opening edit user modal:', error)
+    }
   }
 
   const handleDeleteUser = (user: User) => {
-    setDeleteConfirm({ user })
+    try {
+      setDeleteConfirm({ user })
+    } catch (error) {
+      console.error('Error opening delete confirmation:', error)
+    }
   }
 
-  const handleBulkAction = async (action: string, userIds: string[], role?: UserRole) => {
+  const handleUpdatePassword = (user: User) => {
     try {
-      switch (action) {
-        case 'activate':
-          await bulkActivateUsers(userIds)
-          toast({
-            title: 'Kích hoạt thành công',
-            description: `${userIds.length} người dùng đã được kích hoạt.`,
-          })
-          break
-
-        case 'deactivate':
-          await bulkDeactivateUsers(userIds)
-          toast({
-            title: 'Ngưng hoạt động',
-            description: `${userIds.length} người dùng đã bị ngưng hoạt động.`,
-          })
-          break
-
-        case 'assign-role':
-          if (role) {
-            await bulkAssignRole(userIds, role)
-            toast({
-              title: 'Gán vai trò',
-              description: `Đã gán vai trò ${role} cho ${userIds.length} người dùng.`,
-            })
-          }
-          break
-
-        case 'delete':
-          setDeleteConfirm({ userIds })
-          return // Don't clear selection yet
-
-        default:
-          break
-      }
-
-      clearSelection()
+      setPasswordUpdateUser(user)
+      setIsPasswordUpdateOpen(true)
     } catch (error) {
-      // Error handling is done in the store
+      console.error('Error opening password update modal:', error)
     }
   }
 
@@ -118,19 +87,12 @@ const AdminUsersPage: React.FC = () => {
           title: 'Đã xóa người dùng',
           description: `${deleteConfirm.user.name} đã được xóa khỏi hệ thống.`,
         })
-      } else if (deleteConfirm.userIds) {
-        await bulkDeleteUsers(deleteConfirm.userIds)
-        toast({
-          title: 'Đã xóa người dùng',
-          description: `Đã xóa ${deleteConfirm.userIds.length} người dùng khỏi hệ thống.`,
-        })
       }
     } catch (error) {
       // Error handling is done in the store
-    } finally {
-      setDeleteConfirm(null)
-      clearSelection()
     }
+
+    setDeleteConfirm(null)
   }
 
   // Removed: export users
@@ -149,7 +111,7 @@ const AdminUsersPage: React.FC = () => {
         </div>
 
         {/* Statistics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -200,23 +162,6 @@ const AdminUsersPage: React.FC = () => {
               </CardContent>
             </Card>
           </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
-          >
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Quản trị viên</CardTitle>
-                <Shield className="h-4 w-4 text-red-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-red-600">{adminUsers}</div>
-                <p className="text-xs text-muted-foreground">Quyền truy cập cao</p>
-              </CardContent>
-            </Card>
-          </motion.div>
         </div>
 
         {/* Main Content */}
@@ -234,7 +179,7 @@ const AdminUsersPage: React.FC = () => {
             <UsersTable
               onEditUser={handleEditUser}
               onDeleteUser={handleDeleteUser}
-              onBulkAction={handleBulkAction}
+              onUpdatePassword={handleUpdatePassword}
             />
           </CardContent>
         </Card>
@@ -247,6 +192,16 @@ const AdminUsersPage: React.FC = () => {
             setSelectedUser(null)
           }}
           user={selectedUser}
+        />
+
+        {/* Password Update Modal */}
+        <PasswordUpdateModal
+          isOpen={isPasswordUpdateOpen}
+          onClose={() => {
+            setIsPasswordUpdateOpen(false)
+            setPasswordUpdateUser(null)
+          }}
+          user={passwordUpdateUser}
         />
 
         {/* Delete Confirmation Dialog */}

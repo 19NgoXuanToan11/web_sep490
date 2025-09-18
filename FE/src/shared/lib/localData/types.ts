@@ -149,7 +149,7 @@ export interface PaginationState {
 // =======================================================
 
 // User Management (Admin)
-export type UserRole = 'ADMIN' | 'MANAGER' | 'STAFF' | 'VIEWER' | 'OPERATOR'
+export type UserRole = 'CUSTOMER' | 'MANAGER' | 'STAFF'
 export type UserStatus = 'Active' | 'Inactive'
 
 export interface User {

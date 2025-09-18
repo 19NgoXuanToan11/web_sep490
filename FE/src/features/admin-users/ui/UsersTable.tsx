@@ -1,21 +1,15 @@
-import React, { useState } from 'react'
-import { motion } from 'framer-motion'
+import React from 'react'
 import {
   Users,
   Search,
-  Filter,
   MoreHorizontal,
   Edit,
   Trash2,
-  UserX,
-  UserCheck,
-  Shield,
-  ChevronDown,
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
-  Calendar,
   Mail,
+  Key,
 } from 'lucide-react'
 import { Badge } from '@/shared/ui/badge'
 import { Button } from '@/shared/ui/button'
@@ -26,58 +20,41 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/shared/ui/dropdown-menu'
 import { Skeleton } from '@/shared/ui/skeleton'
-import { Checkbox } from '@/shared/ui/checkbox'
 import { useAdminUsersStore } from '../store/adminUsersStore'
 import { statusOptions, availableRoles } from '../model/schemas'
-import type { User, UserRole } from '@/shared/lib/localData'
-import { formatDate, formatDateTime } from '@/shared/lib/localData/storage'
+import type { User } from '@/shared/lib/localData'
 
 interface UsersTableProps {
   onEditUser?: (user: User) => void
   onDeleteUser?: (user: User) => void
-  onBulkAction?: (action: string, userIds: string[], role?: UserRole) => void
+  onUpdatePassword?: (user: User) => void
 }
 
 export const UsersTable: React.FC<UsersTableProps> = ({
   onEditUser,
   onDeleteUser,
-  onBulkAction,
+  onUpdatePassword,
 }) => {
   const {
     searchState,
     roleFilter,
     statusFilter,
-    selectedUserIds,
-    tableDensity,
     loadingStates,
     setSearch,
     setSort,
     setRoleFilter,
     setStatusFilter,
-    toggleUserSelection,
-    selectAllUsers,
-    clearSelection,
     getPaginatedUsers,
-    getFilteredUsers,
     getTotalCount,
   } = useAdminUsersStore()
 
-  const [bulkActionRole, setBulkActionRole] = useState<UserRole>('VIEWER')
-
   const users = getPaginatedUsers()
-  const filteredUsers = getFilteredUsers()
   const totalCount = getTotalCount()
   const isLoading = loadingStates['fetch-users']?.isLoading
-
-  const isAllSelected =
-    selectedUserIds.length > 0 && selectedUserIds.length === filteredUsers.length
-  const isIndeterminate =
-    selectedUserIds.length > 0 && selectedUserIds.length < filteredUsers.length
 
   const handleSort = (column: string) => {
     const newOrder =
@@ -94,37 +71,18 @@ export const UsersTable: React.FC<UsersTableProps> = ({
     )
   }
 
-  const handleSelectAll = () => {
-    if (isAllSelected) {
-      clearSelection()
-    } else {
-      selectAllUsers()
-    }
-  }
-
-  const handleBulkAction = (action: string) => {
-    if (selectedUserIds.length === 0) return
-
-    if (action === 'assign-role') {
-      onBulkAction?.(action, selectedUserIds, bulkActionRole)
-    } else {
-      onBulkAction?.(action, selectedUserIds)
-    }
-  }
-
   const getRolesBadges = (roles: string[]) => {
-    return roles.map(role => {
-      const roleConfig = availableRoles.find(r => r.value === role)
-      return (
-        <Badge
-          key={role}
-          variant={role === 'ADMIN' ? 'destructive' : 'default'}
-          className="text-xs"
-        >
-          {roleConfig?.label || role}
-        </Badge>
-      )
-    })
+    // Handle single role (take first role only)
+    const role = roles[0] || 'STAFF'
+    const roleConfig = availableRoles.find(r => r.value === role)
+    return (
+      <Badge
+        variant={role === 'CUSTOMER' ? 'default' : role === 'MANAGER' ? 'secondary' : 'destructive'}
+        className="text-xs"
+      >
+        {roleConfig?.label || role}
+      </Badge>
+    )
   }
 
   const getStatusBadge = (status: string) => {
@@ -181,86 +139,11 @@ export const UsersTable: React.FC<UsersTableProps> = ({
         </div>
       </div>
 
-      {/* Bulk Actions Bar */}
-      {selectedUserIds.length > 0 && (
-        <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-between p-3 bg-green-50 border border-green-200 rounded-lg"
-        >
-          <span className="text-sm text-green-700 font-medium">
-            {selectedUserIds.length} đã chọn
-          </span>
-
-          <div className="flex items-center gap-2">
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => handleBulkAction('activate')}
-              className="text-green-700 border-green-300"
-            >
-              <UserCheck className="h-4 w-4 mr-1" />
-              Kích hoạt
-            </Button>
-
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => handleBulkAction('deactivate')}
-              className="text-orange-700 border-orange-300"
-            >
-              <UserX className="h-4 w-4 mr-1" />
-              Ngưng hoạt động
-            </Button>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button size="sm" variant="outline" className="text-blue-700 border-blue-300">
-                  <Shield className="h-4 w-4 mr-1" />
-                  Gán vai trò <ChevronDown className="h-3 w-3 ml-1" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuLabel>Chọn vai trò để gán</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                {availableRoles.map(role => (
-                  <DropdownMenuItem
-                    key={role.value}
-                    onClick={() => {
-                      setBulkActionRole(role.value)
-                      handleBulkAction('assign-role')
-                    }}
-                  >
-                    {role.label}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            <Button size="sm" variant="destructive" onClick={() => handleBulkAction('delete')}>
-              <Trash2 className="h-4 w-4 mr-1" />
-              Xóa
-            </Button>
-
-            <Button size="sm" variant="ghost" onClick={clearSelection}>
-              Bỏ chọn
-            </Button>
-          </div>
-        </motion.div>
-      )}
-
       {/* Table */}
       <div className="border rounded-lg overflow-hidden">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-12">
-                <Checkbox
-                  checked={isIndeterminate ? 'indeterminate' : isAllSelected}
-                  onCheckedChange={handleSelectAll}
-                />
-              </TableHead>
-
               <TableHead>
                 <Button
                   variant="ghost"
@@ -297,18 +180,6 @@ export const UsersTable: React.FC<UsersTableProps> = ({
                 </Button>
               </TableHead>
 
-              <TableHead>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-auto p-0 font-medium"
-                  onClick={() => handleSort('lastLogin')}
-                >
-                  Đăng nhập gần nhất
-                  {getSortIcon('lastLogin')}
-                </Button>
-              </TableHead>
-
               <TableHead className="w-12"></TableHead>
             </TableRow>
           </TableHeader>
@@ -318,9 +189,6 @@ export const UsersTable: React.FC<UsersTableProps> = ({
               // Loading skeletons
               Array.from({ length: 5 }).map((_, i) => (
                 <TableRow key={i}>
-                  <TableCell>
-                    <Skeleton className="h-4 w-4" />
-                  </TableCell>
                   <TableCell>
                     <div className="flex items-center space-x-2">
                       <Skeleton className="h-8 w-8 rounded-full" />
@@ -350,7 +218,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({
             ) : users.length === 0 ? (
               // Empty state
               <TableRow>
-                <TableCell colSpan={6} className="text-center py-12">
+                <TableCell colSpan={4} className="text-center py-12">
                   <div className="flex flex-col items-center space-y-2 text-gray-500">
                     <Users className="h-12 w-12" />
                     <p className="font-medium">Không có người dùng</p>
@@ -365,17 +233,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({
             ) : (
               // User rows
               users.map(user => (
-                <TableRow
-                  key={user.id}
-                  className={selectedUserIds.includes(user.id) ? 'bg-green-50' : ''}
-                >
-                  <TableCell>
-                    <Checkbox
-                      checked={selectedUserIds.includes(user.id)}
-                      onCheckedChange={() => toggleUserSelection(user.id)}
-                    />
-                  </TableCell>
-
+                <TableRow key={user.id} className="hover:bg-gray-50">
                   <TableCell>
                     <div className="flex items-center space-x-3">
                       <div className="w-8 h-8 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center text-white font-medium text-sm">
@@ -391,44 +249,73 @@ export const UsersTable: React.FC<UsersTableProps> = ({
                     </div>
                   </TableCell>
 
-                  <TableCell>
-                    <div className="flex flex-wrap gap-1">{getRolesBadges(user.roles)}</div>
-                  </TableCell>
+                  <TableCell>{getRolesBadges(user.roles)}</TableCell>
 
                   <TableCell>{getStatusBadge(user.status)}</TableCell>
 
                   <TableCell>
-                    {user.lastLogin ? (
-                      <div className="text-sm">
-                        <div className="flex items-center text-gray-900">
-                          <Calendar className="h-3 w-3 mr-1" />
-                          {formatDate(user.lastLogin)}
-                        </div>
-                        <div className="text-gray-500 text-xs">
-                          {formatDateTime(user.lastLogin)}
-                        </div>
-                      </div>
-                    ) : (
-                      <span className="text-gray-400 text-sm">Chưa từng</span>
-                    )}
-                  </TableCell>
-
-                  <TableCell>
-                    <DropdownMenu>
+                    <DropdownMenu
+                      modal={false}
+                      onOpenChange={open => {
+                        // Ensure proper cleanup when dropdown closes
+                        if (!open) {
+                          // Force a small delay to ensure proper cleanup
+                          setTimeout(() => {
+                            // This ensures the dropdown state is properly reset
+                          }, 0)
+                        }
+                      }}
+                    >
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0"
+                          onClick={e => e.stopPropagation()}
+                        >
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => onEditUser?.(user)}>
+                      <DropdownMenuContent align="end" className="w-48" sideOffset={5}>
+                        <DropdownMenuItem
+                          onClick={e => {
+                            e.preventDefault()
+                            e.stopPropagation()
+                            // Use setTimeout to ensure the dropdown closes properly
+                            setTimeout(() => {
+                              onEditUser?.(user)
+                            }, 0)
+                          }}
+                          className="cursor-pointer focus:bg-gray-100"
+                        >
                           <Edit className="h-4 w-4 mr-2" />
                           Sửa người dùng
                         </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={e => {
+                            e.preventDefault()
+                            e.stopPropagation()
+                            // Use setTimeout to ensure the dropdown closes properly
+                            setTimeout(() => {
+                              onUpdatePassword?.(user)
+                            }, 0)
+                          }}
+                          className="cursor-pointer focus:bg-gray-100"
+                        >
+                          <Key className="h-4 w-4 mr-2" />
+                          Đổi mật khẩu
+                        </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
-                          onClick={() => onDeleteUser?.(user)}
-                          className="text-red-600"
+                          onClick={e => {
+                            e.preventDefault()
+                            e.stopPropagation()
+                            // Use setTimeout to ensure the dropdown closes properly
+                            setTimeout(() => {
+                              onDeleteUser?.(user)
+                            }, 0)
+                          }}
+                          className="text-red-600 cursor-pointer hover:bg-red-50 focus:bg-red-50"
                         >
                           <Trash2 className="h-4 w-4 mr-2" />
                           Xóa người dùng
@@ -448,9 +335,6 @@ export const UsersTable: React.FC<UsersTableProps> = ({
         <span>
           Hiển thị {users.length}/{totalCount}
         </span>
-        {selectedUserIds.length > 0 && (
-          <span className="text-green-600 font-medium">{selectedUserIds.length} đã chọn</span>
-        )}
       </div>
     </div>
   )

@@ -1,15 +1,14 @@
 import React, { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { motion, AnimatePresence } from 'framer-motion'
-import { X, Save, UserPlus, Edit } from 'lucide-react'
+import { motion } from 'framer-motion'
+import { Save, UserPlus, Edit } from 'lucide-react'
 import { Badge } from '@/shared/ui/badge'
 import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
 import { Label } from '@/shared/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/shared/ui/dialog'
-import { Checkbox } from '@/shared/ui/checkbox'
 import { useToast } from '@/shared/ui/use-toast'
 import { useAdminUsersStore } from '../store/adminUsersStore'
 import {
@@ -48,7 +47,7 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
     mode: 'onChange',
   })
 
-  const watchedRoles = watch('roles', [])
+  const watchedRole = watch('role')
 
   // Reset form when modal opens/closes or user changes
   useEffect(() => {
@@ -57,7 +56,7 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
         reset({
           name: user.name,
           email: user.email,
-          roles: user.roles,
+          role: user.roles[0] || 'STAFF', // Take first role or default to STAFF
           status: user.status,
         })
       } else {
@@ -74,41 +73,37 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
   const onSubmit = async (data: UserFormData) => {
     try {
       if (isEditing && user) {
+        if (!user.id) {
+          throw new Error('User ID is missing')
+        }
+
         await updateUser(user.id, data)
         toast({
-          title: 'User updated successfully',
-          description: `${data.name} has been updated.`,
+          title: 'Cập nhật người dùng thành công',
+          description: `${data.name} đã được cập nhật.`,
         })
       } else {
         await createUser(data)
         toast({
-          title: 'User created successfully',
-          description: `${data.name} has been added to the system.`,
+          title: 'Tạo người dùng thành công',
+          description: `${data.name} đã được thêm vào hệ thống.`,
         })
       }
       handleClose()
     } catch (error) {
+      console.error('Error in onSubmit:', error)
       // Error handling is done in the store with loading states
       // The error will be displayed via the loading state error
     }
   }
 
-  const handleRoleToggle = (roleValue: string) => {
-    const currentRoles = watchedRoles
-    const newRoles = currentRoles.includes(roleValue)
-      ? currentRoles.filter(r => r !== roleValue)
-      : [...currentRoles, roleValue]
-
-    setValue('roles', newRoles, { shouldValidate: true })
-  }
-
   return (
     <Dialog open={isOpen} onOpenChange={() => handleClose()}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             {isEditing ? <Edit className="h-5 w-5" /> : <UserPlus className="h-5 w-5" />}
-            {isEditing ? 'Edit User' : 'Create New User'}
+            {isEditing ? 'Chỉnh sửa người dùng' : 'Tạo người dùng mới'}
           </DialogTitle>
         </DialogHeader>
 
@@ -126,32 +121,26 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
 
           {/* Name Field */}
           <div className="space-y-2">
-            <Label htmlFor="name">Full Name *</Label>
-            <Input
-              id="name"
-              placeholder="Enter full name"
-              {...register('name')}
-              error={!!errors.name}
-            />
+            <Label htmlFor="name">Họ và tên *</Label>
+            <Input id="name" placeholder="Nhập họ và tên" {...register('name')} />
             {errors.name && <p className="text-sm text-red-600">{errors.name.message}</p>}
           </div>
 
           {/* Email Field */}
           <div className="space-y-2">
-            <Label htmlFor="email">Email Address *</Label>
+            <Label htmlFor="email">Địa chỉ email *</Label>
             <Input
               id="email"
               type="email"
-              placeholder="user@farm.com"
+              placeholder="nguoidung@nongtrai.com"
               {...register('email')}
-              error={!!errors.email}
             />
             {errors.email && <p className="text-sm text-red-600">{errors.email.message}</p>}
           </div>
 
           {/* Status Field */}
           <div className="space-y-2">
-            <Label htmlFor="status">Status *</Label>
+            <Label htmlFor="status">Trạng thái *</Label>
             <Select
               onValueChange={value =>
                 setValue('status', value as 'Active' | 'Inactive', { shouldValidate: true })
@@ -159,7 +148,7 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
               defaultValue="Active"
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select status" />
+                <SelectValue placeholder="Chọn trạng thái" />
               </SelectTrigger>
               <SelectContent>
                 {statusOptions.map(status => (
@@ -176,54 +165,47 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
             {errors.status && <p className="text-sm text-red-600">{errors.status.message}</p>}
           </div>
 
-          {/* Roles Field */}
-          <div className="space-y-3">
-            <Label>User Roles * (Select at least one)</Label>
-            <div className="space-y-3">
-              {availableRoles.map(role => (
-                <div
-                  key={role.value}
-                  className="flex items-start space-x-3 p-3 border rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  <Checkbox
-                    id={role.value}
-                    checked={watchedRoles.includes(role.value)}
-                    onCheckedChange={() => handleRoleToggle(role.value)}
-                    className="mt-0.5"
-                  />
-                  <div className="flex-1 min-w-0">
-                    <Label htmlFor={role.value} className="cursor-pointer font-medium">
-                      {role.label}
-                      {role.value === 'ADMIN' && (
-                        <Badge variant="destructive" className="ml-2 text-xs">
-                          High Access
-                        </Badge>
-                      )}
-                    </Label>
-                    <p className="text-sm text-gray-500 mt-1">{role.description}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-            {errors.roles && <p className="text-sm text-red-600">{errors.roles.message}</p>}
+          {/* Role Field */}
+          <div className="space-y-2">
+            <Label htmlFor="role">Vai trò người dùng *</Label>
+            <Select
+              onValueChange={value =>
+                setValue('role', value as 'CUSTOMER' | 'MANAGER' | 'STAFF', {
+                  shouldValidate: true,
+                })
+              }
+              defaultValue={watchedRole}
+              value={watchedRole}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Chọn vai trò" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableRoles.map(role => (
+                  <SelectItem key={role.value} value={role.value}>
+                    <div className="flex items-center justify-between w-full">
+                      <div className="flex items-center gap-2">
+                        <span>{role.label}</span>
+                        {role.value === 'MANAGER' && (
+                          <Badge variant="destructive" className="text-xs">
+                            Quyền cao
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {errors.role && <p className="text-sm text-red-600">{errors.role.message}</p>}
 
-            {/* Selected Roles Summary */}
-            {watchedRoles.length > 0 && (
-              <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                <p className="text-sm font-medium text-green-800 mb-2">Selected Roles:</p>
-                <div className="flex flex-wrap gap-2">
-                  {watchedRoles.map(roleValue => {
-                    const role = availableRoles.find(r => r.value === roleValue)
-                    return (
-                      <Badge
-                        key={roleValue}
-                        variant={roleValue === 'ADMIN' ? 'destructive' : 'default'}
-                      >
-                        {role?.label || roleValue}
-                      </Badge>
-                    )
-                  })}
-                </div>
+            {/* Role Description */}
+            {watchedRole && (
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                <p className="text-sm text-blue-800">
+                  <span className="font-medium">Mô tả vai trò: </span>
+                  {availableRoles.find(r => r.value === watchedRole)?.description}
+                </p>
               </div>
             )}
           </div>
@@ -231,7 +213,7 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
           {/* Form Actions */}
           <div className="flex justify-end gap-3 pt-4 border-t">
             <Button type="button" variant="outline" onClick={handleClose} disabled={isLoading}>
-              Cancel
+              Hủy
             </Button>
             <Button type="submit" disabled={!isValid || isLoading} className="min-w-[100px]">
               {isLoading ? (
@@ -243,7 +225,7 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
               ) : (
                 <>
                   <Save className="h-4 w-4 mr-2" />
-                  {isEditing ? 'Update User' : 'Create User'}
+                  {isEditing ? 'Cập nhật người dùng' : 'Tạo người dùng'}
                 </>
               )}
             </Button>

@@ -1,7 +1,21 @@
 import React, { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Users, Shield, Menu, X, Bell, User, ChevronRight, Home } from 'lucide-react'
+import {
+  Users,
+  Shield,
+  Menu,
+  X,
+  Bell,
+  User,
+  ChevronRight,
+  Home,
+  LayoutDashboard,
+  Cpu,
+  Building2,
+  ShoppingCart,
+  BarChart3,
+} from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import LogoutButton from '@/shared/ui/LogoutButton'
 // removed search input
@@ -21,10 +35,46 @@ interface NavItem {
 
 const navigationItems: NavItem[] = [
   {
+    name: 'Bảng điều khiển',
+    href: '/admin/dashboard',
+    icon: LayoutDashboard,
+    description: 'Tổng quan hệ thống',
+  },
+  {
     name: 'Quản lý người dùng',
     href: '/admin/users',
     icon: Users,
     description: 'Quản lý người dùng hệ thống',
+  },
+  {
+    name: 'Quản lý vai trò',
+    href: '/admin/roles',
+    icon: Shield,
+    description: 'Quản lý vai trò và phân quyền',
+  },
+  {
+    name: 'Thiết bị IoT',
+    href: '/admin/devices',
+    icon: Cpu,
+    description: 'Giám sát thiết bị IoT toàn hệ thống',
+  },
+  {
+    name: 'Quản lý trang trại',
+    href: '/admin/farms',
+    icon: Building2,
+    description: 'Giám sát tất cả trang trại',
+  },
+  {
+    name: 'Quản lý đơn hàng',
+    href: '/admin/orders',
+    icon: ShoppingCart,
+    description: 'Theo dõi đơn hàng khách hàng',
+  },
+  {
+    name: 'Báo cáo & Phân tích',
+    href: '/admin/reports',
+    icon: BarChart3,
+    description: 'Thống kê và phân tích hệ thống',
   },
 ]
 
@@ -47,7 +97,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     const breadcrumbs = []
 
     if (pathSegments[0] === 'admin') {
-      breadcrumbs.push({ name: 'Cổng quản trị', href: '/admin/users' })
+      breadcrumbs.push({ name: 'Cổng quản trị', href: '/admin/dashboard' })
 
       if (pathSegments[1]) {
         const currentPage = navigationItems.find(item => item.href.includes(pathSegments[1]))

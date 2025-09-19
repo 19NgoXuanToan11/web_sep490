@@ -9,7 +9,12 @@ import ReportsPage from '@/pages/manager/reports'
 
 // Admin route imports
 import AdminUsersPage from '@/pages/admin/users'
-// import AdminRolesPage from '@/pages/admin/roles'
+import AdminRolesPage from '@/pages/admin/roles'
+import AdminDashboard from '@/pages/admin/dashboard'
+import AdminDevicesPage from '@/pages/admin/devices'
+import AdminFarmsPage from '@/pages/admin/farms'
+import AdminOrdersPage from '@/pages/admin/orders'
+import AdminReportsPage from '@/pages/admin/reports'
 import ProfilePage from '@/pages/profile'
 
 // Staff route imports
@@ -103,6 +108,14 @@ const routerConfig = [
   },
   // Admin routes for system administration
   {
+    path: '/admin/dashboard',
+    element: (
+      <RoleGuard allowed={['Admin']}>
+        <AdminDashboard />
+      </RoleGuard>
+    ),
+  },
+  {
     path: '/admin/users',
     element: (
       <RoleGuard allowed={['Admin']}>
@@ -110,7 +123,46 @@ const routerConfig = [
       </RoleGuard>
     ),
   },
-  // Removed admin roles route
+  {
+    path: '/admin/roles',
+    element: (
+      <RoleGuard allowed={['Admin']}>
+        <AdminRolesPage />
+      </RoleGuard>
+    ),
+  },
+  {
+    path: '/admin/devices',
+    element: (
+      <RoleGuard allowed={['Admin']}>
+        <AdminDevicesPage />
+      </RoleGuard>
+    ),
+  },
+  {
+    path: '/admin/farms',
+    element: (
+      <RoleGuard allowed={['Admin']}>
+        <AdminFarmsPage />
+      </RoleGuard>
+    ),
+  },
+  {
+    path: '/admin/orders',
+    element: (
+      <RoleGuard allowed={['Admin']}>
+        <AdminOrdersPage />
+      </RoleGuard>
+    ),
+  },
+  {
+    path: '/admin/reports',
+    element: (
+      <RoleGuard allowed={['Admin']}>
+        <AdminReportsPage />
+      </RoleGuard>
+    ),
+  },
 
   // Staff routes for field operations
   {

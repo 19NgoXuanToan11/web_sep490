@@ -163,24 +163,6 @@ export interface User {
   updatedAt: string // ISO string
 }
 
-// Role Management (Admin)
-export interface Permission {
-  id: string
-  name: string
-  description: string
-  resource: string // e.g., 'users', 'devices', 'reports'
-  actions: ('create' | 'read' | 'update' | 'delete')[]
-}
-
-export interface Role {
-  id: string
-  name: string
-  description: string
-  permissions: string[] // Permission IDs
-  createdAt: string // ISO string
-  updatedAt: string // ISO string
-}
-
 // System Settings (Admin)
 export interface SystemSettings {
   general: {
@@ -267,12 +249,6 @@ export interface UserFormData {
   email: string
   roles: UserRole[]
   status: UserStatus
-}
-
-export interface RoleFormData {
-  name: string
-  description: string
-  permissions: string[]
 }
 
 export interface WorkLogFormData {

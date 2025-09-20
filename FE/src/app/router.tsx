@@ -9,7 +9,6 @@ import ReportsPage from '@/pages/manager/reports'
 
 // Admin route imports
 import AdminUsersPage from '@/pages/admin/users'
-import AdminRolesPage from '@/pages/admin/roles'
 import AdminDashboard from '@/pages/admin/dashboard'
 import AdminDevicesPage from '@/pages/admin/devices'
 import AdminFarmsPage from '@/pages/admin/farms'
@@ -120,14 +119,6 @@ const routerConfig = [
     element: (
       <RoleGuard allowed={['Admin']}>
         <AdminUsersPage />
-      </RoleGuard>
-    ),
-  },
-  {
-    path: '/admin/roles',
-    element: (
-      <RoleGuard allowed={['Admin']}>
-        <AdminRolesPage />
       </RoleGuard>
     ),
   },

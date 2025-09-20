@@ -198,16 +198,6 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
               </SelectContent>
             </Select>
             {errors.role && <p className="text-sm text-red-600">{errors.role.message}</p>}
-
-            {/* Role Description */}
-            {watchedRole && (
-              <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                <p className="text-sm text-blue-800">
-                  <span className="font-medium">Mô tả vai trò: </span>
-                  {availableRoles.find(r => r.value === watchedRole)?.description}
-                </p>
-              </div>
-            )}
           </div>
 
           {/* Form Actions */}

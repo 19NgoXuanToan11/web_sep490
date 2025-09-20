@@ -1,7 +1,6 @@
 import { create } from 'zustand'
 import type {
   User,
-  Role,
   UserRole,
   UserStatus,
   LoadingState,
@@ -9,10 +8,23 @@ import type {
   PaginationState,
   TableDensity,
 } from '@/shared/lib/localData'
-import { roles as initialRoles } from '@/shared/lib/localData/fixtures'
 import { exportToCSV, userPreferences } from '@/shared/lib/localData/storage'
 import { accountApi, type AccountDto } from '@/shared/api/auth'
 import type { UserFormData } from '../model/schemas'
+
+// Define Role interface locally
+interface Role {
+  id: string
+  name: UserRole
+  description: string
+}
+
+// Define initial roles
+const initialRoles: Role[] = [
+  { id: '1', name: 'CUSTOMER', description: 'Customer role' },
+  { id: '2', name: 'MANAGER', description: 'Manager role' },
+  { id: '3', name: 'STAFF', description: 'Staff role' },
+]
 
 interface AdminUsersState {
   // Data

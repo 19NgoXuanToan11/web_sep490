@@ -47,12 +47,6 @@ const navigationItems: NavItem[] = [
     description: 'Quản lý người dùng hệ thống',
   },
   {
-    name: 'Quản lý vai trò',
-    href: '/admin/roles',
-    icon: Shield,
-    description: 'Quản lý vai trò và phân quyền',
-  },
-  {
     name: 'Thiết bị IoT',
     href: '/admin/devices',
     icon: Cpu,

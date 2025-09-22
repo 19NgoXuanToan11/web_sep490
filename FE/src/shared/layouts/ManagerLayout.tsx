@@ -15,6 +15,7 @@ import {
   Home,
   User,
   Activity,
+  Cpu,
 } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import LogoutButton from '@/shared/ui/LogoutButton'
@@ -72,6 +73,12 @@ const navigationItems: NavItem[] = [
     href: '/manager/farm-activities',
     icon: Activity,
     description: 'Lập kế hoạch & quản lý hoạt động',
+  },
+  {
+    name: 'Thiết bị IoT',
+    href: '/manager/iot-devices',
+    icon: Cpu,
+    description: 'Quản lý thiết bị IoT & cảm biến',
   },
   {
     name: 'Báo cáo & Phân tích',

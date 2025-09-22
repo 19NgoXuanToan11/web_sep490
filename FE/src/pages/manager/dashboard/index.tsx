@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import {
   TrendingUp,
@@ -17,12 +17,15 @@ import {
   Calendar,
   ArrowUpRight,
   ArrowDownRight,
+  Cpu,
+  Wifi,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
 import { Button } from '@/shared/ui/button'
 import { Badge } from '@/shared/ui/badge'
 import { useNavigate } from 'react-router-dom'
 import { ManagerLayout } from '@/shared/layouts/ManagerLayout'
+import { iotDeviceService } from '@/shared/api/iotDeviceService'
 
 interface MetricCardProps {
   title: string
@@ -123,6 +126,26 @@ const ActivityItem: React.FC<ActivityItemProps> = ({
 
 export default function ManagerDashboard() {
   const navigate = useNavigate()
+  const [iotDeviceStats, setIotDeviceStats] = useState({
+    total: 0,
+    active: 0,
+    inactive: 0,
+    maintenance: 0,
+    error: 0,
+  })
+
+  useEffect(() => {
+    fetchIoTDeviceStats()
+  }, [])
+
+  const fetchIoTDeviceStats = async () => {
+    try {
+      const stats = await iotDeviceService.getDeviceStatistics()
+      setIotDeviceStats(stats)
+    } catch (error) {
+      console.error('Failed to fetch IoT device statistics:', error)
+    }
+  }
 
   const recentActivities = [
     {
@@ -178,11 +201,11 @@ export default function ManagerDashboard() {
       action: () => navigate('/manager/reports'),
     },
     {
-      title: 'Cài đặt hệ thống',
-      description: 'Cấu hình tham số',
-      icon: Zap,
+      title: 'Quản lý IoT',
+      description: 'Thiết bị & cảm biến',
+      icon: Cpu,
       color: 'orange' as const,
-      action: () => navigate('/manager/settings'),
+      action: () => navigate('/manager/iot-devices'),
     },
   ]
 
@@ -222,12 +245,13 @@ export default function ManagerDashboard() {
             description="Tổng số sản phẩm trong kho"
           />
           <MetricCard
-            title="Doanh thu hôm nay"
-            value="$3,450"
-            change="+12.5%"
-            icon={DollarSign}
-            color="purple"
-            description="Hiệu suất bán hàng trong ngày"
+            title="Thiết bị IoT"
+            value={`${iotDeviceStats.active}/${iotDeviceStats.total}`}
+            change={iotDeviceStats.error > 0 ? `${iotDeviceStats.error} có lỗi` : 'Hoạt động tốt'}
+            changeType={iotDeviceStats.error > 0 ? 'decrease' : 'increase'}
+            icon={Cpu}
+            color={iotDeviceStats.error > 0 ? 'red' : 'green'}
+            description="Trạng thái thiết bị IoT"
           />
         </div>
 
@@ -355,47 +379,94 @@ export default function ManagerDashboard() {
               </CardContent>
             </Card>
 
-            {/* System Health */}
+            {/* IoT Device Monitoring */}
             <Card className="border-0 shadow-lg">
               <CardHeader className="border-b border-gray-100">
-                <CardTitle className="text-lg font-semibold text-gray-900">
-                  Tình trạng hệ thống
-                </CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg font-semibold text-gray-900">
+                    Thiết bị IoT
+                  </CardTitle>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => navigate('/manager/iot-devices')}
+                  >
+                    Xem tất cả
+                  </Button>
+                </div>
               </CardHeader>
               <CardContent className="p-6">
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-700">Hệ thống tưới</span>
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      <span className="text-sm font-medium text-gray-700">Hoạt động</span>
+                    </div>
                     <Badge variant="default" className="bg-green-100 text-green-800">
-                      Trực tuyến
+                      {iotDeviceStats.active}
                     </Badge>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-700">Cảm biến nhiệt độ</span>
-                    <Badge variant="default" className="bg-green-100 text-green-800">
-                      Bình thường
+                    <div className="flex items-center gap-2">
+                      <AlertTriangle className="h-4 w-4 text-yellow-500" />
+                      <span className="text-sm font-medium text-gray-700">Bảo trì</span>
+                    </div>
+                    <Badge variant="default" className="bg-yellow-100 text-yellow-800">
+                      {iotDeviceStats.maintenance}
                     </Badge>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-700">Hệ thống kho</span>
-                    <Badge variant="default" className="bg-orange-100 text-orange-800">
-                      Cảnh báo (5)
+                    <div className="flex items-center gap-2">
+                      <AlertTriangle className="h-4 w-4 text-red-500" />
+                      <span className="text-sm font-medium text-gray-700">Có lỗi</span>
+                    </div>
+                    <Badge 
+                      variant="default" 
+                      className={iotDeviceStats.error > 0 ? "bg-red-100 text-red-800" : "bg-gray-100 text-gray-800"}
+                    >
+                      {iotDeviceStats.error}
                     </Badge>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-gray-700">Kết nối mạng</span>
-                    <Badge variant="default" className="bg-green-100 text-green-800">
-                      Ổn định
+                    <div className="flex items-center gap-2">
+                      <Wifi className="h-4 w-4 text-blue-500" />
+                      <span className="text-sm font-medium text-gray-700">Tổng thiết bị</span>
+                    </div>
+                    <Badge variant="default" className="bg-blue-100 text-blue-800">
+                      {iotDeviceStats.total}
                     </Badge>
                   </div>
                 </div>
+                
+                {iotDeviceStats.total === 0 && (
+                  <div className="text-center py-4 border-t border-gray-100 mt-4">
+                    <Cpu className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                    <p className="text-sm text-gray-500 mb-3">Chưa có thiết bị IoT nào</p>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full"
+                      onClick={() => navigate('/manager/iot-devices')}
+                    >
+                      <Cpu className="w-4 h-4 mr-2" />
+                      Thêm thiết bị
+                    </Button>
+                  </div>
+                )}
 
-                <div className="mt-6 pt-4 border-t border-gray-100">
-                  <Button variant="outline" size="sm" className="w-full">
-                    <Calendar className="w-4 h-4 mr-2" />
-                    Lên lịch bảo trì
-                  </Button>
-                </div>
+                {iotDeviceStats.total > 0 && (
+                  <div className="mt-6 pt-4 border-t border-gray-100">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full"
+                      onClick={() => navigate('/manager/iot-devices')}
+                    >
+                      <Cpu className="w-4 h-4 mr-2" />
+                      Quản lý thiết bị
+                    </Button>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>

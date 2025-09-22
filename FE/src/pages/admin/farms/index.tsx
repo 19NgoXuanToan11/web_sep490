@@ -39,6 +39,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs'
 import { AdminLayout } from '@/shared/layouts/AdminLayout'
 import { useToast } from '@/shared/ui/use-toast'
+import { farmService, type FarmDto } from '@/shared/api/farmService'
 
 interface Farm {
   id: string
@@ -61,112 +62,58 @@ interface Farm {
 
 const AdminFarmsPage: React.FC = () => {
   const { toast } = useToast()
-  const [farms, setFarms] = useState<Farm[]>([
-    {
-      id: 'farm-001',
-      name: 'Green Valley Farm',
-      owner: 'Nguyễn Văn An',
-      location: 'Đồng Nai',
-      area: 25.5,
-      status: 'active',
-      createdDate: '2023-03-15',
-      lastActivity: '2024-01-15T10:30:00Z',
-      deviceCount: 24,
-      activeDevices: 22,
-      cropTypes: ['Rau xanh', 'Cà chua', 'Dưa chuột'],
-      productionCapacity: 1000, // kg/month
-      currentProduction: 850,
-      staffCount: 8,
-      revenue: 125000000, // VND
-      alertsCount: 2,
-    },
-    {
-      id: 'farm-002',
-      name: 'Smart Eco Farm',
-      owner: 'Trần Thị Bình',
-      location: 'Long An',
-      area: 18.2,
-      status: 'active',
-      createdDate: '2023-06-20',
-      lastActivity: '2024-01-15T09:45:00Z',
-      deviceCount: 18,
-      activeDevices: 18,
-      cropTypes: ['Rau hữu cơ', 'Thảo mộc'],
-      productionCapacity: 600,
-      currentProduction: 580,
-      staffCount: 5,
-      revenue: 89000000,
-      alertsCount: 0,
-    },
-    {
-      id: 'farm-003',
-      name: 'Tech Agriculture Co.',
-      owner: 'Lê Minh Cường',
-      location: 'Bình Dương',
-      area: 42.8,
-      status: 'maintenance',
-      createdDate: '2022-11-10',
-      lastActivity: '2024-01-14T15:20:00Z',
-      deviceCount: 35,
-      activeDevices: 28,
-      cropTypes: ['Lúa', 'Ngô', 'Đậu tương'],
-      productionCapacity: 2500,
-      currentProduction: 2100,
-      staffCount: 15,
-      revenue: 245000000,
-      alertsCount: 8,
-    },
-    {
-      id: 'farm-004',
-      name: 'Organic Plus Farm',
-      owner: 'Phạm Văn Đức',
-      location: 'Tây Ninh',
-      area: 31.7,
-      status: 'active',
-      createdDate: '2023-01-05',
-      lastActivity: '2024-01-15T11:15:00Z',
-      deviceCount: 28,
-      activeDevices: 26,
-      cropTypes: ['Cà phê', 'Tiêu', 'Bưởi'],
-      productionCapacity: 1800,
-      currentProduction: 1650,
-      staffCount: 12,
-      revenue: 198000000,
-      alertsCount: 1,
-    },
-    {
-      id: 'farm-005',
-      name: 'Future Farm Lab',
-      owner: 'Võ Thị Hương',
-      location: 'Đắk Lắk',
-      area: 15.9,
-      status: 'inactive',
-      createdDate: '2023-09-30',
-      lastActivity: '2024-01-10T08:30:00Z',
-      deviceCount: 12,
-      activeDevices: 8,
-      cropTypes: ['Dâu tây', 'Nho'],
-      productionCapacity: 400,
-      currentProduction: 0,
-      staffCount: 3,
-      revenue: 35000000,
-      alertsCount: 5,
-    },
-  ])
+  const [farms, setFarms] = useState<Farm[]>([])
+  const [loading, setLoading] = useState<boolean>(true)
 
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [selectedTab, setSelectedTab] = useState('overview')
 
+  const mapDtoToFarm = (dto: FarmDto): Farm => ({
+    id: String(dto.farmId),
+    name: dto.farmName,
+    owner: '',
+    location: dto.location,
+    area: 0,
+    status: 'active',
+    createdDate: dto.createdAt || '',
+    lastActivity: dto.updatedAt || new Date().toISOString(),
+    deviceCount: 0,
+    activeDevices: 0,
+    cropTypes: [],
+    productionCapacity: 0,
+    currentProduction: 0,
+    staffCount: 0,
+    revenue: 0,
+    alertsCount: 0,
+  })
+
+  const loadFarms = async () => {
+    try {
+      setLoading(true)
+      const data = await farmService.getAllFarms()
+      setFarms(data.map(mapDtoToFarm))
+    } catch (error: any) {
+      toast({
+        title: 'Không thể tải danh sách trang trại',
+        description: error?.message || 'Đã xảy ra lỗi khi gọi API',
+        variant: 'destructive',
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
   useEffect(() => {
-    // Auto-refresh data every 60 seconds
+    void loadFarms()
+
+    // Auto-refresh data every 60 seconds (only updates lastActivity placeholder)
     const interval = setInterval(() => {
       setFarms(prev =>
         prev.map(farm => ({
           ...farm,
           lastActivity: new Date().toISOString(),
-          activeDevices: Math.max(0, farm.deviceCount - Math.floor(Math.random() * 3)),
         }))
       )
     }, 60000)
@@ -197,11 +144,11 @@ const AdminFarmsPage: React.FC = () => {
 
   const handleRefresh = async () => {
     setIsRefreshing(true)
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    await loadFarms()
     setIsRefreshing(false)
     toast({
-      title: 'Dữ liệu đã được cập nhật',
-      description: 'Thông tin tất cả trang trại đã được làm mới.',
+      title: 'Đã tải lại dữ liệu',
+      description: 'Danh sách trang trại đã được cập nhật từ máy chủ.',
     })
   }
 
@@ -411,6 +358,9 @@ const AdminFarmsPage: React.FC = () => {
 
                 {/* Farms Table */}
                 <div className="overflow-x-auto">
+                  {loading ? (
+                    <div className="p-6 text-center text-sm text-gray-500">Đang tải dữ liệu...</div>
+                  ) : (
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -497,6 +447,7 @@ const AdminFarmsPage: React.FC = () => {
                       ))}
                     </TableBody>
                   </Table>
+                  )}
                 </div>
               </TabsContent>
 

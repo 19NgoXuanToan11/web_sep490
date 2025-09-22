@@ -25,6 +25,7 @@ import StaffQualityChecksPage from '@/pages/staff/quality-checks'
 import ManagerCategoriesPage from '@/pages/manager/categories'
 import ManagerCropsPage from '@/pages/manager/crops'
 import ManagerFarmActivitiesPage from '@/pages/manager/farm-activities'
+import ManagerIoTDevicesPage from '@/pages/manager/iot-devices'
 
 // RBAC components
 const Unauthorized = React.lazy(() => import('@/pages/Unauthorized'))
@@ -102,6 +103,14 @@ const routerConfig = [
     element: (
       <RoleGuard allowed={['Manager']}>
         <ManagerFarmActivitiesPage />
+      </RoleGuard>
+    ),
+  },
+  {
+    path: '/manager/iot-devices',
+    element: (
+      <RoleGuard allowed={['Manager']}>
+        <ManagerIoTDevicesPage />
       </RoleGuard>
     ),
   },

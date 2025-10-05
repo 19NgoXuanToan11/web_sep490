@@ -7,9 +7,9 @@
 
 // Default values for development
 const defaults = {
-  // Mặc định trỏ tới backend local đã cấu hình trong launchSettings
-  API_URL: 'https://localhost:7067/api',
-  ENV: 'development',
+  // Production backend deployed on Render
+  API_URL: 'https://iotfarm.onrender.com/api',
+  ENV: 'production',
   ENABLE_MOCK_API: false,
   ENABLE_ANALYTICS: false,
 } as const

@@ -26,6 +26,8 @@ import { Badge } from '@/shared/ui/badge'
 import { useNavigate } from 'react-router-dom'
 import { ManagerLayout } from '@/shared/layouts/ManagerLayout'
 import { iotDeviceService } from '@/shared/api/iotDeviceService'
+import { weatherService, type WeatherResponse } from '@/shared/api/weatherService'
+import { Cloud, Wind, CloudRain } from 'lucide-react'
 
 interface MetricCardProps {
   title: string
@@ -133,9 +135,12 @@ export default function ManagerDashboard() {
     maintenance: 0,
     error: 0,
   })
+  const [weather, setWeather] = useState<WeatherResponse | null>(null)
+  const [isLoadingWeather, setIsLoadingWeather] = useState(false)
 
   useEffect(() => {
     fetchIoTDeviceStats()
+    fetchWeather()
   }, [])
 
   const fetchIoTDeviceStats = async () => {
@@ -144,6 +149,18 @@ export default function ManagerDashboard() {
       setIotDeviceStats(stats)
     } catch (error) {
       console.error('Failed to fetch IoT device statistics:', error)
+    }
+  }
+
+  const fetchWeather = async () => {
+    setIsLoadingWeather(true)
+    try {
+      const weatherData = await weatherService.getWeather('Vung Tau')
+      setWeather(weatherData)
+    } catch (error) {
+      console.error('Failed to fetch weather data:', error)
+    } finally {
+      setIsLoadingWeather(false)
     }
   }
 
@@ -353,6 +370,126 @@ export default function ManagerDashboard() {
 
           {/* Sidebar */}
           <div className="space-y-6">
+            {/* Weather Card */}
+            <Card className="border-0 shadow-lg overflow-hidden">
+              <CardHeader className="border-b border-gray-100 bg-gradient-to-br from-blue-50 to-cyan-50">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                    <Cloud className="h-5 w-5 text-blue-600" />
+                    Thời tiết
+                  </CardTitle>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={fetchWeather}
+                    disabled={isLoadingWeather}
+                  >
+                    {isLoadingWeather ? '...' : '🔄'}
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="p-6">
+                {isLoadingWeather ? (
+                  <div className="text-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                    <p className="text-sm text-gray-500 mt-2">Đang tải...</p>
+                  </div>
+                ) : weather ? (
+                  <div className="space-y-4">
+                    {/* Main Temperature Display */}
+                    <div className="text-center pb-4 border-b border-gray-100">
+                      <div className="flex justify-center items-center gap-3 mb-2">
+                        {weather.iconUrl && (
+                          <img
+                            src={weather.iconUrl}
+                            alt={weather.description}
+                            className="w-16 h-16"
+                          />
+                        )}
+                        <div>
+                          <div className="text-4xl font-bold text-gray-900">
+                            {Math.round(weather.temperatureC)}°C
+                          </div>
+                          <p className="text-sm text-gray-600 capitalize">{weather.description}</p>
+                        </div>
+                      </div>
+                      <p className="text-xs text-gray-500">{weather.cityName}</p>
+                    </div>
+
+                    {/* Weather Details */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="bg-gray-50 rounded-lg p-3">
+                        <div className="flex items-center gap-2 text-gray-600 mb-1">
+                          <Thermometer className="h-4 w-4" />
+                          <span className="text-xs font-medium">Cảm nhận</span>
+                        </div>
+                        <p className="text-lg font-semibold text-gray-900">
+                          {Math.round(weather.feelsLikeC)}°C
+                        </p>
+                      </div>
+
+                      <div className="bg-gray-50 rounded-lg p-3">
+                        <div className="flex items-center gap-2 text-gray-600 mb-1">
+                          <Droplets className="h-4 w-4" />
+                          <span className="text-xs font-medium">Độ ẩm</span>
+                        </div>
+                        <p className="text-lg font-semibold text-gray-900">{weather.humidity}%</p>
+                      </div>
+
+                      <div className="bg-gray-50 rounded-lg p-3">
+                        <div className="flex items-center gap-2 text-gray-600 mb-1">
+                          <Wind className="h-4 w-4" />
+                          <span className="text-xs font-medium">Gió</span>
+                        </div>
+                        <p className="text-lg font-semibold text-gray-900">
+                          {weather.windSpeedMps.toFixed(1)} m/s
+                        </p>
+                      </div>
+
+                      <div className="bg-gray-50 rounded-lg p-3">
+                        <div className="flex items-center gap-2 text-gray-600 mb-1">
+                          <Activity className="h-4 w-4" />
+                          <span className="text-xs font-medium">Áp suất</span>
+                        </div>
+                        <p className="text-lg font-semibold text-gray-900">
+                          {weather.pressureHpa} hPa
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Temperature Range */}
+                    <div className="pt-3 border-t border-gray-100">
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-gray-600">Nhiệt độ cao/thấp</span>
+                        <span className="font-semibold text-gray-900">
+                          {Math.round(weather.tempMaxC)}° / {Math.round(weather.tempMinC)}°
+                        </span>
+                      </div>
+                      {weather.rainVolumeMm && weather.rainVolumeMm > 0 && (
+                        <div className="flex justify-between items-center text-sm mt-2">
+                          <div className="flex items-center gap-1 text-blue-600">
+                            <CloudRain className="h-4 w-4" />
+                            <span>Lượng mưa</span>
+                          </div>
+                          <span className="font-semibold text-blue-600">
+                            {weather.rainVolumeMm.toFixed(1)} mm
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <Cloud className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                    <p className="text-sm text-gray-500">Không thể tải dữ liệu thời tiết</p>
+                    <Button variant="outline" size="sm" onClick={fetchWeather} className="mt-3">
+                      Thử lại
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
             {/* Recent Activity */}
             <Card className="border-0 shadow-lg">
               <CardHeader className="border-b border-gray-100">
@@ -386,8 +523,8 @@ export default function ManagerDashboard() {
                   <CardTitle className="text-lg font-semibold text-gray-900">
                     Thiết bị IoT
                   </CardTitle>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="sm"
                     onClick={() => navigate('/manager/iot-devices')}
                   >
@@ -420,9 +557,13 @@ export default function ManagerDashboard() {
                       <AlertTriangle className="h-4 w-4 text-red-500" />
                       <span className="text-sm font-medium text-gray-700">Có lỗi</span>
                     </div>
-                    <Badge 
-                      variant="default" 
-                      className={iotDeviceStats.error > 0 ? "bg-red-100 text-red-800" : "bg-gray-100 text-gray-800"}
+                    <Badge
+                      variant="default"
+                      className={
+                        iotDeviceStats.error > 0
+                          ? 'bg-red-100 text-red-800'
+                          : 'bg-gray-100 text-gray-800'
+                      }
                     >
                       {iotDeviceStats.error}
                     </Badge>
@@ -437,14 +578,14 @@ export default function ManagerDashboard() {
                     </Badge>
                   </div>
                 </div>
-                
+
                 {iotDeviceStats.total === 0 && (
                   <div className="text-center py-4 border-t border-gray-100 mt-4">
                     <Cpu className="h-8 w-8 text-gray-400 mx-auto mb-2" />
                     <p className="text-sm text-gray-500 mb-3">Chưa có thiết bị IoT nào</p>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
+                    <Button
+                      variant="outline"
+                      size="sm"
                       className="w-full"
                       onClick={() => navigate('/manager/iot-devices')}
                     >
@@ -456,9 +597,9 @@ export default function ManagerDashboard() {
 
                 {iotDeviceStats.total > 0 && (
                   <div className="mt-6 pt-4 border-t border-gray-100">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
+                    <Button
+                      variant="outline"
+                      size="sm"
                       className="w-full"
                       onClick={() => navigate('/manager/iot-devices')}
                     >

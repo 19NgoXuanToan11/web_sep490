@@ -2,19 +2,14 @@ import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import {
   TrendingUp,
-  TrendingDown,
   Activity,
   Droplets,
   Package,
   AlertTriangle,
   CheckCircle,
-  Clock,
-  DollarSign,
-  Users,
   Sprout,
   Thermometer,
   Zap,
-  Calendar,
   ArrowUpRight,
   ArrowDownRight,
   Cpu,
@@ -36,7 +31,7 @@ interface MetricCardProps {
   changeType?: 'increase' | 'decrease'
   icon: React.ComponentType<{ className?: string }>
   description?: string
-  color?: 'green' | 'blue' | 'orange' | 'red' | 'purple'
+  color?: 'green' | 'green-light' | 'green-medium' | 'green-dark'
 }
 
 const MetricCard: React.FC<MetricCardProps> = ({
@@ -50,10 +45,9 @@ const MetricCard: React.FC<MetricCardProps> = ({
 }) => {
   const colorClasses = {
     green: 'from-green-500 to-green-600',
-    blue: 'from-blue-500 to-blue-600',
-    orange: 'from-orange-500 to-orange-600',
-    red: 'from-red-500 to-red-600',
-    purple: 'from-purple-500 to-purple-600',
+    'green-light': 'from-green-400 to-green-500',
+    'green-medium': 'from-green-600 to-green-700',
+    'green-dark': 'from-green-700 to-green-800',
   }
 
   const changeIcon = changeType === 'increase' ? ArrowUpRight : ArrowDownRight
@@ -61,7 +55,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
 
   return (
     <motion.div whileHover={{ scale: 1.02, y: -2 }} transition={{ duration: 0.2 }}>
-      <Card className="relative overflow-hidden border-0 shadow-lg">
+      <Card className="relative overflow-hidden border-0 shadow-lg bg-white">
         <div
           className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${colorClasses[color]}`}
         />
@@ -76,7 +70,7 @@ const MetricCard: React.FC<MetricCardProps> = ({
           {change && (
             <div
               className={`flex items-center text-sm ${
-                changeType === 'increase' ? 'text-green-600' : 'text-red-600'
+                changeType === 'increase' ? 'text-green-600' : 'text-green-800'
               }`}
             >
               <ChangeIcon className="h-3 w-3 mr-1" />
@@ -107,9 +101,9 @@ const ActivityItem: React.FC<ActivityItemProps> = ({
 }) => {
   const typeClasses = {
     success: 'text-green-600 bg-green-50',
-    warning: 'text-orange-600 bg-orange-50',
-    info: 'text-blue-600 bg-blue-50',
-    error: 'text-red-600 bg-red-50',
+    warning: 'text-green-700 bg-green-100',
+    info: 'text-green-500 bg-green-50',
+    error: 'text-green-800 bg-green-200',
   }
 
   return (
@@ -200,7 +194,7 @@ export default function ManagerDashboard() {
       title: 'Bắt đầu tưới',
       description: 'Kích hoạt chu kỳ tưới nước',
       icon: Droplets,
-      color: 'blue' as const,
+      color: 'green-light' as const,
       action: () => navigate('/manager/irrigation'),
     },
     {
@@ -214,14 +208,14 @@ export default function ManagerDashboard() {
       title: 'Xem báo cáo',
       description: 'Phân tích & thống kê',
       icon: TrendingUp,
-      color: 'purple' as const,
+      color: 'green-medium' as const,
       action: () => navigate('/manager/reports'),
     },
     {
       title: 'Quản lý IoT',
       description: 'Thiết bị & cảm biến',
       icon: Cpu,
-      color: 'orange' as const,
+      color: 'green-dark' as const,
       action: () => navigate('/manager/iot-devices'),
     },
   ]
@@ -249,7 +243,7 @@ export default function ManagerDashboard() {
             value="3 khu"
             change="2 lịch đã đặt"
             icon={Droplets}
-            color="blue"
+            color="green-light"
             description="Tưới tự động đang diễn ra"
           />
           <MetricCard
@@ -258,7 +252,7 @@ export default function ManagerDashboard() {
             change="5 sắp hết"
             changeType="decrease"
             icon={Package}
-            color="orange"
+            color="green-medium"
             description="Tổng số sản phẩm trong kho"
           />
           <MetricCard
@@ -267,7 +261,7 @@ export default function ManagerDashboard() {
             change={iotDeviceStats.error > 0 ? `${iotDeviceStats.error} có lỗi` : 'Hoạt động tốt'}
             changeType={iotDeviceStats.error > 0 ? 'decrease' : 'increase'}
             icon={Cpu}
-            color={iotDeviceStats.error > 0 ? 'red' : 'green'}
+            color={iotDeviceStats.error > 0 ? 'green-dark' : 'green'}
             description="Trạng thái thiết bị IoT"
           />
         </div>
@@ -276,13 +270,17 @@ export default function ManagerDashboard() {
           {/* Main Metrics */}
           <div className="lg:col-span-2 space-y-8">
             {/* Performance Overview */}
-            <Card className="border-0 shadow-lg">
+            <Card className="border-0 shadow-lg bg-white">
               <CardHeader className="border-b border-gray-100">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-lg font-semibold text-gray-900">
                     Tổng quan hiệu suất
                   </CardTitle>
-                  <Button variant="outline" size="sm">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-green-200 text-green-700 hover:bg-green-50"
+                  >
                     Xem chi tiết
                   </Button>
                 </div>
@@ -295,29 +293,29 @@ export default function ManagerDashboard() {
                     </div>
                     <h3 className="text-lg font-semibold text-gray-900">Sức khỏe cây trồng</h3>
                     <p className="text-sm text-gray-600 mb-2">95% Xuất sắc</p>
-                    <Badge variant="default" className="bg-green-100 text-green-800">
+                    <Badge variant="default" className="bg-green-100 text-green-800 border-0">
                       Sinh trưởng tối ưu
                     </Badge>
                   </div>
 
                   <div className="text-center">
-                    <div className="w-16 h-16 mx-auto mb-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-full flex items-center justify-center shadow-lg">
+                    <div className="w-16 h-16 mx-auto mb-3 bg-gradient-to-br from-green-400 to-green-500 rounded-full flex items-center justify-center shadow-lg">
                       <Thermometer className="w-8 h-8 text-white" />
                     </div>
                     <h3 className="text-lg font-semibold text-gray-900">Điều kiện khí hậu</h3>
                     <p className="text-sm text-gray-600 mb-2">24°C / 65% RH</p>
-                    <Badge variant="default" className="bg-blue-100 text-blue-800">
+                    <Badge variant="default" className="bg-green-50 text-green-700 border-0">
                       Trong ngưỡng lý tưởng
                     </Badge>
                   </div>
 
                   <div className="text-center">
-                    <div className="w-16 h-16 mx-auto mb-3 bg-gradient-to-br from-purple-500 to-purple-600 rounded-full flex items-center justify-center shadow-lg">
+                    <div className="w-16 h-16 mx-auto mb-3 bg-gradient-to-br from-green-600 to-green-700 rounded-full flex items-center justify-center shadow-lg">
                       <Zap className="w-8 h-8 text-white" />
                     </div>
                     <h3 className="text-lg font-semibold text-gray-900">Tiêu thụ năng lượng</h3>
                     <p className="text-sm text-gray-600 mb-2">127 kWh hôm nay</p>
-                    <Badge variant="default" className="bg-purple-100 text-purple-800">
+                    <Badge variant="default" className="bg-green-100 text-green-800 border-0">
                       Hiệu quả
                     </Badge>
                   </div>
@@ -326,7 +324,7 @@ export default function ManagerDashboard() {
             </Card>
 
             {/* Quick Actions */}
-            <Card className="border-0 shadow-lg">
+            <Card className="border-0 shadow-lg bg-white">
               <CardHeader className="border-b border-gray-100">
                 <CardTitle className="text-lg font-semibold text-gray-900">
                   Thao tác nhanh
@@ -334,24 +332,24 @@ export default function ManagerDashboard() {
               </CardHeader>
               <CardContent className="p-6">
                 <div className="grid gap-4 md:grid-cols-2">
-                  {quickActions.map((action, index) => (
+                  {quickActions.map(action => (
                     <motion.button
                       key={action.title}
                       onClick={action.action}
-                      className="p-4 text-left rounded-lg border border-gray-200 hover:border-gray-300 hover:shadow-md transition-all duration-200"
+                      className="p-4 text-left rounded-lg border border-gray-200 hover:border-green-300 hover:shadow-md hover:bg-green-50/30 transition-all duration-200"
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                     >
                       <div className="flex items-center space-x-3">
                         <div
                           className={`p-2 rounded-lg bg-gradient-to-br ${
-                            action.color === 'blue'
-                              ? 'from-blue-500 to-blue-600'
+                            action.color === 'green-light'
+                              ? 'from-green-400 to-green-500'
                               : action.color === 'green'
                                 ? 'from-green-500 to-green-600'
-                                : action.color === 'purple'
-                                  ? 'from-purple-500 to-purple-600'
-                                  : 'from-orange-500 to-orange-600'
+                                : action.color === 'green-medium'
+                                  ? 'from-green-600 to-green-700'
+                                  : 'from-green-700 to-green-800'
                           } shadow-lg`}
                         >
                           <action.icon className="w-5 h-5 text-white" />
@@ -371,11 +369,11 @@ export default function ManagerDashboard() {
           {/* Sidebar */}
           <div className="space-y-6">
             {/* Weather Card */}
-            <Card className="border-0 shadow-lg overflow-hidden">
-              <CardHeader className="border-b border-gray-100 bg-gradient-to-br from-blue-50 to-cyan-50">
+            <Card className="border-0 shadow-lg overflow-hidden bg-white">
+              <CardHeader className="border-b">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                    <Cloud className="h-5 w-5 text-blue-600" />
+                    <Cloud className="h-5 w-5 text-green-600" />
                     Thời tiết
                   </CardTitle>
                   <Button
@@ -383,6 +381,7 @@ export default function ManagerDashboard() {
                     size="sm"
                     onClick={fetchWeather}
                     disabled={isLoadingWeather}
+                    className="hover:bg-green-100"
                   >
                     {isLoadingWeather ? '...' : '🔄'}
                   </Button>
@@ -391,7 +390,7 @@ export default function ManagerDashboard() {
               <CardContent className="p-6">
                 {isLoadingWeather ? (
                   <div className="text-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
                     <p className="text-sm text-gray-500 mt-2">Đang tải...</p>
                   </div>
                 ) : weather ? (
@@ -467,11 +466,11 @@ export default function ManagerDashboard() {
                       </div>
                       {weather.rainVolumeMm && weather.rainVolumeMm > 0 && (
                         <div className="flex justify-between items-center text-sm mt-2">
-                          <div className="flex items-center gap-1 text-blue-600">
+                          <div className="flex items-center gap-1 text-green-600">
                             <CloudRain className="h-4 w-4" />
                             <span>Lượng mưa</span>
                           </div>
-                          <span className="font-semibold text-blue-600">
+                          <span className="font-semibold text-green-600">
                             {weather.rainVolumeMm.toFixed(1)} mm
                           </span>
                         </div>
@@ -491,13 +490,13 @@ export default function ManagerDashboard() {
             </Card>
 
             {/* Recent Activity */}
-            <Card className="border-0 shadow-lg">
+            <Card className="border-0 shadow-lg bg-white">
               <CardHeader className="border-b border-gray-100">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-lg font-semibold text-gray-900">
                     Hoạt động gần đây
                   </CardTitle>
-                  <Badge variant="outline" className="text-xs">
+                  <Badge variant="outline" className="text-xs border-green-200 text-green-700">
                     Trực tiếp
                   </Badge>
                 </div>
@@ -509,7 +508,11 @@ export default function ManagerDashboard() {
                   ))}
                 </div>
                 <div className="p-3 border-t border-gray-100">
-                  <Button variant="outline" size="sm" className="w-full">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full border-green-200 text-green-700 hover:bg-green-50"
+                  >
                     Xem tất cả hoạt động
                   </Button>
                 </div>
@@ -517,7 +520,7 @@ export default function ManagerDashboard() {
             </Card>
 
             {/* IoT Device Monitoring */}
-            <Card className="border-0 shadow-lg">
+            <Card className="border-0 shadow-lg bg-white">
               <CardHeader className="border-b border-gray-100">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-lg font-semibold text-gray-900">
@@ -527,6 +530,7 @@ export default function ManagerDashboard() {
                     variant="outline"
                     size="sm"
                     onClick={() => navigate('/manager/iot-devices')}
+                    className="border-green-200 text-green-700 hover:bg-green-50"
                   >
                     Xem tất cả
                   </Button>
@@ -536,33 +540,33 @@ export default function ManagerDashboard() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-green-500" />
+                      <CheckCircle className="h-4 w-4 text-green-600" />
                       <span className="text-sm font-medium text-gray-700">Hoạt động</span>
                     </div>
-                    <Badge variant="default" className="bg-green-100 text-green-800">
+                    <Badge variant="default" className="bg-green-100 text-green-800 border-0">
                       {iotDeviceStats.active}
                     </Badge>
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <AlertTriangle className="h-4 w-4 text-yellow-500" />
+                      <AlertTriangle className="h-4 w-4 text-green-500" />
                       <span className="text-sm font-medium text-gray-700">Bảo trì</span>
                     </div>
-                    <Badge variant="default" className="bg-yellow-100 text-yellow-800">
+                    <Badge variant="default" className="bg-green-50 text-green-700 border-0">
                       {iotDeviceStats.maintenance}
                     </Badge>
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <AlertTriangle className="h-4 w-4 text-red-500" />
+                      <AlertTriangle className="h-4 w-4 text-green-700" />
                       <span className="text-sm font-medium text-gray-700">Có lỗi</span>
                     </div>
                     <Badge
                       variant="default"
                       className={
                         iotDeviceStats.error > 0
-                          ? 'bg-red-100 text-red-800'
-                          : 'bg-gray-100 text-gray-800'
+                          ? 'bg-green-700 text-white border-0'
+                          : 'bg-gray-100 text-gray-800 border-0'
                       }
                     >
                       {iotDeviceStats.error}
@@ -570,10 +574,10 @@ export default function ManagerDashboard() {
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <Wifi className="h-4 w-4 text-blue-500" />
+                      <Wifi className="h-4 w-4 text-green-600" />
                       <span className="text-sm font-medium text-gray-700">Tổng thiết bị</span>
                     </div>
-                    <Badge variant="default" className="bg-blue-100 text-blue-800">
+                    <Badge variant="default" className="bg-green-100 text-green-800 border-0">
                       {iotDeviceStats.total}
                     </Badge>
                   </div>
@@ -586,7 +590,7 @@ export default function ManagerDashboard() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="w-full"
+                      className="w-full border-green-200 text-green-700 hover:bg-green-50"
                       onClick={() => navigate('/manager/iot-devices')}
                     >
                       <Cpu className="w-4 h-4 mr-2" />
@@ -600,7 +604,7 @@ export default function ManagerDashboard() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="w-full"
+                      className="w-full border-green-200 text-green-700 hover:bg-green-50"
                       onClick={() => navigate('/manager/iot-devices')}
                     >
                       <Cpu className="w-4 h-4 mr-2" />

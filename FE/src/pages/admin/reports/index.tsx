@@ -41,42 +41,42 @@ const AdminReportsPage: React.FC = () => {
       title: 'Hiệu suất hệ thống',
       icon: Cpu,
       description: 'Tổng quan về tình trạng và hiệu suất hệ thống',
-      color: 'bg-blue-500',
+      color: 'bg-green-500',
     },
     {
       id: 'users',
       title: 'Hoạt động người dùng',
       icon: Users,
       description: 'Phân tích hành vi và tương tác người dùng',
-      color: 'bg-green-500',
+      color: 'bg-green-600',
     },
     {
       id: 'devices',
       title: 'Thiết bị IoT',
       icon: Cpu,
       description: 'Trạng thái và hiệu suất thiết bị IoT',
-      color: 'bg-purple-500',
+      color: 'bg-green-400',
     },
     {
       id: 'farms',
       title: 'Quản lý trang trại',
       icon: Building,
       description: 'Hiệu quả hoạt động các trang trại',
-      color: 'bg-orange-500',
+      color: 'bg-green-700',
     },
     {
       id: 'orders',
       title: 'Đơn hàng & Doanh thu',
       icon: ShoppingCart,
       description: 'Phân tích doanh thu và xu hướng đặt hàng',
-      color: 'bg-indigo-500',
+      color: 'bg-emerald-600',
     },
     {
       id: 'alerts',
       title: 'Cảnh báo & Sự cố',
       icon: AlertTriangle,
       description: 'Báo cáo về các cảnh báo và sự cố hệ thống',
-      color: 'bg-red-500',
+      color: 'bg-green-800',
     },
   ]
 
@@ -153,7 +153,7 @@ const AdminReportsPage: React.FC = () => {
               variant="outline"
               onClick={handleRefresh}
               disabled={isRefreshing}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 border-green-200 text-green-700 hover:bg-green-50"
             >
               <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
               Làm mới
@@ -202,7 +202,7 @@ const AdminReportsPage: React.FC = () => {
                 {metric.trend === 'up' ? (
                   <TrendingUp className="w-4 h-4 text-green-500" />
                 ) : (
-                  <TrendingDown className="w-4 h-4 text-red-500" />
+                  <TrendingDown className="w-4 h-4 text-green-700" />
                 )}
               </div>
               <div className="mb-2">
@@ -211,7 +211,7 @@ const AdminReportsPage: React.FC = () => {
               <div className="flex items-center justify-between text-xs">
                 <span
                   className={`font-medium ${
-                    metric.trend === 'up' ? 'text-green-600' : 'text-red-600'
+                    metric.trend === 'up' ? 'text-green-600' : 'text-green-800'
                   }`}
                 >
                   {metric.change}
@@ -238,7 +238,7 @@ const AdminReportsPage: React.FC = () => {
                     <category.icon className="w-6 h-6" />
                   </div>
                   <div className="flex-1">
-                    <h3 className="font-semibold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+                    <h3 className="font-semibold text-gray-900 mb-2 group-hover:text-green-600 transition-colors">
                       {category.title}
                     </h3>
                     <p className="text-sm text-gray-600 leading-relaxed">{category.description}</p>
@@ -253,7 +253,7 @@ const AdminReportsPage: React.FC = () => {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-semibold text-gray-900">Báo cáo nhanh</h2>
-            <button className="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-medium hover:bg-blue-700 transition-all duration-200 shadow-sm">
+            <button className="inline-flex items-center gap-2 px-4 py-2.5 bg-green-600 text-white rounded-xl text-sm font-medium hover:bg-green-700 transition-all duration-200 shadow-sm">
               <Download className="w-4 h-4" />
               Xuất tất cả
             </button>
@@ -274,7 +274,7 @@ const AdminReportsPage: React.FC = () => {
                     className={`px-3 py-1 rounded-full text-xs font-medium ${
                       report.status === 'ready'
                         ? 'bg-green-100 text-green-700'
-                        : 'bg-yellow-100 text-yellow-700'
+                        : 'bg-green-50 text-green-600'
                     }`}
                   >
                     {report.status === 'ready' ? 'Sẵn sàng' : 'Đang tạo'}
@@ -284,7 +284,7 @@ const AdminReportsPage: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <span className="text-xs text-gray-500">Cập nhật: {report.lastGenerated}</span>
                   {report.status === 'ready' && (
-                    <button className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors">
+                    <button className="inline-flex items-center gap-1.5 text-sm font-medium text-green-600 hover:text-green-700 transition-colors">
                       <Download className="w-4 h-4" />
                       Tải xuống
                     </button>

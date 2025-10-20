@@ -16,6 +16,7 @@ import {
   User,
   Activity,
   Cpu,
+  ShoppingCart,
 } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import LogoutButton from '@/shared/ui/LogoutButton'
@@ -55,6 +56,12 @@ const navigationItems: NavItem[] = [
     icon: Package,
     badge: 5,
     description: 'Tồn kho & Danh mục sản phẩm',
+  },
+  {
+    name: 'Quản lý đơn hàng',
+    href: '/manager/orders',
+    icon: ShoppingCart,
+    description: 'Theo dõi & xử lý đơn hàng',
   },
   {
     name: 'Danh mục',

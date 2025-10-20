@@ -12,7 +12,6 @@ import AdminUsersPage from '@/pages/admin/users'
 import AdminDashboard from '@/pages/admin/dashboard'
 import AdminDevicesPage from '@/pages/admin/devices'
 import AdminFarmsPage from '@/pages/admin/farms'
-import AdminOrdersPage from '@/pages/admin/orders'
 import AdminReportsPage from '@/pages/admin/reports'
 import ProfilePage from '@/pages/profile'
 
@@ -26,6 +25,7 @@ import ManagerCategoriesPage from '@/pages/manager/categories'
 import ManagerCropsPage from '@/pages/manager/crops'
 import ManagerFarmActivitiesPage from '@/pages/manager/farm-activities'
 import ManagerIoTDevicesPage from '@/pages/manager/iot-devices'
+import ManagerOrdersPage from '@/pages/manager/orders'
 
 // RBAC components
 const Unauthorized = React.lazy(() => import('@/pages/Unauthorized'))
@@ -114,6 +114,14 @@ const routerConfig = [
       </RoleGuard>
     ),
   },
+  {
+    path: '/manager/orders',
+    element: (
+      <RoleGuard allowed={['Manager']}>
+        <ManagerOrdersPage />
+      </RoleGuard>
+    ),
+  },
   // Admin routes for system administration
   {
     path: '/admin/dashboard',
@@ -144,14 +152,6 @@ const routerConfig = [
     element: (
       <RoleGuard allowed={['Admin']}>
         <AdminFarmsPage />
-      </RoleGuard>
-    ),
-  },
-  {
-    path: '/admin/orders',
-    element: (
-      <RoleGuard allowed={['Admin']}>
-        <AdminOrdersPage />
       </RoleGuard>
     ),
   },

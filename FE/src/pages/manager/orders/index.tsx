@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import {
   ShoppingCart,
@@ -15,7 +15,7 @@ import {
   MoreHorizontal,
   User,
   MapPin,
-  Calendar,
+  Loader2,
 } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card'
@@ -29,10 +29,13 @@ import {
   DropdownMenuTrigger,
 } from '@/shared/ui/dropdown-menu'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs'
-import { AdminLayout } from '@/shared/layouts/AdminLayout'
+import { ManagerLayout } from '@/shared/layouts/ManagerLayout'
 import { useToast } from '@/shared/ui/use-toast'
+import { orderService, getOrderStatusLabel, getOrderStatusVariant } from '@/shared/api/orderService'
+import type { Order as ApiOrder, OrderItem } from '@/shared/api/orderService'
 
-interface Order {
+// Transform API response to display format
+interface DisplayOrder {
   id: string
   orderNumber: string
   customer: {
@@ -41,143 +44,23 @@ interface Order {
     phone: string
     address: string
   }
-  farm: {
-    name: string
-    owner: string
-  }
-  items: {
-    name: string
-    quantity: number
-    unit: string
-    price: number
-  }[]
-  status: 'pending' | 'confirmed' | 'preparing' | 'shipping' | 'delivered' | 'cancelled'
+  items: OrderItem[]
+  status: number
   orderDate: string
-  deliveryDate?: string
   totalAmount: number
   paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded'
   paymentMethod: string
   notes?: string
 }
 
-const AdminOrdersPage: React.FC = () => {
+const ManagerOrdersPage: React.FC = () => {
   const { toast } = useToast()
-  const [orders, setOrders] = useState<Order[]>([
-    {
-      id: 'ord-001',
-      orderNumber: 'ORD-2024-001',
-      customer: {
-        name: 'Nguyễn Văn An',
-        email: 'an.nguyen@email.com',
-        phone: '0123456789',
-        address: '123 Đường ABC, Quận 1, TP.HCM',
-      },
-      farm: {
-        name: 'Green Valley Farm',
-        owner: 'Nguyễn Văn Bình',
-      },
-      items: [
-        { name: 'Rau xanh hữu cơ', quantity: 5, unit: 'kg', price: 50000 },
-        { name: 'Cà chua cherry', quantity: 2, unit: 'kg', price: 80000 },
-      ],
-      status: 'confirmed',
-      orderDate: '2024-01-15T08:30:00Z',
-      deliveryDate: '2024-01-17T10:00:00Z',
-      totalAmount: 410000,
-      paymentStatus: 'paid',
-      paymentMethod: 'VNPay',
-      notes: 'Giao hàng buổi sáng',
-    },
-    {
-      id: 'ord-002',
-      orderNumber: 'ORD-2024-002',
-      customer: {
-        name: 'Trần Thị Cẩm',
-        email: 'cam.tran@email.com',
-        phone: '0987654321',
-        address: '456 Đường XYZ, Quận 2, TP.HCM',
-      },
-      farm: {
-        name: 'Smart Eco Farm',
-        owner: 'Trần Thị Bình',
-      },
-      items: [
-        { name: 'Thảo mộc tươi', quantity: 1, unit: 'bó', price: 25000 },
-        { name: 'Rau gia vị', quantity: 3, unit: 'gói', price: 15000 },
-      ],
-      status: 'preparing',
-      orderDate: '2024-01-15T14:20:00Z',
-      totalAmount: 70000,
-      paymentStatus: 'paid',
-      paymentMethod: 'Momo',
-    },
-    {
-      id: 'ord-003',
-      orderNumber: 'ORD-2024-003',
-      customer: {
-        name: 'Lê Minh Đức',
-        email: 'duc.le@email.com',
-        phone: '0369852147',
-        address: '789 Đường DEF, Quận 3, TP.HCM',
-      },
-      farm: {
-        name: 'Organic Plus Farm',
-        owner: 'Phạm Văn Đức',
-      },
-      items: [{ name: 'Cà phê hạt rang', quantity: 2, unit: 'kg', price: 350000 }],
-      status: 'shipping',
-      orderDate: '2024-01-14T16:45:00Z',
-      deliveryDate: '2024-01-16T14:00:00Z',
-      totalAmount: 700000,
-      paymentStatus: 'paid',
-      paymentMethod: 'Banking',
-    },
-    {
-      id: 'ord-004',
-      orderNumber: 'ORD-2024-004',
-      customer: {
-        name: 'Phạm Thị Hoa',
-        email: 'hoa.pham@email.com',
-        phone: '0147258369',
-        address: '321 Đường GHI, Quận 4, TP.HCM',
-      },
-      farm: {
-        name: 'Tech Agriculture Co.',
-        owner: 'Lê Minh Cường',
-      },
-      items: [
-        { name: 'Gạo ST25', quantity: 10, unit: 'kg', price: 45000 },
-        { name: 'Ngô ngọt', quantity: 5, unit: 'bắp', price: 12000 },
-      ],
-      status: 'pending',
-      orderDate: '2024-01-15T11:30:00Z',
-      totalAmount: 510000,
-      paymentStatus: 'pending',
-      paymentMethod: 'COD',
-      notes: 'Khách hàng yêu cầu kiểm tra hàng trước khi thanh toán',
-    },
-    {
-      id: 'ord-005',
-      orderNumber: 'ORD-2024-005',
-      customer: {
-        name: 'Võ Thanh Nam',
-        email: 'nam.vo@email.com',
-        phone: '0258963147',
-        address: '654 Đường JKL, Quận 5, TP.HCM',
-      },
-      farm: {
-        name: 'Future Farm Lab',
-        owner: 'Võ Thị Hương',
-      },
-      items: [{ name: 'Dâu tây tươi', quantity: 3, unit: 'hộp', price: 120000 }],
-      status: 'delivered',
-      orderDate: '2024-01-13T09:15:00Z',
-      deliveryDate: '2024-01-15T16:30:00Z',
-      totalAmount: 360000,
-      paymentStatus: 'paid',
-      paymentMethod: 'VNPay',
-    },
-  ])
+  const [orders, setOrders] = useState<DisplayOrder[]>([])
+  const [loading, setLoading] = useState(true)
+  const [totalItems, setTotalItems] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
+  const [currentPage, setCurrentPage] = useState(1)
+  const pageSize = 10
 
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
@@ -185,30 +68,135 @@ const AdminOrdersPage: React.FC = () => {
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [selectedTab, setSelectedTab] = useState('all')
 
-  useEffect(() => {
-    // Auto-refresh orders every 60 seconds
-    const interval = setInterval(() => {
-      // Simulate random status updates for pending orders
-      setOrders(prev =>
-        prev.map(order => {
-          if (order.status === 'pending' && Math.random() > 0.8) {
-            return { ...order, status: 'confirmed' as const }
-          }
-          return order
-        })
-      )
-    }, 60000)
+  // Transform API order to display format
+  const transformApiOrder = (apiOrder: ApiOrder): DisplayOrder => {
+    // Extract customer info from email (fallback since API doesn't provide full customer details)
+    const email = apiOrder.email || 'N/A'
+    const customerName =
+      email !== 'N/A' ? email.split('@')[0].replace(/[._]/g, ' ') : 'Unknown Customer'
 
-    return () => clearInterval(interval)
+    return {
+      id: apiOrder.orderId || '',
+      orderNumber: apiOrder.orderId || '',
+      customer: {
+        name: customerName,
+        email: email,
+        phone: 'N/A', // Not provided by API
+        address: apiOrder.shippingAddress || 'N/A',
+      },
+      items: apiOrder.orderItems || [],
+      status: apiOrder.status ?? 0,
+      orderDate: apiOrder.createdAt || new Date().toISOString(),
+      totalAmount: apiOrder.totalPrice || 0,
+      paymentStatus: 'paid', // Default assumption, could be enhanced
+      paymentMethod: 'N/A', // Not provided by API
+    }
+  }
+
+  // Fetch orders from API
+  const fetchOrders = useCallback(
+    async (page: number = 1, status?: number) => {
+      try {
+        setLoading(true)
+        const response = await orderService.getOrderList({
+          pageIndex: page,
+          pageSize,
+          status,
+        })
+
+        const transformedOrders = response.items
+          .map((apiOrder: any, index: number) => {
+            try {
+              const transformed = transformApiOrder(apiOrder)
+              return transformed
+            } catch (error) {
+              console.error(`Error transforming order ${index}:`, error, 'Raw data:', apiOrder)
+              return null
+            }
+          })
+          .filter((order): order is DisplayOrder => order !== null) // Type-safe filter
+
+        setOrders(transformedOrders)
+        setTotalItems(response.totalItemCount)
+        setTotalPages(response.totalPageCount)
+        setCurrentPage(response.pageIndex)
+      } catch (error) {
+        console.error('Error fetching orders:', error)
+        toast({
+          title: 'Lỗi tải dữ liệu',
+          description: 'Không thể tải danh sách đơn hàng. Vui lòng thử lại.',
+          variant: 'destructive',
+        })
+      } finally {
+        setLoading(false)
+      }
+    },
+    [pageSize, toast]
+  )
+
+  useEffect(() => {
+    fetchOrders()
   }, [])
 
-  const filteredOrders = orders.filter(order => {
-    const matchesSearch =
-      order.orderNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.farm.name.toLowerCase().includes(searchQuery.toLowerCase())
+  // Handle status filter change with API call
+  const handleStatusFilterChange = (status: string) => {
+    setStatusFilter(status)
+    const statusParam = status === 'all' ? undefined : parseInt(status)
+    fetchOrders(1, statusParam)
+  }
 
-    const matchesStatus = statusFilter === 'all' || order.status === statusFilter
+  // Handle tab change to filter by status
+  const handleTabChange = (tab: string) => {
+    setSelectedTab(tab)
+    let statusParam: number | undefined
+
+    switch (tab) {
+      case 'pending':
+        statusParam = 0
+        break
+      case 'processing':
+        statusParam = undefined // Show confirmed, preparing, shipping (1,2,3)
+        break
+      case 'completed':
+        statusParam = 4
+        break
+      default:
+        statusParam = undefined
+    }
+
+    fetchOrders(1, statusParam)
+  }
+
+  const filteredOrders = orders.filter(order => {
+    // Debug logging
+    if (!order || typeof order !== 'object') {
+      console.warn('Invalid order object:', order)
+      return false
+    }
+
+    const searchTerm = (searchQuery || '').toLowerCase()
+
+    // Safe string handling with additional checks
+    const orderNumber = order.orderNumber
+    const customerName = order.customer?.name
+    const customerEmail = order.customer?.email
+
+    if (orderNumber && typeof orderNumber !== 'string') {
+      console.warn('orderNumber is not a string:', orderNumber, typeof orderNumber)
+    }
+
+    const matchesSearch =
+      (orderNumber && typeof orderNumber === 'string'
+        ? orderNumber.toLowerCase().includes(searchTerm)
+        : false) ||
+      (customerName && typeof customerName === 'string'
+        ? customerName.toLowerCase().includes(searchTerm)
+        : false) ||
+      (customerEmail && typeof customerEmail === 'string'
+        ? customerEmail.toLowerCase().includes(searchTerm)
+        : false)
+
+    const matchesStatus = statusFilter === 'all' || order.status?.toString() === statusFilter
     const matchesPayment = paymentFilter === 'all' || order.paymentStatus === paymentFilter
 
     return matchesSearch && matchesStatus && matchesPayment
@@ -216,12 +204,12 @@ const AdminOrdersPage: React.FC = () => {
 
   const orderStats = {
     total: orders.length,
-    pending: orders.filter(o => o.status === 'pending').length,
-    confirmed: orders.filter(o => o.status === 'confirmed').length,
-    preparing: orders.filter(o => o.status === 'preparing').length,
-    shipping: orders.filter(o => o.status === 'shipping').length,
-    delivered: orders.filter(o => o.status === 'delivered').length,
-    cancelled: orders.filter(o => o.status === 'cancelled').length,
+    pending: orders.filter(o => o.status === 0).length,
+    confirmed: orders.filter(o => o.status === 1).length,
+    preparing: orders.filter(o => o.status === 2).length,
+    shipping: orders.filter(o => o.status === 3).length,
+    delivered: orders.filter(o => o.status === 4).length,
+    cancelled: orders.filter(o => [5, 6].includes(o.status)).length,
     totalRevenue: orders
       .filter(o => o.paymentStatus === 'paid')
       .reduce((sum, o) => sum + o.totalAmount, 0),
@@ -230,7 +218,7 @@ const AdminOrdersPage: React.FC = () => {
 
   const handleRefresh = async () => {
     setIsRefreshing(true)
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    await fetchOrders(currentPage)
     setIsRefreshing(false)
     toast({
       title: 'Dữ liệu đã được cập nhật',
@@ -238,48 +226,34 @@ const AdminOrdersPage: React.FC = () => {
     })
   }
 
-  const getStatusIcon = (status: string) => {
+  const getStatusIcon = (status: number) => {
     switch (status) {
-      case 'pending':
+      case 0: // Chờ xử lý
         return <Clock className="h-4 w-4 text-yellow-500" />
-      case 'confirmed':
+      case 1: // Đã xác nhận
         return <CheckCircle className="h-4 w-4 text-blue-500" />
-      case 'preparing':
+      case 2: // Đang chuẩn bị
         return <Package className="h-4 w-4 text-purple-500" />
-      case 'shipping':
+      case 3: // Đang giao
         return <Truck className="h-4 w-4 text-orange-500" />
-      case 'delivered':
+      case 4: // Đã giao
         return <CheckCircle className="h-4 w-4 text-green-500" />
-      case 'cancelled':
+      case 5: // Đã hủy
+      case 6: // Hoàn trả
         return <AlertTriangle className="h-4 w-4 text-red-500" />
       default:
         return <ShoppingCart className="h-4 w-4 text-gray-500" />
     }
   }
 
-  const getStatusBadge = (status: string) => {
-    const variants: Record<string, 'default' | 'secondary' | 'destructive'> = {
-      pending: 'secondary',
-      confirmed: 'default',
-      preparing: 'secondary',
-      shipping: 'secondary',
-      delivered: 'default',
-      cancelled: 'destructive',
-    }
-
-    const labels: Record<string, string> = {
-      pending: 'Chờ xử lý',
-      confirmed: 'Đã xác nhận',
-      preparing: 'Đang chuẩn bị',
-      shipping: 'Đang giao',
-      delivered: 'Đã giao',
-      cancelled: 'Đã hủy',
-    }
+  const getStatusBadge = (status: number) => {
+    const variant = getOrderStatusVariant(status)
+    const label = getOrderStatusLabel(status)
 
     return (
-      <Badge variant={variants[status] || 'secondary'} className="flex items-center gap-1">
+      <Badge variant={variant} className="flex items-center gap-1">
         {getStatusIcon(status)}
-        {labels[status] || status}
+        {label}
       </Badge>
     )
   }
@@ -324,7 +298,7 @@ const AdminOrdersPage: React.FC = () => {
   }
 
   return (
-    <AdminLayout>
+    <ManagerLayout>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Page Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
@@ -441,7 +415,7 @@ const AdminOrdersPage: React.FC = () => {
             <CardDescription>Tất cả đơn hàng trong hệ thống</CardDescription>
           </CardHeader>
           <CardContent>
-            <Tabs value={selectedTab} onValueChange={setSelectedTab} className="space-y-4">
+            <Tabs value={selectedTab} onValueChange={handleTabChange} className="space-y-4">
               <TabsList>
                 <TabsTrigger value="all">Tất cả</TabsTrigger>
                 <TabsTrigger value="pending">Chờ xử lý</TabsTrigger>
@@ -471,23 +445,26 @@ const AdminOrdersPage: React.FC = () => {
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
-                      <DropdownMenuItem onClick={() => setStatusFilter('all')}>
+                      <DropdownMenuItem onClick={() => handleStatusFilterChange('all')}>
                         Tất cả
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setStatusFilter('pending')}>
+                      <DropdownMenuItem onClick={() => handleStatusFilterChange('0')}>
                         Chờ xử lý
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setStatusFilter('confirmed')}>
+                      <DropdownMenuItem onClick={() => handleStatusFilterChange('1')}>
                         Đã xác nhận
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setStatusFilter('preparing')}>
+                      <DropdownMenuItem onClick={() => handleStatusFilterChange('2')}>
                         Đang chuẩn bị
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setStatusFilter('shipping')}>
+                      <DropdownMenuItem onClick={() => handleStatusFilterChange('3')}>
                         Đang giao
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setStatusFilter('delivered')}>
+                      <DropdownMenuItem onClick={() => handleStatusFilterChange('4')}>
                         Đã giao
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleStatusFilterChange('5')}>
+                        Đã hủy
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -521,7 +498,6 @@ const AdminOrdersPage: React.FC = () => {
                       <TableRow>
                         <TableHead>Mã đơn hàng</TableHead>
                         <TableHead>Khách hàng</TableHead>
-                        <TableHead>Trang trại</TableHead>
                         <TableHead>Sản phẩm</TableHead>
                         <TableHead>Trạng thái</TableHead>
                         <TableHead>Thanh toán</TableHead>
@@ -531,76 +507,132 @@ const AdminOrdersPage: React.FC = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {filteredOrders.map(order => (
-                        <TableRow key={order.id}>
-                          <TableCell>
-                            <div>
-                              <div className="font-medium">{order.orderNumber}</div>
-                              <div className="text-sm text-gray-500">{order.paymentMethod}</div>
+                      {loading ? (
+                        <TableRow>
+                          <TableCell colSpan={8} className="h-24">
+                            <div className="flex items-center justify-center">
+                              <Loader2 className="h-6 w-6 animate-spin" />
+                              <span className="ml-2">Đang tải dữ liệu...</span>
                             </div>
-                          </TableCell>
-                          <TableCell>
-                            <div>
-                              <div className="font-medium">{order.customer.name}</div>
-                              <div className="text-sm text-gray-500">{order.customer.phone}</div>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div>
-                              <div className="font-medium">{order.farm.name}</div>
-                              <div className="text-sm text-gray-500">{order.farm.owner}</div>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="space-y-1">
-                              {order.items.slice(0, 2).map((item, index) => (
-                                <div key={index} className="text-sm">
-                                  {item.name} ({item.quantity} {item.unit})
-                                </div>
-                              ))}
-                              {order.items.length > 2 && (
-                                <div className="text-xs text-gray-500">
-                                  +{order.items.length - 2} sản phẩm khác
-                                </div>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell>{getStatusBadge(order.status)}</TableCell>
-                          <TableCell>{getPaymentBadge(order.paymentStatus)}</TableCell>
-                          <TableCell>
-                            <div className="font-medium">{formatCurrency(order.totalAmount)}</div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="text-sm">{formatDate(order.orderDate)}</div>
-                          </TableCell>
-                          <TableCell>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="sm">
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent>
-                                <DropdownMenuItem>
-                                  <Eye className="h-4 w-4 mr-2" />
-                                  Xem chi tiết
-                                </DropdownMenuItem>
-                                <DropdownMenuItem>
-                                  <User className="h-4 w-4 mr-2" />
-                                  Liên hệ khách hàng
-                                </DropdownMenuItem>
-                                <DropdownMenuItem>
-                                  <MapPin className="h-4 w-4 mr-2" />
-                                  Theo dõi giao hàng
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
                           </TableCell>
                         </TableRow>
-                      ))}
+                      ) : filteredOrders.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={8} className="h-24 text-center">
+                            Không tìm thấy đơn hàng nào
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        filteredOrders.map(order => (
+                          <TableRow key={order.id}>
+                            <TableCell>
+                              <div>
+                                <div className="font-medium">{order.orderNumber}</div>
+                                <div className="text-sm text-gray-500">{order.paymentMethod}</div>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div>
+                                <div className="font-medium">{order.customer.name}</div>
+                                <div className="text-sm text-gray-500">{order.customer.email}</div>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="space-y-1">
+                                {order.items.slice(0, 2).map((item, index) => (
+                                  <div key={index} className="text-sm">
+                                    {item.productName} ({item.stockQuantity} {item.unit})
+                                  </div>
+                                ))}
+                                {order.items.length > 2 && (
+                                  <div className="text-xs text-gray-500">
+                                    +{order.items.length - 2} sản phẩm khác
+                                  </div>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell>{getStatusBadge(order.status)}</TableCell>
+                            <TableCell>{getPaymentBadge(order.paymentStatus)}</TableCell>
+                            <TableCell>
+                              <div className="font-medium">{formatCurrency(order.totalAmount)}</div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="text-sm">{formatDate(order.orderDate)}</div>
+                            </TableCell>
+                            <TableCell>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="sm">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent>
+                                  <DropdownMenuItem>
+                                    <Eye className="h-4 w-4 mr-2" />
+                                    Xem chi tiết
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem>
+                                    <User className="h-4 w-4 mr-2" />
+                                    Liên hệ khách hàng
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem>
+                                    <MapPin className="h-4 w-4 mr-2" />
+                                    Theo dõi giao hàng
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
                     </TableBody>
                   </Table>
                 </div>
+
+                {/* Pagination */}
+                {!loading && totalPages > 1 && (
+                  <div className="flex items-center justify-between space-x-2 py-4">
+                    <div className="text-sm text-muted-foreground">
+                      Hiển thị {(currentPage - 1) * pageSize + 1}-
+                      {Math.min(currentPage * pageSize, totalItems)} trong tổng số {totalItems} đơn
+                      hàng
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => fetchOrders(currentPage - 1)}
+                        disabled={currentPage <= 1 || loading}
+                      >
+                        Trước
+                      </Button>
+                      <div className="flex items-center space-x-1">
+                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                          const page = i + 1
+                          return (
+                            <Button
+                              key={page}
+                              variant={currentPage === page ? 'default' : 'outline'}
+                              size="sm"
+                              onClick={() => fetchOrders(page)}
+                              disabled={loading}
+                            >
+                              {page}
+                            </Button>
+                          )
+                        })}
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => fetchOrders(currentPage + 1)}
+                        disabled={currentPage >= totalPages || loading}
+                      >
+                        Tiếp
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </TabsContent>
 
               {/* Other tab contents would be filtered versions of the same table */}
@@ -624,8 +656,8 @@ const AdminOrdersPage: React.FC = () => {
           </CardContent>
         </Card>
       </div>
-    </AdminLayout>
+    </ManagerLayout>
   )
 }
 
-export default AdminOrdersPage
+export default ManagerOrdersPage

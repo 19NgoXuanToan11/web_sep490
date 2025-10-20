@@ -59,12 +59,6 @@ const navigationItems: NavItem[] = [
     description: 'Giám sát tất cả trang trại',
   },
   {
-    name: 'Quản lý đơn hàng',
-    href: '/admin/orders',
-    icon: ShoppingCart,
-    description: 'Theo dõi đơn hàng khách hàng',
-  },
-  {
     name: 'Báo cáo & Phân tích',
     href: '/admin/reports',
     icon: BarChart3,

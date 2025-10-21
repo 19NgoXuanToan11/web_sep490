@@ -17,6 +17,7 @@ import {
   Activity,
   Cpu,
   ShoppingCart,
+  Monitor,
 } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import LogoutButton from '@/shared/ui/LogoutButton'
@@ -86,6 +87,12 @@ const navigationItems: NavItem[] = [
     href: '/manager/iot-devices',
     icon: Cpu,
     description: 'Quản lý thiết bị IoT & cảm biến',
+  },
+  {
+    name: 'Bảng điều khiển IoT',
+    href: '/manager/iot-dashboard',
+    icon: Monitor,
+    description: 'Giám sát cảm biến thời gian thực',
   },
   {
     name: 'Báo cáo & Phân tích',

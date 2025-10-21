@@ -25,6 +25,7 @@ import ManagerCategoriesPage from '@/pages/manager/categories'
 import ManagerCropsPage from '@/pages/manager/crops'
 import ManagerFarmActivitiesPage from '@/pages/manager/farm-activities'
 import ManagerIoTDevicesPage from '@/pages/manager/iot-devices'
+import RealTimeIoTDashboard from '@/pages/manager/iot-dashboard'
 import ManagerOrdersPage from '@/pages/manager/orders'
 
 // RBAC components
@@ -111,6 +112,14 @@ const routerConfig = [
     element: (
       <RoleGuard allowed={['Manager']}>
         <ManagerIoTDevicesPage />
+      </RoleGuard>
+    ),
+  },
+  {
+    path: '/manager/iot-dashboard',
+    element: (
+      <RoleGuard allowed={['Manager']}>
+        <RealTimeIoTDashboard />
       </RoleGuard>
     ),
   },

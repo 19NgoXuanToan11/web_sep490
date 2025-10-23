@@ -1,11 +1,10 @@
-import React, { useState } from 'react'
+import React, { useState, useMemo, useCallback } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   LayoutDashboard,
   Droplets,
   Package,
-  BarChart3,
   Menu,
   X,
   Bell,
@@ -94,12 +93,6 @@ const navigationItems: NavItem[] = [
     icon: Monitor,
     description: 'Giám sát cảm biến thời gian thực',
   },
-  {
-    name: 'Báo cáo & Phân tích',
-    href: '/manager/reports',
-    icon: BarChart3,
-    description: 'Chỉ số hiệu suất',
-  },
 ]
 
 export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
@@ -113,12 +106,12 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
   const navigate = useNavigate()
 
   // Lưu trạng thái sidebar vào localStorage khi thay đổi
-  const handleSidebarToggle = (newState: boolean) => {
+  const handleSidebarToggle = useCallback((newState: boolean) => {
     setIsSidebarOpen(newState)
     localStorage.setItem('manager-sidebar-open', JSON.stringify(newState))
-  }
+  }, [])
 
-  const getBreadcrumbs = () => {
+  const breadcrumbs = useMemo(() => {
     const pathSegments = location.pathname.split('/').filter(Boolean)
     const breadcrumbs = []
 
@@ -134,23 +127,26 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
     }
 
     return breadcrumbs
-  }
+  }, [location.pathname])
 
-  const breadcrumbs = getBreadcrumbs()
+  const isActiveRoute = useCallback(
+    (href: string) => {
+      return location.pathname === href || location.pathname.startsWith(href + '/')
+    },
+    [location.pathname]
+  )
 
-  const isActiveRoute = (href: string) => {
-    return location.pathname === href || location.pathname.startsWith(href + '/')
-  }
-
-  const NavLink: React.FC<{ item: NavItem; mobile?: boolean }> = ({ item, mobile = false }) => {
+  const NavLink = React.memo<{ item: NavItem; mobile?: boolean }>(({ item, mobile = false }) => {
     const isActive = isActiveRoute(item.href)
+
+    const handleClick = useCallback(() => {
+      navigate(item.href)
+      if (mobile) setIsMobileSidebarOpen(false)
+    }, [item.href, mobile, navigate])
 
     return (
       <motion.button
-        onClick={() => {
-          navigate(item.href)
-          if (mobile) setIsMobileSidebarOpen(false)
-        }}
+        onClick={handleClick}
         className={`w-full group flex items-center ${isSidebarOpen ? 'px-3' : 'px-2 justify-center'} py-2.5 text-sm font-medium rounded-lg transition-colors duration-200 ${
           isActive
             ? 'bg-green-50 text-green-700 border-r-2 border-green-600'
@@ -183,7 +179,7 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
         )}
       </motion.button>
     )
-  }
+  })
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -359,8 +355,8 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
                   >
                     <Home className="h-4 w-4" />
                   </Button>
-                  {breadcrumbs.map(crumb => (
-                    <React.Fragment key={crumb.href}>
+                  {breadcrumbs.map((crumb, index) => (
+                    <React.Fragment key={`breadcrumb-${crumb.href}-${index}`}>
                       <ChevronRight className="h-4 w-4 text-gray-400 flex-shrink-0" />
                       <button
                         onClick={() => navigate(crumb.href)}

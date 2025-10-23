@@ -14,7 +14,6 @@ import {
   Cpu,
   Building2,
   ShoppingCart,
-  BarChart3,
 } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import LogoutButton from '@/shared/ui/LogoutButton'
@@ -57,12 +56,6 @@ const navigationItems: NavItem[] = [
     href: '/admin/farms',
     icon: Building2,
     description: 'Giám sát tất cả trang trại',
-  },
-  {
-    name: 'Báo cáo & Phân tích',
-    href: '/admin/reports',
-    icon: BarChart3,
-    description: 'Thống kê và phân tích hệ thống',
   },
 ]
 

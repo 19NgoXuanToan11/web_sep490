@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useMemo, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import {
-  TrendingUp,
   Activity,
   Droplets,
   Package,
@@ -34,55 +33,49 @@ interface MetricCardProps {
   color?: 'green' | 'green-light' | 'green-medium' | 'green-dark'
 }
 
-const MetricCard: React.FC<MetricCardProps> = ({
-  title,
-  value,
-  change,
-  changeType = 'increase',
-  icon: Icon,
-  description,
-  color = 'green',
-}) => {
-  const colorClasses = {
-    green: 'from-green-500 to-green-600',
-    'green-light': 'from-green-400 to-green-500',
-    'green-medium': 'from-green-600 to-green-700',
-    'green-dark': 'from-green-700 to-green-800',
-  }
+const MetricCard = React.memo<MetricCardProps>(
+  ({ title, value, change, changeType = 'increase', icon: Icon, description, color = 'green' }) => {
+    const colorClasses = {
+      green: 'from-green-500 to-green-600',
+      'green-light': 'from-green-400 to-green-500',
+      'green-medium': 'from-green-600 to-green-700',
+      'green-dark': 'from-green-700 to-green-800',
+    }
 
-  const changeIcon = changeType === 'increase' ? ArrowUpRight : ArrowDownRight
-  const ChangeIcon = changeIcon
+    const changeIcon = changeType === 'increase' ? ArrowUpRight : ArrowDownRight
+    const ChangeIcon = changeIcon
 
-  return (
-    <motion.div whileHover={{ scale: 1.02, y: -2 }} transition={{ duration: 0.2 }}>
-      <Card className="relative overflow-hidden border-0 shadow-lg bg-white">
-        <div
-          className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${colorClasses[color]}`}
-        />
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium text-gray-600">{title}</CardTitle>
-          <div className={`p-2 rounded-lg bg-gradient-to-br ${colorClasses[color]} shadow-lg`}>
-            <Icon className="h-4 w-4 text-white" />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold text-gray-900 mb-1">{value}</div>
-          {change && (
-            <div
-              className={`flex items-center text-sm ${
-                changeType === 'increase' ? 'text-green-600' : 'text-green-800'
-              }`}
-            >
-              <ChangeIcon className="h-3 w-3 mr-1" />
-              {change}
+    return (
+      <motion.div whileHover={{ scale: 1.02, y: -2 }} transition={{ duration: 0.2 }}>
+        <Card className="relative overflow-hidden border-0 shadow-lg bg-white">
+          <div
+            className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${colorClasses[color]}`}
+          />
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-gray-600">{title}</CardTitle>
+            <div className={`p-2 rounded-lg bg-gradient-to-br ${colorClasses[color]} shadow-lg`}>
+              <Icon className="h-4 w-4 text-white" />
             </div>
-          )}
-          {description && <p className="text-xs text-gray-500 mt-1">{description}</p>}
-        </CardContent>
-      </Card>
-    </motion.div>
-  )
-}
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-gray-900 mb-1">{value}</div>
+            {change && (
+              <div
+                className={`flex items-center text-sm ${
+                  changeType === 'increase' ? 'text-green-600' : 'text-green-800'
+                }`}
+              >
+                <ChangeIcon className="h-3 w-3 mr-1" />
+                {change}
+              </div>
+            )}
+            {description && <p className="text-xs text-gray-500 mt-1">{description}</p>}
+          </CardContent>
+        </Card>
+      </motion.div>
+    )
+  }
+)
 
 interface ActivityItemProps {
   title: string
@@ -92,33 +85,29 @@ interface ActivityItemProps {
   icon: React.ComponentType<{ className?: string }>
 }
 
-const ActivityItem: React.FC<ActivityItemProps> = ({
-  title,
-  description,
-  time,
-  type,
-  icon: Icon,
-}) => {
-  const typeClasses = {
-    success: 'text-green-600 bg-green-50',
-    warning: 'text-green-700 bg-green-100',
-    info: 'text-green-500 bg-green-50',
-    error: 'text-green-800 bg-green-200',
-  }
+const ActivityItem = React.memo<ActivityItemProps>(
+  ({ title, description, time, type, icon: Icon }) => {
+    const typeClasses = {
+      success: 'text-green-600 bg-green-50',
+      warning: 'text-green-700 bg-green-100',
+      info: 'text-green-500 bg-green-50',
+      error: 'text-green-800 bg-green-200',
+    }
 
-  return (
-    <div className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
-      <div className={`p-1.5 rounded-full ${typeClasses[type]}`}>
-        <Icon className="h-3 w-3" />
+    return (
+      <div className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
+        <div className={`p-1.5 rounded-full ${typeClasses[type]}`}>
+          <Icon className="h-3 w-3" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium text-gray-900 truncate">{title}</p>
+          <p className="text-xs text-gray-500 mt-0.5">{description}</p>
+        </div>
+        <span className="text-xs text-gray-400">{time}</span>
       </div>
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-gray-900 truncate">{title}</p>
-        <p className="text-xs text-gray-500 mt-0.5">{description}</p>
-      </div>
-      <span className="text-xs text-gray-400">{time}</span>
-    </div>
-  )
-}
+    )
+  }
+)
 
 export default function ManagerDashboard() {
   const navigate = useNavigate()
@@ -132,93 +121,92 @@ export default function ManagerDashboard() {
   const [weather, setWeather] = useState<WeatherResponse | null>(null)
   const [isLoadingWeather, setIsLoadingWeather] = useState(false)
 
-  useEffect(() => {
-    fetchIoTDeviceStats()
-    fetchWeather()
-  }, [])
-
-  const fetchIoTDeviceStats = async () => {
+  const fetchIoTDeviceStats = useCallback(async () => {
     try {
       const stats = await iotDeviceService.getDeviceStatistics()
       setIotDeviceStats(stats)
     } catch (error) {
       console.error('Failed to fetch IoT device statistics:', error)
     }
-  }
+  }, [])
 
-  const fetchWeather = async () => {
+  const fetchWeather = useCallback(async () => {
     setIsLoadingWeather(true)
     try {
-      const weatherData = await weatherService.getWeather('Vung Tau')
+      const weatherData = await weatherService.getWeather('Hồ Chí Minh')
       setWeather(weatherData)
     } catch (error) {
       console.error('Failed to fetch weather data:', error)
     } finally {
       setIsLoadingWeather(false)
     }
-  }
+  }, [])
 
-  const recentActivities = [
-    {
-      title: 'Hệ thống tưới đã kích hoạt',
-      description: 'Khu A đã hoàn tất chu kỳ tưới nước',
-      time: '2 phút trước',
-      type: 'success' as const,
-      icon: Droplets,
-    },
-    {
-      title: 'Cảnh báo tồn kho thấp',
-      description: 'Cà chua hữu cơ dưới ngưỡng (15 đơn vị)',
-      time: '5 phút trước',
-      type: 'warning' as const,
-      icon: Package,
-    },
-    {
-      title: 'Đơn hàng mới',
-      description: 'Đơn #1245 - Rau củ tổng hợp (50 đơn vị)',
-      time: '12 phút trước',
-      type: 'info' as const,
-      icon: CheckCircle,
-    },
-    {
-      title: 'Bảo trì cảm biến',
-      description: 'Cảm biến nhiệt độ B2 cần hiệu chuẩn',
-      time: '1 giờ trước',
-      type: 'warning' as const,
-      icon: Thermometer,
-    },
-  ]
+  useEffect(() => {
+    fetchIoTDeviceStats()
+    fetchWeather()
+  }, [fetchIoTDeviceStats, fetchWeather])
 
-  const quickActions = [
-    {
-      title: 'Bắt đầu tưới',
-      description: 'Kích hoạt chu kỳ tưới nước',
-      icon: Droplets,
-      color: 'green-light' as const,
-      action: () => navigate('/manager/irrigation'),
-    },
-    {
-      title: 'Thêm tồn kho',
-      description: 'Cập nhật số lượng tồn',
-      icon: Package,
-      color: 'green' as const,
-      action: () => navigate('/manager/inventory'),
-    },
-    {
-      title: 'Xem báo cáo',
-      description: 'Phân tích & thống kê',
-      icon: TrendingUp,
-      color: 'green-medium' as const,
-      action: () => navigate('/manager/reports'),
-    },
-    {
-      title: 'Quản lý IoT',
-      description: 'Thiết bị & cảm biến',
-      icon: Cpu,
-      color: 'green-dark' as const,
-      action: () => navigate('/manager/iot-devices'),
-    },
-  ]
+  const recentActivities = useMemo(
+    () => [
+      {
+        title: 'Hệ thống tưới đã kích hoạt',
+        description: 'Khu A đã hoàn tất chu kỳ tưới nước',
+        time: '2 phút trước',
+        type: 'success' as const,
+        icon: Droplets,
+      },
+      {
+        title: 'Cảnh báo tồn kho thấp',
+        description: 'Cà chua hữu cơ dưới ngưỡng (15 đơn vị)',
+        time: '5 phút trước',
+        type: 'warning' as const,
+        icon: Package,
+      },
+      {
+        title: 'Đơn hàng mới',
+        description: 'Đơn #1245 - Rau củ tổng hợp (50 đơn vị)',
+        time: '12 phút trước',
+        type: 'info' as const,
+        icon: CheckCircle,
+      },
+      {
+        title: 'Bảo trì cảm biến',
+        description: 'Cảm biến nhiệt độ B2 cần hiệu chuẩn',
+        time: '1 giờ trước',
+        type: 'warning' as const,
+        icon: Thermometer,
+      },
+    ],
+    []
+  )
+
+  const quickActions = useMemo(
+    () => [
+      {
+        title: 'Bắt đầu tưới',
+        description: 'Kích hoạt chu kỳ tưới nước',
+        icon: Droplets,
+        color: 'green-light' as const,
+        action: () => navigate('/manager/irrigation'),
+      },
+      {
+        title: 'Thêm tồn kho',
+        description: 'Cập nhật số lượng tồn',
+        icon: Package,
+        color: 'green' as const,
+        action: () => navigate('/manager/inventory'),
+      },
+      {
+        title: 'Quản lý IoT',
+        description: 'Thiết bị & cảm biến',
+        icon: Cpu,
+        color: 'green-dark' as const,
+        action: () => navigate('/manager/iot-devices'),
+      },
+    ],
+    [navigate]
+  )
 
   return (
     <ManagerLayout>
@@ -347,9 +335,9 @@ export default function ManagerDashboard() {
                               ? 'from-green-400 to-green-500'
                               : action.color === 'green'
                                 ? 'from-green-500 to-green-600'
-                                : action.color === 'green-medium'
-                                  ? 'from-green-600 to-green-700'
-                                  : 'from-green-700 to-green-800'
+                                : action.color === 'green-dark'
+                                  ? 'from-green-700 to-green-800'
+                                  : 'from-green-600 to-green-700'
                           } shadow-lg`}
                         >
                           <action.icon className="w-5 h-5 text-white" />
@@ -504,7 +492,7 @@ export default function ManagerDashboard() {
               <CardContent className="p-0">
                 <div className="space-y-1">
                   {recentActivities.map((activity, index) => (
-                    <ActivityItem key={index} {...activity} />
+                    <ActivityItem key={`activity-${activity.title}-${index}`} {...activity} />
                   ))}
                 </div>
                 <div className="p-3 border-t border-gray-100">

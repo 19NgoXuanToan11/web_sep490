@@ -55,30 +55,6 @@ export interface InventoryItem {
   updatedAt: string // ISO string
 }
 
-export interface ReportKPIs {
-  efficiencyIndex: number
-  batches: number
-  revenue: number
-  orders: number
-}
-
-export interface EfficiencyDataPoint {
-  date: string // ISO date string
-  efficiency: number
-}
-
-export interface ProductionVsSalesDataPoint {
-  period: string // e.g., "Week 1", "Jan 2024"
-  production: number
-  sales: number
-}
-
-export interface ReportSummary {
-  kpis: ReportKPIs
-  timeseries: EfficiencyDataPoint[]
-  productionVsSales: ProductionVsSalesDataPoint[]
-}
-
 // Utility types for forms and UI - Updated to support Staff operations
 export interface DeviceAction {
   type: 'start' | 'stop' | 'pause' | 'run-now' | 'maintenance'
@@ -111,7 +87,7 @@ export interface ProductFormData {
 }
 
 export interface BulkInventoryAction {
-  type: 'set-category' | 'update-thresholds' | 'export-csv'
+  type: 'set-category' | 'update-thresholds'
   productIds: string[]
   data?: Record<string, any>
 }

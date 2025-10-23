@@ -8,7 +8,6 @@ import {
   RefreshCw,
   Search,
   Filter,
-  Download,
   Settings,
   Eye,
   Activity,
@@ -240,10 +239,6 @@ const AdminDevicesPage: React.FC = () => {
             >
               <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
               Làm mới
-            </Button>
-            <Button variant="outline" className="flex items-center gap-2">
-              <Download className="h-4 w-4" />
-              Xuất dữ liệu
             </Button>
           </div>
         </div>

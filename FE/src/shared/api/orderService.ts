@@ -9,15 +9,59 @@ export interface OrderItem {
   stockQuantity: number
 }
 
+export interface Product {
+  productId: string
+  productName: string
+  images: string
+  description: string
+  status: string
+  createdAt: string
+  updatedAt: string
+  categoryId: string
+  inventories: any[]
+}
+
+export interface OrderDetail {
+  orderDetailId: string
+  quantity: number
+  unitPrice: number
+  productId: string
+  stockQuantity: number
+  product?: Product
+}
+
+export interface Customer {
+  accountId: string
+  email: string
+  passwordHash: string
+  role: string
+  status: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface Payment {
+  paymentId: string
+  amount: number
+  method: string
+  status: string
+  createdAt: string
+}
+
 export interface Order {
   orderId: string
   totalPrice: number
   email: string
+  customerId?: string
   orderDetailIds: string[]
   createdAt: string
+  updatedAt?: string
   status: number // 0-6 based on API
   shippingAddress: string
-  orderItems: OrderItem[]
+  orderItems?: OrderItem[] // For backward compatibility
+  orderDetails?: OrderDetail[]
+  customer?: Customer
+  payments?: Payment[]
 }
 
 export interface OrderListResponse {
@@ -54,16 +98,57 @@ export const orderService = {
     return response.data.data
   },
 
-  // Lấy chi tiết đơn hàng theo ID
+  // Lấy chi tiết đơn hàng theo orderId
   getOrderById: async (orderId: string): Promise<Order> => {
-    const response = await http.get<{ data: Order }>(`/v1/order/${orderId}`)
+    const response = await http.get<{ data: Order }>(`/v1/order/order/${orderId}`)
+    return response.data.data
+  },
+
+  // Tìm kiếm đơn hàng theo tên khách hàng
+  getOrdersByCustomerName: async (name: string): Promise<OrderListResponse['data']> => {
+    const response = await http.get<OrderListResponse>(
+      `/v1/order/order-list-by-customer-name/${encodeURIComponent(name)}`
+    )
+    return response.data.data
+  },
+
+  // Tìm kiếm đơn hàng theo email khách hàng
+  getOrdersByEmail: async (email: string): Promise<OrderListResponse['data']> => {
+    const response = await http.get<OrderListResponse>(
+      `/v1/order/order-list-by-email/${encodeURIComponent(email)}`
+    )
+    return response.data.data
+  },
+
+  // Tìm kiếm đơn hàng theo ngày
+  getOrdersByDate: async (
+    date: string,
+    pageIndex: number = 1,
+    pageSize: number = 10
+  ): Promise<OrderListResponse['data']> => {
+    const response = await http.post<OrderListResponse>(
+      `/v1/order/order-list-by-date?pageIndex=${pageIndex}&pageSize=${pageSize}`,
+      date // Send date as request body (format: "2025-10-23")
+    )
     return response.data.data
   },
 
   // Cập nhật trạng thái đơn hàng
-  updateOrderStatus: async (orderId: string, status: number): Promise<Order> => {
+  updateOrderStatus: async (orderId: string, status: string | number): Promise<Order> => {
     const response = await http.put<{ data: Order }>(`/v1/order/${orderId}/status`, { status })
     return response.data.data
+  },
+
+  // Cập nhật trạng thái giao hàng
+  updateDeliveryStatus: async (orderId: string): Promise<any> => {
+    const response = await http.put(`/v1/order/updateDeliveryStatus/${orderId}`)
+    return response.data
+  },
+
+  // Cập nhật trạng thái hủy đơn
+  updateCancelStatus: async (orderId: string): Promise<any> => {
+    const response = await http.put(`/v1/order/updateCancelStatus/${orderId}`)
+    return response.data
   },
 }
 

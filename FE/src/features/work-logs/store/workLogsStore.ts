@@ -5,12 +5,7 @@ import type {
   PaginationState,
   TableDensity,
 } from '@/shared/lib/localData'
-import {
-  simulateLatency,
-  simulateError,
-  exportToCSV,
-  userPreferences,
-} from '@/shared/lib/localData/storage'
+import { simulateLatency, simulateError, userPreferences } from '@/shared/lib/localData/storage'
 import type { WorkLogData, WorkLogFilterData } from '../model/schemas'
 
 // Mock work log data
@@ -119,7 +114,6 @@ interface WorkLogsState {
   createWorkLog: (data: Omit<WorkLogData, 'id'>) => Promise<void>
   updateWorkLog: (id: string, data: Partial<WorkLogData>) => Promise<void>
   deleteWorkLog: (id: string) => Promise<void>
-  exportWorkLogsCSV: () => void
 
   // Search and filter actions
   setSearch: (query: string) => void
@@ -257,25 +251,6 @@ export const useWorkLogsStore = create<WorkLogsState>((set, get) => ({
       })
       throw error
     }
-  },
-
-  exportWorkLogsCSV: () => {
-    const workLogData = get().getFilteredWorkLogs()
-    const csvData = workLogData.map(log => ({
-      Date: log.date,
-      'Start Time': log.startTime,
-      'End Time': log.endTime,
-      Task: log.task,
-      Zone: log.zone,
-      Description: log.description,
-      Status: log.status,
-      Priority: log.priority,
-      'Assigned To': log.assignedTo || 'Unassigned',
-      Equipment: log.equipment?.join(', ') || 'None',
-      Notes: log.notes || '',
-    }))
-
-    exportToCSV(csvData, `work-logs-${new Date().toISOString().split('T')[0]}.csv`)
   },
 
   // Search and filter actions

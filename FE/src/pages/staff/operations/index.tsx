@@ -4,7 +4,6 @@ import {
   Zap,
   RefreshCw,
   Search,
-  Download,
   AlertTriangle,
   Battery,
   Activity,
@@ -51,7 +50,6 @@ const StaffOperationsPage: React.FC = () => {
     filters,
     executeDeviceAction,
     refreshDeviceStatus,
-    exportDevicesCSV,
     clearSelection,
     getDevicesByStatus,
     getMaintenanceDevices,
@@ -183,16 +181,6 @@ const StaffOperationsPage: React.FC = () => {
                   >
                     <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
                     Làm mới
-                  </Button>
-
-                  <Button
-                    onClick={exportDevicesCSV}
-                    variant="outline"
-                    size="sm"
-                    className="flex items-center"
-                  >
-                    <Download className="h-4 w-4 mr-2" />
-                    Xuất file
                   </Button>
                 </div>
               </div>

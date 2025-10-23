@@ -5,14 +5,12 @@ import { LoginPage } from '@/pages/auth/LoginPage'
 import ManagerDashboard from '@/pages/manager/dashboard'
 import IrrigationPage from '@/pages/manager/irrigation'
 import InventoryPage from '@/pages/manager/inventory'
-import ReportsPage from '@/pages/manager/reports'
 
 // Admin route imports
 import AdminUsersPage from '@/pages/admin/users'
 import AdminDashboard from '@/pages/admin/dashboard'
 import AdminDevicesPage from '@/pages/admin/devices'
 import AdminFarmsPage from '@/pages/admin/farms'
-import AdminReportsPage from '@/pages/admin/reports'
 import ProfilePage from '@/pages/profile'
 
 // Staff route imports
@@ -72,14 +70,6 @@ const routerConfig = [
     element: (
       <RoleGuard allowed={['Manager']}>
         <InventoryPage />
-      </RoleGuard>
-    ),
-  },
-  {
-    path: '/manager/reports',
-    element: (
-      <RoleGuard allowed={['Manager']}>
-        <ReportsPage />
       </RoleGuard>
     ),
   },
@@ -161,14 +151,6 @@ const routerConfig = [
     element: (
       <RoleGuard allowed={['Admin']}>
         <AdminFarmsPage />
-      </RoleGuard>
-    ),
-  },
-  {
-    path: '/admin/reports',
-    element: (
-      <RoleGuard allowed={['Admin']}>
-        <AdminReportsPage />
       </RoleGuard>
     ),
   },

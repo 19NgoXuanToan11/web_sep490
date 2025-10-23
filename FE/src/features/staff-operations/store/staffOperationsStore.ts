@@ -7,12 +7,7 @@ import type {
   TableDensity,
 } from '@/shared/lib/localData'
 import { staffDevices as initialDevices } from '@/shared/lib/localData/fixtures'
-import {
-  simulateLatency,
-  simulateError,
-  exportToCSV,
-  userPreferences,
-} from '@/shared/lib/localData/storage'
+import { simulateLatency, simulateError, userPreferences } from '@/shared/lib/localData/storage'
 import type {
   DeviceActionData,
   BulkDeviceActionData,
@@ -47,7 +42,6 @@ interface StaffOperationsState {
   executeDeviceAction: (data: DeviceActionData) => Promise<void>
   executeBulkDeviceAction: (data: BulkDeviceActionData) => Promise<void>
   refreshDeviceStatus: (deviceId?: string) => Promise<void>
-  exportDevicesCSV: () => void
 
   // Search and filter actions
   setSearch: (query: string) => void
@@ -281,24 +275,6 @@ export const useStaffOperationsStore = create<StaffOperationsState>((set, get) =
       })
       throw error
     }
-  },
-
-  exportDevicesCSV: () => {
-    const deviceData = get().getFilteredDevices()
-    const csvData = deviceData.map(device => ({
-      Name: device.name,
-      Zone: device.zone,
-      Status: device.status,
-      'Last Action': new Date(device.lastAction).toLocaleString(),
-      'Next Schedule': device.nextSchedule
-        ? new Date(device.nextSchedule).toLocaleString()
-        : 'None',
-      'Uptime %': device.uptimePct,
-      'Battery Level': device.batteryLevel || 'N/A',
-      'Needs Maintenance': device.needsMaintenance ? 'Yes' : 'No',
-    }))
-
-    exportToCSV(csvData, `devices-${new Date().toISOString().split('T')[0]}.csv`)
   },
 
   // Search and filter actions

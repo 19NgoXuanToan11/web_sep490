@@ -4,7 +4,6 @@ import type {
   IrrigationRule,
   Product,
   InventoryItem,
-  ReportSummary,
   User,
   SystemSettings,
   StaffDevice,
@@ -1149,53 +1148,6 @@ export const inventoryItems: InventoryItem[] = [
   },
 ]
 
-export const reportSummary: ReportSummary = {
-  kpis: {
-    efficiencyIndex: 87.3,
-    batches: 145,
-    revenue: 28750.42,
-    orders: 312,
-  },
-  timeseries: [
-    { date: '2024-01-01', efficiency: 82.1 },
-    { date: '2024-01-02', efficiency: 84.3 },
-    { date: '2024-01-03', efficiency: 81.9 },
-    { date: '2024-01-04', efficiency: 86.7 },
-    { date: '2024-01-05', efficiency: 88.2 },
-    { date: '2024-01-06', efficiency: 85.4 },
-    { date: '2024-01-07', efficiency: 89.1 },
-    { date: '2024-01-08', efficiency: 87.6 },
-    { date: '2024-01-09', efficiency: 90.3 },
-    { date: '2024-01-10', efficiency: 88.8 },
-    { date: '2024-01-11', efficiency: 87.2 },
-    { date: '2024-01-12', efficiency: 85.9 },
-    { date: '2024-01-13', efficiency: 91.4 },
-    { date: '2024-01-14', efficiency: 89.7 },
-    { date: '2024-01-15', efficiency: 87.3 },
-  ],
-  productionVsSales: [
-    { period: 'Week 1', production: 1250, sales: 1180 },
-    { period: 'Week 2', production: 1340, sales: 1290 },
-    { period: 'Week 3', production: 1180, sales: 1220 },
-    { period: 'Week 4', production: 1420, sales: 1350 },
-    { period: 'Week 5', production: 1380, sales: 1410 },
-    { period: 'Week 6', production: 1290, sales: 1240 },
-    { period: 'Week 7', production: 1450, sales: 1380 },
-    { period: 'Week 8', production: 1320, sales: 1350 },
-    { period: 'Week 9', production: 1480, sales: 1420 },
-    { period: 'Week 10', production: 1360, sales: 1390 },
-    { period: 'Week 11', production: 1390, sales: 1340 },
-    { period: 'Week 12', production: 1520, sales: 1480 },
-    { period: 'Week 13', production: 1410, sales: 1450 },
-    { period: 'Week 14', production: 1470, sales: 1410 },
-    { period: 'Week 15', production: 1350, sales: 1380 },
-    { period: 'Week 16', production: 1430, sales: 1390 },
-    { period: 'Week 17', production: 1380, sales: 1420 },
-    { period: 'Week 18', production: 1490, sales: 1440 },
-    { period: 'Week 19', production: 1320, sales: 1360 },
-    { period: 'Week 20', production: 1460, sales: 1420 },
-  ],
-}
 
 // =======================================================
 // DỮ LIỆU ADMIN & NHÂN VIÊN - DỮ LIỆU MỞ RỘNG

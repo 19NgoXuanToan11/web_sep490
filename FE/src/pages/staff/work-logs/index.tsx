@@ -3,7 +3,6 @@ import { motion } from 'framer-motion'
 import {
   Plus,
   Search,
-  Download,
   Calendar,
   Clock,
   AlertCircle,
@@ -44,7 +43,6 @@ const StaffWorkLogsPage: React.FC = () => {
     setFilters,
     clearFilters,
     deleteWorkLog,
-    exportWorkLogsCSV,
     clearSelection,
     getPaginatedWorkLogs,
     getWorkLogsByStatus,
@@ -138,11 +136,6 @@ const StaffWorkLogsPage: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2">
-            <Button variant="outline" onClick={exportWorkLogsCSV}>
-              <Download className="h-4 w-4 mr-2" />
-              Xuất file
-            </Button>
-
             <Button onClick={() => setCreateModalOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
               Nhật ký mới

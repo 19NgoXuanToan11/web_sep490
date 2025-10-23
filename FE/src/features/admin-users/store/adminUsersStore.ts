@@ -8,7 +8,7 @@ import type {
   PaginationState,
   TableDensity,
 } from '@/shared/lib/localData'
-import { exportToCSV, userPreferences } from '@/shared/lib/localData/storage'
+import { userPreferences } from '@/shared/lib/localData/storage'
 import { accountApi, type AccountDto } from '@/shared/api/auth'
 import type { UserFormData } from '../model/schemas'
 
@@ -55,7 +55,6 @@ interface AdminUsersState {
   bulkActivateUsers: (userIds: string[]) => Promise<void>
   bulkDeactivateUsers: (userIds: string[]) => Promise<void>
   bulkAssignRole: (userIds: string[], role: UserRole) => Promise<void>
-  exportUsersCSV: () => void
 
   // Search and filter actions
   setSearch: (query: string) => void
@@ -342,21 +341,6 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
       })
       throw error
     }
-  },
-
-  exportUsersCSV: () => {
-    const userData = get().getFilteredUsers()
-    const csvData = userData.map(user => ({
-      Name: user.name,
-      Email: user.email,
-      Roles: user.roles[0] || 'STAFF',
-      Status: user.status,
-      'Last Login': user.lastLogin ? new Date(user.lastLogin).toLocaleDateString() : 'Never',
-      'Created At': new Date(user.createdAt).toLocaleDateString(),
-      'Updated At': new Date(user.updatedAt).toLocaleDateString(),
-    }))
-
-    exportToCSV(csvData, `users-${new Date().toISOString().split('T')[0]}.csv`)
   },
 
   // Search and filter actions

@@ -7,7 +7,6 @@ const STORAGE_KEYS = {
   RULES: 'ifms-rules',
   PRODUCTS: 'ifms-products',
   INVENTORY: 'ifms-inventory',
-  REPORTS_TIME_RANGE: 'ifms-reports-time-range',
 } as const
 
 export interface UserPreferences {
@@ -18,7 +17,6 @@ export interface UserPreferences {
   }
   language: string
   theme: 'light' | 'dark' | 'system'
-  reportsTimeRange: 'last7' | 'last30' | 'last90'
 }
 
 const defaultPreferences: UserPreferences = {
@@ -26,7 +24,6 @@ const defaultPreferences: UserPreferences = {
   lastSelectedTab: {},
   language: 'en',
   theme: 'system',
-  reportsTimeRange: 'last30',
 }
 
 // Generic storage utilities
@@ -94,40 +91,6 @@ export const simulateLatency = (min: number = 200, max: number = 600): Promise<v
 
 export const simulateError = (errorRate: number = 0.1): boolean => {
   return Math.random() < errorRate
-}
-
-// CSV export utility
-export const exportToCSV = (data: any[], filename: string): void => {
-  if (!data.length) return
-
-  const headers = Object.keys(data[0])
-  const csvContent = [
-    headers.join(','),
-    ...data.map(row =>
-      headers
-        .map(header => {
-          const value = row[header]
-          // Escape quotes and wrap in quotes if contains comma or quote
-          if (typeof value === 'string' && (value.includes(',') || value.includes('"'))) {
-            return `"${value.replace(/"/g, '""')}"`
-          }
-          return value ?? ''
-        })
-        .join(',')
-    ),
-  ].join('\n')
-
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-  const link = document.createElement('a')
-  const url = URL.createObjectURL(blob)
-
-  link.setAttribute('href', url)
-  link.setAttribute('download', filename)
-  link.style.visibility = 'hidden'
-
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
 }
 
 // Date/time utilities for the local data

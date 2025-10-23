@@ -4,7 +4,6 @@ import { HomePage } from '../pages/home'
 import { LoginPage } from '@/pages/auth/LoginPage'
 import ManagerDashboard from '@/pages/manager/dashboard'
 import IrrigationPage from '@/pages/manager/irrigation'
-import InventoryPage from '@/pages/manager/inventory'
 
 // Admin route imports
 import AdminUsersPage from '@/pages/admin/users'
@@ -25,6 +24,7 @@ import ManagerFarmActivitiesPage from '@/pages/manager/farm-activities'
 import ManagerIoTDevicesPage from '@/pages/manager/iot-devices'
 import RealTimeIoTDashboard from '@/pages/manager/iot-dashboard'
 import ManagerOrdersPage from '@/pages/manager/orders'
+import { ProductsPage } from '@/features/products-management/pages/ProductsPage'
 
 // RBAC components
 const Unauthorized = React.lazy(() => import('@/pages/Unauthorized'))
@@ -62,14 +62,6 @@ const routerConfig = [
     element: (
       <RoleGuard allowed={['Manager']}>
         <IrrigationPage />
-      </RoleGuard>
-    ),
-  },
-  {
-    path: '/manager/inventory',
-    element: (
-      <RoleGuard allowed={['Manager']}>
-        <InventoryPage />
       </RoleGuard>
     ),
   },
@@ -118,6 +110,14 @@ const routerConfig = [
     element: (
       <RoleGuard allowed={['Manager']}>
         <ManagerOrdersPage />
+      </RoleGuard>
+    ),
+  },
+  {
+    path: '/manager/products',
+    element: (
+      <RoleGuard allowed={['Manager']}>
+        <ProductsPage />
       </RoleGuard>
     ),
   },

@@ -133,7 +133,7 @@ export default function ManagerDashboard() {
   const fetchWeather = useCallback(async () => {
     setIsLoadingWeather(true)
     try {
-      const weatherData = await weatherService.getWeather('Hồ Chí Minh')
+      const weatherData = await weatherService.getWeather('Ho Chi Minh')
       setWeather(weatherData)
     } catch (error) {
       console.error('Failed to fetch weather data:', error)
@@ -189,13 +189,6 @@ export default function ManagerDashboard() {
         icon: Droplets,
         color: 'green-light' as const,
         action: () => navigate('/manager/irrigation'),
-      },
-      {
-        title: 'Thêm tồn kho',
-        description: 'Cập nhật số lượng tồn',
-        icon: Package,
-        color: 'green' as const,
-        action: () => navigate('/manager/inventory'),
       },
       {
         title: 'Quản lý IoT',
@@ -333,11 +326,7 @@ export default function ManagerDashboard() {
                           className={`p-2 rounded-lg bg-gradient-to-br ${
                             action.color === 'green-light'
                               ? 'from-green-400 to-green-500'
-                              : action.color === 'green'
-                                ? 'from-green-500 to-green-600'
-                                : action.color === 'green-dark'
-                                  ? 'from-green-700 to-green-800'
-                                  : 'from-green-600 to-green-700'
+                              : 'from-green-700 to-green-800'
                           } shadow-lg`}
                         >
                           <action.icon className="w-5 h-5 text-white" />

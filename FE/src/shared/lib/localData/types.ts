@@ -35,26 +35,6 @@ export interface IrrigationRule {
   createdAt: string // ISO string
 }
 
-export interface Product {
-  id: string
-  sku: string
-  name: string
-  category: string
-  price: number
-  imageUrl?: string
-  updatedAt: string // ISO string
-}
-
-export interface InventoryItem {
-  id: string
-  productId: string
-  stock: number
-  minThreshold: number
-  maxThreshold: number
-  qualityFlags: string[] // e.g., ['Organic', 'Fresh', 'Local']
-  updatedAt: string // ISO string
-}
-
 // Utility types for forms and UI - Updated to support Staff operations
 export interface DeviceAction {
   type: 'start' | 'stop' | 'pause' | 'run-now' | 'maintenance'
@@ -76,20 +56,6 @@ export interface RuleFormData {
   name: string
   conditionText: string
   enabled: boolean
-}
-
-export interface ProductFormData {
-  sku: string
-  name: string
-  category: string
-  price: number
-  imageFile?: File
-}
-
-export interface BulkInventoryAction {
-  type: 'set-category' | 'update-thresholds'
-  productIds: string[]
-  data?: Record<string, any>
 }
 
 export type TimeRange = 'last7' | 'last30' | 'last90'

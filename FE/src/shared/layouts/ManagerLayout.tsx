@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   LayoutDashboard,
   Droplets,
-  Package,
   Menu,
   X,
   Bell,
@@ -17,6 +16,7 @@ import {
   Cpu,
   ShoppingCart,
   Monitor,
+  Package,
 } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import LogoutButton from '@/shared/ui/LogoutButton'
@@ -51,17 +51,16 @@ const navigationItems: NavItem[] = [
     description: 'Quản lý tưới nước tự động',
   },
   {
-    name: 'Kho & Sản phẩm',
-    href: '/manager/inventory',
-    icon: Package,
-    badge: 5,
-    description: 'Tồn kho & Danh mục sản phẩm',
-  },
-  {
     name: 'Quản lý đơn hàng',
     href: '/manager/orders',
     icon: ShoppingCart,
     description: 'Theo dõi & xử lý đơn hàng',
+  },
+  {
+    name: 'Quản lý sản phẩm',
+    href: '/manager/products',
+    icon: Package,
+    description: 'Quản lý sản phẩm nông nghiệp',
   },
   {
     name: 'Danh mục',

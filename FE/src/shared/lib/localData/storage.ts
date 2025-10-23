@@ -5,15 +5,12 @@ const STORAGE_KEYS = {
   DEVICES: 'ifms-devices',
   SCHEDULES: 'ifms-schedules',
   RULES: 'ifms-rules',
-  PRODUCTS: 'ifms-products',
-  INVENTORY: 'ifms-inventory',
 } as const
 
 export interface UserPreferences {
   tableDensity: 'compact' | 'comfortable'
   lastSelectedTab: {
     irrigation?: string
-    inventory?: string
   }
   language: string
   theme: 'light' | 'dark' | 'system'

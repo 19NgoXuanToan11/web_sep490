@@ -140,12 +140,6 @@ const ManagerOrdersPage: React.FC = () => {
           })
           .filter((order): order is DisplayOrder => order !== null) // Type-safe filter
 
-        // Debug: Log first order to see structure
-        if (transformedOrders.length > 0) {
-          console.log('First transformed order:', transformedOrders[0])
-          console.log('Original API order:', response.items[0])
-        }
-
         setOrders(transformedOrders)
         setTotalItems(response.totalItemCount)
         setTotalPages(response.totalPageCount)

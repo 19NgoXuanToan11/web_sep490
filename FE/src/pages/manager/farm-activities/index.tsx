@@ -15,9 +15,24 @@ import {
 } from '@/shared/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
-import { Plus, Edit, Trash2, Search, RefreshCw, Calendar, Activity, CheckCircle, AlertTriangle } from 'lucide-react'
+import {
+  Plus,
+  Edit,
+  Trash2,
+  Search,
+  RefreshCw,
+  Calendar,
+  Activity,
+  CheckCircle,
+  AlertTriangle,
+} from 'lucide-react'
 import { useToast } from '@/shared/ui/use-toast'
-import { farmActivityService, type FarmActivity, type FarmActivityRequest, type FarmActivityUpdate } from '@/shared/api/farmActivityService'
+import {
+  farmActivityService,
+  type FarmActivity,
+  type FarmActivityRequest,
+  type FarmActivityUpdate,
+} from '@/shared/api/farmActivityService'
 
 export default function FarmActivitiesPage() {
   const [activities, setActivities] = useState<FarmActivity[]>([])
@@ -66,8 +81,12 @@ export default function FarmActivitiesPage() {
     try {
       setLoading(true)
       const response = await farmActivityService.getAllFarmActivities()
-      setActivities(response)
+      // Đảm bảo response luôn là một mảng
+      const activitiesData = Array.isArray(response) ? response : []
+      setActivities(activitiesData)
     } catch (error) {
+      console.error('Error loading activities:', error)
+      setActivities([]) // Set về mảng rỗng khi có lỗi
       toast({
         title: 'Lỗi',
         description: 'Không thể tải danh sách hoạt động nông trại',
@@ -78,11 +97,15 @@ export default function FarmActivitiesPage() {
     }
   }
 
-  // Filter activities
-  const filteredActivities = activities.filter(activity => {
-    const matchesSearch = activity.activityType.toLowerCase().includes(searchTerm.toLowerCase())
+  // Filter activities với kiểm tra an toàn
+  const filteredActivities = (Array.isArray(activities) ? activities : []).filter(activity => {
+    if (!activity || typeof activity !== 'object') return false
+    const matchesSearch =
+      activity.activityType &&
+      activity.activityType.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesStatus = statusFilter === 'all' || activity.status === statusFilter
-    const matchesActivityType = activityTypeFilter === 'all' || activity.activityType === activityTypeFilter
+    const matchesActivityType =
+      activityTypeFilter === 'all' || activity.activityType === activityTypeFilter
     return matchesSearch && matchesStatus && matchesActivityType
   })
 
@@ -119,7 +142,8 @@ export default function FarmActivitiesPage() {
     } catch (error) {
       toast({
         title: 'Lỗi',
-        description: 'Không thể tạo hoạt động nông trại mới. Chức năng này sẽ có sau khi backend bổ sung API.',
+        description:
+          'Không thể tạo hoạt động nông trại mới. Chức năng này sẽ có sau khi backend bổ sung API.',
         variant: 'destructive',
       })
     }
@@ -150,7 +174,8 @@ export default function FarmActivitiesPage() {
     } catch (error) {
       toast({
         title: 'Lỗi',
-        description: 'Không thể cập nhật hoạt động nông trại. Chức năng này sẽ có sau khi backend bổ sung API.',
+        description:
+          'Không thể cập nhật hoạt động nông trại. Chức năng này sẽ có sau khi backend bổ sung API.',
         variant: 'destructive',
       })
     }
@@ -168,7 +193,8 @@ export default function FarmActivitiesPage() {
     } catch (error) {
       toast({
         title: 'Lỗi',
-        description: 'Không thể thay đổi trạng thái hoạt động nông trại. Chức năng này sẽ có sau khi backend bổ sung API.',
+        description:
+          'Không thể thay đổi trạng thái hoạt động nông trại. Chức năng này sẽ có sau khi backend bổ sung API.',
         variant: 'destructive',
       })
     }
@@ -188,7 +214,8 @@ export default function FarmActivitiesPage() {
     } catch (error) {
       toast({
         title: 'Lỗi',
-        description: 'Không thể xóa hoạt động nông trại. Chức năng này sẽ có sau khi backend bổ sung API.',
+        description:
+          'Không thể xóa hoạt động nông trại. Chức năng này sẽ có sau khi backend bổ sung API.',
         variant: 'destructive',
       })
     }
@@ -232,12 +259,8 @@ export default function FarmActivitiesPage() {
   const getStatusBadge = (status: string) => {
     const statusOption = statusOptions.find(s => s.value === status)
     if (!statusOption) return <Badge variant="outline">{status}</Badge>
-    
-    return (
-      <Badge className={statusOption.color}>
-        {statusOption.label}
-      </Badge>
-    )
+
+    return <Badge className={statusOption.color}>{statusOption.label}</Badge>
   }
 
   useEffect(() => {
@@ -264,7 +287,9 @@ export default function FarmActivitiesPage() {
                 <Activity className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{activities.length}</div>
+                <div className="text-2xl font-bold">
+                  {Array.isArray(activities) ? activities.length : 0}
+                </div>
                 <p className="text-xs text-muted-foreground">Đang quản lý trong hệ thống</p>
               </CardContent>
             </Card>
@@ -276,7 +301,9 @@ export default function FarmActivitiesPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-blue-600">
-                  {activities.filter(a => a.status === 'ACTIVE').length}
+                  {Array.isArray(activities)
+                    ? activities.filter(a => a && a.status === 'ACTIVE').length
+                    : 0}
                 </div>
                 <p className="text-xs text-muted-foreground">Hoạt động đang diễn ra</p>
               </CardContent>
@@ -289,7 +316,9 @@ export default function FarmActivitiesPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-green-600">
-                  {activities.filter(a => a.status === 'COMPLETED').length}
+                  {Array.isArray(activities)
+                    ? activities.filter(a => a && a.status === 'COMPLETED').length
+                    : 0}
                 </div>
                 <p className="text-xs text-muted-foreground">Hoạt động đã hoàn thành</p>
               </CardContent>
@@ -302,7 +331,9 @@ export default function FarmActivitiesPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold text-yellow-600">
-                  {activities.filter(a => a.status === 'PENDING').length}
+                  {Array.isArray(activities)
+                    ? activities.filter(a => a && a.status === 'PENDING').length
+                    : 0}
                 </div>
                 <p className="text-xs text-muted-foreground">Hoạt động chờ thực hiện</p>
               </CardContent>
@@ -313,7 +344,9 @@ export default function FarmActivitiesPage() {
           <Card>
             <CardHeader>
               <CardTitle>Danh Sách Hoạt Động Nông Trại</CardTitle>
-              <CardDescription>Quản lý thông tin chi tiết của từng hoạt động nông nghiệp</CardDescription>
+              <CardDescription>
+                Quản lý thông tin chi tiết của từng hoạt động nông nghiệp
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex flex-col md:flex-row gap-4 mb-6">
@@ -328,10 +361,7 @@ export default function FarmActivitiesPage() {
                 </div>
                 <div className="w-full md:w-48">
                   <Label>Loại hoạt động</Label>
-                  <Select
-                    value={activityTypeFilter}
-                    onValueChange={setActivityTypeFilter}
-                  >
+                  <Select value={activityTypeFilter} onValueChange={setActivityTypeFilter}>
                     <SelectTrigger>
                       <SelectValue placeholder="Tất cả loại" />
                     </SelectTrigger>
@@ -347,10 +377,7 @@ export default function FarmActivitiesPage() {
                 </div>
                 <div className="w-full md:w-48">
                   <Label>Trạng thái</Label>
-                  <Select
-                    value={statusFilter}
-                    onValueChange={setStatusFilter}
-                  >
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
                     <SelectTrigger>
                       <SelectValue placeholder="Tất cả trạng thái" />
                     </SelectTrigger>
@@ -405,7 +432,9 @@ export default function FarmActivitiesPage() {
                     ) : (
                       filteredActivities.map(activity => (
                         <TableRow key={activity.farmActivitiesId}>
-                          <TableCell className="font-medium">#{activity.farmActivitiesId}</TableCell>
+                          <TableCell className="font-medium">
+                            #{activity.farmActivitiesId}
+                          </TableCell>
                           <TableCell>{getActivityTypeLabel(activity.activityType)}</TableCell>
                           <TableCell>{formatDate(activity.startDate)}</TableCell>
                           <TableCell>{formatDate(activity.endDate)}</TableCell>
@@ -462,7 +491,7 @@ export default function FarmActivitiesPage() {
               <Label htmlFor="activityType">Loại hoạt động *</Label>
               <Select
                 value={formData.activityType}
-                onValueChange={(value) => setFormData({ ...formData, activityType: value })}
+                onValueChange={value => setFormData({ ...formData, activityType: value })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Chọn loại hoạt động" />
@@ -498,7 +527,7 @@ export default function FarmActivitiesPage() {
               <Label htmlFor="status">Trạng thái</Label>
               <Select
                 value={formData.status}
-                onValueChange={(value) => setFormData({ ...formData, status: value })}
+                onValueChange={value => setFormData({ ...formData, status: value })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Chọn trạng thái" />
@@ -534,7 +563,7 @@ export default function FarmActivitiesPage() {
               <Label htmlFor="editActivityType">Loại hoạt động *</Label>
               <Select
                 value={formData.activityType}
-                onValueChange={(value) => setFormData({ ...formData, activityType: value })}
+                onValueChange={value => setFormData({ ...formData, activityType: value })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Chọn loại hoạt động" />
@@ -570,7 +599,7 @@ export default function FarmActivitiesPage() {
               <Label htmlFor="editStatus">Trạng thái</Label>
               <Select
                 value={formData.status}
-                onValueChange={(value) => setFormData({ ...formData, status: value })}
+                onValueChange={value => setFormData({ ...formData, status: value })}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Chọn trạng thái" />

@@ -13,6 +13,7 @@ const ProfilePage: React.FC = () => {
   const [changingPass, setChangingPass] = useState(false)
 
   const [profile, setProfile] = useState({
+    accountId: 0,
     fullName: '',
     phoneNumber: '',
     address: '',
@@ -30,6 +31,7 @@ const ProfilePage: React.FC = () => {
       try {
         const p = await profileApi.getProfile()
         setProfile({
+          accountId: p.accountId,
           fullName: p.fullName || '',
           phoneNumber: p.phoneNumber || '',
           address: p.address || '',
@@ -75,10 +77,10 @@ const ProfilePage: React.FC = () => {
     if (!passwordForm.newPassword) return
     setChangingPass(true)
     try {
-      await accountApi.updatePassword({
-        email: profile.email,
+      await accountApi.updatePassword(profile.accountId, {
         oldPassword: passwordForm.oldPassword,
         newPassword: passwordForm.newPassword,
+        confirmPassword: passwordForm.newPassword,
       })
       setPasswordForm({ oldPassword: '', newPassword: '' })
       toast({ title: 'Đổi mật khẩu thành công' })

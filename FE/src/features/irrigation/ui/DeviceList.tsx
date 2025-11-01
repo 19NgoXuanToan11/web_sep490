@@ -7,7 +7,7 @@ import { useToast } from '@/shared/ui/use-toast'
 import { Play, Square, Pause, Zap, MapPin, Clock, Activity, AlertTriangle } from 'lucide-react'
 import { useIrrigationStore } from '../store/irrigationStore'
 import type { Device } from '@/shared/lib/localData'
-import { formatDateTime, formatTime } from '@/shared/lib/localData/storage'
+import { formatTime } from '@/shared/lib/localData/storage'
 import { DeviceActionConfirm } from './DeviceActionConfirm'
 
 interface DeviceListProps {

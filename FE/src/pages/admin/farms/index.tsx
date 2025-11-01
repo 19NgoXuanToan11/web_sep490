@@ -3,10 +3,8 @@ import { motion } from 'framer-motion'
 import {
   Building2,
   MapPin,
-  Users,
   Cpu,
   Activity,
-  Calendar,
   Eye,
   Edit,
   MoreHorizontal,
@@ -16,7 +14,6 @@ import {
   AlertTriangle,
   CheckCircle,
   Clock,
-  Sprout,
 } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card'
@@ -361,92 +358,92 @@ const AdminFarmsPage: React.FC = () => {
                   {loading ? (
                     <div className="p-6 text-center text-sm text-gray-500">Đang tải dữ liệu...</div>
                   ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Trang trại</TableHead>
-                        <TableHead>Chủ sở hữu</TableHead>
-                        <TableHead>Địa điểm</TableHead>
-                        <TableHead>Diện tích</TableHead>
-                        <TableHead>Trạng thái</TableHead>
-                        <TableHead>Thiết bị</TableHead>
-                        <TableHead>Loại cây trồng</TableHead>
-                        <TableHead>Hoạt động cuối</TableHead>
-                        <TableHead>Thao tác</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredFarms.map(farm => (
-                        <TableRow key={farm.id}>
-                          <TableCell>
-                            <div>
-                              <div className="font-medium">{farm.name}</div>
-                              <div className="text-sm text-gray-500">
-                                {farm.staffCount} nhân viên
-                              </div>
-                            </div>
-                          </TableCell>
-                          <TableCell>{farm.owner}</TableCell>
-                          <TableCell>{farm.location}</TableCell>
-                          <TableCell>{farm.area} ha</TableCell>
-                          <TableCell>{getStatusBadge(farm.status)}</TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <Cpu className="h-4 w-4 text-gray-500" />
-                              <span>
-                                {farm.activeDevices}/{farm.deviceCount}
-                              </span>
-                              {farm.alertsCount > 0 && (
-                                <Badge variant="destructive" className="ml-1">
-                                  {farm.alertsCount}
-                                </Badge>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex flex-wrap gap-1">
-                              {farm.cropTypes.slice(0, 2).map(crop => (
-                                <Badge key={crop} variant="secondary" className="text-xs">
-                                  {crop}
-                                </Badge>
-                              ))}
-                              {farm.cropTypes.length > 2 && (
-                                <Badge variant="secondary" className="text-xs">
-                                  +{farm.cropTypes.length - 2}
-                                </Badge>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="text-sm">{formatLastActivity(farm.lastActivity)}</div>
-                          </TableCell>
-                          <TableCell>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="sm">
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent>
-                                <DropdownMenuItem>
-                                  <Eye className="h-4 w-4 mr-2" />
-                                  Xem chi tiết
-                                </DropdownMenuItem>
-                                <DropdownMenuItem>
-                                  <Edit className="h-4 w-4 mr-2" />
-                                  Chỉnh sửa
-                                </DropdownMenuItem>
-                                <DropdownMenuItem>
-                                  <Activity className="h-4 w-4 mr-2" />
-                                  Báo cáo hiệu suất
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Trang trại</TableHead>
+                          <TableHead>Chủ sở hữu</TableHead>
+                          <TableHead>Địa điểm</TableHead>
+                          <TableHead>Diện tích</TableHead>
+                          <TableHead>Trạng thái</TableHead>
+                          <TableHead>Thiết bị</TableHead>
+                          <TableHead>Loại cây trồng</TableHead>
+                          <TableHead>Hoạt động cuối</TableHead>
+                          <TableHead>Thao tác</TableHead>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+                      </TableHeader>
+                      <TableBody>
+                        {filteredFarms.map(farm => (
+                          <TableRow key={farm.id}>
+                            <TableCell>
+                              <div>
+                                <div className="font-medium">{farm.name}</div>
+                                <div className="text-sm text-gray-500">
+                                  {farm.staffCount} nhân viên
+                                </div>
+                              </div>
+                            </TableCell>
+                            <TableCell>{farm.owner}</TableCell>
+                            <TableCell>{farm.location}</TableCell>
+                            <TableCell>{farm.area} ha</TableCell>
+                            <TableCell>{getStatusBadge(farm.status)}</TableCell>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <Cpu className="h-4 w-4 text-gray-500" />
+                                <span>
+                                  {farm.activeDevices}/{farm.deviceCount}
+                                </span>
+                                {farm.alertsCount > 0 && (
+                                  <Badge variant="destructive" className="ml-1">
+                                    {farm.alertsCount}
+                                  </Badge>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex flex-wrap gap-1">
+                                {farm.cropTypes.slice(0, 2).map(crop => (
+                                  <Badge key={crop} variant="secondary" className="text-xs">
+                                    {crop}
+                                  </Badge>
+                                ))}
+                                {farm.cropTypes.length > 2 && (
+                                  <Badge variant="secondary" className="text-xs">
+                                    +{farm.cropTypes.length - 2}
+                                  </Badge>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="text-sm">{formatLastActivity(farm.lastActivity)}</div>
+                            </TableCell>
+                            <TableCell>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="sm">
+                                    <MoreHorizontal className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent>
+                                  <DropdownMenuItem>
+                                    <Eye className="h-4 w-4 mr-2" />
+                                    Xem chi tiết
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem>
+                                    <Edit className="h-4 w-4 mr-2" />
+                                    Chỉnh sửa
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem>
+                                    <Activity className="h-4 w-4 mr-2" />
+                                    Báo cáo hiệu suất
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
                   )}
                 </div>
               </TabsContent>

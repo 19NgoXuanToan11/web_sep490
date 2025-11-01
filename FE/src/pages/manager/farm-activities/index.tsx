@@ -19,7 +19,6 @@ import {
   Plus,
   Edit,
   Trash2,
-  Search,
   RefreshCw,
   Calendar,
   Activity,

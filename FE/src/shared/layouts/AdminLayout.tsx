@@ -13,7 +13,6 @@ import {
   LayoutDashboard,
   Cpu,
   Building2,
-  ShoppingCart,
 } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import LogoutButton from '@/shared/ui/LogoutButton'

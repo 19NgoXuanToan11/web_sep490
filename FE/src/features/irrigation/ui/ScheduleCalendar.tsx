@@ -2,7 +2,6 @@ import React from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
 import { Button } from '@/shared/ui/button'
 import { Badge } from '@/shared/ui/badge'
-import { Skeleton } from '@/shared/ui/skeleton'
 import { useToast } from '@/shared/ui/use-toast'
 import {
   Calendar,
@@ -86,7 +85,7 @@ export function ScheduleCalendar({ className }: ScheduleCalendarProps) {
     setSelectedDate(newDate)
   }
 
-  const getSchedulesForDate = (date: Date) => {
+  const getSchedulesForDate = (_date: Date) => {
     // For this demo, we'll show all schedules that are enabled and recurring
     // In a real app, this would filter by actual schedule dates
     return schedules.filter(schedule => schedule.enabled)
@@ -248,7 +247,6 @@ interface CalendarGridProps {
 function CalendarGrid({ selectedDate, schedules, onEditSchedule }: CalendarGridProps) {
   // Simple calendar grid implementation
   const startOfMonth = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1)
-  const endOfMonth = new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 0)
   const startOfWeek = new Date(startOfMonth)
   startOfWeek.setDate(startOfMonth.getDate() - startOfMonth.getDay())
 
@@ -283,20 +281,18 @@ function CalendarGrid({ selectedDate, schedules, onEditSchedule }: CalendarGridP
           return (
             <div
               key={index}
-              className={`min-h-[80px] p-1 border rounded ${
-                isCurrentMonth ? 'bg-background' : 'bg-muted/30'
-              } ${isTodayDate ? 'bg-primary/5 border-primary' : ''}`}
+              className={`min-h-[80px] p-1 border rounded ${isCurrentMonth ? 'bg-background' : 'bg-muted/30'
+                } ${isTodayDate ? 'bg-primary/5 border-primary' : ''}`}
             >
               <div
-                className={`text-sm font-medium mb-1 ${
-                  isCurrentMonth ? '' : 'text-muted-foreground'
-                } ${isTodayDate ? 'text-primary' : ''}`}
+                className={`text-sm font-medium mb-1 ${isCurrentMonth ? '' : 'text-muted-foreground'
+                  } ${isTodayDate ? 'text-primary' : ''}`}
               >
                 {day.getDate()}
               </div>
 
               <div className="space-y-1">
-                {daySchedules.map((schedule, idx) => (
+                {daySchedules.map((schedule) => (
                   <div
                     key={schedule.id}
                     className="text-xs p-1 bg-primary/10 text-primary rounded truncate cursor-pointer hover:bg-primary/20"

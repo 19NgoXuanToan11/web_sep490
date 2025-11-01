@@ -4,7 +4,6 @@ import type {
   IrrigationSchedule,
   IrrigationRule,
   DeviceStatus,
-  ScheduleStatus,
   LoadingState,
 } from '@/shared/lib/localData'
 import {
@@ -371,7 +370,7 @@ function formatTime(time: string): string {
   return `${displayHour}:${minute} ${ampm}`
 }
 
-function calculateNextRun(type: string, startTime: string): string {
+function calculateNextRun(_type: string, startTime: string): string {
   const now = new Date()
   const [hour, minute] = startTime.split(':').map(Number)
 

@@ -10,7 +10,6 @@ import {
   Filter,
   Settings,
   Eye,
-  Activity,
   Wifi,
   WifiOff,
   Battery,
@@ -440,13 +439,12 @@ const AdminDevicesPage: React.FC = () => {
                         {device.batteryLevel !== undefined ? (
                           <div className="flex items-center gap-2">
                             <Battery
-                              className={`h-4 w-4 ${
-                                device.batteryLevel > 50
+                              className={`h-4 w-4 ${device.batteryLevel > 50
                                   ? 'text-green-500'
                                   : device.batteryLevel > 20
                                     ? 'text-yellow-500'
                                     : 'text-red-500'
-                              }`}
+                                }`}
                             />
                             <span className="text-sm">{Math.round(device.batteryLevel)}%</span>
                           </div>

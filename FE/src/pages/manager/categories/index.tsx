@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { ManagerLayout } from '@/shared/layouts/ManagerLayout'
 import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'

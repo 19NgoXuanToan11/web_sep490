@@ -26,6 +26,9 @@ import RealTimeIoTDashboard from '@/pages/manager/iot-dashboard'
 import ManagerOrdersPage from '@/pages/manager/orders'
 import { ProductsPage } from '@/features/products-management/pages/ProductsPage'
 
+// Payment result page (public)
+import PaymentResultPage from '@/pages/payment/PaymentResultPage'
+
 // RBAC components
 const Unauthorized = React.lazy(() => import('@/pages/Unauthorized'))
 import { RoleGuard } from '@/shared/ui/router/RoleGuard'
@@ -43,6 +46,10 @@ const routerConfig = [
   {
     path: '/login',
     element: <LoginPage />,
+  },
+  {
+    path: '/payment-result',
+    element: <PaymentResultPage />,
   },
   // {
   //   path: '/register',

@@ -32,7 +32,7 @@ interface RuleBuilderProps {
 }
 
 export function RuleBuilder({ className }: RuleBuilderProps) {
-  const { rules, loadingStates, createRule, updateRule, deleteRule, toggleRule } =
+  const { rules, loadingStates, deleteRule, toggleRule } =
     useIrrigationStore()
   const { toast } = useToast()
   const [editingRule, setEditingRule] = React.useState<IrrigationRule | null>(null)

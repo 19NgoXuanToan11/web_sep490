@@ -27,7 +27,7 @@ import {
 } from 'lucide-react'
 import { deviceStatusConfig, batteryLevelConfig } from '../model/schemas'
 import type { StaffDevice } from '@/shared/lib/localData'
-import { formatDateTime, formatTime } from '@/shared/lib/localData/storage'
+import { formatDateTime } from '@/shared/lib/localData/storage'
 
 interface DeviceDetailsModalProps {
   isOpen: boolean
@@ -267,22 +267,20 @@ export const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({
                   <span className="text-sm font-medium">Hiệu suất</span>
                   <div className="flex items-center gap-2">
                     <div
-                      className={`w-2 h-2 rounded-full ${
-                        device.uptimePct >= 95
+                      className={`w-2 h-2 rounded-full ${device.uptimePct >= 95
                           ? 'bg-green-500'
                           : device.uptimePct >= 85
                             ? 'bg-yellow-500'
                             : 'bg-red-500'
-                      }`}
+                        }`}
                     ></div>
                     <span
-                      className={`text-sm ${
-                        device.uptimePct >= 95
+                      className={`text-sm ${device.uptimePct >= 95
                           ? 'text-green-600'
                           : device.uptimePct >= 85
                             ? 'text-yellow-600'
                             : 'text-red-600'
-                      }`}
+                        }`}
                     >
                       {device.uptimePct >= 95
                         ? 'Xuất sắc'

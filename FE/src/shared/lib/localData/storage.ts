@@ -11,6 +11,7 @@ export interface UserPreferences {
   tableDensity: 'compact' | 'comfortable'
   lastSelectedTab: {
     irrigation?: string
+    staffOperations?: string
   }
   language: string
   theme: 'light' | 'dark' | 'system'

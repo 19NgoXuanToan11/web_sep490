@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Link, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { Button } from '@/shared/ui'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui'
 import { Mail, Lock, ArrowRight, Home } from 'lucide-react'

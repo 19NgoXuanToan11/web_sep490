@@ -25,21 +25,15 @@ import {
   BarChart3,
 } from 'lucide-react'
 import { useReportsStore } from '@/features/reports/store/reportsStore'
-import { userPreferences } from '@/shared/lib/localData/storage'
 import type { TimeRange } from '@/shared/lib/localData'
 import { ManagerLayout } from '@/shared/layouts/ManagerLayout'
 
 export default function ReportsPage() {
   const { timeRange, reportData, loadingStates, setTimeRange, loadReportData } = useReportsStore()
 
-  // Initialize data and restore time range
+  // Initialize data
   React.useEffect(() => {
-    const prefs = userPreferences.get()
-    if (prefs.reportsTimeRange && prefs.reportsTimeRange !== timeRange) {
-      setTimeRange(prefs.reportsTimeRange)
-    } else {
-      loadReportData()
-    }
+    loadReportData()
   }, [])
 
   const isLoading = loadingStates['load-reports']?.isLoading
@@ -251,7 +245,7 @@ export default function ReportsPage() {
                     <p className="text-sm text-muted-foreground">Hiệu suất trung bình</p>
                     <p className="text-2xl font-semibold">
                       {(
-                        reportData.timeseries.reduce((acc, item) => acc + item.efficiency, 0) /
+                        reportData.timeseries.reduce((acc: number, item: any) => acc + item.efficiency, 0) /
                         reportData.timeseries.length
                       ).toFixed(1)}
                       %
@@ -262,10 +256,10 @@ export default function ReportsPage() {
                     <p className="text-2xl font-semibold">
                       {(
                         (reportData.productionVsSales.reduce(
-                          (acc, item) => acc + item.production,
+                          (acc: number, item: any) => acc + item.production,
                           0
                         ) /
-                          reportData.productionVsSales.reduce((acc, item) => acc + item.sales, 0)) *
+                          reportData.productionVsSales.reduce((acc: number, item: any) => acc + item.sales, 0)) *
                         100
                       ).toFixed(1)}
                       %

@@ -1,0 +1,183 @@
+[1mdiff --git a/FE/src/pages/payment/PaymentResultDemo.tsx b/FE/src/pages/payment/PaymentResultDemo.tsx[m
+[1mindex 61c0978..95234c8 100644[m
+[1m--- a/FE/src/pages/payment/PaymentResultDemo.tsx[m
+[1m+++ b/FE/src/pages/payment/PaymentResultDemo.tsx[m
+[36m@@ -9,95 +9,95 @@[m [mimport { CheckCircle2, XCircle } from 'lucide-react'[m
+  * Không cần thanh toán thật[m
+  */[m
+ const PaymentResultDemo: React.FC = () => {[m
+[31m-  const navigate = useNavigate()[m
+[32m+[m[32m    const navigate = useNavigate()[m
+ [m
+[31m-  const demoScenarios = [[m
+[31m-    {[m
+[31m-      title: 'Thanh toán thành công',[m
+[31m-      icon: <CheckCircle2 className="w-6 h-6 text-green-600" />,[m
+[31m-      url: '/payment-result?success=true&orderId=61&amount=500000&code=00&message=Payment%20Success',[m
+[31m-      color: 'green',[m
+[31m-    },[m
+[31m-    {[m
+[31m-      title: 'Thanh toán thất bại',[m
+[31m-      icon: <XCircle className="w-6 h-6 text-red-600" />,[m
+[31m-      url: '/payment-result?success=false&orderId=62&amount=300000&code=24&message=Payment%20Failed',[m
+[31m-      color: 'red',[m
+[31m-    },[m
+[31m-    {[m
+[31m-      title: 'Không đủ số dư',[m
+[31m-      icon: <XCircle className="w-6 h-6 text-red-600" />,[m
+[31m-      url: '/payment-result?success=false&orderId=63&amount=1000000&code=51&message=Insufficient%20Balance',[m
+[31m-      color: 'red',[m
+[31m-    },[m
+[31m-    {[m
+[31m-      title: 'Hủy giao dịch',[m
+[31m-      icon: <XCircle className="w-6 h-6 text-orange-600" />,[m
+[31m-      url: '/payment-result?success=false&orderId=64&amount=200000&code=24&message=Transaction%20Cancelled',[m
+[31m-      color: 'orange',[m
+[31m-    },[m
+[31m-  ][m
+[32m+[m[32m    const demoScenarios = [[m
+[32m+[m[32m        {[m
+[32m+[m[32m            title: 'Thanh toán thành công',[m
+[32m+[m[32m            icon: <CheckCircle2 className="w-6 h-6 text-green-600" />,[m
+[32m+[m[32m            url: '/payment-result?success=true&orderId=61&amount=500000&code=00&message=Payment%20Success',[m
+[32m+[m[32m            color: 'green',[m
+[32m+[m[32m        },[m
+[32m+[m[32m        {[m
+[32m+[m[32m            title: 'Thanh toán thất bại',[m
+[32m+[m[32m            icon: <XCircle className="w-6 h-6 text-red-600" />,[m
+[32m+[m[32m            url: '/payment-result?success=false&orderId=62&amount=300000&code=24&message=Payment%20Failed',[m
+[32m+[m[32m            color: 'red',[m
+[32m+[m[32m        },[m
+[32m+[m[32m        {[m
+[32m+[m[32m            title: 'Không đủ số dư',[m
+[32m+[m[32m            icon: <XCircle className="w-6 h-6 text-red-600" />,[m
+[32m+[m[32m            url: '/payment-result?success=false&orderId=63&amount=1000000&code=51&message=Insufficient%20Balance',[m
+[32m+[m[32m            color: 'red',[m
+[32m+[m[32m        },[m
+[32m+[m[32m        {[m
+[32m+[m[32m            title: 'Hủy giao dịch',[m
+[32m+[m[32m            icon: <XCircle className="w-6 h-6 text-orange-600" />,[m
+[32m+[m[32m            url: '/payment-result?success=false&orderId=64&amount=200000&code=24&message=Transaction%20Cancelled',[m
+[32m+[m[32m            color: 'orange',[m
+[32m+[m[32m        },[m
+[32m+[m[32m    ][m
+ [m
+[31m-  return ([m
+[31m-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-8">[m
+[31m-      <div className="max-w-4xl mx-auto">[m
+[31m-        <h1 className="text-4xl font-bold text-center mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">[m
+[31m-          🧪 Demo Payment Result[m
+[31m-        </h1>[m
+[31m-        <p className="text-center text-gray-600 mb-8">[m
+[31m-          Test giao diện kết quả thanh toán mà không cần thanh toán thật[m
+[31m-        </p>[m
+[32m+[m[32m    return ([m
+[32m+[m[32m        <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-8">[m
+[32m+[m[32m            <div className="max-w-4xl mx-auto">[m
+[32m+[m[32m                <h1 className="text-4xl font-bold text-center mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">[m
+[32m+[m[32m                    🧪 Demo Payment Result[m
+[32m+[m[32m                </h1>[m
+[32m+[m[32m                <p className="text-center text-gray-600 mb-8">[m
+[32m+[m[32m                    Test giao diện kết quả thanh toán mà không cần thanh toán thật[m
+[32m+[m[32m                </p>[m
+ [m
+[31m-        <div className="grid md:grid-cols-2 gap-6 mb-8">[m
+[31m-          {demoScenarios.map((scenario, index) => ([m
+[31m-            <Card[m
+[31m-              key={index}[m
+[31m-              className="p-6 hover:shadow-xl transition-all cursor-pointer border-2 hover:border-blue-500"[m
+[31m-              onClick={() => navigate(scenario.url)}[m
+[31m-            >[m
+[31m-              <div className="flex items-center gap-4 mb-4">[m
+[31m-                {scenario.icon}[m
+[31m-                <h3 className="text-xl font-semibold">{scenario.title}</h3>[m
+[31m-              </div>[m
+[31m-              <p className="text-sm text-gray-600 mb-4">[m
+[31m-                Click để xem màn hình kết quả[m
+[31m-              </p>[m
+[31m-              <code className="text-xs bg-gray-100 p-2 rounded block overflow-x-auto">[m
+[31m-                {scenario.url}[m
+[31m-              </code>[m
+[31m-            </Card>[m
+[31m-          ))}[m
+[31m-        </div>[m
+[32m+[m[32m                <div className="grid md:grid-cols-2 gap-6 mb-8">[m
+[32m+[m[32m                    {demoScenarios.map((scenario, index) => ([m
+[32m+[m[32m                        <Card[m
+[32m+[m[32m                            key={index}[m
+[32m+[m[32m                            className="p-6 hover:shadow-xl transition-all cursor-pointer border-2 hover:border-blue-500"[m
+[32m+[m[32m                            onClick={() => navigate(scenario.url)}[m
+[32m+[m[32m                        >[m
+[32m+[m[32m                            <div className="flex items-center gap-4 mb-4">[m
+[32m+[m[32m                                {scenario.icon}[m
+[32m+[m[32m                                <h3 className="text-xl font-semibold">{scenario.title}</h3>[m
+[32m+[m[32m                            </div>[m
+[32m+[m[32m                            <p className="text-sm text-gray-600 mb-4">[m
+[32m+[m[32m                                Click để xem màn hình kết quả[m
+[32m+[m[32m                            </p>[m
+[32m+[m[32m                            <code className="text-xs bg-gray-100 p-2 rounded block overflow-x-auto">[m
+[32m+[m[32m                                {scenario.url}[m
+[32m+[m[32m                            </code>[m
+[32m+[m[32m                        </Card>[m
+[32m+[m[32m                    ))}[m
+[32m+[m[32m                </div>[m
+ [m
+[31m-        <Card className="p-6 bg-blue-50 border-blue-200">[m
+[31m-          <h2 className="text-xl font-bold mb-4 flex items-center gap-2">[m
+[31m-            📝 Hướng dẫn sử dụng[m
+[31m-          </h2>[m
+[31m-          <ul className="space-y-2 text-sm text-gray-700">[m
+[31m-            <li>✅ Click vào bất kỳ card nào để xem giao diện kết quả</li>[m
+[31m-            <li>✅ Giao diện sẽ tự động thử mở mobile app sau 3 giây</li>[m
+[31m-            <li>✅ Nếu không có app, bạn vẫn xem được giao diện web</li>[m
+[31m-            <li>[m
+[31m-              ✅ Các tham số URL:[m
+[31m-              <ul className="ml-6 mt-2 space-y-1">[m
+[31m-                <li><code>success</code>: true/false (thành công/thất bại)</li>[m
+[31m-                <li><code>orderId</code>: Mã đơn hàng</li>[m
+[31m-                <li><code>amount</code>: Số tiền (VND)</li>[m
+[31m-                <li><code>code</code>: Mã response VNPay</li>[m
+[31m-                <li><code>message</code>: Thông điệp (tùy chọn)</li>[m
+[31m-              </ul>[m
+[31m-            </li>[m
+[31m-          </ul>[m
+[31m-        </Card>[m
+[32m+[m[32m                <Card className="p-6 bg-blue-50 border-blue-200">[m
+[32m+[m[32m                    <h2 className="text-xl font-bold mb-4 flex items-center gap-2">[m
+[32m+[m[32m                        📝 Hướng dẫn sử dụng[m
+[32m+[m[32m                    </h2>[m
+[32m+[m[32m                    <ul className="space-y-2 text-sm text-gray-700">[m
+[32m+[m[32m                        <li>✅ Click vào bất kỳ card nào để xem giao diện kết quả</li>[m
+[32m+[m[32m                        <li>✅ Giao diện sẽ tự động thử mở mobile app sau 3 giây</li>[m
+[32m+[m[32m                        <li>✅ Nếu không có app, bạn vẫn xem được giao diện web</li>[m
+[32m+[m[32m                        <li>[m
+[32m+[m[32m                            ✅ Các tham số URL:[m
+[32m+[m[32m                            <ul className="ml-6 mt-2 space-y-1">[m
+[32m+[m[32m                                <li><code>success</code>: true/false (thành công/thất bại)</li>[m
+[32m+[m[32m                                <li><code>orderId</code>: Mã đơn hàng</li>[m
+[32m+[m[32m                                <li><code>amount</code>: Số tiền (VND)</li>[m
+[32m+[m[32m                                <li><code>code</code>: Mã response VNPay</li>[m
+[32m+[m[32m                                <li><code>message</code>: Thông điệp (tùy chọn)</li>[m
+[32m+[m[32m                            </ul>[m
+[32m+[m[32m                        </li>[m
+[32m+[m[32m                    </ul>[m
+[32m+[m[32m                </Card>[m
+ [m
+[31m-        <div className="mt-8 text-center">[m
+[31m-          <Button onClick={() => navigate('/')} variant="outline" size="lg">[m
+[31m-            ← Quay về trang chủ[m
+[31m-          </Button>[m
+[32m+[m[32m                <div className="mt-8 text-center">[m
+[32m+[m[32m                    <Button onClick={() => navigate('/')} variant="outline" size="lg">[m
+[32m+[m[32m                        ← Quay về trang chủ[m
+[32m+[m[32m                    </Button>[m
+[32m+[m[32m                </div>[m
+[32m+[m[32m            </div>[m
+         </div>[m
+[31m-      </div>[m
+[31m-    </div>[m
+[31m-  )[m
+[32m+[m[32m    )[m
+ }[m
+ [m
+ export default PaymentResultDemo[m

@@ -27,7 +27,7 @@ export const HeroSection: React.FC = () => {
         style={{ y: backgroundY }}
       >
         <video
-          src="../../../public/videos/farm3.mp4"
+          src="/videos/farm3.mp4"
           autoPlay
           loop
           muted

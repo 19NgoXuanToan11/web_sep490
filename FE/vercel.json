@@ -2,12 +2,22 @@
   "headers": [
     {
       "source": "/(.*)",
-      "headers": [{ "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }]
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        }
+      ]
     }
   ],
   "rewrites": [
-    { "source": "/api/:path*", "destination": "https://iotfarm.onrender.com/api/:path*" },
-
-    { "source": "/(.*)", "destination": "/index.html", "missing": [{ "type": "filesystem" }] }
+    {
+      "source": "/api/:path*",
+      "destination": "https://iotfarm.onrender.com/api/:path*"
+    },
+    {
+      "source": "/payment-result",
+      "destination": "/index.html"
+    }
   ]
 }

@@ -15,7 +15,6 @@ const PaymentResultPage: React.FC = () => {
   const orderId = searchParams.get('orderId')
   const amount = searchParams.get('amount')
   const code = searchParams.get('code')
-  const message = searchParams.get('message')
 
   // Tạo deeplink để mở app mobile
   const deeplink = `ifms://payment-result?success=${success}&orderId=${orderId || ''}&amount=${amount || ''}&code=${code || ''}`

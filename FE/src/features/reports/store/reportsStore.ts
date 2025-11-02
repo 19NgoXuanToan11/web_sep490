@@ -107,7 +107,7 @@ export const useReportsStore = create<ReportsState>((set, get) => ({
   },
 
   exportReportCSV: () => {
-    const { reportData, timeRange } = get()
+    const { reportData } = get()
 
     // Export efficiency data
     const efficiencyData = reportData.timeseries.map((item: any) => ({
@@ -122,6 +122,33 @@ export const useReportsStore = create<ReportsState>((set, get) => ({
       Sales: item.sales,
       Difference: item.production - item.sales,
     }))
+
+    // Convert to CSV format and download
+    const csvEfficiency = [
+      Object.keys(efficiencyData[0] || {}).join(','),
+      ...efficiencyData.map(row => Object.values(row).join(',')),
+    ].join('\n')
+
+    const csvProduction = [
+      Object.keys(productionData[0] || {}).join(','),
+      ...productionData.map(row => Object.values(row).join(',')),
+    ].join('\n')
+
+    // Create and download files
+    const downloadCSV = (content: string, filename: string) => {
+      const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' })
+      const link = document.createElement('a')
+      const url = URL.createObjectURL(blob)
+      link.setAttribute('href', url)
+      link.setAttribute('download', filename)
+      link.style.visibility = 'hidden'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+    }
+
+    downloadCSV(csvEfficiency, 'efficiency-report.csv')
+    downloadCSV(csvProduction, 'production-report.csv')
   },
 
   setLoadingState: (key: string, state: LoadingState) => {

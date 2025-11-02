@@ -31,10 +31,11 @@ export const HeroSection: React.FC = () => {
           autoPlay
           loop
           muted
-          playsInline
-          className="absolute inset-0 w-full h-full object-cover object-center"
-          style={{ zIndex: 0 }}
+          playsInline 
+          preload="auto"
+          className="absolute inset-0 h-full w-full object-cover z-0"
         />
+
         {/* Dark overlay for text readability */}
         <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent" />
       </motion.div>

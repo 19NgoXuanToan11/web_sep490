@@ -48,8 +48,6 @@ const PaymentResultPage: React.FC = () => {
       try {
         window.location.href = url
       } catch (e) {
-        // Bỏ qua lỗi vì app có thể chưa được cài đặt
-        console.log('Deep link không khả dụng - App chưa được cài đặt')
       }
     }, 500)
   }
@@ -123,21 +121,6 @@ const PaymentResultPage: React.FC = () => {
                 <span className="font-bold text-lg text-green-600">{formatCurrency(amount)}</span>
               </div>
             )}
-
-            {code && (
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Mã giao dịch:</span>
-                <span className="font-mono text-xs text-gray-700 bg-white px-2 py-1 rounded">
-                  {code}
-                </span>
-              </div>
-            )}
-
-            {message && (
-              <div className="pt-2 border-t border-gray-200">
-                <p className="text-sm text-gray-600">{message}</p>
-              </div>
-            )}
           </div>
 
           {/* Nút mở ứng dụng */}
@@ -150,16 +133,6 @@ const PaymentResultPage: React.FC = () => {
               Mở ứng dụng IOTFarm
             </Button>
 
-            {countdown > 0 && (
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-center text-sm text-gray-500"
-              >
-                Tự động mở app sau <span className="font-bold text-green-600">{countdown}</span> giây...
-              </motion.p>
-            )}
-
             {/* Nút quay về trang chủ web (fallback) */}
             <Button
               onClick={() => navigate('/')}
@@ -169,15 +142,6 @@ const PaymentResultPage: React.FC = () => {
               <ArrowLeft className="w-4 h-4 mr-2" />
               Quay về trang chủ
             </Button>
-          </div>
-
-          {/* Hướng dẫn nếu không tự động mở */}
-          <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
-            <p className="text-xs text-blue-800 text-center">
-              <strong>Không tự động mở app?</strong>
-              <br />
-              Vui lòng bấm nút "Mở ứng dụng IOTFarm" ở trên
-            </p>
           </div>
         </Card>
       </motion.div>

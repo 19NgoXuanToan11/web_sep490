@@ -115,8 +115,6 @@ export const useReportsStore = create<ReportsState>((set, get) => ({
       'Efficiency (%)': item.efficiency,
     }))
 
-    console.log('Exporting efficiency data:', efficiencyData, timeRange)
-
     // Export production vs sales data
     const productionData = reportData.productionVsSales.map((item: any) => ({
       Month: item.month,
@@ -124,8 +122,6 @@ export const useReportsStore = create<ReportsState>((set, get) => ({
       Sales: item.sales,
       Difference: item.production - item.sales,
     }))
-
-    console.log('Exporting production data:', productionData)
   },
 
   setLoadingState: (key: string, state: LoadingState) => {

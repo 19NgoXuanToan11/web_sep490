@@ -28,7 +28,6 @@ import { ProductsPage } from '@/features/products-management/pages/ProductsPage'
 
 // Payment result page (public)
 import PaymentResultPage from '@/pages/payment/PaymentResultPage'
-import PaymentResultDemo from '@/pages/payment/PaymentResultDemo'
 
 // RBAC components
 const Unauthorized = React.lazy(() => import('@/pages/Unauthorized'))
@@ -51,10 +50,6 @@ const routerConfig = [
   {
     path: '/payment-result',
     element: <PaymentResultPage />,
-  },
-  {
-    path: '/payment-demo',
-    element: <PaymentResultDemo />,
   },
   // {
   //   path: '/register',

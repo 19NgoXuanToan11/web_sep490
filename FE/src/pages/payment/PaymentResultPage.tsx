@@ -110,11 +110,6 @@ const PaymentResultPage: React.FC = () => {
     }, 5000)
   }
 
-  const tryOpenDeepLink = (url: string) => {
-    console.log('🔗 Single deep link attempt:', url)
-    tryOpenMultipleDeepLinks({ custom: url, expoDev: url, expoLocal: url, universal: url })
-  }
-
   const handleOpenApp = () => {
     console.log('👆 Người dùng bấm nút "Mở ứng dụng IOTFarm"')
     tryOpenMultipleDeepLinks(deeplinks)

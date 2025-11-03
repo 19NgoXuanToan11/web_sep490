@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { CheckCircle2, XCircle, Smartphone, ArrowLeft, Package } from 'lucide-react'
+import { CheckCircle2, XCircle, Smartphone, ArrowLeft, Package, ExternalLink, Download } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import { Card } from '@/shared/ui/card'
 
@@ -9,6 +9,7 @@ const PaymentResultPage: React.FC = () => {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
   const [countdown, setCountdown] = useState(3)
+  const [showAppInstructions, setShowAppInstructions] = useState(false)
 
   // Lấy thông tin từ URL params
   const success = searchParams.get('success') === 'true'
@@ -31,6 +32,8 @@ const PaymentResultPage: React.FC = () => {
   }, [countdown, deeplink])
 
   const tryOpenDeepLink = (url: string) => {
+    console.log('🔗 Đang thử mở deep link:', url)
+
     // Cách 1: Thử mở trực tiếp (có thể hiện lỗi trong console nhưng vẫn hoạt động nếu app đã cài)
     const iframe = document.createElement('iframe')
     iframe.style.display = 'none'
@@ -39,19 +42,42 @@ const PaymentResultPage: React.FC = () => {
 
     // Cleanup sau 2 giây
     setTimeout(() => {
-      document.body.removeChild(iframe)
+      try {
+        document.body.removeChild(iframe)
+        console.log('✅ Iframe cleanup thành công')
+      } catch (e) {
+        console.warn('⚠️ Lỗi khi cleanup iframe:', e)
+      }
     }, 2000)
 
     // Cách 2: Fallback - thử mở bằng window.location sau 500ms
     setTimeout(() => {
       try {
+        console.log('🔄 Đang thử fallback method với window.location')
         window.location.href = url
       } catch (e) {
+        console.error('❌ Lỗi khi mở deep link:', e)
       }
     }, 500)
+
+    // Cách 3: Thử mở trong tab mới (cho desktop)
+    setTimeout(() => {
+      try {
+        console.log('🔄 Đang thử mở trong tab mới')
+        window.open(url, '_blank')
+      } catch (e) {
+        console.warn('⚠️ Không thể mở trong tab mới:', e)
+      }
+    }, 1000)
+
+    // Hiển thị hướng dẫn sau 3 giây nếu app chưa mở
+    setTimeout(() => {
+      setShowAppInstructions(true)
+    }, 3000)
   }
 
   const handleOpenApp = () => {
+    console.log('👆 Người dùng bấm nút "Mở ứng dụng IOTFarm"')
     tryOpenDeepLink(deeplink)
   }
 
@@ -132,11 +158,51 @@ const PaymentResultPage: React.FC = () => {
               Mở ứng dụng IOTFarm
             </Button>
 
-            {/* Nút quay về trang chủ web (fallback) */}
+            {/* Hướng dẫn khi không mở được app */}
+            {showAppInstructions && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                transition={{ duration: 0.3 }}
+                className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4"
+              >
+                <h3 className="text-sm font-semibold text-blue-800 mb-2 flex items-center">
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  Không thể mở ứng dụng?
+                </h3>
+                <div className="text-sm text-blue-700 space-y-2">
+                  <p>• Hãy đảm bảo bạn đã cài đặt ứng dụng IOTFarm trên thiết bị di động</p>
+                  <p>• Nếu chưa có ứng dụng, hãy tải về từ App Store hoặc Play Store</p>
+                  <p>• Sau khi cài đặt, thử bấm lại nút "Mở ứng dụng IOTFarm" ở trên</p>
+                </div>
+                <div className="mt-3 flex gap-2">
+                  <Button
+                    onClick={() => window.open('https://apps.apple.com/app/ifms-farm', '_blank')}
+                    variant="outline"
+                    size="sm"
+                    className="text-blue-600 border-blue-300 hover:bg-blue-50"
+                  >
+                    <Download className="w-4 h-4 mr-1" />
+                    iOS
+                  </Button>
+                  <Button
+                    onClick={() => window.open('https://play.google.com/store/apps/details?id=com.ifms.farm', '_blank')}
+                    variant="outline"
+                    size="sm"
+                    className="text-blue-600 border-blue-300 hover:bg-blue-50"
+                  >
+                    <Download className="w-4 h-4 mr-1" />
+                    Android
+                  </Button>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Nút quay về trang chủ */}
             <Button
               onClick={() => navigate('/')}
               variant="outline"
-              className="w-full py-4"
+              className="w-full py-4 text-gray-600 border-gray-300 hover:bg-gray-50"
             >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Quay về trang chủ

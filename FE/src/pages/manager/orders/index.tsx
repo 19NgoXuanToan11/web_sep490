@@ -335,7 +335,6 @@ const ManagerOrdersPage: React.FC = () => {
     return orders.filter(order => {
       // Debug logging
       if (!order || typeof order !== 'object') {
-        console.warn('Invalid order object:', order)
         return false
       }
 

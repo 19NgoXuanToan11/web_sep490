@@ -35,7 +35,6 @@ const PaymentResultPage: React.FC = () => {
       universal: `https://web-sep490.vercel.app/mobile-redirect/payment-result?${params.toString()}`
     }
 
-    console.log('🔗 Generated deep links:', links)
     return links
   }
 
@@ -53,11 +52,8 @@ const PaymentResultPage: React.FC = () => {
   }, [countdown, deeplinks])
 
   const tryOpenMultipleDeepLinks = (links: any) => {
-    console.log('🔗 Đang thử mở multiple deep links:', links)
-
     // Detect if we're on mobile
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
-    console.log('📱 Is mobile device:', isMobile)
 
     // Thử theo thứ tự ưu tiên
     const trySequentially = async () => {
@@ -67,7 +63,6 @@ const PaymentResultPage: React.FC = () => {
 
       for (let i = 0; i < urlsToTry.length; i++) {
         const url = urlsToTry[i]
-        console.log(`🔄 Thử deep link ${i + 1}/${urlsToTry.length}:`, url)
 
         try {
           if (isMobile) {
@@ -87,12 +82,10 @@ const PaymentResultPage: React.FC = () => {
               try {
                 document.body.removeChild(iframe)
               } catch (e) {
-                console.warn('⚠️ Iframe cleanup error:', e)
               }
             }, 1000)
           }
         } catch (e) {
-          console.warn(`⚠️ Deep link ${i + 1} failed:`, e)
         }
 
         // Delay giữa các lần thử
@@ -111,7 +104,6 @@ const PaymentResultPage: React.FC = () => {
   }
 
   const handleOpenApp = () => {
-    console.log('👆 Người dùng bấm nút "Mở ứng dụng IOTFarm"')
     tryOpenMultipleDeepLinks(deeplinks)
   }
 

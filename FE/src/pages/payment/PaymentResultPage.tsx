@@ -18,7 +18,19 @@ const PaymentResultPage: React.FC = () => {
   const code = searchParams.get('code')
 
   // Tạo deeplink để mở app mobile
-  const deeplink = `ifms://payment-result?success=${success}&orderId=${orderId || ''}&amount=${amount || ''}&code=${code || ''}`
+  const createDeepLink = () => {
+    const params = new URLSearchParams()
+    params.append('success', success.toString())
+    if (orderId) params.append('orderId', orderId)
+    if (amount) params.append('amount', amount)
+    if (code) params.append('code', code)
+
+    const deeplink = `ifms://payment-result?${params.toString()}`
+    console.log('🔗 Generated deep link:', deeplink)
+    return deeplink
+  }
+
+  const deeplink = createDeepLink()
 
   // Tự động mở app sau 3 giây
   useEffect(() => {
@@ -34,41 +46,66 @@ const PaymentResultPage: React.FC = () => {
   const tryOpenDeepLink = (url: string) => {
     console.log('🔗 Đang thử mở deep link:', url)
 
-    // Cách 1: Thử mở trực tiếp (có thể hiện lỗi trong console nhưng vẫn hoạt động nếu app đã cài)
-    const iframe = document.createElement('iframe')
-    iframe.style.display = 'none'
-    iframe.src = url
-    document.body.appendChild(iframe)
+    // Detect if we're on mobile
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+    console.log('📱 Is mobile device:', isMobile)
 
-    // Cleanup sau 2 giây
-    setTimeout(() => {
+    if (isMobile) {
+      // Mobile strategy: Direct navigation works better
       try {
-        document.body.removeChild(iframe)
-        console.log('✅ Iframe cleanup thành công')
-      } catch (e) {
-        console.warn('⚠️ Lỗi khi cleanup iframe:', e)
-      }
-    }, 2000)
-
-    // Cách 2: Fallback - thử mở bằng window.location sau 500ms
-    setTimeout(() => {
-      try {
-        console.log('🔄 Đang thử fallback method với window.location')
+        console.log('📱 Trying direct navigation on mobile...')
         window.location.href = url
       } catch (e) {
-        console.error('❌ Lỗi khi mở deep link:', e)
+        console.error('❌ Direct navigation failed:', e)
+        // Fallback to window.open
+        setTimeout(() => {
+          try {
+            window.open(url, '_self')
+          } catch (e2) {
+            console.error('❌ Window.open fallback failed:', e2)
+          }
+        }, 100)
       }
-    }, 500)
+    } else {
+      // Desktop strategy: Use iframe first, then fallbacks
+      console.log('💻 Using desktop strategy...')
 
-    // Cách 3: Thử mở trong tab mới (cho desktop)
-    setTimeout(() => {
-      try {
-        console.log('🔄 Đang thử mở trong tab mới')
-        window.open(url, '_blank')
-      } catch (e) {
-        console.warn('⚠️ Không thể mở trong tab mới:', e)
-      }
-    }, 1000)
+      // Cách 1: Thử mở bằng iframe (im lặng)
+      const iframe = document.createElement('iframe')
+      iframe.style.display = 'none'
+      iframe.src = url
+      document.body.appendChild(iframe)
+
+      // Cleanup iframe sau 2 giây
+      setTimeout(() => {
+        try {
+          document.body.removeChild(iframe)
+          console.log('✅ Iframe cleanup thành công')
+        } catch (e) {
+          console.warn('⚠️ Lỗi khi cleanup iframe:', e)
+        }
+      }, 2000)
+
+      // Cách 2: Fallback - thử mở bằng window.location
+      setTimeout(() => {
+        try {
+          console.log('🔄 Đang thử fallback method với window.location')
+          window.location.href = url
+        } catch (e) {
+          console.error('❌ Lỗi khi mở deep link:', e)
+        }
+      }, 500)
+
+      // Cách 3: Thử mở trong tab mới
+      setTimeout(() => {
+        try {
+          console.log('🔄 Đang thử mở trong tab mới')
+          window.open(url, '_blank')
+        } catch (e) {
+          console.warn('⚠️ Không thể mở trong tab mới:', e)
+        }
+      }, 1000)
+    }
 
     // Hiển thị hướng dẫn sau 3 giây nếu app chưa mở
     setTimeout(() => {
@@ -197,16 +234,6 @@ const PaymentResultPage: React.FC = () => {
                 </div>
               </motion.div>
             )}
-
-            {/* Nút quay về trang chủ */}
-            <Button
-              onClick={() => navigate('/')}
-              variant="outline"
-              className="w-full py-4 text-gray-600 border-gray-300 hover:bg-gray-50"
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Quay về trang chủ
-            </Button>
           </div>
         </Card>
       </motion.div>

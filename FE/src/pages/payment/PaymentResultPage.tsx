@@ -24,12 +24,22 @@ const PaymentResultPage: React.FC = () => {
     if (amount) params.append('amount', amount)
     if (code) params.append('code', code)
 
-    const deeplink = `ifms://payment-result?${params.toString()}`
-    console.log('🔗 Generated deep link:', deeplink)
-    return deeplink
+    // Thử nhiều loại deep link khác nhau
+    const links = {
+      // Custom scheme (cho production build)
+      custom: `ifms://payment-result?${params.toString()}`,
+      // Expo development URL (cho development)
+      expoDev: `exp://192.168.2.14:8081/--/payment-result?${params.toString()}`,
+      expoLocal: `exp://localhost:8081/--/payment-result?${params.toString()}`,
+      // Universal link fallback
+      universal: `https://web-sep490.vercel.app/mobile-redirect/payment-result?${params.toString()}`
+    }
+
+    console.log('🔗 Generated deep links:', links)
+    return links
   }
 
-  const deeplink = createDeepLink()
+  const deeplinks = createDeepLink()
 
   // Tự động mở app sau 3 giây
   useEffect(() => {
@@ -37,84 +47,77 @@ const PaymentResultPage: React.FC = () => {
       const timer = setTimeout(() => setCountdown(countdown - 1), 1000)
       return () => clearTimeout(timer)
     } else {
-      // Thử mở app tự động (sử dụng iframe để tránh lỗi console)
-      tryOpenDeepLink(deeplink)
+      // Thử mở app tự động với tất cả các loại deep link
+      tryOpenMultipleDeepLinks(deeplinks)
     }
-  }, [countdown, deeplink])
+  }, [countdown, deeplinks])
 
-  const tryOpenDeepLink = (url: string) => {
-    console.log('🔗 Đang thử mở deep link:', url)
+  const tryOpenMultipleDeepLinks = (links: any) => {
+    console.log('🔗 Đang thử mở multiple deep links:', links)
 
     // Detect if we're on mobile
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
     console.log('📱 Is mobile device:', isMobile)
 
-    if (isMobile) {
-      // Mobile strategy: Direct navigation works better
-      try {
-        console.log('📱 Trying direct navigation on mobile...')
-        window.location.href = url
-      } catch (e) {
-        console.error('❌ Direct navigation failed:', e)
-        // Fallback to window.open
-        setTimeout(() => {
-          try {
-            window.open(url, '_self')
-          } catch (e2) {
-            console.error('❌ Window.open fallback failed:', e2)
+    // Thử theo thứ tự ưu tiên
+    const trySequentially = async () => {
+      const urlsToTry = isMobile
+        ? [links.expoDev, links.expoLocal, links.custom, links.universal]
+        : [links.custom, links.expoDev, links.expoLocal, links.universal]
+
+      for (let i = 0; i < urlsToTry.length; i++) {
+        const url = urlsToTry[i]
+        console.log(`🔄 Thử deep link ${i + 1}/${urlsToTry.length}:`, url)
+
+        try {
+          if (isMobile) {
+            // Mobile: Direct navigation
+            window.location.href = url
+            // Nếu thành công, không thử tiếp
+            break
+          } else {
+            // Desktop: Iframe method
+            const iframe = document.createElement('iframe')
+            iframe.style.display = 'none'
+            iframe.src = url
+            document.body.appendChild(iframe)
+
+            // Cleanup sau 1 giây
+            setTimeout(() => {
+              try {
+                document.body.removeChild(iframe)
+              } catch (e) {
+                console.warn('⚠️ Iframe cleanup error:', e)
+              }
+            }, 1000)
           }
-        }, 100)
+        } catch (e) {
+          console.warn(`⚠️ Deep link ${i + 1} failed:`, e)
+        }
+
+        // Delay giữa các lần thử
+        if (i < urlsToTry.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 1000))
+        }
       }
-    } else {
-      // Desktop strategy: Use iframe first, then fallbacks
-      console.log('💻 Using desktop strategy...')
-
-      // Cách 1: Thử mở bằng iframe (im lặng)
-      const iframe = document.createElement('iframe')
-      iframe.style.display = 'none'
-      iframe.src = url
-      document.body.appendChild(iframe)
-
-      // Cleanup iframe sau 2 giây
-      setTimeout(() => {
-        try {
-          document.body.removeChild(iframe)
-          console.log('✅ Iframe cleanup thành công')
-        } catch (e) {
-          console.warn('⚠️ Lỗi khi cleanup iframe:', e)
-        }
-      }, 2000)
-
-      // Cách 2: Fallback - thử mở bằng window.location
-      setTimeout(() => {
-        try {
-          console.log('🔄 Đang thử fallback method với window.location')
-          window.location.href = url
-        } catch (e) {
-          console.error('❌ Lỗi khi mở deep link:', e)
-        }
-      }, 500)
-
-      // Cách 3: Thử mở trong tab mới
-      setTimeout(() => {
-        try {
-          console.log('🔄 Đang thử mở trong tab mới')
-          window.open(url, '_blank')
-        } catch (e) {
-          console.warn('⚠️ Không thể mở trong tab mới:', e)
-        }
-      }, 1000)
     }
 
-    // Hiển thị hướng dẫn sau 3 giây nếu app chưa mở
+    trySequentially()
+
+    // Hiển thị hướng dẫn sau 5 giây nếu app chưa mở
     setTimeout(() => {
       setShowAppInstructions(true)
-    }, 3000)
+    }, 5000)
+  }
+
+  const tryOpenDeepLink = (url: string) => {
+    console.log('🔗 Single deep link attempt:', url)
+    tryOpenMultipleDeepLinks({ custom: url, expoDev: url, expoLocal: url, universal: url })
   }
 
   const handleOpenApp = () => {
     console.log('👆 Người dùng bấm nút "Mở ứng dụng IOTFarm"')
-    tryOpenDeepLink(deeplink)
+    tryOpenMultipleDeepLinks(deeplinks)
   }
 
   const formatCurrency = (value: string | null) => {

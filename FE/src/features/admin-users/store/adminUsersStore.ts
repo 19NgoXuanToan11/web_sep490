@@ -119,7 +119,6 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
       const users: User[] = response.items.map((a: AccountDto) => {
         // Ensure we have a valid ID from the API
         if (!a.accountId) {
-          console.error('Account missing accountId:', a)
           throw new Error(`Account ${a.email} is missing accountId from API`)
         }
 
@@ -221,7 +220,6 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
 
       get().setLoadingState(key, { isLoading: false })
     } catch (error) {
-      console.error('Error updating user:', error)
       get().setLoadingState(key, {
         isLoading: false,
         error: error instanceof Error ? error.message : 'Unknown error',

@@ -129,7 +129,6 @@ export const productService = {
 
     // Check if response.data exists and has the expected structure
     if (!response.data || !response.data.data) {
-      console.error('No data in API response')
       return {
         products: [],
         totalCount: 0,

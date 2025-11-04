@@ -112,7 +112,6 @@ export const useProductStore = create<ProductState>((set, get) => ({
         isLoading: false,
       })
     } catch (error) {
-      console.error('Error fetching products:', error)
       set({ isLoading: false })
       throw error
     }
@@ -124,7 +123,6 @@ export const useProductStore = create<ProductState>((set, get) => ({
       const categories = await categoryService.getAllCategories()
       set({ categories })
     } catch (error) {
-      console.error('Error fetching categories:', error)
       throw error
     }
   },
@@ -137,7 +135,6 @@ export const useProductStore = create<ProductState>((set, get) => ({
       set({ selectedProduct: product, isLoading: false })
       return product
     } catch (error) {
-      console.error('Error fetching product:', error)
       set({ isLoading: false })
       throw error
     }
@@ -151,7 +148,6 @@ export const useProductStore = create<ProductState>((set, get) => ({
       set({ isLoading: false })
       return products
     } catch (error) {
-      console.error('Error searching products:', error)
       set({ isLoading: false })
       throw error
     }
@@ -169,7 +165,6 @@ export const useProductStore = create<ProductState>((set, get) => ({
       set({ isCreating: false })
       return newProduct
     } catch (error) {
-      console.error('Error creating product:', error)
       set({ isCreating: false })
       throw error
     }
@@ -193,7 +188,6 @@ export const useProductStore = create<ProductState>((set, get) => ({
 
       return updatedProduct
     } catch (error) {
-      console.error('Error updating product:', error)
       set({ isUpdating: false })
       throw error
     }
@@ -214,7 +208,6 @@ export const useProductStore = create<ProductState>((set, get) => ({
         isDeleting: false,
       }))
     } catch (error) {
-      console.error('Error deleting product:', error)
       set({ isDeleting: false })
       throw error
     }
@@ -238,7 +231,6 @@ export const useProductStore = create<ProductState>((set, get) => ({
 
       return updatedProduct
     } catch (error) {
-      console.error('Error changing product status:', error)
       set({ isUpdating: false })
       throw error
     }
@@ -262,7 +254,6 @@ export const useProductStore = create<ProductState>((set, get) => ({
 
       return updatedProduct
     } catch (error) {
-      console.error('Error changing product quantity:', error)
       set({ isUpdating: false })
       throw error
     }
@@ -279,8 +270,8 @@ export const useProductStore = create<ProductState>((set, get) => ({
         .then(results => {
           set({ products: results || [], totalCount: (results || []).length })
         })
-        .catch(error => {
-          console.error('Auto search error:', error)
+        .catch(() => {
+          // Handle search error silently
         })
     } else if (query.length === 0) {
       // Reset to full list when search is cleared
@@ -346,7 +337,6 @@ export const useProductStore = create<ProductState>((set, get) => ({
       // Apply current filters
       get().applyClientSideFilters()
     } catch (error) {
-      console.error('Error fetching all products:', error)
       set({ isLoading: false })
       throw error
     }

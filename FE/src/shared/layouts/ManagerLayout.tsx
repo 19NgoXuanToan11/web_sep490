@@ -20,9 +20,8 @@ import {
 } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import LogoutButton from '@/shared/ui/LogoutButton'
-// Removed search & avatar; input no longer needed
 import { Badge } from '@/shared/ui/badge'
-// removed unused Card import
+import { APP_CONFIG } from '@/shared/constants/app'
 
 interface ManagerLayoutProps {
   children: React.ReactNode
@@ -146,18 +145,16 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
     return (
       <motion.button
         onClick={handleClick}
-        className={`w-full group flex items-center ${isSidebarOpen ? 'px-3' : 'px-2 justify-center'} py-2.5 text-sm font-medium rounded-lg transition-colors duration-200 ${
-          isActive
+        className={`w-full group flex items-center ${isSidebarOpen ? 'px-3' : 'px-2 justify-center'} py-2.5 text-sm font-medium rounded-lg transition-colors duration-200 ${isActive
             ? 'bg-green-50 text-green-700 border-r-2 border-green-600'
             : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-        }`}
+          }`}
         whileHover={{ scale: mobile ? 1 : 1.02 }}
         whileTap={{ scale: 0.98 }}
       >
         <item.icon
-          className={`${isSidebarOpen ? 'mr-3' : 'mx-auto'} h-5 w-5 flex-shrink-0 ${
-            isActive ? 'text-green-600' : 'text-gray-400 group-hover:text-gray-600'
-          }`}
+          className={`${isSidebarOpen ? 'mr-3' : 'mx-auto'} h-5 w-5 flex-shrink-0 ${isActive ? 'text-green-600' : 'text-gray-400 group-hover:text-gray-600'
+            }`}
         />
         {(isSidebarOpen || mobile) && (
           <div className="flex-1 text-left">
@@ -184,9 +181,8 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
     <div className="min-h-screen bg-gray-50">
       {/* Desktop Sidebar */}
       <motion.div
-        className={`hidden lg:fixed lg:inset-y-0 lg:flex lg:flex-col bg-white shadow-lg border-r border-gray-200 ${
-          isSidebarOpen ? 'lg:w-72' : 'lg:w-20'
-        }`}
+        className={`hidden lg:fixed lg:inset-y-0 lg:flex lg:flex-col bg-white shadow-lg border-r border-gray-200 ${isSidebarOpen ? 'lg:w-72' : 'lg:w-20'
+          }`}
         animate={{ width: isSidebarOpen ? 288 : 80 }}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
       >
@@ -256,8 +252,8 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
             </div>
             {isSidebarOpen && (
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">Quản lý nông trại</p>
-                <p className="text-xs text-gray-500 truncate">manager@farm.com</p>
+                <p className="text-sm font-medium text-gray-900 truncate">{APP_CONFIG.DEFAULT_USER.name}</p>
+                <p className="text-xs text-gray-500 truncate">{APP_CONFIG.DEFAULT_USER.email}</p>
               </div>
             )}
             {isSidebarOpen && (
@@ -343,31 +339,6 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
                   <Menu className="h-5 w-5" />
                 </Button>
 
-                {/* Breadcrumbs hidden */}
-                <nav className="hidden">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => navigate('/')}
-                    className="text-gray-500 hover:text-gray-700 p-2 flex-shrink-0"
-                    title="Về trang chủ"
-                  >
-                    <Home className="h-4 w-4" />
-                  </Button>
-                  {breadcrumbs.map((crumb, index) => (
-                    <React.Fragment key={`breadcrumb-${crumb.href}-${index}`}>
-                      <ChevronRight className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                      <button
-                        onClick={() => navigate(crumb.href)}
-                        className="text-gray-500 hover:text-gray-700 font-medium truncate"
-                        title={crumb.name}
-                      >
-                        <span className="hidden sm:inline">{crumb.name}</span>
-                        <span className="sm:hidden truncate max-w-24">{crumb.name}</span>
-                      </button>
-                    </React.Fragment>
-                  ))}
-                </nav>
               </div>
 
               <div className="flex items-center space-x-2 sm:space-x-4">

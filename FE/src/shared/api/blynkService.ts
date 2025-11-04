@@ -71,7 +71,6 @@ class BlynkService {
         connectionStrength: this.calculateConnectionStrength(data),
       }
     } catch (error) {
-      console.error('Failed to fetch Blynk data:', error)
       throw error
     }
   }
@@ -132,7 +131,6 @@ class BlynkService {
 
       return response.ok
     } catch (error) {
-      console.error('Failed to send control command:', error)
       return false
     }
   }

@@ -334,8 +334,9 @@ export const useIrrigationStore = create<IrrigationState>((set, get) => ({
   setSelectedTab: (tab: string) => {
     set({ selectedTab: tab })
     // Persist to localStorage
-    const { userPreferences } = require('@/shared/lib/localData/storage')
-    userPreferences.set({ lastSelectedTab: { irrigation: tab } })
+    import('@/shared/lib/localData/storage').then(({ userPreferences }) => {
+      userPreferences.set({ lastSelectedTab: { irrigation: tab } })
+    })
   },
 
   setLoadingState: (key: string, state: LoadingState) => {

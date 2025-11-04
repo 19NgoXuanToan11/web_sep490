@@ -1,55 +1,85 @@
-import React from 'react'
+import React, { Suspense } from 'react'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
-import { HomePage } from '../pages/home'
-import { LoginPage } from '@/pages/auth/LoginPage'
-import ManagerDashboard from '@/pages/manager/dashboard'
-import IrrigationPage from '@/pages/manager/irrigation'
-
-// Admin route imports
-import AdminUsersPage from '@/pages/admin/users'
-import AdminDashboard from '@/pages/admin/dashboard'
-import AdminDevicesPage from '@/pages/admin/devices'
-import AdminFarmsPage from '@/pages/admin/farms'
-import ProfilePage from '@/pages/profile'
-
-// Staff route imports
-import StaffOperationsPage from '@/pages/staff/operations'
-import StaffWorkLogsPage from '@/pages/staff/work-logs'
-import StaffQualityChecksPage from '@/pages/staff/quality-checks'
-
-// Manager route imports
-import ManagerCategoriesPage from '@/pages/manager/categories'
-import ManagerCropsPage from '@/pages/manager/crops'
-import ManagerFarmActivitiesPage from '@/pages/manager/farm-activities'
-import ManagerIoTDevicesPage from '@/pages/manager/iot-devices'
-import RealTimeIoTDashboard from '@/pages/manager/iot-dashboard'
-import ManagerOrdersPage from '@/pages/manager/orders'
-import { ProductsPage } from '@/features/products-management/pages/ProductsPage'
-
-// Payment result page (public)
-import PaymentResultPage from '@/pages/payment/PaymentResultPage'
-
-// RBAC components
-const Unauthorized = React.lazy(() => import('@/pages/Unauthorized'))
 import { RoleGuard } from '@/shared/ui/router/RoleGuard'
+
+// Lazy load all pages for better performance
+const HomePage = React.lazy(() => import('../pages/home').then(m => ({ default: m.HomePage })))
+const LoginPage = React.lazy(() => import('@/pages/auth/LoginPage').then(m => ({ default: m.LoginPage })))
+
+// Admin pages
+const AdminUsersPage = React.lazy(() => import('@/pages/admin/users'))
+const AdminDashboard = React.lazy(() => import('@/pages/admin/dashboard'))
+const AdminDevicesPage = React.lazy(() => import('@/pages/admin/devices'))
+const AdminFarmsPage = React.lazy(() => import('@/pages/admin/farms'))
+
+// Manager pages
+const ManagerDashboard = React.lazy(() => import('@/pages/manager/dashboard'))
+const IrrigationPage = React.lazy(() => import('@/pages/manager/irrigation'))
+const ManagerCategoriesPage = React.lazy(() => import('@/pages/manager/categories'))
+const ManagerCropsPage = React.lazy(() => import('@/pages/manager/crops'))
+const ManagerFarmActivitiesPage = React.lazy(() => import('@/pages/manager/farm-activities'))
+const ManagerIoTDevicesPage = React.lazy(() => import('@/pages/manager/iot-devices'))
+const RealTimeIoTDashboard = React.lazy(() => import('@/pages/manager/iot-dashboard'))
+const ManagerOrdersPage = React.lazy(() => import('@/pages/manager/orders'))
+const ProductsPage = React.lazy(() => import('@/features/products-management/pages/ProductsPage').then(m => ({ default: m.ProductsPage })))
+
+// Staff pages
+const StaffOperationsPage = React.lazy(() => import('@/pages/staff/operations'))
+const StaffWorkLogsPage = React.lazy(() => import('@/pages/staff/work-logs'))
+const StaffQualityChecksPage = React.lazy(() => import('@/pages/staff/quality-checks'))
+
+// Common pages
+const ProfilePage = React.lazy(() => import('@/pages/profile'))
+const PaymentResultPage = React.lazy(() => import('@/pages/payment/PaymentResultPage'))
+const Unauthorized = React.lazy(() => import('@/pages/Unauthorized'))
+
+// Loading component
+const PageLoader = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+  </div>
+)
+
+// Wrapper component for lazy loaded pages
+const LazyWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <Suspense fallback={<PageLoader />}>
+    {children}
+  </Suspense>
+)
 
 // Router configuration - moved to separate constant to avoid fast-refresh issues
 const routerConfig = [
   {
     path: '/',
-    element: <HomePage />,
+    element: (
+      <LazyWrapper>
+        <HomePage />
+      </LazyWrapper>
+    ),
   },
   {
     path: '/unauthorized',
-    element: <Unauthorized />,
+    element: (
+      <LazyWrapper>
+        <Unauthorized />
+      </LazyWrapper>
+    ),
   },
   {
     path: '/login',
-    element: <LoginPage />,
+    element: (
+      <LazyWrapper>
+        <LoginPage />
+      </LazyWrapper>
+    ),
   },
   {
     path: '/payment-result',
-    element: <PaymentResultPage />,
+    element: (
+      <LazyWrapper>
+        <PaymentResultPage />
+      </LazyWrapper>
+    ),
   },
   // {
   //   path: '/register',
@@ -59,129 +89,169 @@ const routerConfig = [
   {
     path: '/manager/dashboard',
     element: (
-      <RoleGuard allowed={['Manager']}>
-        <ManagerDashboard />
-      </RoleGuard>
+      <LazyWrapper>
+        <RoleGuard allowed={['Manager']}>
+          <ManagerDashboard />
+        </RoleGuard>
+      </LazyWrapper>
     ),
   },
   {
     path: '/manager/irrigation',
     element: (
-      <RoleGuard allowed={['Manager']}>
-        <IrrigationPage />
-      </RoleGuard>
+      <LazyWrapper>
+        <RoleGuard allowed={['Manager']}>
+          <IrrigationPage />
+        </RoleGuard>
+      </LazyWrapper>
     ),
   },
   {
     path: '/manager/categories',
     element: (
-      <RoleGuard allowed={['Manager']}>
-        <ManagerCategoriesPage />
-      </RoleGuard>
+      <LazyWrapper>
+        <RoleGuard allowed={['Manager']}>
+          <ManagerCategoriesPage />
+        </RoleGuard>
+      </LazyWrapper>
     ),
   },
   {
     path: '/manager/crops',
     element: (
-      <RoleGuard allowed={['Manager']}>
-        <ManagerCropsPage />
-      </RoleGuard>
+      <LazyWrapper>
+        <RoleGuard allowed={['Manager']}>
+          <ManagerCropsPage />
+        </RoleGuard>
+      </LazyWrapper>
     ),
   },
   {
     path: '/manager/farm-activities',
     element: (
-      <RoleGuard allowed={['Manager']}>
-        <ManagerFarmActivitiesPage />
-      </RoleGuard>
+      <LazyWrapper>
+        <RoleGuard allowed={['Manager']}>
+          <ManagerFarmActivitiesPage />
+        </RoleGuard>
+      </LazyWrapper>
     ),
   },
   {
     path: '/manager/iot-devices',
     element: (
-      <RoleGuard allowed={['Manager']}>
-        <ManagerIoTDevicesPage />
-      </RoleGuard>
+      <LazyWrapper>
+        <RoleGuard allowed={['Manager']}>
+          <ManagerIoTDevicesPage />
+        </RoleGuard>
+      </LazyWrapper>
     ),
   },
   {
     path: '/manager/iot-dashboard',
     element: (
-      <RoleGuard allowed={['Manager']}>
-        <RealTimeIoTDashboard />
-      </RoleGuard>
+      <LazyWrapper>
+        <RoleGuard allowed={['Manager']}>
+          <RealTimeIoTDashboard />
+        </RoleGuard>
+      </LazyWrapper>
     ),
   },
   {
     path: '/manager/orders',
     element: (
-      <RoleGuard allowed={['Manager']}>
-        <ManagerOrdersPage />
-      </RoleGuard>
+      <LazyWrapper>
+        <RoleGuard allowed={['Manager']}>
+          <ManagerOrdersPage />
+        </RoleGuard>
+      </LazyWrapper>
     ),
   },
   {
     path: '/manager/products',
     element: (
-      <RoleGuard allowed={['Manager']}>
-        <ProductsPage />
-      </RoleGuard>
+      <LazyWrapper>
+        <RoleGuard allowed={['Manager']}>
+          <ProductsPage />
+        </RoleGuard>
+      </LazyWrapper>
     ),
   },
   // Admin routes for system administration
   {
     path: '/admin/dashboard',
     element: (
-      <RoleGuard allowed={['Admin']}>
-        <AdminDashboard />
-      </RoleGuard>
+      <LazyWrapper>
+        <RoleGuard allowed={['Admin']}>
+          <AdminDashboard />
+        </RoleGuard>
+      </LazyWrapper>
     ),
   },
   {
     path: '/admin/users',
     element: (
-      <RoleGuard allowed={['Admin']}>
-        <AdminUsersPage />
-      </RoleGuard>
+      <LazyWrapper>
+        <RoleGuard allowed={['Admin']}>
+          <AdminUsersPage />
+        </RoleGuard>
+      </LazyWrapper>
     ),
   },
   {
     path: '/admin/devices',
     element: (
-      <RoleGuard allowed={['Admin']}>
-        <AdminDevicesPage />
-      </RoleGuard>
+      <LazyWrapper>
+        <RoleGuard allowed={['Admin']}>
+          <AdminDevicesPage />
+        </RoleGuard>
+      </LazyWrapper>
     ),
   },
   {
     path: '/admin/farms',
     element: (
-      <RoleGuard allowed={['Admin']}>
-        <AdminFarmsPage />
-      </RoleGuard>
+      <LazyWrapper>
+        <RoleGuard allowed={['Admin']}>
+          <AdminFarmsPage />
+        </RoleGuard>
+      </LazyWrapper>
     ),
   },
 
   // Staff routes for field operations
   {
     path: '/staff/operations',
-    element: <StaffOperationsPage />,
+    element: (
+      <LazyWrapper>
+        <StaffOperationsPage />
+      </LazyWrapper>
+    ),
   },
   {
     path: '/staff/work-logs',
-    element: <StaffWorkLogsPage />,
+    element: (
+      <LazyWrapper>
+        <StaffWorkLogsPage />
+      </LazyWrapper>
+    ),
   },
   {
     path: '/staff/quality-checks',
-    element: <StaffQualityChecksPage />,
+    element: (
+      <LazyWrapper>
+        <StaffQualityChecksPage />
+      </LazyWrapper>
+    ),
   },
   // Common profile page for all authenticated roles
   {
     path: '/profile',
     element: (
-      <RoleGuard allowed={['Admin', 'Manager', 'Staff']}>
-        <ProfilePage />
-      </RoleGuard>
+      <LazyWrapper>
+        <RoleGuard allowed={['Admin', 'Manager', 'Staff']}>
+          <ProfilePage />
+        </RoleGuard>
+      </LazyWrapper>
     ),
   },
 ]

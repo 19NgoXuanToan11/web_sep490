@@ -3,13 +3,16 @@ import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/shared/ui'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui'
+import { useToast } from '@/shared/ui/use-toast'
 import { Mail, Lock, ArrowRight, Home } from 'lucide-react'
 import { authApi } from '@/shared/api/auth'
 import { useAuthStore } from '@/shared/store/authStore'
+import { handleApiError } from '@/shared/lib/error-handler'
 
 export const LoginPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const navigate = useNavigate()
+  const { toast } = useToast()
 
   const [form, setForm] = useState({ email: '', password: '' })
   const setToken = useAuthStore(s => s.setToken)
@@ -30,7 +33,7 @@ export const LoginPage: React.FC = () => {
         else navigate('/')
       }
     } catch (err) {
-      alert('Đăng nhập thất bại')
+      handleApiError(err, toast)
     } finally {
       setIsSubmitting(false)
     }

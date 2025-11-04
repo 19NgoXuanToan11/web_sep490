@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback } from 'react'
+import React, { useState, useCallback } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -7,10 +7,8 @@ import {
   Menu,
   X,
   Bell,
-  ChevronRight,
   Sprout,
   Trees,
-  Home,
   User,
   Activity,
   Cpu,
@@ -109,24 +107,6 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
     localStorage.setItem('manager-sidebar-open', JSON.stringify(newState))
   }, [])
 
-  const breadcrumbs = useMemo(() => {
-    const pathSegments = location.pathname.split('/').filter(Boolean)
-    const breadcrumbs = []
-
-    if (pathSegments[0] === 'manager') {
-      breadcrumbs.push({ name: 'Cổng quản lý', href: '/manager/dashboard' })
-
-      if (pathSegments[1]) {
-        const currentPage = navigationItems.find(item => item.href.includes(pathSegments[1]))
-        if (currentPage) {
-          breadcrumbs.push({ name: currentPage.name, href: currentPage.href })
-        }
-      }
-    }
-
-    return breadcrumbs
-  }, [location.pathname])
-
   const isActiveRoute = useCallback(
     (href: string) => {
       return location.pathname === href || location.pathname.startsWith(href + '/')
@@ -146,8 +126,8 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
       <motion.button
         onClick={handleClick}
         className={`w-full group flex items-center ${isSidebarOpen ? 'px-3' : 'px-2 justify-center'} py-2.5 text-sm font-medium rounded-lg transition-colors duration-200 ${isActive
-            ? 'bg-green-50 text-green-700 border-r-2 border-green-600'
-            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+          ? 'bg-green-50 text-green-700 border-r-2 border-green-600'
+          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
           }`}
         whileHover={{ scale: mobile ? 1 : 1.02 }}
         whileTap={{ scale: 0.98 }}

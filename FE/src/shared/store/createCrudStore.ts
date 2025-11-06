@@ -14,14 +14,12 @@ export interface LoadingState {
 }
 
 export interface CrudState<T> {
-  // Data
+
   items: T[]
   selectedItem: T | null
 
-  // UI State
   loadingStates: Record<string, LoadingState>
 
-  // Actions
   fetchAll: (params?: any) => Promise<void>
   fetchById: (id: string | number) => Promise<T>
   create: (data: any) => Promise<T>
@@ -34,12 +32,11 @@ export interface CrudState<T> {
 export const createCrudStore =
   <T>(service: CrudService<T>, storeName: string): StateCreator<CrudState<T>> =>
   (set, get) => ({
-    // Initial state
+
     items: [],
     selectedItem: null,
     loadingStates: {},
 
-    // Fetch all items
     fetchAll: async (params?: any) => {
       const key = `${storeName}-fetch-all`
       get().setLoadingState(key, { isLoading: true })
@@ -59,7 +56,6 @@ export const createCrudStore =
       }
     },
 
-    // Fetch single item by ID
     fetchById: async (id: string | number) => {
       const key = `${storeName}-fetch-${id}`
       get().setLoadingState(key, { isLoading: true })
@@ -78,7 +74,6 @@ export const createCrudStore =
       }
     },
 
-    // Create new item
     create: async (data: any) => {
       const key = `${storeName}-create`
       get().setLoadingState(key, { isLoading: true })
@@ -86,7 +81,6 @@ export const createCrudStore =
       try {
         const newItem = await service.create(data)
 
-        // Add to local state
         set(state => ({
           items: [...state.items, newItem],
         }))
@@ -102,7 +96,6 @@ export const createCrudStore =
       }
     },
 
-    // Update existing item
     update: async (id: string | number, data: any) => {
       const key = `${storeName}-update-${id}`
       get().setLoadingState(key, { isLoading: true })
@@ -110,7 +103,6 @@ export const createCrudStore =
       try {
         const updatedItem = await service.update(id, data)
 
-        // Update in local state
         set(state => ({
           items: state.items.map(item => ((item as any).id === id ? updatedItem : item)),
           selectedItem:
@@ -130,7 +122,6 @@ export const createCrudStore =
       }
     },
 
-    // Delete item
     delete: async (id: string | number) => {
       const key = `${storeName}-delete-${id}`
       get().setLoadingState(key, { isLoading: true })
@@ -138,7 +129,6 @@ export const createCrudStore =
       try {
         await service.delete(id)
 
-        // Remove from local state
         set(state => ({
           items: state.items.filter(item => (item as any).id !== id),
           selectedItem:
@@ -155,12 +145,10 @@ export const createCrudStore =
       }
     },
 
-    // Set selected item
     setSelectedItem: (item: T | null) => {
       set({ selectedItem: item })
     },
 
-    // Set loading state
     setLoadingState: (key: string, state: LoadingState) => {
       set(currentState => ({
         loadingStates: {

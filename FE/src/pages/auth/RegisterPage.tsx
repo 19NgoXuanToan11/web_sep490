@@ -31,7 +31,7 @@ export const RegisterPage: React.FC = () => {
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black">
-      {/* Background video with subtle parallax */}
+      {}
       <motion.video
         src="/videos/farm2.mp4"
         autoPlay
@@ -45,10 +45,10 @@ export const RegisterPage: React.FC = () => {
       />
       <div className="absolute inset-0" />
 
-      {/* Animated grid */}
+      {}
       <div className="absolute inset-0 opacity-[0.07] bg-[size:48px_48px]" />
 
-      {/* Back to Home Button */}
+      {}
       <motion.div
         className="absolute top-8 left-8 z-20"
         initial={{ opacity: 0, x: -20 }}

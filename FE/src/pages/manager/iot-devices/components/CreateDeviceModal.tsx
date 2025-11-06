@@ -29,15 +29,15 @@ const deviceTypes = [
 ]
 
 const units = [
-  '°C', // Temperature
-  '%', // Humidity, Soil Moisture
-  'pH', // pH levels
-  'lux', // Light
-  'cm', // Water level
-  'ppm', // Parts per million
-  'V', // Voltage
-  'A', // Current
-  'none', // No unit
+  '°C',
+  '%',
+  'pH',
+  'lux',
+  'cm',
+  'ppm',
+  'V',
+  'A',
+  'none',
 ]
 
 export const CreateDeviceModal: React.FC<CreateDeviceModalProps> = ({
@@ -53,7 +53,7 @@ export const CreateDeviceModal: React.FC<CreateDeviceModalProps> = ({
     sensorValue: '',
     unit: '',
     expiryDate: '',
-    farmDetailsId: 1, // Default farm ID - should be dynamic in real app
+    farmDetailsId: 1,
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -70,7 +70,7 @@ export const CreateDeviceModal: React.FC<CreateDeviceModalProps> = ({
 
     try {
       setLoading(true)
-      // Convert 'none' unit to empty string for API
+
       const submissionData = {
         ...formData,
         unit: formData.unit === 'none' ? '' : formData.unit,
@@ -82,7 +82,6 @@ export const CreateDeviceModal: React.FC<CreateDeviceModalProps> = ({
         description: 'Đã tạo thiết bị IoT mới',
       })
 
-      // Reset form
       setFormData({
         deviceName: '',
         deviceType: '',

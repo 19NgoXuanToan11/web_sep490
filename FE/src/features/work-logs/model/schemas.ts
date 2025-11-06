@@ -1,6 +1,5 @@
 import { z } from 'zod'
 
-// Work log entry schema
 export const workLogSchema = z.object({
   id: z.string().optional(),
   date: z.string().min(1, 'Date is required'),
@@ -24,7 +23,6 @@ export const workLogSchema = z.object({
     .optional(),
 })
 
-// Work log filter schema
 export const workLogFilterSchema = z.object({
   dateFrom: z.string().optional(),
   dateTo: z.string().optional(),
@@ -35,11 +33,9 @@ export const workLogFilterSchema = z.object({
   task: z.string().optional(),
 })
 
-// Type exports
 export type WorkLogData = z.infer<typeof workLogSchema>
 export type WorkLogFilterData = z.infer<typeof workLogFilterSchema>
 
-// Task categories
 export const taskCategories = [
   'Quản lý tưới tiêu',
   'Giám sát cây trồng',
@@ -57,7 +53,6 @@ export const taskCategories = [
   'Khác',
 ]
 
-// Zone options (matching with other features)
 export const zoneOptions = [
   'Zone A - Greenhouse 1',
   'Zone B - Outdoor Field',
@@ -69,11 +64,9 @@ export const zoneOptions = [
   'Zone H - Seedling Area',
 ]
 
-// Validation helpers
 export const validateWorkLog = (data: unknown) => workLogSchema.safeParse(data)
 export const validateWorkLogFilter = (data: unknown) => workLogFilterSchema.safeParse(data)
 
-// Default form values
 export const defaultWorkLogValues: WorkLogData = {
   date: new Date().toISOString().split('T')[0],
   startTime: '08:00',
@@ -88,7 +81,6 @@ export const defaultWorkLogValues: WorkLogData = {
   photos: [],
 }
 
-// Priority configurations
 export const priorityConfig = {
   low: {
     label: 'Thấp',
@@ -116,7 +108,6 @@ export const priorityConfig = {
   },
 }
 
-// Status configurations
 export const statusConfig = {
   'in-progress': {
     label: 'Đang thực hiện',
@@ -138,7 +129,6 @@ export const statusConfig = {
   },
 }
 
-// Equipment options
 export const equipmentOptions = [
   'Hệ thống tưới tiêu',
   'Máy kéo',
@@ -155,7 +145,6 @@ export const equipmentOptions = [
   'Thiết bị an toàn',
 ]
 
-// Sort options for work logs
 export const workLogSortOptions = [
   { value: 'date', label: 'Ngày' },
   { value: 'priority', label: 'Độ ưu tiên' },
@@ -165,7 +154,6 @@ export const workLogSortOptions = [
   { value: 'assignedTo', label: 'Người thực hiện' },
 ]
 
-// Time slots for scheduling
 export const timeSlots = [
   '06:00',
   '06:30',

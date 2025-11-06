@@ -1,4 +1,3 @@
-// Core data models for the IFMS Farm Manager features
 
 export type DeviceStatus = 'Idle' | 'Running' | 'Paused'
 
@@ -7,8 +6,8 @@ export interface Device {
   zone: string
   name: string
   status: DeviceStatus
-  lastRun: string // ISO string
-  nextRun: string // ISO string
+  lastRun: string
+  nextRun: string
   uptimePct: number
 }
 
@@ -18,24 +17,23 @@ export interface IrrigationSchedule {
   id: string
   deviceId: string
   title: string
-  recurrenceText: string // Human-readable description like "Daily at 6:00 AM"
-  startTime: string // HH:MM format
-  endTime: string // HH:MM format
+  recurrenceText: string
+  startTime: string
+  endTime: string
   moistureThresholdPct: number
   enabled: boolean
-  nextRun: string // ISO string
+  nextRun: string
   status: ScheduleStatus
 }
 
 export interface IrrigationRule {
   id: string
   name: string
-  conditionText: string // Human-readable rule description
+  conditionText: string
   enabled: boolean
-  createdAt: string // ISO string
+  createdAt: string
 }
 
-// Utility types for forms and UI - Updated to support Staff operations
 export interface DeviceAction {
   type: 'start' | 'stop' | 'pause' | 'run-now' | 'maintenance'
   deviceId: string
@@ -64,16 +62,13 @@ export interface ReportFilters {
   timeRange: TimeRange
 }
 
-// Table density preference
 export type TableDensity = 'compact' | 'comfortable'
 
-// Common UI states
 export interface LoadingState {
   isLoading: boolean
   error?: string | null
 }
 
-// Search and pagination
 export interface SearchState {
   query: string
   sortBy: string
@@ -86,11 +81,6 @@ export interface PaginationState {
   total: number
 }
 
-// =======================================================
-// ADMIN & STAFF ROLE EXTENSIONS
-// =======================================================
-
-// User Management (Admin)
 export type UserRole = 'CUSTOMER' | 'MANAGER' | 'STAFF'
 export type UserStatus = 'Active' | 'Inactive'
 
@@ -100,12 +90,11 @@ export interface User {
   email: string
   roles: UserRole[]
   status: UserStatus
-  lastLogin: string | null // ISO string or null if never logged in
-  createdAt: string // ISO string
-  updatedAt: string // ISO string
+  lastLogin: string | null
+  createdAt: string
+  updatedAt: string
 }
 
-// System Settings (Admin)
 export interface SystemSettings {
   general: {
     systemName: string
@@ -118,17 +107,16 @@ export interface SystemSettings {
     alertFrequency: 'daily' | 'weekly' | 'monthly'
   }
   iotConfig: {
-    defaultPollingInterval: number // minutes
+    defaultPollingInterval: number
     sensorThresholds: {
       temperature: { min: number; max: number }
       moisture: { min: number; max: number }
       ph: { min: number; max: number }
     }
   }
-  updatedAt: string // ISO string
+  updatedAt: string
 }
 
-// Staff Device Operations
 export type StaffDeviceStatus = 'Idle' | 'Running' | 'Paused' | 'Maintenance'
 
 export interface StaffDevice {
@@ -136,14 +124,13 @@ export interface StaffDevice {
   name: string
   zone: string
   status: StaffDeviceStatus
-  lastAction: string // ISO string
-  nextSchedule: string | null // ISO string or null
-  batteryLevel?: number // 0-100, optional for battery-powered devices
+  lastAction: string
+  nextSchedule: string | null
+  batteryLevel?: number
   needsMaintenance: boolean
   uptimePct: number
 }
 
-// Work Logs (Staff)
 export type TaskType =
   | 'Irrigation'
   | 'Fertilization'
@@ -155,17 +142,16 @@ export type TaskType =
 
 export interface WorkLog {
   id: string
-  date: string // ISO string
+  date: string
   taskType: TaskType
   notes: string
-  deviceId?: string // Optional device reference
-  duration?: number // minutes, optional
-  createdBy: string // User ID
-  createdAt: string // ISO string
-  updatedAt: string // ISO string
+  deviceId?: string
+  duration?: number
+  createdBy: string
+  createdAt: string
+  updatedAt: string
 }
 
-// Quality Checks (Staff)
 export interface QualityCheckItem {
   id: string
   name: string
@@ -177,15 +163,14 @@ export interface QualityCheck {
   id: string
   productBatchId: string
   productName: string
-  checkedDate: string // ISO string
-  checkedBy: string // User ID
+  checkedDate: string
+  checkedBy: string
   items: QualityCheckItem[]
   overallStatus: 'Pass' | 'Fail' | 'Pending'
-  createdAt: string // ISO string
-  updatedAt: string // ISO string
+  createdAt: string
+  updatedAt: string
 }
 
-// Form data interfaces for Admin/Staff features
 export interface UserFormData {
   name: string
   email: string

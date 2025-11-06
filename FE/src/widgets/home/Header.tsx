@@ -7,7 +7,7 @@ import { useLocation, useNavigate } from 'react-router-dom'
 const navigationItems: { name: string; href: string }[] = []
 
 const roleItems = [
-  // Ẩn các nút truy cập nhanh theo role trên landing page
+
 ]
 
 export const Header: React.FC = () => {
@@ -50,7 +50,7 @@ export const Header: React.FC = () => {
     >
       <nav className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
-          {/* Logo */}
+          {}
           <motion.div
             className="flex items-center space-x-3"
             whileHover={{ scale: 1.05 }}
@@ -65,7 +65,7 @@ export const Header: React.FC = () => {
             </div>
           </motion.div>
 
-          {/* Desktop Navigation */}
+          {}
           <div className="hidden lg:flex items-center space-x-8">
             {navigationItems.map((item, index) => (
               <button
@@ -80,19 +80,12 @@ export const Header: React.FC = () => {
             ))}
           </div>
 
-          {/* Role Links */}
+          {}
           <div className="hidden lg:flex items-center space-x-3 mx-6" />
 
-          {/* CTA Buttons & Mobile Menu */}
+          {}
           <div className="flex items-center space-x-3">
-            {/* <Button
-              className="hidden lg:inline-flex bg-white/0 border border-white/30 text-white hover:bg-white/10 lg:backdrop-blur-sm lg:border-border"
-              variant="outline"
-              onClick={() => navigate('/register')}
-              style={{ color: '#525252' }}
-            >
-              Register
-            </Button> */}
+            {}
             <Button
               className="hidden lg:inline-flex bg-brand hover:bg-brand-hover text-white"
               onClick={() => navigate('/login')}
@@ -100,7 +93,7 @@ export const Header: React.FC = () => {
               Đăng nhập
             </Button>
 
-            {/* Mobile menu button */}
+            {}
             <button
               className={`lg:hidden p-2 rounded-md transition-colors duration-200 ${
                 isScrolled ? 'text-foreground hover:bg-muted' : 'text-white hover:bg-white/10'
@@ -112,7 +105,7 @@ export const Header: React.FC = () => {
           </div>
         </div>
 
-        {/* Mobile Navigation */}
+        {}
         <AnimatePresence>
           {isMobileMenuOpen && (
             <motion.div
@@ -137,7 +130,7 @@ export const Header: React.FC = () => {
                     </motion.button>
                   ))}
 
-                  {/* Role Items in Mobile */}
+                  {}
                   <div className="border-t border-border pt-4 mt-4" />
 
                   <motion.div

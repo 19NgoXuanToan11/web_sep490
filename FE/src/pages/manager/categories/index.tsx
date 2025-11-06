@@ -155,7 +155,7 @@ export default function CategoriesPage() {
     <ManagerLayout>
       <div className="container mx-auto px-4 py-8">
         <div className="space-y-6">
-          {/* Header */}
+          {}
           <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Quản lý danh mục</h1>
@@ -181,7 +181,7 @@ export default function CategoriesPage() {
             </div>
           </div>
 
-          {/* Search and Stats */}
+          {}
           <div className="grid gap-4 md:grid-cols-4">
             <Card className="md:col-span-3">
               <CardContent className="p-4">
@@ -210,7 +210,7 @@ export default function CategoriesPage() {
             </Card>
           </div>
 
-          {/* Categories Table */}
+          {}
           <Card>
             <CardHeader>
               <CardTitle>Danh mục</CardTitle>
@@ -286,7 +286,7 @@ export default function CategoriesPage() {
         </div>
       </div>
 
-      {/* Create Category Dialog */}
+      {}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -320,7 +320,7 @@ export default function CategoriesPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Category Dialog */}
+      {}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -355,7 +355,7 @@ export default function CategoriesPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Category Dialog */}
+      {}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>

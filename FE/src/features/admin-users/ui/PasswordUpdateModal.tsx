@@ -104,7 +104,7 @@ export const PasswordUpdateModal: React.FC<PasswordUpdateModalProps> = ({
         )}
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          {/* Old Password */}
+          {}
           <div className="space-y-2">
             <Label htmlFor="oldPassword">Mật khẩu cũ *</Label>
             <div className="relative">
@@ -129,7 +129,7 @@ export const PasswordUpdateModal: React.FC<PasswordUpdateModalProps> = ({
             )}
           </div>
 
-          {/* New Password */}
+          {}
           <div className="space-y-2">
             <Label htmlFor="newPassword">Mật khẩu mới *</Label>
             <div className="relative">
@@ -154,7 +154,7 @@ export const PasswordUpdateModal: React.FC<PasswordUpdateModalProps> = ({
             )}
           </div>
 
-          {/* Confirm Password */}
+          {}
           <div className="space-y-2">
             <Label htmlFor="confirmPassword">Xác nhận mật khẩu *</Label>
             <div className="relative">
@@ -179,7 +179,7 @@ export const PasswordUpdateModal: React.FC<PasswordUpdateModalProps> = ({
             )}
           </div>
 
-          {/* Form Actions */}
+          {}
           <div className="flex justify-end gap-3 pt-4 border-t">
             <Button type="button" variant="outline" onClick={handleClose} disabled={isLoading}>
               Hủy

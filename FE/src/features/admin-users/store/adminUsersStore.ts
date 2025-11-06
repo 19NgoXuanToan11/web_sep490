@@ -12,14 +12,12 @@ import { userPreferences } from '@/shared/lib/localData/storage'
 import { accountApi, type AccountDto } from '@/shared/api/auth'
 import type { UserFormData } from '../model/schemas'
 
-// Define Role interface locally
 interface Role {
   id: string
   name: UserRole
   description: string
 }
 
-// Define initial roles
 const initialRoles: Role[] = [
   { id: '1', name: 'CUSTOMER', description: 'Customer role' },
   { id: '2', name: 'MANAGER', description: 'Manager role' },
@@ -27,52 +25,43 @@ const initialRoles: Role[] = [
 ]
 
 interface AdminUsersState {
-  // Data
+
   users: User[]
   roles: Role[]
 
-  // UI State
   loadingStates: Record<string, LoadingState>
   searchState: SearchState
   paginationState: PaginationState
   tableDensity: TableDensity
   selectedUserIds: string[]
 
-  // Filters
   roleFilter: string
   statusFilter: string
 
-  // Actions
   initializeData: () => void
 
-  // User CRUD operations
   createUser: (data: UserFormData) => Promise<void>
   updateUser: (id: string, data: Partial<UserFormData>) => Promise<void>
   deleteUser: (id: string) => Promise<void>
   bulkDeleteUsers: (userIds: string[]) => Promise<void>
 
-  // Bulk actions
   bulkActivateUsers: (userIds: string[]) => Promise<void>
   bulkDeactivateUsers: (userIds: string[]) => Promise<void>
   bulkAssignRole: (userIds: string[], role: UserRole) => Promise<void>
 
-  // Search and filter actions
   setSearch: (query: string) => void
   setSort: (sortBy: string, sortOrder: 'asc' | 'desc') => void
   setRoleFilter: (role: string) => void
   setStatusFilter: (status: string) => void
   setPagination: (page: number, pageSize?: number) => void
 
-  // Selection actions
   toggleUserSelection: (userId: string) => void
   selectAllUsers: () => void
   clearSelection: () => void
 
-  // UI actions
   setTableDensity: (density: TableDensity) => void
   setLoadingState: (key: string, state: LoadingState) => void
 
-  // Computed getters
   getFilteredUsers: () => User[]
   getPaginatedUsers: () => User[]
   getTotalCount: () => number
@@ -82,7 +71,7 @@ interface AdminUsersState {
 }
 
 export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
-  // Initial state
+
   users: [],
   roles: [],
   loadingStates: {},
@@ -101,7 +90,6 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
   roleFilter: '',
   statusFilter: '',
 
-  // Initialize data from API
   initializeData: async () => {
     const prefs = userPreferences.get()
     const key = 'fetch-users'
@@ -117,7 +105,7 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
       })
 
       const users: User[] = response.items.map((a: AccountDto) => {
-        // Ensure we have a valid ID from the API
+
         if (!a.accountId) {
           throw new Error(`Account ${a.email} is missing accountId from API`)
         }
@@ -149,7 +137,7 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
       })
       get().setLoadingState(key, { isLoading: false })
     } catch (error) {
-      // keep state empty; UI should show toast elsewhere if needed
+
       set({
         users: [],
         roles: [...initialRoles],
@@ -162,7 +150,6 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
     }
   },
 
-  // User CRUD operations
   createUser: async (data: UserFormData) => {
     const key = 'create-user'
     get().setLoadingState(key, { isLoading: true })
@@ -173,7 +160,7 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
         password: 'Password@123',
         role: (data.role || 'Staff') as any,
       })
-      // reload list
+
       await get().initializeData()
 
       get().setLoadingState(key, { isLoading: false })
@@ -191,13 +178,12 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
     get().setLoadingState(key, { isLoading: true })
 
     try {
-      // Validate user ID
+
       const userId = Number(id)
       if (isNaN(userId)) {
         throw new Error(`Invalid user ID: ${id}`)
       }
 
-      // Map role names to role IDs (based on backend enum: Customer=0, Admin=1, Manager=2, Staff=3)
       const roleMap = {
         CUSTOMER: 0,
         ADMIN: 1,
@@ -233,7 +219,7 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
     get().setLoadingState(key, { isLoading: true })
 
     try {
-      // No delete endpoint in list, emulate deactivate
+
       await accountApi.updateStatus(Number(id), { status: 'Inactive' })
       await get().initializeData()
 
@@ -267,7 +253,6 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
     }
   },
 
-  // Bulk actions
   bulkActivateUsers: async (userIds: string[]) => {
     const key = 'bulk-activate-users'
     get().setLoadingState(key, { isLoading: true })
@@ -313,7 +298,7 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
     get().setLoadingState(key, { isLoading: true })
 
     try {
-      // Map role names to role IDs (based on backend enum: Customer=0, Admin=1, Manager=2, Staff=3)
+
       const roleMap = {
         CUSTOMER: 0,
         MANAGER: 2,
@@ -341,7 +326,6 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
     }
   },
 
-  // Search and filter actions
   setSearch: (query: string) => {
     set(state => ({
       searchState: { ...state.searchState, query },
@@ -378,11 +362,10 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
         pageSize: pageSize || state.paginationState.pageSize,
       },
     }))
-    // Reload data with new pagination
+
     get().initializeData()
   },
 
-  // Selection actions
   toggleUserSelection: (userId: string) => {
     set(state => ({
       selectedUserIds: state.selectedUserIds.includes(userId)
@@ -400,7 +383,6 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
     set({ selectedUserIds: [] })
   },
 
-  // UI actions
   setTableDensity: (density: TableDensity) => {
     set({ tableDensity: density })
     userPreferences.set({ tableDensity: density })
@@ -415,23 +397,19 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
     }))
   },
 
-  // Computed getters
   getFilteredUsers: () => {
     const { users, searchState, roleFilter, statusFilter } = get()
 
     let filtered = users
 
-    // Apply role filter
     if (roleFilter && roleFilter !== '__all__') {
       filtered = filtered.filter(user => user.roles[0] === roleFilter)
     }
 
-    // Apply status filter
     if (statusFilter && statusFilter !== '__all__') {
       filtered = filtered.filter(user => user.status === statusFilter)
     }
 
-    // Only apply frontend search filter if we have a local search query
     if (searchState.query) {
       const query = searchState.query.toLowerCase()
       filtered = filtered.filter(
@@ -442,7 +420,6 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
       )
     }
 
-    // Apply sorting
     filtered = filtered.sort((a, b) => {
       let aValue: any
       let bValue: any
@@ -467,7 +444,7 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
   },
 
   getPaginatedUsers: () => {
-    // Since pagination is handled by backend, just return filtered users
+
     return get().getFilteredUsers()
   },
 

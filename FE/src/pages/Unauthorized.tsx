@@ -16,19 +16,18 @@ const Unauthorized: React.FC = () => {
       : 'Tài khoản của bạn không có quyền vào trang này.'
 
   const handleGoBack = () => {
-    // Try to go back in browser history first
-    // This will take the user back to the previous page (e.g., admin page)
+
     if (window.history.length > 1) {
       navigate(-1)
     } else {
-      // Fallback to home if no history (e.g., direct URL access)
+
       navigate('/')
     }
   }
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black text-white">
-      {/* Subtle animated background */}
+      {}
       <motion.div
         className="absolute -top-24 -left-24 w-[36rem] h-[36rem] rounded-full bg-brand/20 blur-[110px]"
         animate={{ y: [0, 20, 0], opacity: [0.55, 0.75, 0.55] }}
@@ -46,7 +45,7 @@ const Unauthorized: React.FC = () => {
         transition={{ duration: 0.5 }}
         className="relative z-10 w-full max-w-lg"
       >
-        {/* Glass card */}
+        {}
         <div className="group rounded-2xl p-[1px] bg-gradient-to-b from-white/25 to-white/5 shadow-2xl">
           <div className="rounded-2xl bg-white/10 backdrop-blur-xl border border-white/15 p-8">
             <div className="flex items-center gap-4 mb-4">
@@ -59,7 +58,7 @@ const Unauthorized: React.FC = () => {
               </div>
             </div>
 
-            {/* Actions */}
+            {}
             <div className="flex gap-3">
               <Link
                 to="/login"

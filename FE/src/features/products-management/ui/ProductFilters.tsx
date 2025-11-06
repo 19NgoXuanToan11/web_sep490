@@ -15,12 +15,10 @@ export function ProductFilters({ className }: ProductFiltersProps) {
 
   const [localSearch, setLocalSearch] = React.useState(filters.search || '')
 
-  // Load categories on mount
   React.useEffect(() => {
     fetchCategories().catch(console.error)
   }, [fetchCategories])
 
-  // Debounced search
   React.useEffect(() => {
     const timer = setTimeout(() => {
       setFilters({ search: localSearch })
@@ -62,10 +60,10 @@ export function ProductFilters({ className }: ProductFiltersProps) {
 
   return (
     <div className={`space-y-4 ${className}`}>
-      {/* Modern Horizontal Filter Bar */}
+      {}
       <div className="bg-white border rounded-lg p-4 shadow-sm">
         <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center">
-          {/* Search - Takes more space */}
+          {}
           <div className="relative flex-1 min-w-0 lg:max-w-sm">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
@@ -76,9 +74,9 @@ export function ProductFilters({ className }: ProductFiltersProps) {
             />
           </div>
 
-          {/* Filter Controls */}
+          {}
           <div className="flex flex-wrap lg:flex-nowrap gap-3 items-center w-full lg:w-auto">
-            {/* Category Filter */}
+            {}
             <div className="min-w-[140px]">
               <Select
                 value={filters.categoryId?.toString() || 'all'}
@@ -98,7 +96,7 @@ export function ProductFilters({ className }: ProductFiltersProps) {
               </Select>
             </div>
 
-            {/* Status Filter */}
+            {}
             <div className="min-w-[120px]">
               <Select value={filters.status || 'all'} onValueChange={handleStatusChange}>
                 <SelectTrigger className="h-10 text-sm">
@@ -112,7 +110,7 @@ export function ProductFilters({ className }: ProductFiltersProps) {
               </Select>
             </div>
 
-            {/* Sort */}
+            {}
             <div className="min-w-[140px]">
               <Select
                 value={`${filters.sortBy || 'updatedAt'}-${filters.sortOrder || 'desc'}`}
@@ -134,7 +132,7 @@ export function ProductFilters({ className }: ProductFiltersProps) {
               </Select>
             </div>
 
-            {/* Price Range */}
+            {}
             <div className="flex items-center gap-2 min-w-fit">
               <span className="text-sm text-gray-500 whitespace-nowrap hidden sm:inline">Giá:</span>
               <Input
@@ -158,7 +156,7 @@ export function ProductFilters({ className }: ProductFiltersProps) {
               />
             </div>
 
-            {/* Clear filters with count */}
+            {}
             <div className="flex items-center gap-2 ml-auto lg:ml-0">
               {activeFiltersCount > 0 && (
                 <Badge variant="secondary" className="flex items-center gap-1 text-xs">
@@ -182,7 +180,7 @@ export function ProductFilters({ className }: ProductFiltersProps) {
         </div>
       </div>
 
-      {/* Active filters display */}
+      {}
       {activeFiltersCount > 0 && (
         <div className="flex flex-wrap gap-2">
           {filters.search && (

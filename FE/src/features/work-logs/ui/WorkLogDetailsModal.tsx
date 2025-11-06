@@ -98,7 +98,7 @@ export const WorkLogDetailsModal: React.FC<WorkLogDetailsModalProps> = ({
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Status Overview */}
+          {}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
@@ -172,7 +172,7 @@ export const WorkLogDetailsModal: React.FC<WorkLogDetailsModalProps> = ({
             </CardContent>
           </Card>
 
-          {/* Equipment Used */}
+          {}
           {workLog.equipment && workLog.equipment.length > 0 && (
             <Card>
               <CardHeader>
@@ -200,7 +200,7 @@ export const WorkLogDetailsModal: React.FC<WorkLogDetailsModalProps> = ({
             </Card>
           )}
 
-          {/* Weather Conditions */}
+          {}
           {workLog.weather && (
             <Card>
               <CardHeader>
@@ -249,7 +249,7 @@ export const WorkLogDetailsModal: React.FC<WorkLogDetailsModalProps> = ({
             </Card>
           )}
 
-          {/* Photos */}
+          {}
           {workLog.photos && workLog.photos.length > 0 && (
             <Card>
               <CardHeader>
@@ -276,7 +276,7 @@ export const WorkLogDetailsModal: React.FC<WorkLogDetailsModalProps> = ({
             </Card>
           )}
 
-          {/* Notes */}
+          {}
           {workLog.notes && (
             <Card>
               <CardHeader>
@@ -296,7 +296,7 @@ export const WorkLogDetailsModal: React.FC<WorkLogDetailsModalProps> = ({
           )}
         </div>
 
-        {/* Delete Confirmation */}
+        {}
         {showDeleteConfirm && (
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
@@ -338,7 +338,7 @@ export const WorkLogDetailsModal: React.FC<WorkLogDetailsModalProps> = ({
           </motion.div>
         )}
 
-        {/* Action Buttons */}
+        {}
         <div className="flex justify-between pt-4 border-t">
           <Button variant="outline" onClick={onClose}>
             Đóng

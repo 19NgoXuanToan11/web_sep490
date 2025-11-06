@@ -8,7 +8,6 @@ import type {
   QualityCheck,
 } from '@/shared/lib/localData'
 
-// Tạo dữ liệu thử nghiệm thực tế cho tất cả các tính năng
 export const devices: Device[] = [
   {
     id: 'dev-1',
@@ -163,7 +162,7 @@ export const irrigationSchedules: IrrigationSchedule[] = [
     nextRun: '2024-01-15T16:00:00Z',
     status: 'Running',
   },
-  // ... more schedules (truncated for brevity)
+
 ]
 
 export const irrigationRules: IrrigationRule[] = [
@@ -188,18 +187,13 @@ export const irrigationRules: IrrigationRule[] = [
     enabled: true,
     createdAt: '2024-01-05T09:15:00Z',
   },
-  // ... more rules (truncated for brevity)
+
 ]
 
-// =======================================================
-// DỮ LIỆU ADMIN & NHÂN VIÊN - DỮ LIỆU MỞ RỘNG
-// =======================================================
-
-// Cài đặt Hệ thống
 export const systemSettings: SystemSettings = {
   general: {
     systemName: 'IFMS - Hệ thống Quản lý Trang trại Tích hợp',
-    primaryColor: '#16a34a', // green-600
+    primaryColor: '#16a34a',
     logoUrl: '/images/ifms-logo.png',
   },
   notifications: {
@@ -208,17 +202,16 @@ export const systemSettings: SystemSettings = {
     alertFrequency: 'daily',
   },
   iotConfig: {
-    defaultPollingInterval: 15, // minutes
+    defaultPollingInterval: 15,
     sensorThresholds: {
-      temperature: { min: 10, max: 35 }, // Celsius
-      moisture: { min: 20, max: 80 }, // percentage
-      ph: { min: 6.0, max: 7.5 }, // pH scale
+      temperature: { min: 10, max: 35 },
+      moisture: { min: 20, max: 80 },
+      ph: { min: 6.0, max: 7.5 },
     },
   },
   updatedAt: '2024-01-15T10:30:00Z',
 }
 
-// Thiết bị Nhân viên cho Vận hành
 export const staffDevices: StaffDevice[] = [
   {
     id: 'staff-dev-1',
@@ -241,10 +234,9 @@ export const staffDevices: StaffDevice[] = [
     needsMaintenance: false,
     uptimePct: 94.2,
   },
-  // ... more staff devices (truncated for brevity)
+
 ]
 
-// Nhật ký Công việc cho Nhân viên
 export const workLogs: WorkLog[] = [
   {
     id: 'log-1',
@@ -268,10 +260,9 @@ export const workLogs: WorkLog[] = [
     createdAt: '2024-01-15T08:45:00Z',
     updatedAt: '2024-01-15T08:45:00Z',
   },
-  // ... more work logs (truncated for brevity)
+
 ]
 
-// Kiểm tra Chất lượng cho Nhân viên
 export const qualityChecks: QualityCheck[] = [
   {
     id: 'qc-1',
@@ -295,5 +286,5 @@ export const qualityChecks: QualityCheck[] = [
     createdAt: '2024-01-15T14:25:00Z',
     updatedAt: '2024-01-15T14:25:00Z',
   },
-  // ... more quality checks (truncated for brevity)
+
 ]

@@ -57,7 +57,6 @@ export const DeviceActionModal: React.FC<DeviceActionModalProps> = ({
     },
   })
 
-  // Update form when device or action changes
   React.useEffect(() => {
     if (device && action) {
       setValue('deviceId', device.id)
@@ -154,7 +153,7 @@ export const DeviceActionModal: React.FC<DeviceActionModalProps> = ({
           </DialogHeader>
 
           <div className="space-y-4 py-4">
-            {/* Device Info */}
+            {}
             <div className="p-3 bg-gray-50 rounded-lg space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-700">Thiết bị:</span>
@@ -170,7 +169,7 @@ export const DeviceActionModal: React.FC<DeviceActionModalProps> = ({
               </div>
             </div>
 
-            {/* Warning for destructive actions */}
+            {}
             {showWarning && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
@@ -185,10 +184,10 @@ export const DeviceActionModal: React.FC<DeviceActionModalProps> = ({
               </motion.div>
             )}
 
-            {/* Action Description */}
+            {}
             {!showWarning && <div className="text-sm text-gray-600">{getActionDescription()}</div>}
 
-            {/* Duration Input for run-now */}
+            {}
             {showDurationInput && (
               <div className="space-y-2">
                 <Label htmlFor="duration" className="text-sm font-medium flex items-center gap-2">
@@ -214,7 +213,7 @@ export const DeviceActionModal: React.FC<DeviceActionModalProps> = ({
               </div>
             )}
 
-            {/* Notes Input for certain actions */}
+            {}
             {showNotesInput && (
               <div className="space-y-2">
                 <Label htmlFor="notes" className="text-sm font-medium flex items-center gap-2">

@@ -10,47 +10,40 @@ import {
 import { categoryService, type Category } from '@/shared/api/categoryService'
 
 interface ProductState {
-  // Data
+
   products: Product[]
   categories: Category[]
   selectedProduct: Product | null
-  allProducts: Product[] // Cache all products for client-side filtering
-  filteredProducts: Product[] // Computed filtered products
+  allProducts: Product[]
+  filteredProducts: Product[]
 
-  // Pagination
   currentPage: number
   pageSize: number
   totalCount: number
   totalPages: number
 
-  // Filtering & Search
   searchQuery: string
   filters: ProductFilter
 
-  // UI State
   isLoading: boolean
   isCreating: boolean
   isUpdating: boolean
   isDeleting: boolean
   selectedProductIds: number[]
 
-  // Actions
-  // Data loading
   fetchProducts: (filter?: ProductFilter) => Promise<void>
-  fetchAllProducts: () => Promise<void> // Fetch all products for filtering
+  fetchAllProducts: () => Promise<void>
   fetchCategories: () => Promise<void>
   fetchProductById: (id: number) => Promise<Product>
   searchProducts: (productName: string) => Promise<Product[]>
-  applyClientSideFilters: () => void // Apply filters on cached data
+  applyClientSideFilters: () => void
 
-  // Product CRUD
   createProduct: (product: CreateProductRequest) => Promise<Product>
   updateProduct: (id: number, product: UpdateProductRequest) => Promise<Product>
   deleteProduct: (id: number) => Promise<void>
   changeProductStatus: (id: number, status: 'Active' | 'Inactive') => Promise<Product>
   changeProductQuantity: (id: number, quantity: number) => Promise<Product>
 
-  // UI Actions
   setSearchQuery: (query: string) => void
   setFilters: (filters: Partial<ProductFilter>) => void
   setPagination: (page: number, pageSize?: number) => void
@@ -59,37 +52,32 @@ interface ProductState {
   selectAllProducts: () => void
   clearSelection: () => void
 
-  // Reset state
   resetState: () => void
   clearFilters: () => void
 }
 
 export const useProductStore = create<ProductState>((set, get) => ({
-  // Initial state
+
   products: [],
   categories: [],
   selectedProduct: null,
   allProducts: [],
   filteredProducts: [],
 
-  // Pagination
   currentPage: 1,
   pageSize: 10,
   totalCount: 0,
   totalPages: 0,
 
-  // Filtering & Search
   searchQuery: '',
   filters: {},
 
-  // UI State
   isLoading: false,
   isCreating: false,
   isUpdating: false,
   isDeleting: false,
   selectedProductIds: [],
 
-  // Fetch products with pagination and filters
   fetchProducts: async (filter?: ProductFilter) => {
     set({ isLoading: true })
     try {
@@ -117,7 +105,6 @@ export const useProductStore = create<ProductState>((set, get) => ({
     }
   },
 
-  // Fetch categories for dropdown
   fetchCategories: async () => {
     try {
       const categories = await categoryService.getAllCategories()
@@ -127,7 +114,6 @@ export const useProductStore = create<ProductState>((set, get) => ({
     }
   },
 
-  // Fetch single product by ID
   fetchProductById: async (id: number) => {
     set({ isLoading: true })
     try {
@@ -140,7 +126,6 @@ export const useProductStore = create<ProductState>((set, get) => ({
     }
   },
 
-  // Search products by name
   searchProducts: async (productName: string) => {
     set({ isLoading: true })
     try {
@@ -153,13 +138,11 @@ export const useProductStore = create<ProductState>((set, get) => ({
     }
   },
 
-  // Create new product
   createProduct: async (productData: CreateProductRequest) => {
     set({ isCreating: true })
     try {
       const newProduct = await productService.createProduct(productData)
 
-      // Refresh products list
       await get().fetchProducts()
 
       set({ isCreating: false })
@@ -170,13 +153,11 @@ export const useProductStore = create<ProductState>((set, get) => ({
     }
   },
 
-  // Update existing product
   updateProduct: async (id: number, productData: UpdateProductRequest) => {
     set({ isUpdating: true })
     try {
       const updatedProduct = await productService.updateProduct(id, productData)
 
-      // Update product in local state
       set(state => ({
         products: state.products.map(product =>
           product.productId === id ? updatedProduct : product
@@ -193,13 +174,11 @@ export const useProductStore = create<ProductState>((set, get) => ({
     }
   },
 
-  // Delete product
   deleteProduct: async (id: number) => {
     set({ isDeleting: true })
     try {
       await productService.deleteProduct(id)
 
-      // Remove product from local state
       set(state => ({
         products: state.products.filter(product => product.productId !== id),
         selectedProduct: state.selectedProduct?.productId === id ? null : state.selectedProduct,
@@ -213,13 +192,11 @@ export const useProductStore = create<ProductState>((set, get) => ({
     }
   },
 
-  // Change product status
   changeProductStatus: async (id: number, status: 'Active' | 'Inactive') => {
     set({ isUpdating: true })
     try {
       const updatedProduct = await productService.changeProductStatus(id, { status })
 
-      // Update product in local state
       set(state => ({
         products: state.products.map(product =>
           product.productId === id ? updatedProduct : product
@@ -236,13 +213,11 @@ export const useProductStore = create<ProductState>((set, get) => ({
     }
   },
 
-  // Change product quantity
   changeProductQuantity: async (id: number, quantity: number) => {
     set({ isUpdating: true })
     try {
       const updatedProduct = await productService.changeProductQuantity(id, { quantity })
 
-      // Update product in local state
       set(state => ({
         products: state.products.map(product =>
           product.productId === id ? updatedProduct : product
@@ -259,11 +234,9 @@ export const useProductStore = create<ProductState>((set, get) => ({
     }
   },
 
-  // Set search query and trigger search
   setSearchQuery: (query: string) => {
     set({ searchQuery: query })
 
-    // Auto search when query changes
     if (query.length >= 2) {
       get()
         .searchProducts(query)
@@ -271,15 +244,14 @@ export const useProductStore = create<ProductState>((set, get) => ({
           set({ products: results || [], totalCount: (results || []).length })
         })
         .catch(() => {
-          // Handle search error silently
+
         })
     } else if (query.length === 0) {
-      // Reset to full list when search is cleared
+
       get().fetchProducts()
     }
   },
 
-  // Set filters and apply them
   setFilters: (newFilters: Partial<ProductFilter>) => {
     const currentFilters = get().filters
     const updatedFilters = { ...currentFilters, ...newFilters }
@@ -288,7 +260,6 @@ export const useProductStore = create<ProductState>((set, get) => ({
     get().applyClientSideFilters()
   },
 
-  // Set pagination
   setPagination: (page: number, pageSize?: number) => {
     const newPageSize = pageSize || get().pageSize
     set({ currentPage: page, pageSize: newPageSize })
@@ -296,12 +267,10 @@ export const useProductStore = create<ProductState>((set, get) => ({
     get().applyClientSideFilters()
   },
 
-  // Set selected product
   setSelectedProduct: (product: Product | null) => {
     set({ selectedProduct: product })
   },
 
-  // Toggle product selection
   toggleProductSelection: (productId: number) => {
     set(state => ({
       selectedProductIds: state.selectedProductIds.includes(productId)
@@ -310,23 +279,20 @@ export const useProductStore = create<ProductState>((set, get) => ({
     }))
   },
 
-  // Select all products
   selectAllProducts: () => {
     const { products } = get()
     set({ selectedProductIds: (products || []).map(p => p.productId) })
   },
 
-  // Clear selection
   clearSelection: () => {
     set({ selectedProductIds: [] })
   },
 
-  // Fetch all products for client-side filtering
   fetchAllProducts: async () => {
     set({ isLoading: true })
     try {
       const response: ProductListResponse = await productService.getProductsList({
-        pageSize: 1000, // Large number to get all products
+        pageSize: 1000,
       })
 
       set({
@@ -334,7 +300,6 @@ export const useProductStore = create<ProductState>((set, get) => ({
         isLoading: false,
       })
 
-      // Apply current filters
       get().applyClientSideFilters()
     } catch (error) {
       set({ isLoading: false })
@@ -342,13 +307,11 @@ export const useProductStore = create<ProductState>((set, get) => ({
     }
   },
 
-  // Apply client-side filters to cached products
   applyClientSideFilters: () => {
     const { allProducts, filters } = get()
 
     let filtered = [...allProducts]
 
-    // Search filter
     if (filters.search) {
       const searchLower = filters.search.toLowerCase()
       filtered = filtered.filter(
@@ -359,17 +322,14 @@ export const useProductStore = create<ProductState>((set, get) => ({
       )
     }
 
-    // Category filter
     if (filters.categoryId) {
       filtered = filtered.filter(product => product.categoryId === filters.categoryId)
     }
 
-    // Status filter
     if (filters.status) {
       filtered = filtered.filter(product => product.status === filters.status)
     }
 
-    // Price range filter
     if (filters.minPrice !== undefined) {
       filtered = filtered.filter(product => product.price >= filters.minPrice!)
     }
@@ -377,7 +337,6 @@ export const useProductStore = create<ProductState>((set, get) => ({
       filtered = filtered.filter(product => product.price <= filters.maxPrice!)
     }
 
-    // Sort
     if (filters.sortBy) {
       filtered.sort((a, b) => {
         let aValue: any, bValue: any
@@ -410,7 +369,6 @@ export const useProductStore = create<ProductState>((set, get) => ({
       })
     }
 
-    // Update filtered products and pagination
     const { currentPage, pageSize } = get()
     const totalCount = filtered.length
     const totalPages = Math.ceil(totalCount / pageSize)
@@ -426,7 +384,6 @@ export const useProductStore = create<ProductState>((set, get) => ({
     })
   },
 
-  // Reset state
   resetState: () => {
     set({
       products: [],
@@ -448,7 +405,6 @@ export const useProductStore = create<ProductState>((set, get) => ({
     })
   },
 
-  // Clear filters and apply to cached products
   clearFilters: () => {
     set({ filters: {}, currentPage: 1 })
     get().applyClientSideFilters()

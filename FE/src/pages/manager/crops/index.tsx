@@ -30,12 +30,10 @@ export default function CropsPage() {
   const [totalCrops, setTotalCrops] = useState(0)
   const pageSize = 10
 
-  // Dialog states
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [editingCrop, setEditingCrop] = useState<Crop | null>(null)
 
-  // Form states
   const [formData, setFormData] = useState<CropRequest>({
     cropName: '',
     description: '',
@@ -46,7 +44,6 @@ export default function CropsPage() {
 
   const { toast } = useToast()
 
-  // Load crops data
   const loadCrops = async () => {
     try {
       setLoading(true)
@@ -65,7 +62,6 @@ export default function CropsPage() {
     }
   }
 
-  // Search crops
   const searchCrops = async () => {
     try {
       setLoading(true)
@@ -92,7 +88,6 @@ export default function CropsPage() {
     }
   }
 
-  // Create crop
   const handleCreateCrop = async () => {
     try {
       if (!formData.cropName || !formData.description) {
@@ -122,7 +117,6 @@ export default function CropsPage() {
     }
   }
 
-  // Update crop
   const handleUpdateCrop = async () => {
     if (!editingCrop) return
 
@@ -153,7 +147,6 @@ export default function CropsPage() {
     }
   }
 
-  // Change crop status
   const handleChangeStatus = async (cropId: number) => {
     try {
       await cropService.changeStatus(cropId)
@@ -171,7 +164,6 @@ export default function CropsPage() {
     }
   }
 
-  // Reset form
   const resetForm = () => {
     setFormData({
       cropName: '',
@@ -182,7 +174,6 @@ export default function CropsPage() {
     })
   }
 
-  // Handle edit click
   const handleEditClick = (crop: Crop) => {
     setEditingCrop(crop)
     setFormData({
@@ -195,13 +186,11 @@ export default function CropsPage() {
     setEditDialogOpen(true)
   }
 
-  // Format date for display
   const formatDate = (dateString: string) => {
     if (!dateString) return ''
     return new Date(dateString).toLocaleDateString('vi-VN')
   }
 
-  // Get status badge variant
   const getStatusVariant = (status: string) => {
     switch (status.toLowerCase()) {
       case 'active':
@@ -221,7 +210,7 @@ export default function CropsPage() {
     <ManagerLayout>
       <div className="p-6">
         <div className="space-y-8">
-          {/* Header */}
+          {}
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Quản Lý Cây Trồng</h1>
             <p className="text-gray-600 mt-2">
@@ -229,7 +218,7 @@ export default function CropsPage() {
             </p>
           </div>
 
-          {/* Stats Cards */}
+          {}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -282,7 +271,7 @@ export default function CropsPage() {
             </Card>
           </div>
 
-          {/* Controls */}
+          {}
           <Card>
             <CardHeader>
               <CardTitle>Danh Sách Cây Trồng</CardTitle>
@@ -331,7 +320,7 @@ export default function CropsPage() {
                 </div>
               </div>
 
-              {/* Table */}
+              {}
               <div className="border rounded-lg">
                 <Table>
                   <TableHeader>
@@ -396,7 +385,7 @@ export default function CropsPage() {
                 </Table>
               </div>
 
-              {/* Pagination */}
+              {}
               {totalPages > 1 && (
                 <div className="flex justify-center items-center space-x-2 mt-4">
                   <Button
@@ -425,7 +414,7 @@ export default function CropsPage() {
         </div>
       </div>
 
-      {/* Create Dialog */}
+      {}
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -492,7 +481,7 @@ export default function CropsPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Dialog */}
+      {}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>

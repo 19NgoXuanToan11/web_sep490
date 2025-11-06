@@ -11,18 +11,15 @@ import { ManagerLayout } from '@/shared/layouts/ManagerLayout'
 export default function IrrigationPage() {
   const { selectedTab, setSelectedTab, initializeData } = useIrrigationStore()
 
-  // Initialize data and restore last selected tab
   React.useEffect(() => {
     initializeData()
 
-    // Restore last selected tab from localStorage
     const prefs = userPreferences.get()
     if (prefs.lastSelectedTab?.irrigation) {
       setSelectedTab(prefs.lastSelectedTab.irrigation)
     }
   }, [initializeData, setSelectedTab])
 
-  // Cleanup interval on unmount
   React.useEffect(() => {
     return () => {
       if ((window as any).__irrigationStatusInterval) {
@@ -39,13 +36,13 @@ export default function IrrigationPage() {
     <ManagerLayout>
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="space-y-8">
-          {/* Header */}
+          {}
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Quản lý tưới tiêu thông minh</h1>
             <p className="text-gray-600 mt-2">Quản lý lịch tưới tự động và điều khiển thiết bị.</p>
           </div>
 
-          {/* Main Tabs */}
+          {}
           <Tabs value={selectedTab} onValueChange={handleTabChange} className="space-y-6">
             <TabsList className="grid w-full grid-cols-3 bg-white shadow-sm border border-gray-200">
               <TabsTrigger

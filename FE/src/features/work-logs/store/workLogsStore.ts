@@ -8,7 +8,6 @@ import type {
 import { simulateLatency, simulateError, userPreferences } from '@/shared/lib/localData/storage'
 import type { WorkLogData, WorkLogFilterData } from '../model/schemas'
 
-// Mock work log data
 const mockWorkLogs: WorkLogData[] = [
   {
     id: 'wl-001',
@@ -22,7 +21,7 @@ const mockWorkLogs: WorkLogData[] = [
     status: 'completed',
     priority: 'medium',
     assignedTo: 'John Smith',
-    equipment: ['0', '11'], // Hệ thống tưới tiêu, Dụng cụ cầm tay
+    equipment: ['0', '11'],
     notes: 'Hệ thống hoạt động tốt, điều chỉnh nhỏ ở khu vực 3',
     weather: {
       temperature: 24,
@@ -41,7 +40,7 @@ const mockWorkLogs: WorkLogData[] = [
     status: 'completed',
     priority: 'high',
     assignedTo: 'Maria Garcia',
-    equipment: ['10', '8'], // Máy bay không người lái, Máy kiểm tra đất
+    equipment: ['10', '8'],
     notes: 'Tốc độ tăng trưởng tốt, không phát hiện dấu hiệu bệnh tật',
     weather: {
       temperature: 26,
@@ -60,7 +59,7 @@ const mockWorkLogs: WorkLogData[] = [
     status: 'in-progress',
     priority: 'urgent',
     assignedTo: 'David Chen',
-    equipment: ['2', '12'], // Máy phun thuốc, Thiết bị an toàn
+    equipment: ['2', '12'],
     notes: 'Đã áp dụng thuốc điều trị, theo dõi hiệu quả trong 48 giờ tới',
   },
   {
@@ -74,7 +73,7 @@ const mockWorkLogs: WorkLogData[] = [
     status: 'completed',
     priority: 'medium',
     assignedTo: 'Sarah Johnson',
-    equipment: ['9', '11'], // Trạm thời tiết, Dụng cụ cầm tay
+    equipment: ['9', '11'],
     notes: 'Tất cả cảm biến đã được hiệu chuẩn và hoạt động chính xác',
   },
   {
@@ -88,50 +87,42 @@ const mockWorkLogs: WorkLogData[] = [
     status: 'in-progress',
     priority: 'high',
     assignedTo: 'Mike Wilson',
-    equipment: ['3', '1'], // Máy thu hoạch, Máy kéo
+    equipment: ['3', '1'],
     notes: 'Dự kiến năng suất: 500kg rau củ hỗn hợp',
   },
 ]
 
 interface WorkLogsState {
-  // Data
+
   workLogs: WorkLogData[]
 
-  // UI State
   loadingStates: Record<string, LoadingState>
   searchState: SearchState
   paginationState: PaginationState
   tableDensity: TableDensity
   selectedLogIds: string[]
 
-  // Filters
   filters: WorkLogFilterData
 
-  // Actions
   initializeData: () => void
 
-  // Work log operations
   createWorkLog: (data: Omit<WorkLogData, 'id'>) => Promise<void>
   updateWorkLog: (id: string, data: Partial<WorkLogData>) => Promise<void>
   deleteWorkLog: (id: string) => Promise<void>
 
-  // Search and filter actions
   setSearch: (query: string) => void
   setSort: (sortBy: string, sortOrder: 'asc' | 'desc') => void
   setFilters: (filters: Partial<WorkLogFilterData>) => void
   clearFilters: () => void
   setPagination: (page: number, pageSize?: number) => void
 
-  // Selection actions
   toggleLogSelection: (logId: string) => void
   selectAllLogs: () => void
   clearSelection: () => void
 
-  // UI actions
   setTableDensity: (density: TableDensity) => void
   setLoadingState: (key: string, state: LoadingState) => void
 
-  // Computed getters
   getFilteredWorkLogs: () => WorkLogData[]
   getPaginatedWorkLogs: () => WorkLogData[]
   getTotalCount: () => number
@@ -144,7 +135,7 @@ interface WorkLogsState {
 }
 
 export const useWorkLogsStore = create<WorkLogsState>((set, get) => ({
-  // Initial state
+
   workLogs: [],
   loadingStates: {},
   searchState: {
@@ -161,7 +152,6 @@ export const useWorkLogsStore = create<WorkLogsState>((set, get) => ({
   selectedLogIds: [],
   filters: {},
 
-  // Initialize data from mock data
   initializeData: () => {
     const prefs = userPreferences.get()
 
@@ -171,7 +161,6 @@ export const useWorkLogsStore = create<WorkLogsState>((set, get) => ({
     })
   },
 
-  // Work log operations
   createWorkLog: async (data: Omit<WorkLogData, 'id'>) => {
     const key = 'create-work-log'
     get().setLoadingState(key, { isLoading: true })
@@ -253,7 +242,6 @@ export const useWorkLogsStore = create<WorkLogsState>((set, get) => ({
     }
   },
 
-  // Search and filter actions
   setSearch: (query: string) => {
     set(state => ({
       searchState: { ...state.searchState, query },
@@ -292,7 +280,6 @@ export const useWorkLogsStore = create<WorkLogsState>((set, get) => ({
     }))
   },
 
-  // Selection actions
   toggleLogSelection: (logId: string) => {
     set(state => ({
       selectedLogIds: state.selectedLogIds.includes(logId)
@@ -310,7 +297,6 @@ export const useWorkLogsStore = create<WorkLogsState>((set, get) => ({
     set({ selectedLogIds: [] })
   },
 
-  // UI actions
   setTableDensity: (density: TableDensity) => {
     set({ tableDensity: density })
     userPreferences.set({ tableDensity: density })
@@ -325,13 +311,11 @@ export const useWorkLogsStore = create<WorkLogsState>((set, get) => ({
     }))
   },
 
-  // Computed getters
   getFilteredWorkLogs: () => {
     const { workLogs, searchState, filters } = get()
 
     let filtered = workLogs
 
-    // Apply search filter
     if (searchState.query) {
       const query = searchState.query.toLowerCase()
       filtered = filtered.filter(
@@ -344,7 +328,6 @@ export const useWorkLogsStore = create<WorkLogsState>((set, get) => ({
       )
     }
 
-    // Apply filters
     if (filters.status && filters.status !== 'all') {
       filtered = filtered.filter(log => log.status === filters.status)
     }
@@ -373,7 +356,6 @@ export const useWorkLogsStore = create<WorkLogsState>((set, get) => ({
       filtered = filtered.filter(log => log.date <= filters.dateTo!)
     }
 
-    // Apply sorting
     filtered = filtered.sort((a, b) => {
       let aValue: any
       let bValue: any

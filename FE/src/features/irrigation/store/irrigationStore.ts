@@ -15,51 +15,44 @@ import { simulateLatency, simulateError, addHours, addDays } from '@/shared/lib/
 import type { ScheduleFormData, RuleFormData } from '../model/schemas'
 
 interface IrrigationState {
-  // Data
+
   devices: Device[]
   schedules: IrrigationSchedule[]
   rules: IrrigationRule[]
 
-  // UI State
   loadingStates: Record<string, LoadingState>
   selectedTab: string
 
-  // Actions
   initializeData: () => void
 
-  // Device actions
   updateDeviceStatus: (deviceId: string, status: DeviceStatus) => Promise<void>
   performDeviceAction: (
     deviceId: string,
     action: 'start' | 'stop' | 'pause' | 'run-now'
   ) => Promise<void>
 
-  // Schedule actions
   createSchedule: (data: ScheduleFormData) => Promise<void>
   updateSchedule: (id: string, data: Partial<IrrigationSchedule>) => Promise<void>
   deleteSchedule: (id: string) => Promise<void>
   toggleSchedule: (id: string, enabled: boolean) => Promise<void>
 
-  // Rule actions
   createRule: (data: RuleFormData) => Promise<void>
   updateRule: (id: string, data: Partial<IrrigationRule>) => Promise<void>
   deleteRule: (id: string) => Promise<void>
   toggleRule: (id: string, enabled: boolean) => Promise<void>
 
-  // UI actions
   setSelectedTab: (tab: string) => void
   setLoadingState: (key: string, state: LoadingState) => void
 }
 
 export const useIrrigationStore = create<IrrigationState>((set, get) => ({
-  // Initial state
+
   devices: [],
   schedules: [],
   rules: [],
   loadingStates: {},
   selectedTab: 'calendar',
 
-  // Initialize data from fixtures
   initializeData: () => {
     set({
       devices: [...initialDevices],
@@ -67,13 +60,11 @@ export const useIrrigationStore = create<IrrigationState>((set, get) => ({
       rules: [...initialRules],
     })
 
-    // Start device status simulation
     const interval = setInterval(() => {
       const { devices } = get()
 
-      // Simulate periodic device status updates
       const updatedDevices = devices.map(device => {
-        // Small chance to change status
+
         if (Math.random() < 0.05) {
           const statuses: DeviceStatus[] = ['Idle', 'Running', 'Paused']
           const currentIndex = statuses.indexOf(device.status)
@@ -90,13 +81,11 @@ export const useIrrigationStore = create<IrrigationState>((set, get) => ({
       })
 
       set({ devices: updatedDevices })
-    }, 3000) // Update every 3 seconds
+    }, 3000)
 
-    // Store interval reference for cleanup if needed
     ;(window as any).__irrigationStatusInterval = interval
   },
 
-  // Device actions
   updateDeviceStatus: async (deviceId: string, status: DeviceStatus) => {
     const key = `device-${deviceId}`
     get().setLoadingState(key, { isLoading: true })
@@ -147,7 +136,6 @@ export const useIrrigationStore = create<IrrigationState>((set, get) => ({
     await get().updateDeviceStatus(deviceId, statusMap[action])
   },
 
-  // Schedule actions
   createSchedule: async (data: ScheduleFormData) => {
     const key = 'create-schedule'
     get().setLoadingState(key, { isLoading: true })
@@ -242,7 +230,6 @@ export const useIrrigationStore = create<IrrigationState>((set, get) => ({
     await get().updateSchedule(id, { enabled })
   },
 
-  // Rule actions
   createRule: async (data: RuleFormData) => {
     const key = 'create-rule'
     get().setLoadingState(key, { isLoading: true })
@@ -330,10 +317,9 @@ export const useIrrigationStore = create<IrrigationState>((set, get) => ({
     await get().updateRule(id, { enabled })
   },
 
-  // UI actions
   setSelectedTab: (tab: string) => {
     set({ selectedTab: tab })
-    // Persist to localStorage
+
     import('@/shared/lib/localData/storage').then(({ userPreferences }) => {
       userPreferences.set({ lastSelectedTab: { irrigation: tab } })
     })
@@ -349,7 +335,6 @@ export const useIrrigationStore = create<IrrigationState>((set, get) => ({
   },
 }))
 
-// Utility functions
 function generateRecurrenceText(type: string, startTime: string): string {
   switch (type) {
     case 'daily':
@@ -378,7 +363,6 @@ function calculateNextRun(_type: string, startTime: string): string {
   let nextRun = new Date()
   nextRun.setHours(hour, minute, 0, 0)
 
-  // If the time has already passed today, schedule for tomorrow
   if (nextRun <= now) {
     nextRun = addDays(nextRun, 1)
   }

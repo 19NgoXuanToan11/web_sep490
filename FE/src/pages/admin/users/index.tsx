@@ -3,9 +3,7 @@ import { motion } from 'framer-motion'
 import { Users, UserX, Activity, RefreshCw } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card'
-// import { Badge } from '@/shared/ui/badge'
-// import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs'
-// import { TableDensityToggle } from '@/shared/ui/table-density-toggle'
+
 import { AdminLayout } from '@/shared/layouts/AdminLayout'
 import { useToast } from '@/shared/ui/use-toast'
 import {
@@ -15,7 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/shared/ui/dialog'
-// import { ManagerLayout } from '@/shared/layouts/ManagerLayout'
+
 import {
   useAdminUsersStore,
   UsersTable,
@@ -30,7 +28,6 @@ const AdminUsersPage: React.FC = () => {
 
   const { toast } = useToast()
 
-  // Modal states
   const [isUserFormOpen, setIsUserFormOpen] = useState(false)
   const [isPasswordUpdateOpen, setIsPasswordUpdateOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
@@ -39,17 +36,13 @@ const AdminUsersPage: React.FC = () => {
     null
   )
 
-  // Initialize data on mount
   useEffect(() => {
     initializeData()
   }, [initializeData])
 
-  // Statistics
   const totalUsers = users.length
   const activeUsers = users.filter(u => u.status === 'Active').length
   const inactiveUsers = getInactiveUsersCount()
-
-  // Removed: create user button/flow from header
 
   const handleEditUser = (user: User) => {
     try {
@@ -89,18 +82,16 @@ const AdminUsersPage: React.FC = () => {
         })
       }
     } catch (error) {
-      // Error handling is done in the store
+
     }
 
     setDeleteConfirm(null)
   }
 
-  // Removed: export users
-
   return (
     <AdminLayout>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Page Header */}
+        {}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Quản lý người dùng</h1>
@@ -110,7 +101,7 @@ const AdminUsersPage: React.FC = () => {
           <div className="flex items-center gap-2" />
         </div>
 
-        {/* Statistics Cards */}
+        {}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -164,7 +155,7 @@ const AdminUsersPage: React.FC = () => {
           </motion.div>
         </div>
 
-        {/* Main Content */}
+        {}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -184,7 +175,7 @@ const AdminUsersPage: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* User Form Modal */}
+        {}
         <UserFormModal
           isOpen={isUserFormOpen}
           onClose={() => {
@@ -194,7 +185,7 @@ const AdminUsersPage: React.FC = () => {
           user={selectedUser}
         />
 
-        {/* Password Update Modal */}
+        {}
         <PasswordUpdateModal
           isOpen={isPasswordUpdateOpen}
           onClose={() => {
@@ -204,7 +195,7 @@ const AdminUsersPage: React.FC = () => {
           user={passwordUpdateUser}
         />
 
-        {/* Delete Confirmation Dialog */}
+        {}
         <Dialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
           <DialogContent>
             <DialogHeader>

@@ -1,6 +1,5 @@
 import { http } from './client'
 
-// Interface matching the actual API response structure
 export interface OrderItem {
   productId: string
   productName: string
@@ -56,9 +55,9 @@ export interface Order {
   orderDetailIds: string[]
   createdAt: string
   updatedAt?: string
-  status: number // 0-6 based on API
+  status: number
   shippingAddress: string
-  orderItems?: OrderItem[] // For backward compatibility
+  orderItems?: OrderItem[]
   orderDetails?: OrderDetail[]
   customer?: Customer
   payments?: Payment[]
@@ -85,7 +84,7 @@ export interface OrderListParams {
 }
 
 export const orderService = {
-  // Lấy danh sách đơn hàng với phân trang và filter
+
   getOrderList: async (params: OrderListParams = {}): Promise<OrderListResponse['data']> => {
     const { pageIndex = 1, pageSize = 10, status } = params
 
@@ -98,13 +97,11 @@ export const orderService = {
     return response.data.data
   },
 
-  // Lấy chi tiết đơn hàng theo orderId
   getOrderById: async (orderId: string): Promise<Order> => {
     const response = await http.get<{ data: Order }>(`/v1/order/order/${orderId}`)
     return response.data.data
   },
 
-  // Tìm kiếm đơn hàng theo tên khách hàng
   getOrdersByCustomerName: async (name: string): Promise<OrderListResponse['data']> => {
     const response = await http.get<OrderListResponse>(
       `/v1/order/order-list-by-customer-name/${encodeURIComponent(name)}`
@@ -112,7 +109,6 @@ export const orderService = {
     return response.data.data
   },
 
-  // Tìm kiếm đơn hàng theo email khách hàng
   getOrdersByEmail: async (email: string): Promise<OrderListResponse['data']> => {
     const response = await http.get<OrderListResponse>(
       `/v1/order/order-list-by-email/${encodeURIComponent(email)}`
@@ -120,7 +116,6 @@ export const orderService = {
     return response.data.data
   },
 
-  // Tìm kiếm đơn hàng theo ngày
   getOrdersByDate: async (
     date: string,
     pageIndex: number = 1,
@@ -128,31 +123,27 @@ export const orderService = {
   ): Promise<OrderListResponse['data']> => {
     const response = await http.post<OrderListResponse>(
       `/v1/order/order-list-by-date?pageIndex=${pageIndex}&pageSize=${pageSize}`,
-      date // Send date as request body (format: "2025-10-23")
+      date
     )
     return response.data.data
   },
 
-  // Cập nhật trạng thái đơn hàng
   updateOrderStatus: async (orderId: string, status: string | number): Promise<Order> => {
     const response = await http.put<{ data: Order }>(`/v1/order/${orderId}/status`, { status })
     return response.data.data
   },
 
-  // Cập nhật trạng thái giao hàng
   updateDeliveryStatus: async (orderId: string): Promise<any> => {
     const response = await http.put(`/v1/order/updateDeliveryStatus/${orderId}`)
     return response.data
   },
 
-  // Cập nhật trạng thái hủy đơn
   updateCancelStatus: async (orderId: string): Promise<any> => {
     const response = await http.put(`/v1/order/updateCancelStatus/${orderId}`)
     return response.data
   },
 }
 
-// Helper function để chuyển đổi status code sang label
 export const getOrderStatusLabel = (status: number): string => {
   const statusMap: Record<number, string> = {
     0: 'Chờ xử lý',
@@ -166,26 +157,24 @@ export const getOrderStatusLabel = (status: number): string => {
   return statusMap[status] || 'Không xác định'
 }
 
-// Helper function để chuyển đổi status code sang variant cho Badge
 export const getOrderStatusVariant = (status: number): 'default' | 'secondary' | 'destructive' => {
   switch (status) {
-    case 0: // Chờ xử lý
+    case 0:
       return 'secondary'
-    case 1: // Đã xác nhận
-    case 4: // Đã giao
+    case 1:
+    case 4:
       return 'default'
-    case 2: // Đang chuẩn bị
-    case 3: // Đang giao
+    case 2:
+    case 3:
       return 'secondary'
-    case 5: // Đã hủy
-    case 6: // Hoàn trả
+    case 5:
+    case 6:
       return 'destructive'
     default:
       return 'secondary'
   }
 }
 
-// Helper function để lấy icon status
 export const getOrderStatusIcon = (status: number): string => {
   switch (status) {
     case 0:

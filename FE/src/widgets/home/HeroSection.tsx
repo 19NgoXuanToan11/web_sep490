@@ -9,7 +9,6 @@ export const HeroSection: React.FC = () => {
   const { scrollYProgress } = useScroll()
   const navigate = useNavigate()
 
-  // Parallax transforms - disabled if motion should be reduced
   const backgroundY = useTransform(scrollYProgress, [0, 1], shouldReduceMotion ? [0, 0] : [0, 80])
 
   const farmerY = useTransform(scrollYProgress, [0, 1], shouldReduceMotion ? [0, 0] : [0, -40])
@@ -21,7 +20,7 @@ export const HeroSection: React.FC = () => {
       animate="show"
       variants={fadeIn}
     >
-      {/* Background with parallax */}
+      {}
       <motion.div
         className="absolute inset-0 bg-gradient-to-r from-green-900/70 to-green-700/50"
         style={{ y: backgroundY }}
@@ -31,32 +30,32 @@ export const HeroSection: React.FC = () => {
           autoPlay
           loop
           muted
-          playsInline 
+          playsInline
           preload="auto"
           className="absolute inset-0 h-full w-full object-cover z-0"
         />
 
-        {/* Dark overlay for text readability */}
+        {}
         <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/40 to-transparent" />
       </motion.div>
 
-      {/* Farmer image with counter-parallax */}
+      {}
       <motion.div
         className="absolute right-0 top-1/2 -translate-y-1/2 w-1/2 h-full hidden lg:block"
         style={{ y: farmerY }}
       >
-        {/* Farmer placeholder - using CSS */}
+        {}
         <div className="w-full h-full relative">
           <div className="absolute bottom-0 right-12 w-80 h-96 bg-gradient-to-t from-green-800/30 to-green-600/10 rounded-full blur-3xl" />
           <div className="absolute bottom-20 right-20 w-64 h-80 bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10" />
         </div>
       </motion.div>
 
-      {/* Content */}
+      {}
       <div className="container mx-auto px-4 relative z-10">
         <div className="max-w-4xl">
           <motion.div className="space-y-6" variants={slideInLeft}>
-            {/* Caption */}
+            {}
             <motion.p
               className="text-brand-foreground/80 uppercase tracking-[0.2em] text-sm font-medium"
               initial={{ opacity: 0, y: 20 }}
@@ -66,7 +65,7 @@ export const HeroSection: React.FC = () => {
               HỆ THỐNG NÔNG TRẠI IOT
             </motion.p>
 
-            {/* Main heading */}
+            {}
             <motion.h1
               className="text-4xl md:text-6xl lg:text-7xl font-bold text-white leading-tight"
               style={{ textShadow: '0 2px 4px rgba(0,0,0,0.3)' }}
@@ -80,7 +79,7 @@ export const HeroSection: React.FC = () => {
               </span>
             </motion.h1>
 
-            {/* Description */}
+            {}
             <motion.p
               className="text-white/90 text-lg md:text-xl leading-relaxed max-w-2xl"
               initial={{ opacity: 0, y: 30 }}
@@ -93,7 +92,7 @@ export const HeroSection: React.FC = () => {
               nông nghiệp bền vững.
             </motion.p>
 
-            {/* CTA Button */}
+            {}
             <motion.div
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}

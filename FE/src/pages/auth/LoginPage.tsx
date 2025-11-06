@@ -25,7 +25,7 @@ export const LoginPage: React.FC = () => {
       const token = (res as any).token || (res as any).Token
       if (token) {
         setToken(token)
-        // Điều hướng theo role sau khi set token (decode ngay trong store)
+
         const role = useAuthStore.getState().role
         if (role === 'Admin') navigate('/admin/users')
         else if (role === 'Manager') navigate('/manager/dashboard')
@@ -41,7 +41,7 @@ export const LoginPage: React.FC = () => {
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black">
-      {/* Background video */}
+      {}
       <video
         src="/videos/farm1.mp4"
         autoPlay
@@ -50,10 +50,10 @@ export const LoginPage: React.FC = () => {
         playsInline
         className="absolute inset-0 w-full h-full object-cover opacity-60"
       />
-      {/* Gradient overlay */}
+      {}
       <div className="absolute inset-0" />
 
-      {/* Floating orbs */}
+      {}
       <motion.div
         className="absolute -top-20 -left-20 w-96 h-96 rounded-full"
         animate={{ y: [0, 20, 0] }}
@@ -65,7 +65,7 @@ export const LoginPage: React.FC = () => {
         transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
       />
 
-      {/* Back to Home Button */}
+      {}
       <motion.div
         className="absolute top-8 left-8 z-20"
         initial={{ opacity: 0, x: -20 }}
@@ -83,7 +83,7 @@ export const LoginPage: React.FC = () => {
         </Button>
       </motion.div>
 
-      {/* Content */}
+      {}
       <div className="container relative z-10 px-4">
         <div className="mx-auto max-w-md">
           <motion.div

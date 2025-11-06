@@ -23,7 +23,7 @@ import type { User } from '@/shared/lib/localData'
 interface UserFormModalProps {
   isOpen: boolean
   onClose: () => void
-  user?: User | null // For editing - null for creating
+  user?: User | null
 }
 
 export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, user }) => {
@@ -49,14 +49,13 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
 
   const watchedRole = watch('role')
 
-  // Reset form when modal opens/closes or user changes
   useEffect(() => {
     if (isOpen) {
       if (user) {
         reset({
           name: user.name,
           email: user.email,
-          role: user.roles[0] || 'STAFF', // Take first role or default to STAFF
+          role: user.roles[0] || 'STAFF',
           status: user.status,
         })
       } else {
@@ -92,8 +91,7 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
       handleClose()
     } catch (error) {
       console.error('Error in onSubmit:', error)
-      // Error handling is done in the store with loading states
-      // The error will be displayed via the loading state error
+
     }
   }
 
@@ -108,7 +106,7 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          {/* Error Display */}
+          {}
           {loadingStates[loadingKey]?.error && (
             <motion.div
               initial={{ opacity: 0, y: -10 }}
@@ -119,14 +117,14 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
             </motion.div>
           )}
 
-          {/* Name Field */}
+          {}
           <div className="space-y-2">
             <Label htmlFor="name">Họ và tên *</Label>
             <Input id="name" placeholder="Nhập họ và tên" {...register('name')} />
             {errors.name && <p className="text-sm text-red-600">{errors.name.message}</p>}
           </div>
 
-          {/* Email Field */}
+          {}
           <div className="space-y-2">
             <Label htmlFor="email">Địa chỉ email *</Label>
             <Input
@@ -138,7 +136,7 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
             {errors.email && <p className="text-sm text-red-600">{errors.email.message}</p>}
           </div>
 
-          {/* Status Field */}
+          {}
           <div className="space-y-2">
             <Label htmlFor="status">Trạng thái *</Label>
             <Select
@@ -165,7 +163,7 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
             {errors.status && <p className="text-sm text-red-600">{errors.status.message}</p>}
           </div>
 
-          {/* Role Field */}
+          {}
           <div className="space-y-2">
             <Label htmlFor="role">Vai trò người dùng *</Label>
             <Select
@@ -200,7 +198,7 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
             {errors.role && <p className="text-sm text-red-600">{errors.role.message}</p>}
           </div>
 
-          {/* Form Actions */}
+          {}
           <div className="flex justify-end gap-3 pt-4 border-t">
             <Button type="button" variant="outline" onClick={handleClose} disabled={isLoading}>
               Hủy

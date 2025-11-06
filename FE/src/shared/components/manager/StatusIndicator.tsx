@@ -88,9 +88,9 @@ export const StatusIndicator: React.FC<StatusIndicatorProps> = ({
           />
         )}
       </div>
-      
+
       {label && (
-        <Badge 
+        <Badge
           variant={config.badgeVariant}
           className={`text-xs font-medium ${sizes.container}`}
         >
@@ -100,4 +100,3 @@ export const StatusIndicator: React.FC<StatusIndicatorProps> = ({
     </div>
   )
 }
-

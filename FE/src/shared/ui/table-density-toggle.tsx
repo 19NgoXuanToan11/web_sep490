@@ -14,7 +14,7 @@ export function TableDensityToggle({ value, onChange, className }: TableDensityT
   const handleToggle = () => {
     const newDensity = value === 'compact' ? 'comfortable' : 'compact'
     onChange(newDensity)
-    // Persist to localStorage
+
     userPreferences.set({ tableDensity: newDensity })
   }
 
@@ -36,7 +36,6 @@ export function TableDensityToggle({ value, onChange, className }: TableDensityT
   )
 }
 
-// Hook to use table density with persistence
 export function useTableDensity() {
   const [density, setDensity] = React.useState<'compact' | 'comfortable'>(() => {
     return userPreferences.get().tableDensity

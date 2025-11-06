@@ -1,6 +1,5 @@
 import { z } from 'zod'
 
-// Zod schemas for form validation
 export const productSchema = z.object({
   productName: z
     .string()
@@ -55,14 +54,12 @@ export const productFilterSchema = z.object({
   pageSize: z.number().min(1).max(100).optional(),
 })
 
-// Types derived from schemas
 export type ProductFormData = z.infer<typeof productSchema>
 export type ProductUpdateFormData = z.infer<typeof productUpdateSchema>
 export type ChangeStatusFormData = z.infer<typeof changeStatusSchema>
 export type ChangeQuantityFormData = z.infer<typeof changeQuantitySchema>
 export type ProductFilterFormData = z.infer<typeof productFilterSchema>
 
-// Additional validation helpers
 export const validateSKU = (sku: string, existingSKUs: string[] = []) => {
   if (existingSKUs.includes(sku.toUpperCase())) {
     return { isValid: false, error: 'SKU đã tồn tại' }

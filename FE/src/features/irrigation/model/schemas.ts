@@ -1,6 +1,5 @@
 import { z } from 'zod'
 
-// Schedule form validation schema
 export const scheduleFormSchema = z
   .object({
     title: z.string().min(1, 'Tên lịch là bắt buộc').max(100, 'Tên lịch phải ít hơn 100 ký tự'),
@@ -22,7 +21,7 @@ export const scheduleFormSchema = z
   })
   .refine(
     data => {
-      // Validate that end time is after start time
+
       const [startHour, startMin] = data.startTime.split(':').map(Number)
       const [endHour, endMin] = data.endTime.split(':').map(Number)
       const startMinutes = startHour * 60 + startMin
@@ -35,7 +34,6 @@ export const scheduleFormSchema = z
     }
   )
 
-// Rule form validation schema
 export const ruleFormSchema = z.object({
   name: z.string().min(1, 'Tên quy tắc là bắt buộc').max(100, 'Tên phải ít hơn 100 ký tự'),
   conditionText: z
@@ -45,7 +43,6 @@ export const ruleFormSchema = z.object({
   enabled: z.boolean().default(true),
 })
 
-// Device action schema
 export const deviceActionSchema = z.object({
   type: z.enum(['start', 'stop', 'pause', 'run-now'], {
     required_error: 'Loại hành động là bắt buộc',
@@ -53,7 +50,6 @@ export const deviceActionSchema = z.object({
   deviceId: z.string().min(1, 'ID thiết bị là bắt buộc'),
 })
 
-// Form data types (inferred from schemas)
 export type ScheduleFormData = z.infer<typeof scheduleFormSchema>
 export type RuleFormData = z.infer<typeof ruleFormSchema>
 export type DeviceActionData = z.infer<typeof deviceActionSchema>

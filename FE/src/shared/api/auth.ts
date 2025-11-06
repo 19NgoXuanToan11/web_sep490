@@ -38,7 +38,6 @@ export const authApi = {
   },
 }
 
-// Account and AccountProfile APIs
 export interface AccountDto {
   accountId: number
   email: string
@@ -89,7 +88,6 @@ export interface UpdateProfileRequest {
   gender?: string
 }
 
-// Pagination response interface
 export interface PaginationResponse<T> {
   totalItemCount: number
   pageSize: number

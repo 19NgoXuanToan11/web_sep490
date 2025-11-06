@@ -1,4 +1,3 @@
-// Lightweight HTTP client built on fetch with JSON helpers
 import { env } from '@/shared/config/env'
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
@@ -23,7 +22,6 @@ async function request<T>(
   const headers = new Headers(options.headers || {})
   headers.set('Content-Type', 'application/json')
 
-  // Tự động đính kèm Authorization nếu có
   const raw = localStorage.getItem('ifms-token')
   const token = raw ? JSON.parse(raw) : null
   if (token) headers.set('Authorization', `Bearer ${String(token).replace(/"/g, '')}`)
@@ -36,7 +34,7 @@ async function request<T>(
   const text = await res.text()
   const data = text ? (JSON.parse(text) as T) : (undefined as unknown as T)
   if (!res.ok) {
-    // Standardize error shape for UI toasts
+
     const message = (data as any)?.message || (data as any)?.Message || `HTTP ${status}`
     throw Object.assign(new Error(message), { status, data })
   }

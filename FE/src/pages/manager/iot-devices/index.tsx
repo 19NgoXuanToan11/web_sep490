@@ -169,7 +169,7 @@ const ManagerIoTDevicesPage: React.FC = () => {
     <ManagerLayout>
       <div className="p-6">
         <div className="space-y-8">
-          {/* Header */}
+          {}
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Quản lý Thiết bị IoT</h1>
             <p className="text-gray-600 mt-2">
@@ -187,7 +187,7 @@ const ManagerIoTDevicesPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Statistics Cards */}
+          {}
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-5">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -245,7 +245,7 @@ const ManagerIoTDevicesPage: React.FC = () => {
             </Card>
           </div>
 
-          {/* Filters and Search */}
+          {}
           <Card>
             <CardHeader>
               <CardTitle>Danh sách thiết bị</CardTitle>
@@ -305,7 +305,7 @@ const ManagerIoTDevicesPage: React.FC = () => {
                 </DropdownMenu>
               </div>
 
-              {/* Device Table */}
+              {}
               <div className="rounded-md border">
                 <Table>
                   <TableHeader>
@@ -433,7 +433,7 @@ const ManagerIoTDevicesPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Create Device Modal */}
+      {}
       <CreateDeviceModal
         isOpen={createModalOpen}
         onClose={() => setCreateModalOpen(false)}

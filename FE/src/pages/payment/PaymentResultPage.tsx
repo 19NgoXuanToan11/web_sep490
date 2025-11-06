@@ -10,13 +10,11 @@ const PaymentResultPage: React.FC = () => {
   const [countdown, setCountdown] = useState(3)
   const [showAppInstructions, setShowAppInstructions] = useState(false)
 
-  // Lấy thông tin từ URL params
   const success = searchParams.get('success') === 'true'
   const orderId = searchParams.get('orderId')
   const amount = searchParams.get('amount')
   const code = searchParams.get('code')
 
-  // Tạo deeplink để mở app mobile
   const createDeepLink = () => {
     const params = new URLSearchParams()
     params.append('success', success.toString())
@@ -24,15 +22,14 @@ const PaymentResultPage: React.FC = () => {
     if (amount) params.append('amount', amount)
     if (code) params.append('code', code)
 
-    // Thử nhiều loại deep link khác nhau
     const links = {
-      // Custom scheme (cho production build)
-      custom: `ifms://payment-result?${params.toString()}`,
-      // Expo development URL (cho development)
-      expoDev: `exp://192.168.2.14:8081/--/payment-result?${params.toString()}`,
-      expoLocal: `exp://localhost:8081/--/payment-result?${params.toString()}`,
-      // Universal link fallback
-      universal: `https://web-sep490.vercel.app/mobile-redirect/payment-result?${params.toString()}`
+
+      custom: `ifms:
+
+      expoDev: `exp:
+      expoLocal: `exp:
+
+      universal: `https:
     }
 
     return links
@@ -40,22 +37,20 @@ const PaymentResultPage: React.FC = () => {
 
   const deeplinks = createDeepLink()
 
-  // Tự động mở app sau 3 giây
   useEffect(() => {
     if (countdown > 0) {
       const timer = setTimeout(() => setCountdown(countdown - 1), 1000)
       return () => clearTimeout(timer)
     } else {
-      // Thử mở app tự động với tất cả các loại deep link
+
       tryOpenMultipleDeepLinks(deeplinks)
     }
   }, [countdown, deeplinks])
 
   const tryOpenMultipleDeepLinks = (links: any) => {
-    // Detect if we're on mobile
+
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
 
-    // Thử theo thứ tự ưu tiên
     const trySequentially = async () => {
       const urlsToTry = isMobile
         ? [links.expoDev, links.expoLocal, links.custom, links.universal]
@@ -66,18 +61,17 @@ const PaymentResultPage: React.FC = () => {
 
         try {
           if (isMobile) {
-            // Mobile: Direct navigation
+
             window.location.href = url
-            // Nếu thành công, không thử tiếp
+
             break
           } else {
-            // Desktop: Iframe method
+
             const iframe = document.createElement('iframe')
             iframe.style.display = 'none'
             iframe.src = url
             document.body.appendChild(iframe)
 
-            // Cleanup sau 1 giây
             setTimeout(() => {
               try {
                 document.body.removeChild(iframe)
@@ -88,7 +82,6 @@ const PaymentResultPage: React.FC = () => {
         } catch (e) {
         }
 
-        // Delay giữa các lần thử
         if (i < urlsToTry.length - 1) {
           await new Promise(resolve => setTimeout(resolve, 1000))
         }
@@ -97,7 +90,6 @@ const PaymentResultPage: React.FC = () => {
 
     trySequentially()
 
-    // Hiển thị hướng dẫn sau 5 giây nếu app chưa mở
     setTimeout(() => {
       setShowAppInstructions(true)
     }, 5000)
@@ -125,7 +117,7 @@ const PaymentResultPage: React.FC = () => {
         className="w-full max-w-md"
       >
         <Card className="p-8 shadow-2xl border-0">
-          {/* Icon và tiêu đề */}
+          {}
           <div className="text-center mb-6">
             <motion.div
               initial={{ scale: 0 }}
@@ -154,7 +146,7 @@ const PaymentResultPage: React.FC = () => {
             </p>
           </div>
 
-          {/* Thông tin đơn hàng */}
+          {}
           <div className="bg-gray-50 rounded-lg p-4 mb-6 space-y-3">
             {orderId && (
               <div className="flex items-center justify-between">
@@ -174,7 +166,7 @@ const PaymentResultPage: React.FC = () => {
             )}
           </div>
 
-          {/* Nút mở ứng dụng */}
+          {}
           <div className="space-y-3">
             <Button
               onClick={handleOpenApp}
@@ -184,7 +176,7 @@ const PaymentResultPage: React.FC = () => {
               Mở ứng dụng IOTFarm
             </Button>
 
-            {/* Hướng dẫn khi không mở được app */}
+            {}
             {showAppInstructions && (
               <motion.div
                 initial={{ opacity: 0, height: 0 }}
@@ -231,5 +223,3 @@ const PaymentResultPage: React.FC = () => {
 }
 
 export default PaymentResultPage
-
-

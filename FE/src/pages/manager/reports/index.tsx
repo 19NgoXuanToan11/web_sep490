@@ -31,15 +31,12 @@ import { ManagerLayout } from '@/shared/layouts/ManagerLayout'
 export default function ReportsPage() {
   const { timeRange, reportData, loadingStates, setTimeRange, loadReportData } = useReportsStore()
 
-  // Initialize data
   React.useEffect(() => {
     loadReportData()
   }, [])
 
   const isLoading = loadingStates['load-reports']?.isLoading
   const error = loadingStates['load-reports']?.error
-
-  // Removed CSV export per requirements
 
   const timeRangeOptions = {
     last7: '7 ngày qua',
@@ -67,7 +64,7 @@ export default function ReportsPage() {
     <ManagerLayout>
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="space-y-8">
-          {/* Header */}
+          {}
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">
@@ -95,7 +92,7 @@ export default function ReportsPage() {
             </div>
           </div>
 
-          {/* KPI Cards */}
+          {}
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
             <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
               <KPICard
@@ -135,9 +132,9 @@ export default function ReportsPage() {
             </div>
           </div>
 
-          {/* Charts */}
+          {}
           <div className="grid gap-6 lg:grid-cols-2">
-            {/* Efficiency Trend */}
+            {}
             <Card className="bg-white rounded-lg shadow-sm border border-gray-200">
               <CardHeader className="border-b border-gray-100">
                 <CardTitle className="flex items-center gap-2 text-gray-900">
@@ -183,7 +180,7 @@ export default function ReportsPage() {
               </CardContent>
             </Card>
 
-            {/* Production vs Sales */}
+            {}
             <Card className="bg-white rounded-lg shadow-sm border border-gray-200">
               <CardHeader className="border-b border-gray-100">
                 <CardTitle className="flex items-center gap-2 text-gray-900">
@@ -224,7 +221,7 @@ export default function ReportsPage() {
             </Card>
           </div>
 
-          {/* Summary Stats */}
+          {}
           <Card className="bg-white rounded-lg shadow-sm border border-gray-200">
             <CardHeader className="border-b border-gray-100">
               <CardTitle className="text-gray-900">Thống kê tổng hợp</CardTitle>

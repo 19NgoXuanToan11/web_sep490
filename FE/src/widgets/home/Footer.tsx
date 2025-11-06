@@ -40,7 +40,7 @@ export const Footer: React.FC = () => {
         variants={fadeInVariants}
       >
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12">
-          {/* About Section */}
+          {}
           <div className="sm:col-span-2 lg:col-span-2 space-y-6">
             <div className="space-y-4">
               <h3 className="text-xl font-bold text-foreground">{footerSections.about.title}</h3>
@@ -49,7 +49,7 @@ export const Footer: React.FC = () => {
               </p>
             </div>
 
-            {/* Social Media */}
+            {}
             <div className="space-y-4">
               <h4 className="font-semibold text-foreground">Theo dõi chúng tôi</h4>
               <div className="flex space-x-4">
@@ -71,7 +71,7 @@ export const Footer: React.FC = () => {
             </div>
           </div>
 
-          {/* Quick Links */}
+          {}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-foreground">Liên kết nhanh</h3>
             <ul className="space-y-3">
@@ -90,7 +90,7 @@ export const Footer: React.FC = () => {
             </ul>
           </div>
 
-          {/* Contact Information */}
+          {}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold text-foreground">Liên hệ</h3>
             <div className="space-y-3">
@@ -123,7 +123,7 @@ export const Footer: React.FC = () => {
         </div>
       </motion.div>
 
-      {/* Bottom bar */}
+      {}
       <div className="border-t border-border">
         <motion.div
           className="container mx-auto px-4 py-6"

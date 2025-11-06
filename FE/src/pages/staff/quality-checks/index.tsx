@@ -62,7 +62,6 @@ const StaffQualityChecksPage: React.FC = () => {
     getCriticalIssues,
   } = useQualityChecksStore()
 
-  // Initialize data on mount
   useEffect(() => {
     initializeData()
   }, [initializeData])
@@ -196,7 +195,7 @@ const StaffQualityChecksPage: React.FC = () => {
   return (
     <StaffLayout>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Page Header */}
+        {}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center">
@@ -214,7 +213,7 @@ const StaffQualityChecksPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Stats Cards */}
+        {}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -291,7 +290,7 @@ const StaffQualityChecksPage: React.FC = () => {
           </motion.div>
         </div>
 
-        {/* Critical Issues Alert */}
+        {}
         {criticalIssues.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -314,10 +313,10 @@ const StaffQualityChecksPage: React.FC = () => {
           </motion.div>
         )}
 
-        {/* Search and Filters */}
+        {}
         <Card className="p-6 mb-8">
           <div className="space-y-4">
-            {/* Search */}
+            {}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
@@ -328,7 +327,7 @@ const StaffQualityChecksPage: React.FC = () => {
               />
             </div>
 
-            {/* Filters */}
+            {}
             <div className="flex flex-wrap gap-3 items-center">
               <span className="text-sm font-medium text-gray-700 whitespace-nowrap">Lọc theo:</span>
               <div className="flex flex-wrap gap-2">
@@ -410,7 +409,7 @@ const StaffQualityChecksPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Selected Count */}
+          {}
           {selectedCheckIds.length > 0 && (
             <div className="mt-4 flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
               <span className="text-sm font-medium text-blue-700">
@@ -428,7 +427,7 @@ const StaffQualityChecksPage: React.FC = () => {
           )}
         </Card>
 
-        {/* Quality Checks Table */}
+        {}
         <Card className="overflow-hidden">
           <div className="overflow-x-auto">
             <Table>
@@ -541,7 +540,7 @@ const StaffQualityChecksPage: React.FC = () => {
           )}
         </Card>
 
-        {/* Details Modal */}
+        {}
         <QualityCheckDetailsModal
           isOpen={viewModalOpen}
           onClose={() => setViewModalOpen(false)}
@@ -550,7 +549,7 @@ const StaffQualityChecksPage: React.FC = () => {
           onDelete={handleDeleteCheck}
         />
 
-        {/* Edit Modal */}
+        {}
         <QualityCheckEditModal
           isOpen={editModalOpen}
           onClose={() => setEditModalOpen(false)}
@@ -558,7 +557,7 @@ const StaffQualityChecksPage: React.FC = () => {
           onSave={handleSaveCheck}
         />
 
-        {/* Create Modal */}
+        {}
         <QualityCheckEditModal
           isOpen={createModalOpen}
           onClose={() => setCreateModalOpen(false)}

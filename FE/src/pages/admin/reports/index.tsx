@@ -22,7 +22,7 @@ const AdminReportsPage: React.FC = () => {
 
   const handleRefresh = async () => {
     setIsRefreshing(true)
-    // Simulate API call
+
     await new Promise(resolve => setTimeout(resolve, 1000))
     setIsRefreshing(false)
   }
@@ -140,7 +140,7 @@ const AdminReportsPage: React.FC = () => {
   return (
     <AdminLayout>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Page Header */}
+        {}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Báo cáo & Phân tích</h1>
@@ -158,7 +158,7 @@ const AdminReportsPage: React.FC = () => {
               Làm mới
             </Button>
 
-            {/* Period Selector */}
+            {}
             <div className="relative">
               <button
                 onClick={() => setShowDatePicker(!showDatePicker)}
@@ -189,7 +189,7 @@ const AdminReportsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Key Metrics */}
+        {}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {keyMetrics.map((metric, index) => (
             <div
@@ -221,7 +221,7 @@ const AdminReportsPage: React.FC = () => {
           ))}
         </div>
 
-        {/* Report Categories */}
+        {}
         <div className="mb-8">
           <h2 className="text-xl font-semibold text-gray-900 mb-6">Danh mục báo cáo</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -248,7 +248,7 @@ const AdminReportsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Quick Reports */}
+        {}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-semibold text-gray-900">Báo cáo nhanh</h2>

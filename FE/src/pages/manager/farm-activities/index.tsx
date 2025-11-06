@@ -40,12 +40,10 @@ export default function FarmActivitiesPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [activityTypeFilter, setActivityTypeFilter] = useState<string>('all')
 
-  // Dialog states
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [editingActivity, setEditingActivity] = useState<FarmActivity | null>(null)
 
-  // Form states
   const [formData, setFormData] = useState<FarmActivityRequest>({
     activityType: '',
     startDate: '',
@@ -55,7 +53,6 @@ export default function FarmActivitiesPage() {
 
   const { toast } = useToast()
 
-  // Activity types (enum từ backend)
   const activityTypes = [
     { value: 'SOWING', label: 'Gieo trồng' },
     { value: 'WATERING', label: 'Tưới nước' },
@@ -67,7 +64,6 @@ export default function FarmActivitiesPage() {
     { value: 'MAINTENANCE', label: 'Bảo trì' },
   ]
 
-  // Status options
   const statusOptions = [
     { value: 'ACTIVE', label: 'Hoạt động', color: 'bg-green-100 text-green-800' },
     { value: 'COMPLETED', label: 'Hoàn thành', color: 'bg-blue-100 text-blue-800' },
@@ -75,17 +71,16 @@ export default function FarmActivitiesPage() {
     { value: 'PENDING', label: 'Chờ thực hiện', color: 'bg-yellow-100 text-yellow-800' },
   ]
 
-  // Load farm activities data
   const loadActivities = async () => {
     try {
       setLoading(true)
       const response = await farmActivityService.getAllFarmActivities()
-      // Đảm bảo response luôn là một mảng
+
       const activitiesData = Array.isArray(response) ? response : []
       setActivities(activitiesData)
     } catch (error) {
       console.error('Error loading activities:', error)
-      setActivities([]) // Set về mảng rỗng khi có lỗi
+      setActivities([])
       toast({
         title: 'Lỗi',
         description: 'Không thể tải danh sách hoạt động nông trại',
@@ -96,7 +91,6 @@ export default function FarmActivitiesPage() {
     }
   }
 
-  // Filter activities với kiểm tra an toàn
   const filteredActivities = (Array.isArray(activities) ? activities : []).filter(activity => {
     if (!activity || typeof activity !== 'object') return false
     const matchesSearch =
@@ -108,7 +102,6 @@ export default function FarmActivitiesPage() {
     return matchesSearch && matchesStatus && matchesActivityType
   })
 
-  // Create activity
   const handleCreateActivity = async () => {
     try {
       if (!formData.activityType || !formData.startDate || !formData.endDate) {
@@ -148,7 +141,6 @@ export default function FarmActivitiesPage() {
     }
   }
 
-  // Update activity
   const handleUpdateActivity = async () => {
     if (!editingActivity) return
 
@@ -180,7 +172,6 @@ export default function FarmActivitiesPage() {
     }
   }
 
-  // Change activity status
   const handleChangeStatus = async (activityId: number) => {
     try {
       await farmActivityService.changeStatus(activityId)
@@ -199,7 +190,6 @@ export default function FarmActivitiesPage() {
     }
   }
 
-  // Delete activity
   const handleDeleteActivity = async (activityId: number) => {
     if (!confirm('Bạn có chắc chắn muốn xóa hoạt động này không?')) return
 
@@ -220,7 +210,6 @@ export default function FarmActivitiesPage() {
     }
   }
 
-  // Reset form
   const resetForm = () => {
     setFormData({
       activityType: '',
@@ -230,31 +219,27 @@ export default function FarmActivitiesPage() {
     })
   }
 
-  // Handle edit click
   const handleEditClick = (activity: FarmActivity) => {
     setEditingActivity(activity)
     setFormData({
       activityType: activity.activityType,
-      startDate: activity.startDate.split('T')[0], // Format date for input
+      startDate: activity.startDate.split('T')[0],
       endDate: activity.endDate.split('T')[0],
       status: activity.status,
     })
     setEditDialogOpen(true)
   }
 
-  // Format date for display
   const formatDate = (dateString: string) => {
     if (!dateString) return ''
     return new Date(dateString).toLocaleDateString('vi-VN')
   }
 
-  // Get activity type label
   const getActivityTypeLabel = (type: string) => {
     const activityType = activityTypes.find(at => at.value === type)
     return activityType ? activityType.label : type
   }
 
-  // Get status badge
   const getStatusBadge = (status: string) => {
     const statusOption = statusOptions.find(s => s.value === status)
     if (!statusOption) return <Badge variant="outline">{status}</Badge>
@@ -270,7 +255,7 @@ export default function FarmActivitiesPage() {
     <ManagerLayout>
       <div className="p-6">
         <div className="space-y-8">
-          {/* Header */}
+          {}
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Quản Lý Hoạt Động Nông Trại</h1>
             <p className="text-gray-600 mt-2">
@@ -278,7 +263,7 @@ export default function FarmActivitiesPage() {
             </p>
           </div>
 
-          {/* Stats Cards */}
+          {}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -339,7 +324,7 @@ export default function FarmActivitiesPage() {
             </Card>
           </div>
 
-          {/* Controls */}
+          {}
           <Card>
             <CardHeader>
               <CardTitle>Danh Sách Hoạt Động Nông Trại</CardTitle>
@@ -402,7 +387,7 @@ export default function FarmActivitiesPage() {
                 </div>
               </div>
 
-              {/* Table */}
+              {}
               <div className="border rounded-lg">
                 <Table>
                   <TableHeader>
@@ -478,7 +463,7 @@ export default function FarmActivitiesPage() {
         </div>
       </div>
 
-      {/* Create Dialog */}
+      {}
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -550,7 +535,7 @@ export default function FarmActivitiesPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Edit Dialog */}
+      {}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>

@@ -1,7 +1,6 @@
 import { z } from 'zod'
 import type { UserRole, UserStatus } from '@/shared/lib/localData'
 
-// Form schemas for Admin User Management
 export const userFormSchema = z.object({
   name: z.string().min(1, 'Họ và tên là bắt buộc').min(2, 'Họ và tên phải có ít nhất 2 ký tự'),
   email: z.string().email('Vui lòng nhập địa chỉ email hợp lệ'),
@@ -18,23 +17,19 @@ export const bulkUserActionSchema = z.object({
   role: z.enum(['CUSTOMER', 'MANAGER', 'STAFF']).optional(),
 })
 
-// Type exports
 export type UserFormData = z.infer<typeof userFormSchema>
 export type BulkUserAction = z.infer<typeof bulkUserActionSchema>
 
-// Validation helpers
 export const validateUserForm = (data: unknown) => userFormSchema.safeParse(data)
 export const validateBulkAction = (data: unknown) => bulkUserActionSchema.safeParse(data)
 
-// Default form values
 export const defaultUserFormValues: UserFormData = {
   name: '',
   email: '',
-  role: 'STAFF', // Default role
+  role: 'STAFF',
   status: 'Active',
 }
 
-// Available roles list with descriptions (matching backend Roles enum)
 export const availableRoles: { value: UserRole; label: string; description: string }[] = [
   {
     value: 'CUSTOMER',
@@ -53,7 +48,6 @@ export const availableRoles: { value: UserRole; label: string; description: stri
   },
 ]
 
-// Status options
 export const statusOptions: {
   value: UserStatus
   label: string

@@ -54,7 +54,7 @@ export const useReportsStore = create<ReportsState>((set, get) => ({
 
   setTimeRange: (range: TimeRange) => {
     set({ timeRange: range })
-    // Reload data for new time range
+
     get().loadReportData()
   },
 
@@ -63,13 +63,11 @@ export const useReportsStore = create<ReportsState>((set, get) => ({
     get().setLoadingState(key, { isLoading: true })
 
     try {
-      await simulateLatency(800, 1500) // Simulate longer loading for calculations
+      await simulateLatency(800, 1500)
 
-      // In a real app, this would filter data based on timeRange
       const { timeRange } = get()
       let filteredData = { ...mockReportData }
 
-      // Simulate different data for different time ranges
       if (timeRange === 'last7') {
         filteredData = {
           ...mockReportData,
@@ -109,13 +107,11 @@ export const useReportsStore = create<ReportsState>((set, get) => ({
   exportReportCSV: () => {
     const { reportData } = get()
 
-    // Export efficiency data
     const efficiencyData = reportData.timeseries.map((item: any) => ({
       Date: new Date(item.date).toLocaleDateString(),
       'Efficiency (%)': item.efficiency,
     }))
 
-    // Export production vs sales data
     const productionData = reportData.productionVsSales.map((item: any) => ({
       Month: item.month,
       Production: item.production,
@@ -123,7 +119,6 @@ export const useReportsStore = create<ReportsState>((set, get) => ({
       Difference: item.production - item.sales,
     }))
 
-    // Convert to CSV format and download
     const csvEfficiency = [
       Object.keys(efficiencyData[0] || {}).join(','),
       ...efficiencyData.map(row => Object.values(row).join(',')),
@@ -134,7 +129,6 @@ export const useReportsStore = create<ReportsState>((set, get) => ({
       ...productionData.map(row => Object.values(row).join(',')),
     ].join('\n')
 
-    // Create and download files
     const downloadCSV = (content: string, filename: string) => {
       const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' })
       const link = document.createElement('a')

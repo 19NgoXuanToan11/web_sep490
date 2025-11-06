@@ -123,7 +123,7 @@ export const AlertCard: React.FC<AlertCardProps> = ({
               >
                 <Icon className={`h-5 w-5 ${alertStyle.iconColor}`} />
               </motion.div>
-              
+
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between mb-1">
                   <h3 className="text-sm font-semibold text-gray-900 truncate">
@@ -133,18 +133,18 @@ export const AlertCard: React.FC<AlertCardProps> = ({
                     {priorityStyle.label}
                   </Badge>
                 </div>
-                
+
                 <p className="text-sm text-gray-700 mb-2">
                   {message}
                 </p>
-                
+
                 {timestamp && (
                   <div className="flex items-center text-xs text-gray-500 mb-3">
                     <Clock className="h-3 w-3 mr-1" />
                     {timestamp}
                   </div>
                 )}
-                
+
                 {actionLabel && onAction && (
                   <Button
                     variant="outline"
@@ -158,7 +158,7 @@ export const AlertCard: React.FC<AlertCardProps> = ({
                 )}
               </div>
             </div>
-            
+
             {showDismiss && onDismiss && (
               <Button
                 variant="ghost"
@@ -171,8 +171,8 @@ export const AlertCard: React.FC<AlertCardProps> = ({
             )}
           </div>
         </div>
-        
-        {/* Priority indicator bar */}
+
+        {}
         {(priority === 'high' || priority === 'critical') && (
           <motion.div
             className={`absolute bottom-0 left-0 h-1 ${
@@ -186,4 +186,3 @@ export const AlertCard: React.FC<AlertCardProps> = ({
     </motion.div>
   )
 }
-

@@ -115,7 +115,7 @@ export const WorkLogEditModal: React.FC<WorkLogEditModalProps> = ({
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Basic Information */}
+          {}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
@@ -307,7 +307,7 @@ export const WorkLogEditModal: React.FC<WorkLogEditModalProps> = ({
             </CardContent>
           </Card>
 
-          {/* Equipment Selection */}
+          {}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
@@ -337,7 +337,7 @@ export const WorkLogEditModal: React.FC<WorkLogEditModalProps> = ({
             </CardContent>
           </Card>
 
-          {/* Weather Conditions */}
+          {}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
@@ -410,7 +410,7 @@ export const WorkLogEditModal: React.FC<WorkLogEditModalProps> = ({
             </CardContent>
           </Card>
 
-          {/* Additional Notes */}
+          {}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
@@ -428,7 +428,7 @@ export const WorkLogEditModal: React.FC<WorkLogEditModalProps> = ({
             </CardContent>
           </Card>
 
-          {/* Action Buttons */}
+          {}
           <div className="flex justify-between pt-4 border-t">
             <Button type="button" variant="outline" onClick={onClose}>
               <X className="h-4 w-4 mr-2" />

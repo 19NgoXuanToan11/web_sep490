@@ -1,4 +1,3 @@
-// Local storage utilities for persisting user preferences and data
 
 const STORAGE_KEYS = {
   USER_PREFERENCES: 'ifms-user-preferences',
@@ -24,7 +23,6 @@ const defaultPreferences: UserPreferences = {
   theme: 'system',
 }
 
-// Generic storage utilities
 export const storage = {
   get<T>(key: string): T | null {
     try {
@@ -39,7 +37,7 @@ export const storage = {
     try {
       localStorage.setItem(key, JSON.stringify(value))
     } catch {
-      // Silent fail for storage quota exceeded, etc.
+
     }
   },
 
@@ -47,7 +45,7 @@ export const storage = {
     try {
       localStorage.removeItem(key)
     } catch {
-      // Silent fail
+
     }
   },
 
@@ -57,12 +55,11 @@ export const storage = {
         localStorage.removeItem(key)
       })
     } catch {
-      // Silent fail
+
     }
   },
 }
 
-// Typed storage utilities for specific data
 export const userPreferences = {
   get(): UserPreferences {
     const stored = storage.get<UserPreferences>(STORAGE_KEYS.USER_PREFERENCES)
@@ -81,7 +78,6 @@ export const userPreferences = {
   },
 }
 
-// Simulation utilities
 export const simulateLatency = (min: number = 200, max: number = 600): Promise<void> => {
   const delay = Math.floor(Math.random() * (max - min + 1)) + min
   return new Promise(resolve => setTimeout(resolve, delay))
@@ -91,7 +87,6 @@ export const simulateError = (errorRate: number = 0.1): boolean => {
   return Math.random() < errorRate
 }
 
-// Date/time utilities for the local data
 export const formatDate = (date: string | Date): string => {
   return new Date(date).toLocaleDateString('vi-VN')
 }

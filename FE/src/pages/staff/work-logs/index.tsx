@@ -50,7 +50,6 @@ const StaffWorkLogsPage: React.FC = () => {
     getOverdueTasks,
   } = useWorkLogsStore()
 
-  // Initialize data on mount
   useEffect(() => {
     initializeData()
   }, [initializeData])
@@ -125,7 +124,7 @@ const StaffWorkLogsPage: React.FC = () => {
   return (
     <StaffLayout>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Page Header */}
+        {}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center">
@@ -143,7 +142,7 @@ const StaffWorkLogsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Stats Cards */}
+        {}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -220,10 +219,10 @@ const StaffWorkLogsPage: React.FC = () => {
           </motion.div>
         </div>
 
-        {/* Search and Filters */}
+        {}
         <Card className="p-6 mb-8">
           <div className="space-y-4">
-            {/* Search */}
+            {}
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
@@ -234,7 +233,7 @@ const StaffWorkLogsPage: React.FC = () => {
               />
             </div>
 
-            {/* Filters */}
+            {}
             <div className="flex flex-wrap gap-3 items-center">
               <span className="text-sm font-medium text-gray-700 whitespace-nowrap">Lọc theo:</span>
               <div className="flex flex-wrap gap-2">
@@ -298,7 +297,7 @@ const StaffWorkLogsPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Selected Count */}
+          {}
           {selectedLogIds.length > 0 && (
             <div className="mt-4 flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
               <span className="text-sm font-medium text-blue-700">
@@ -316,7 +315,7 @@ const StaffWorkLogsPage: React.FC = () => {
           )}
         </Card>
 
-        {/* Work Logs Table */}
+        {}
         <Card className="overflow-hidden">
           <div className="overflow-x-auto">
             <Table>
@@ -416,7 +415,7 @@ const StaffWorkLogsPage: React.FC = () => {
           )}
         </Card>
 
-        {/* Details Modal */}
+        {}
         <WorkLogDetailsModal
           isOpen={viewModalOpen}
           onClose={() => setViewModalOpen(false)}
@@ -425,14 +424,14 @@ const StaffWorkLogsPage: React.FC = () => {
           onDelete={handleDeleteLog}
         />
 
-        {/* Edit Modal */}
+        {}
         <WorkLogEditModal
           isOpen={editModalOpen}
           onClose={() => setEditModalOpen(false)}
           workLog={selectedLog}
           onSave={async _workLogData => {
             try {
-              // TODO: Implement save logic
+
               toast({
                 title: 'Cập nhật thành công',
                 description: 'Nhật ký công việc đã được cập nhật.',
@@ -449,14 +448,14 @@ const StaffWorkLogsPage: React.FC = () => {
           }}
         />
 
-        {/* Create Modal */}
+        {}
         <WorkLogEditModal
           isOpen={createModalOpen}
           onClose={() => setCreateModalOpen(false)}
           workLog={null}
           onSave={async _workLogData => {
             try {
-              // TODO: Implement create logic
+
               toast({
                 title: 'Tạo thành công',
                 description: 'Nhật ký công việc mới đã được tạo.',

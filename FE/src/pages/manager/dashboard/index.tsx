@@ -209,7 +209,7 @@ export default function ManagerDashboard() {
           <p className="mt-2 text-gray-600">Chào mừng trở lại! Đây là tình hình hôm nay.</p>
         </div>
 
-        {/* Status Cards */}
+        {}
         <div className="grid gap-6 mb-8 md:grid-cols-2 lg:grid-cols-4">
           <MetricCard
             title="Trạng thái hệ thống"
@@ -248,9 +248,9 @@ export default function ManagerDashboard() {
         </div>
 
         <div className="grid gap-8 lg:grid-cols-3">
-          {/* Main Metrics */}
+          {}
           <div className="lg:col-span-2 space-y-8">
-            {/* Performance Overview */}
+            {}
             <Card className="border-0 shadow-lg bg-white">
               <CardHeader className="border-b border-gray-100">
                 <div className="flex items-center justify-between">
@@ -304,7 +304,7 @@ export default function ManagerDashboard() {
               </CardContent>
             </Card>
 
-            {/* Quick Actions */}
+            {}
             <Card className="border-0 shadow-lg bg-white">
               <CardHeader className="border-b border-gray-100">
                 <CardTitle className="text-lg font-semibold text-gray-900">
@@ -343,9 +343,9 @@ export default function ManagerDashboard() {
             </Card>
           </div>
 
-          {/* Sidebar */}
+          {}
           <div className="space-y-6">
-            {/* Weather Card */}
+            {}
             <Card className="border-0 shadow-lg overflow-hidden bg-white">
               <CardHeader className="border-b">
                 <div className="flex items-center justify-between">
@@ -372,7 +372,7 @@ export default function ManagerDashboard() {
                   </div>
                 ) : weather ? (
                   <div className="space-y-4">
-                    {/* Main Temperature Display */}
+                    {}
                     <div className="text-center pb-4 border-b border-gray-100">
                       <div className="flex justify-center items-center gap-3 mb-2">
                         {weather.iconUrl && (
@@ -392,7 +392,7 @@ export default function ManagerDashboard() {
                       <p className="text-xs text-gray-500">{weather.cityName}</p>
                     </div>
 
-                    {/* Weather Details */}
+                    {}
                     <div className="grid grid-cols-2 gap-3">
                       <div className="bg-gray-50 rounded-lg p-3">
                         <div className="flex items-center gap-2 text-gray-600 mb-1">
@@ -433,7 +433,7 @@ export default function ManagerDashboard() {
                       </div>
                     </div>
 
-                    {/* Temperature Range */}
+                    {}
                     <div className="pt-3 border-t border-gray-100">
                       <div className="flex justify-between items-center text-sm">
                         <span className="text-gray-600">Nhiệt độ cao/thấp</span>
@@ -466,7 +466,7 @@ export default function ManagerDashboard() {
               </CardContent>
             </Card>
 
-            {/* Recent Activity */}
+            {}
             <Card className="border-0 shadow-lg bg-white">
               <CardHeader className="border-b border-gray-100">
                 <div className="flex items-center justify-between">
@@ -496,7 +496,7 @@ export default function ManagerDashboard() {
               </CardContent>
             </Card>
 
-            {/* IoT Device Monitoring */}
+            {}
             <Card className="border-0 shadow-lg bg-white">
               <CardHeader className="border-b border-gray-100">
                 <div className="flex items-center justify-between">

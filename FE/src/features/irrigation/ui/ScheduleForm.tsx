@@ -45,13 +45,12 @@ export function ScheduleForm({ open, onOpenChange, editingSchedule, onClose }: S
     },
   })
 
-  // Update form when editing schedule changes
   React.useEffect(() => {
     if (editingSchedule) {
       form.reset({
         title: editingSchedule.title,
         deviceId: editingSchedule.deviceId,
-        recurrenceType: 'daily', // Default since we don't store this separately
+        recurrenceType: 'daily',
         startTime: editingSchedule.startTime,
         endTime: editingSchedule.endTime,
         moistureThresholdPct: editingSchedule.moistureThresholdPct,
@@ -146,7 +145,7 @@ export function ScheduleForm({ open, onOpenChange, editingSchedule, onClose }: S
 
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <div className="space-y-4">
-            {/* Title */}
+            {}
             <div className="space-y-2">
               <Label htmlFor="title">Tên lịch</Label>
               <InputWithError
@@ -157,7 +156,7 @@ export function ScheduleForm({ open, onOpenChange, editingSchedule, onClose }: S
               />
             </div>
 
-            {/* Device Selection */}
+            {}
             <div className="space-y-2">
               <Label htmlFor="device">Thiết bị tưới</Label>
               <Select
@@ -183,7 +182,7 @@ export function ScheduleForm({ open, onOpenChange, editingSchedule, onClose }: S
               )}
             </div>
 
-            {/* Recurrence Type */}
+            {}
             <div className="space-y-2">
               <Label htmlFor="recurrence">Kiểu lặp</Label>
               <Select
@@ -201,7 +200,7 @@ export function ScheduleForm({ open, onOpenChange, editingSchedule, onClose }: S
               </Select>
             </div>
 
-            {/* Time Range */}
+            {}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="startTime" className="flex items-center gap-1">
@@ -229,7 +228,7 @@ export function ScheduleForm({ open, onOpenChange, editingSchedule, onClose }: S
               </div>
             </div>
 
-            {/* Moisture Threshold */}
+            {}
             <div className="space-y-2">
               <Label htmlFor="threshold" className="flex items-center gap-1">
                 <Droplets className="h-3 w-3" />
@@ -249,7 +248,7 @@ export function ScheduleForm({ open, onOpenChange, editingSchedule, onClose }: S
               </p>
             </div>
 
-            {/* Enabled Switch */}
+            {}
             <div className="flex items-center space-x-2">
               <input
                 type="checkbox"
@@ -278,7 +277,6 @@ export function ScheduleForm({ open, onOpenChange, editingSchedule, onClose }: S
   )
 }
 
-// Custom Input component with error support
 interface InputWithErrorProps extends React.InputHTMLAttributes<HTMLInputElement> {
   error?: string
 }

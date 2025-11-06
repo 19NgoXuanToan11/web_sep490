@@ -93,7 +93,7 @@ const navigationItems: NavItem[] = [
 
 export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
-    // Khôi phục trạng thái sidebar từ localStorage
+
     const saved = localStorage.getItem('manager-sidebar-open')
     return saved !== null ? JSON.parse(saved) : true
   })
@@ -101,7 +101,6 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
   const location = useLocation()
   const navigate = useNavigate()
 
-  // Lưu trạng thái sidebar vào localStorage khi thay đổi
   const handleSidebarToggle = useCallback((newState: boolean) => {
     setIsSidebarOpen(newState)
     localStorage.setItem('manager-sidebar-open', JSON.stringify(newState))
@@ -159,17 +158,17 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Desktop Sidebar */}
+      {}
       <motion.div
         className={`hidden lg:fixed lg:inset-y-0 lg:flex lg:flex-col bg-white shadow-lg border-r border-gray-200 ${isSidebarOpen ? 'lg:w-72' : 'lg:w-20'
           }`}
         animate={{ width: isSidebarOpen ? 288 : 80 }}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
       >
-        {/* Sidebar Header */}
+        {}
         <div className="relative border-b border-gray-200">
           {isSidebarOpen ? (
-            /* Expanded Header */
+
             <div className="flex items-center justify-between px-6 py-6">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
@@ -195,7 +194,7 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
               </Button>
             </div>
           ) : (
-            /* Collapsed Header - Vertical layout */
+
             <div className="flex flex-col items-center py-4 space-y-4">
               <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
                 <Sprout className="w-6 h-6 text-white" />
@@ -213,7 +212,7 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
           )}
         </div>
 
-        {/* Navigation */}
+        {}
         <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
           <div className="space-y-1">
             {navigationItems.map(item => (
@@ -222,7 +221,7 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
           </div>
         </nav>
 
-        {/* User Profile */}
+        {}
         <div
           className={`border-t border-gray-200 p-4 ${isSidebarOpen ? '' : 'flex justify-center'}`}
         >
@@ -243,7 +242,7 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
         </div>
       </motion.div>
 
-      {/* Mobile Sidebar */}
+      {}
       <AnimatePresence>
         {isMobileSidebarOpen && (
           <motion.div
@@ -252,7 +251,7 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            {/* Backdrop */}
+            {}
             <motion.div
               className="fixed inset-0 bg-black bg-opacity-25"
               onClick={() => setIsMobileSidebarOpen(false)}
@@ -261,7 +260,7 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
               exit={{ opacity: 0 }}
             />
 
-            {/* Mobile Sidebar */}
+            {}
             <motion.nav
               className="fixed top-0 left-0 bottom-0 flex flex-col w-80 max-w-xs bg-white shadow-xl border-r border-gray-200"
               initial={{ x: -320 }}
@@ -301,14 +300,14 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
         )}
       </AnimatePresence>
 
-      {/* Main Content */}
+      {}
       <div className={`transition-all duration-300 ${isSidebarOpen ? 'lg:pl-72' : 'lg:pl-20'}`}>
-        {/* Top Header */}
+        {}
         <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40">
           <div className="px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between h-16">
               <div className="flex items-center">
-                {/* Mobile Menu Button - Always visible and prominent */}
+                {}
                 <Button
                   variant="outline"
                   size="sm"
@@ -322,7 +321,7 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
               </div>
 
               <div className="flex items-center space-x-2 sm:space-x-4">
-                {/* Notifications */}
+                {}
                 <Button
                   variant="ghost"
                   size="sm"
@@ -339,7 +338,7 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
           </div>
         </header>
 
-        {/* Page Content */}
+        {}
         <main className="flex-1">
           <div className="py-8">{children}</div>
         </main>

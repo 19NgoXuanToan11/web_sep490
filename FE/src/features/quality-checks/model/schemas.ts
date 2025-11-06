@@ -1,6 +1,5 @@
 import { z } from 'zod'
 
-// Quality check entry schema
 export const qualityCheckSchema = z.object({
   id: z.string().optional(),
   date: z.string().min(1, 'Ngày là bắt buộc'),
@@ -11,40 +10,32 @@ export const qualityCheckSchema = z.object({
   status: z.enum(['pass', 'fail', 'warning', 'pending']),
   inspector: z.string().min(1, 'Người kiểm tra là bắt buộc'),
 
-  // Quality metrics
   overallHealth: z.number().min(1).max(10),
   growthStage: z.enum(['seedling', 'vegetative', 'flowering', 'fruiting', 'mature']),
 
-  // Specific checks
   diseasePresent: z.boolean(),
   pestPresent: z.boolean(),
   nutrientDeficiency: z.boolean(),
 
-  // Measurements
   plantHeight: z.number().optional(),
   leafColor: z.enum(['healthy-green', 'light-green', 'yellow', 'brown', 'other']).optional(),
   fruitCount: z.number().optional(),
 
-  // Environmental factors
   soilMoisture: z.number().min(0).max(100).optional(),
   temperature: z.number().optional(),
   humidity: z.number().min(0).max(100).optional(),
 
-  // Issues and actions
   issues: z.array(z.string()).optional(),
   recommendedActions: z.array(z.string()).optional(),
   notes: z.string().optional(),
 
-  // Photos
   photos: z.array(z.string()).optional(),
 
-  // Follow-up
   requiresFollowUp: z.boolean(),
   followUpDate: z.string().optional(),
   priority: z.enum(['low', 'medium', 'high', 'critical']),
 })
 
-// Quality check filter schema
 export const qualityCheckFilterSchema = z.object({
   dateFrom: z.string().optional(),
   dateTo: z.string().optional(),
@@ -57,16 +48,13 @@ export const qualityCheckFilterSchema = z.object({
   requiresFollowUp: z.boolean().optional(),
 })
 
-// Type exports
 export type QualityCheckData = z.infer<typeof qualityCheckSchema>
 export type QualityCheckFilterData = z.infer<typeof qualityCheckFilterSchema>
 
-// Validation helpers
 export const validateQualityCheck = (data: unknown) => qualityCheckSchema.safeParse(data)
 export const validateQualityCheckFilter = (data: unknown) =>
   qualityCheckFilterSchema.safeParse(data)
 
-// Crop types
 export const cropTypes = [
   'Cà chua',
   'Dưa chuột',
@@ -83,7 +71,6 @@ export const cropTypes = [
   'Khác',
 ]
 
-// Zone options (matching with other features)
 export const zoneOptions = [
   'Zone A - Greenhouse 1',
   'Zone B - Outdoor Field',
@@ -95,7 +82,6 @@ export const zoneOptions = [
   'Zone H - Seedling Area',
 ]
 
-// Default form values
 export const defaultQualityCheckValues: QualityCheckData = {
   date: new Date().toISOString().split('T')[0],
   time: new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }),
@@ -118,7 +104,6 @@ export const defaultQualityCheckValues: QualityCheckData = {
   priority: 'medium',
 }
 
-// Check type configurations
 export const checkTypeConfig = {
   routine: {
     label: 'Kiểm tra định kỳ',
@@ -157,7 +142,6 @@ export const checkTypeConfig = {
   },
 }
 
-// Status configurations
 export const statusConfig = {
   pass: {
     label: 'Đạt',
@@ -189,7 +173,6 @@ export const statusConfig = {
   },
 }
 
-// Priority configurations
 export const priorityConfig = {
   low: {
     label: 'Thấp',
@@ -217,7 +200,6 @@ export const priorityConfig = {
   },
 }
 
-// Growth stage configurations
 export const growthStageConfig = {
   seedling: { label: 'Cây con', color: 'text-green-400' },
   vegetative: { label: 'Sinh trưởng', color: 'text-green-600' },
@@ -226,7 +208,6 @@ export const growthStageConfig = {
   mature: { label: 'Chín', color: 'text-purple-600' },
 }
 
-// Leaf color options
 export const leafColorOptions = [
   { value: 'healthy-green', label: 'Xanh khỏe mạnh', color: 'bg-green-500' },
   { value: 'light-green', label: 'Xanh nhạt', color: 'bg-green-300' },
@@ -235,7 +216,6 @@ export const leafColorOptions = [
   { value: 'other', label: 'Khác', color: 'bg-gray-400' },
 ]
 
-// Common issues
 export const commonIssues = [
   'Lá vàng',
   'Tăng trưởng chậm',
@@ -251,7 +231,6 @@ export const commonIssues = [
   'Mô hình tăng trưởng bất thường',
 ]
 
-// Recommended actions
 export const recommendedActions = [
   'Tăng tần suất tưới nước',
   'Giảm tần suất tưới nước',
@@ -267,7 +246,6 @@ export const recommendedActions = [
   'Tham khảo chuyên gia',
 ]
 
-// Sort options for quality checks
 export const qualityCheckSortOptions = [
   { value: 'date', label: 'Ngày' },
   { value: 'priority', label: 'Độ ưu tiên' },

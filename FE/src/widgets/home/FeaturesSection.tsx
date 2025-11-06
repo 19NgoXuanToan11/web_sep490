@@ -67,7 +67,7 @@ export const FeaturesSection: React.FC = () => {
   return (
     <section className="py-20 bg-background">
       <div className="container mx-auto px-4">
-        {/* Section title */}
+        {}
         <motion.div className="text-center mb-16" {...inViewProps} variants={itemVariants}>
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
             TÍNH NĂNG HỆ THỐNG
@@ -75,7 +75,7 @@ export const FeaturesSection: React.FC = () => {
           <div className="w-24 h-1 bg-brand mx-auto rounded-full" />
         </motion.div>
 
-        {/* Features grid */}
+        {}
         <motion.div
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
           {...inViewProps}
@@ -85,17 +85,17 @@ export const FeaturesSection: React.FC = () => {
             <motion.div key={index} variants={itemVariants} className="group">
               <Card className="h-full border-brand/20 hover:border-brand/40 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg bg-card/50 backdrop-blur-sm">
                 <CardContent className="p-6 text-center space-y-4">
-                  {/* Icon */}
+                  {}
                   <div className="mx-auto w-16 h-16 bg-brand/10 rounded-full flex items-center justify-center group-hover:bg-brand/20 transition-colors duration-300">
                     <feature.icon className="w-8 h-8 text-brand" />
                   </div>
 
-                  {/* Title */}
+                  {}
                   <h3 className="font-bold text-sm uppercase tracking-wider text-foreground leading-tight">
                     {feature.title}
                   </h3>
 
-                  {/* Description */}
+                  {}
                   <p className="text-muted-foreground text-sm leading-relaxed">
                     {feature.description}
                   </p>

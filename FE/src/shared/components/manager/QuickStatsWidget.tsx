@@ -116,11 +116,11 @@ export const QuickStatsWidget: React.FC<QuickStatsWidgetProps> = ({
                     </div>
                   )}
                 </div>
-                
+
                 <div className={`text-${compact ? 'lg' : 'xl'} font-bold text-gray-900 mb-1`}>
                   {stat.value}
                 </div>
-                
+
                 {stat.change && (
                   <div className="flex items-center justify-between">
                     <div className={`flex items-center text-xs ${trendStyle?.color}`}>
@@ -142,4 +142,3 @@ export const QuickStatsWidget: React.FC<QuickStatsWidgetProps> = ({
     </Card>
   )
 }
-

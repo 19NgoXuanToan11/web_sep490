@@ -60,7 +60,6 @@ export function ProductForm({ editingProduct, onSuccess, onCancel, className }: 
         },
   })
 
-  // Load categories on mount
   React.useEffect(() => {
     fetchCategories().catch(error => {
       console.error('Error loading categories:', error)
@@ -98,7 +97,7 @@ export function ProductForm({ editingProduct, onSuccess, onCancel, className }: 
           variant: 'success',
         })
 
-        reset() // Reset form after successful creation
+        reset()
         setImagePreview(null)
       }
 
@@ -115,7 +114,7 @@ export function ProductForm({ editingProduct, onSuccess, onCancel, className }: 
   const handleImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
-      // Validate file type
+
       if (!file.type.startsWith('image/')) {
         toast({
           title: 'File không hợp lệ',
@@ -125,7 +124,6 @@ export function ProductForm({ editingProduct, onSuccess, onCancel, className }: 
         return
       }
 
-      // Validate file size (max 5MB)
       if (file.size > 5 * 1024 * 1024) {
         toast({
           title: 'File quá lớn',
@@ -166,7 +164,7 @@ export function ProductForm({ editingProduct, onSuccess, onCancel, className }: 
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className={`space-y-6 ${className}`}>
-      {/* Product Name */}
+      {}
       <div className="space-y-2">
         <Label htmlFor="productName">Tên sản phẩm *</Label>
         <Input
@@ -178,7 +176,7 @@ export function ProductForm({ editingProduct, onSuccess, onCancel, className }: 
         {errors.productName && <p className="text-sm text-red-600">{errors.productName.message}</p>}
       </div>
 
-      {/* Product Description */}
+      {}
       <div className="space-y-2">
         <Label htmlFor="productDescription">Mô tả sản phẩm *</Label>
         <Textarea
@@ -193,7 +191,7 @@ export function ProductForm({ editingProduct, onSuccess, onCancel, className }: 
         )}
       </div>
 
-      {/* SKU */}
+      {}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <Label htmlFor="sku">SKU *</Label>
@@ -219,9 +217,9 @@ export function ProductForm({ editingProduct, onSuccess, onCancel, className }: 
         </p>
       </div>
 
-      {/* Price and Category Row */}
+      {}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Price */}
+        {}
         <div className="space-y-2">
           <Label htmlFor="price">Giá sản phẩm (VND) *</Label>
           <Input
@@ -236,7 +234,7 @@ export function ProductForm({ editingProduct, onSuccess, onCancel, className }: 
           {errors.price && <p className="text-sm text-red-600">{errors.price.message}</p>}
         </div>
 
-        {/* Category */}
+        {}
         <div className="space-y-2">
           <Label htmlFor="categoryId">Danh mục *</Label>
           <Select
@@ -258,7 +256,7 @@ export function ProductForm({ editingProduct, onSuccess, onCancel, className }: 
         </div>
       </div>
 
-      {/* Quantity */}
+      {}
       <div className="space-y-2">
         <Label htmlFor="quantity">Số lượng ban đầu</Label>
         <Input
@@ -272,7 +270,7 @@ export function ProductForm({ editingProduct, onSuccess, onCancel, className }: 
         {errors.quantity && <p className="text-sm text-red-600">{errors.quantity.message}</p>}
       </div>
 
-      {/* Image Upload */}
+      {}
       <div className="space-y-2">
         <Label htmlFor="image">Hình ảnh sản phẩm</Label>
 
@@ -300,15 +298,7 @@ export function ProductForm({ editingProduct, onSuccess, onCancel, className }: 
         <input
           id="image"
           type="file"
-          accept="image/*"
-          onChange={handleImageChange}
-          className="hidden"
-        />
-
-        <p className="text-xs text-gray-500">Hỗ trợ: JPG, PNG, GIF. Tối đa 5MB.</p>
-      </div>
-
-      {/* Form Actions */}
+          accept="image}
       <div className="flex gap-3 pt-6">
         <Button type="submit" disabled={isSubmitting} className="flex-1">
           {isSubmitting ? (

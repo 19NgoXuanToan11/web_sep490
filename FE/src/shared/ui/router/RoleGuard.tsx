@@ -12,7 +12,7 @@ export const RoleGuard: React.FC<React.PropsWithChildren<{ allowed: Role[] }>> =
   const location = useLocation()
 
   if (initializing) return null
-  // Nếu chưa đăng nhập -> chuyển thẳng tới /login để tránh hiểu nhầm "hết hạn"
+
   if (!role) return <Navigate to="/login" state={{ from: location }} replace />
   if (!allowed.includes(role))
     return <Navigate to="/unauthorized" state={{ from: location, reason: 'forbidden' }} replace />

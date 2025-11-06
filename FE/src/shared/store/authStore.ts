@@ -46,7 +46,7 @@ export const useAuthStore = create<AuthState>((set) => ({
           return
         }
       }
-      // Fallback gọi /me nếu cần
+
       const me = await authApi.me().catch(() => null)
       if (me) {
         set({

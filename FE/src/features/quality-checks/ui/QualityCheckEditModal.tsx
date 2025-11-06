@@ -76,7 +76,6 @@ export const QualityCheckEditModal: React.FC<QualityCheckEditModalProps> = ({
     defaultValues: qualityCheck || defaultQualityCheckValues,
   })
 
-  // Reset form when qualityCheck changes
   useEffect(() => {
     if (qualityCheck) {
       reset(qualityCheck)
@@ -148,8 +147,6 @@ export const QualityCheckEditModal: React.FC<QualityCheckEditModalProps> = ({
     }
   }
 
-  // Render for both editing and creating (qualityCheck may be null when creating)
-
   return (
     <Dialog open={isOpen} onOpenChange={open => !open && onClose()}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
@@ -178,7 +175,7 @@ export const QualityCheckEditModal: React.FC<QualityCheckEditModalProps> = ({
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          {/* Basic Information */}
+          {}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
@@ -317,7 +314,7 @@ export const QualityCheckEditModal: React.FC<QualityCheckEditModalProps> = ({
             </CardContent>
           </Card>
 
-          {/* Health Assessment */}
+          {}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
@@ -430,7 +427,7 @@ export const QualityCheckEditModal: React.FC<QualityCheckEditModalProps> = ({
             </CardContent>
           </Card>
 
-          {/* Environmental Conditions */}
+          {}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
@@ -475,7 +472,7 @@ export const QualityCheckEditModal: React.FC<QualityCheckEditModalProps> = ({
             </CardContent>
           </Card>
 
-          {/* Issues and Actions */}
+          {}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
@@ -485,7 +482,7 @@ export const QualityCheckEditModal: React.FC<QualityCheckEditModalProps> = ({
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Issues */}
+                {}
                 <div className="space-y-3">
                   <Label>Vấn đề phát hiện</Label>
                   <div className="space-y-2">
@@ -530,7 +527,7 @@ export const QualityCheckEditModal: React.FC<QualityCheckEditModalProps> = ({
                   </div>
                 </div>
 
-                {/* Actions */}
+                {}
                 <div className="space-y-3">
                   <Label>Hành động khuyến nghị</Label>
                   <div className="space-y-2">
@@ -581,7 +578,7 @@ export const QualityCheckEditModal: React.FC<QualityCheckEditModalProps> = ({
             </CardContent>
           </Card>
 
-          {/* Follow-up and Notes */}
+          {}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
@@ -618,7 +615,7 @@ export const QualityCheckEditModal: React.FC<QualityCheckEditModalProps> = ({
             </CardContent>
           </Card>
 
-          {/* Action Buttons */}
+          {}
           <div className="flex justify-between pt-4 border-t">
             <Button type="button" variant="outline" onClick={onClose}>
               <X className="h-4 w-4 mr-2" />

@@ -86,8 +86,7 @@ export function ScheduleCalendar({ className }: ScheduleCalendarProps) {
   }
 
   const getSchedulesForDate = (_date: Date) => {
-    // For this demo, we'll show all schedules that are enabled and recurring
-    // In a real app, this would filter by actual schedule dates
+
     return schedules.filter(schedule => schedule.enabled)
   }
 
@@ -136,7 +135,7 @@ export function ScheduleCalendar({ className }: ScheduleCalendarProps) {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        {/* Calendar View */}
+        {}
         <div className="lg:col-span-2">
           <Card>
             <CardHeader>
@@ -165,9 +164,9 @@ export function ScheduleCalendar({ className }: ScheduleCalendarProps) {
           </Card>
         </div>
 
-        {/* Schedule List */}
+        {}
         <div className="space-y-6">
-          {/* Today's Schedules */}
+          {}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Lịch hôm nay</CardTitle>
@@ -193,7 +192,7 @@ export function ScheduleCalendar({ className }: ScheduleCalendarProps) {
             </CardContent>
           </Card>
 
-          {/* Upcoming Schedules */}
+          {}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Sắp diễn ra</CardTitle>
@@ -245,7 +244,7 @@ interface CalendarGridProps {
 }
 
 function CalendarGrid({ selectedDate, schedules, onEditSchedule }: CalendarGridProps) {
-  // Simple calendar grid implementation
+
   const startOfMonth = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1)
   const startOfWeek = new Date(startOfMonth)
   startOfWeek.setDate(startOfMonth.getDate() - startOfMonth.getDay())
@@ -262,7 +261,7 @@ function CalendarGrid({ selectedDate, schedules, onEditSchedule }: CalendarGridP
 
   return (
     <div className="w-full">
-      {/* Weekday headers */}
+      {}
       <div className="grid grid-cols-7 gap-1 mb-2">
         {weekdays.map(day => (
           <div key={day} className="p-2 text-center text-sm font-medium text-muted-foreground">
@@ -271,12 +270,12 @@ function CalendarGrid({ selectedDate, schedules, onEditSchedule }: CalendarGridP
         ))}
       </div>
 
-      {/* Calendar days */}
+      {}
       <div className="grid grid-cols-7 gap-1">
         {days.map((day, index) => {
           const isCurrentMonth = day.getMonth() === selectedDate.getMonth()
           const isTodayDate = isToday(day)
-          const daySchedules = schedules.filter(schedule => schedule.enabled).slice(0, 2) // Show max 2 per day for demo
+          const daySchedules = schedules.filter(schedule => schedule.enabled).slice(0, 2)
 
           return (
             <div

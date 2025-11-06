@@ -1,12 +1,11 @@
 import { z } from 'zod'
 import type { StaffDeviceStatus } from '@/shared/lib/localData'
 
-// Device action schemas
 export const deviceActionSchema = z.object({
   type: z.enum(['start', 'stop', 'pause', 'run-now', 'maintenance']),
   deviceId: z.string().min(1, 'Device ID is required'),
   notes: z.string().optional(),
-  duration: z.number().min(1).max(480).optional(), // Optional duration for run-now actions (1-480 minutes)
+  duration: z.number().min(1).max(480).optional(),
 })
 
 export const bulkDeviceActionSchema = z.object({
@@ -15,7 +14,6 @@ export const bulkDeviceActionSchema = z.object({
   notes: z.string().optional(),
 })
 
-// Device filter schemas
 export const deviceFilterSchema = z.object({
   status: z.enum(['all', 'Idle', 'Running', 'Paused', 'Maintenance']).optional(),
   zone: z.string().optional(),
@@ -23,24 +21,20 @@ export const deviceFilterSchema = z.object({
   batteryLevel: z.enum(['all', 'low', 'medium', 'high']).optional(),
 })
 
-// Type exports
 export type DeviceActionData = z.infer<typeof deviceActionSchema>
 export type BulkDeviceActionData = z.infer<typeof bulkDeviceActionSchema>
 export type DeviceFilterData = z.infer<typeof deviceFilterSchema>
 
-// Validation helpers
 export const validateDeviceAction = (data: unknown) => deviceActionSchema.safeParse(data)
 export const validateBulkDeviceAction = (data: unknown) => bulkDeviceActionSchema.safeParse(data)
 export const validateDeviceFilter = (data: unknown) => deviceFilterSchema.safeParse(data)
 
-// Default form values
 export const defaultDeviceActionValues: DeviceActionData = {
   type: 'start',
   deviceId: '',
   notes: '',
 }
 
-// Device status configurations
 export const deviceStatusConfig: Record<
   StaffDeviceStatus,
   {
@@ -81,7 +75,6 @@ export const deviceStatusConfig: Record<
   },
 }
 
-// Action configurations
 export const actionConfig: Record<
   string,
   {
@@ -129,14 +122,12 @@ export const actionConfig: Record<
   },
 }
 
-// Battery level categories
 export const batteryLevelConfig = {
   low: { min: 0, max: 25, color: 'text-red-600', bgColor: 'bg-red-100' },
   medium: { min: 26, max: 75, color: 'text-yellow-600', bgColor: 'bg-yellow-100' },
   high: { min: 76, max: 100, color: 'text-green-600', bgColor: 'bg-green-100' },
 }
 
-// Zone options for filtering
 export const zoneOptions = [
   { value: 'Zone A - Greenhouse 1', label: 'Nhà kính 1' },
   { value: 'Zone B - Outdoor Field', label: 'Cánh đồng ngoài trời' },
@@ -148,7 +139,6 @@ export const zoneOptions = [
   { value: 'Zone H - Seedling Area', label: 'Khu cây giống' },
 ]
 
-// Quick action presets for common operations
 export const quickActionPresets = [
   {
     id: 'morning-routine',
@@ -169,7 +159,7 @@ export const quickActionPresets = [
     name: 'Dừng khẩn cấp',
     description: 'Dừng tất cả thiết bị ngay lập tức',
     action: 'stop',
-    zones: [], // All zones
+    zones: [],
   },
   {
     id: 'maintenance-mode',
@@ -180,10 +170,8 @@ export const quickActionPresets = [
   },
 ]
 
-// Device view modes
 export type DeviceViewMode = 'table' | 'grid' | 'map'
 
-// Sort options for devices
 export const deviceSortOptions = [
   { value: 'name', label: 'Tên thiết bị' },
   { value: 'zone', label: 'Khu vực' },

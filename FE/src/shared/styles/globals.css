@@ -25,12 +25,10 @@
     --ring: 142 70% 45%;
     --radius: 0.75rem;
 
-    /* Brand colors - green-first theme */
     --brand: 142 70% 45%;
     --brand-foreground: 0 0% 100%;
     --brand-hover: 142 76% 36%;
-    
-    /* Semantic colors */
+
     --success: 142 71% 45%;
     --success-foreground: 0 0% 100%;
     --warning: 38 92% 50%;
@@ -62,12 +60,10 @@
     --input: 215 27.9% 16.9%;
     --ring: 142 70% 45%;
 
-    /* Brand colors - dark theme */
     --brand: 142 70% 45%;
     --brand-foreground: 0 0% 100%;
     --brand-hover: 142 76% 36%;
-    
-    /* Semantic colors - dark theme */
+
     --success: 142 71% 45%;
     --success-foreground: 0 0% 100%;
     --warning: 38 92% 50%;
@@ -88,23 +84,24 @@
   }
 }
 
-/* Animation utilities for motion */
 @media (prefers-reduced-motion: no-preference) {
   .animate-fade-in {
     animation: fadeIn 0.6s ease-out;
   }
-  
+
   .animate-fade-in-up {
     animation: fadeInUp 0.8s ease-out;
   }
-  
+
   .animate-scale-in {
     animation: scaleIn 0.4s ease-out;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
@@ -113,8 +110,12 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes fadeInUp {
@@ -139,7 +140,6 @@
   }
 }
 
-/* Focus styles for accessibility */
 .focus-visible {
   @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
 }

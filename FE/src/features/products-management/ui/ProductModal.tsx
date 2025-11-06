@@ -123,9 +123,9 @@ function ProductViewContent({ product }: ProductViewContentProps) {
 
   return (
     <div className="space-y-6">
-      {/* Product Image and Basic Info */}
+      {}
       <div className="flex flex-col sm:flex-row gap-6">
-        {/* Image */}
+        {}
         <div className="flex-shrink-0">
           <div className="w-48 h-48 bg-gray-100 rounded-lg overflow-hidden">
             {product.imageUrl ? (
@@ -148,7 +148,7 @@ function ProductViewContent({ product }: ProductViewContentProps) {
           </div>
         </div>
 
-        {/* Basic Info */}
+        {}
         <div className="flex-1 space-y-4">
           <div>
             <h3 className="text-2xl font-bold text-gray-900">{product.productName}</h3>
@@ -173,9 +173,9 @@ function ProductViewContent({ product }: ProductViewContentProps) {
         </div>
       </div>
 
-      {/* Detailed Information */}
+      {}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Inventory */}
+        {}
         <div className="space-y-4">
           <h4 className="text-lg font-semibold text-gray-900">Thông tin kho</h4>
 
@@ -192,7 +192,7 @@ function ProductViewContent({ product }: ProductViewContentProps) {
           </div>
         </div>
 
-        {/* Category & Dates */}
+        {}
         <div className="space-y-4">
           <h4 className="text-lg font-semibold text-gray-900">Thông tin khác</h4>
 
@@ -215,7 +215,7 @@ function ProductViewContent({ product }: ProductViewContentProps) {
         </div>
       </div>
 
-      {/* Additional Details */}
+      {}
       {product.productDescription && (
         <div>
           <h4 className="text-lg font-semibold text-gray-900 mb-3">Mô tả chi tiết</h4>

@@ -1,5 +1,5 @@
 import React, { memo, useMemo } from 'react'
-// @ts-ignore
+
 import { FixedSizeList } from 'react-window'
 
 interface VirtualizedListProps<T> {

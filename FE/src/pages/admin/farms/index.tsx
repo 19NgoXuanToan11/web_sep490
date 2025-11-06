@@ -43,7 +43,7 @@ interface Farm {
   name: string
   owner: string
   location: string
-  area: number // in hectares
+  area: number
   status: 'active' | 'inactive' | 'maintenance'
   createdDate: string
   lastActivity: string
@@ -105,7 +105,6 @@ const AdminFarmsPage: React.FC = () => {
   useEffect(() => {
     void loadFarms()
 
-    // Auto-refresh data every 60 seconds (only updates lastActivity placeholder)
     const interval = setInterval(() => {
       setFarms(prev =>
         prev.map(farm => ({
@@ -205,7 +204,7 @@ const AdminFarmsPage: React.FC = () => {
   return (
     <AdminLayout>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Page Header */}
+        {}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Quản lý trang trại</h1>
@@ -225,7 +224,7 @@ const AdminFarmsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Statistics Cards */}
+        {}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -298,7 +297,7 @@ const AdminFarmsPage: React.FC = () => {
           </motion.div>
         </div>
 
-        {/* Main Content */}
+        {}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -316,7 +315,7 @@ const AdminFarmsPage: React.FC = () => {
               </TabsList>
 
               <TabsContent value="overview" className="space-y-4">
-                {/* Filters */}
+                {}
                 <div className="flex flex-col sm:flex-row gap-4">
                   <div className="flex-1">
                     <div className="relative">
@@ -353,7 +352,7 @@ const AdminFarmsPage: React.FC = () => {
                   </DropdownMenu>
                 </div>
 
-                {/* Farms Table */}
+                {}
                 <div className="overflow-x-auto">
                   {loading ? (
                     <div className="p-6 text-center text-sm text-gray-500">Đang tải dữ liệu...</div>

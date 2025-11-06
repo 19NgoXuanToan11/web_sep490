@@ -72,7 +72,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({
   }
 
   const getRolesBadges = (roles: string[]) => {
-    // Handle single role (take first role only)
+
     const role = roles[0] || 'STAFF'
     const roleConfig = availableRoles.find(r => r.value === role)
     return (
@@ -94,7 +94,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* Search and Filters */}
+      {}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex-1">
           <div className="relative">
@@ -139,7 +139,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({
         </div>
       </div>
 
-      {/* Table */}
+      {}
       <div className="border rounded-lg overflow-hidden">
         <Table>
           <TableHeader>
@@ -186,7 +186,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({
 
           <TableBody>
             {isLoading ? (
-              // Loading skeletons
+
               Array.from({ length: 5 }).map((_, i) => (
                 <TableRow key={i}>
                   <TableCell>
@@ -216,7 +216,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({
                 </TableRow>
               ))
             ) : users.length === 0 ? (
-              // Empty state
+
               <TableRow>
                 <TableCell colSpan={4} className="text-center py-12">
                   <div className="flex flex-col items-center space-y-2 text-gray-500">
@@ -231,7 +231,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({
                 </TableCell>
               </TableRow>
             ) : (
-              // User rows
+
               users.map(user => (
                 <TableRow key={user.id} className="hover:bg-gray-50">
                   <TableCell>
@@ -257,11 +257,11 @@ export const UsersTable: React.FC<UsersTableProps> = ({
                     <DropdownMenu
                       modal={false}
                       onOpenChange={open => {
-                        // Ensure proper cleanup when dropdown closes
+
                         if (!open) {
-                          // Force a small delay to ensure proper cleanup
+
                           setTimeout(() => {
-                            // This ensures the dropdown state is properly reset
+
                           }, 0)
                         }
                       }}
@@ -281,7 +281,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({
                           onClick={e => {
                             e.preventDefault()
                             e.stopPropagation()
-                            // Use setTimeout to ensure the dropdown closes properly
+
                             setTimeout(() => {
                               onEditUser?.(user)
                             }, 0)
@@ -295,7 +295,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({
                           onClick={e => {
                             e.preventDefault()
                             e.stopPropagation()
-                            // Use setTimeout to ensure the dropdown closes properly
+
                             setTimeout(() => {
                               onUpdatePassword?.(user)
                             }, 0)
@@ -310,7 +310,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({
                           onClick={e => {
                             e.preventDefault()
                             e.stopPropagation()
-                            // Use setTimeout to ensure the dropdown closes properly
+
                             setTimeout(() => {
                               onDeleteUser?.(user)
                             }, 0)
@@ -330,7 +330,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({
         </Table>
       </div>
 
-      {/* Results summary */}
+      {}
       <div className="flex items-center justify-between text-sm text-gray-600">
         <span>
           Hiển thị {users.length}/{totalCount}

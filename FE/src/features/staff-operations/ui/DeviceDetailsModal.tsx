@@ -123,7 +123,7 @@ export const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Status Overview */}
+          {}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
@@ -181,7 +181,7 @@ export const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({
             </CardContent>
           </Card>
 
-          {/* Schedule Information */}
+          {}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
@@ -213,7 +213,7 @@ export const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({
             </CardContent>
           </Card>
 
-          {/* Quick Actions */}
+          {}
           {quickActions.length > 0 && (
             <Card>
               <CardHeader>
@@ -246,7 +246,7 @@ export const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({
             </Card>
           )}
 
-          {/* Device Health */}
+          {}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">

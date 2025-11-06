@@ -8,7 +8,6 @@ import type {
 import { simulateLatency, simulateError, userPreferences } from '@/shared/lib/localData/storage'
 import type { QualityCheckData, QualityCheckFilterData } from '../model/schemas'
 
-// Mock quality check data
 const mockQualityChecks: QualityCheckData[] = [
   {
     id: 'qc-001',
@@ -143,44 +142,36 @@ const mockQualityChecks: QualityCheckData[] = [
 ]
 
 interface QualityChecksState {
-  // Data
+
   qualityChecks: QualityCheckData[]
 
-  // UI State
   loadingStates: Record<string, LoadingState>
   searchState: SearchState
   paginationState: PaginationState
   tableDensity: TableDensity
   selectedCheckIds: string[]
 
-  // Filters
   filters: QualityCheckFilterData
 
-  // Actions
   initializeData: () => void
 
-  // Quality check operations
   createQualityCheck: (data: Omit<QualityCheckData, 'id'>) => Promise<void>
   updateQualityCheck: (id: string, data: Partial<QualityCheckData>) => Promise<void>
   deleteQualityCheck: (id: string) => Promise<void>
 
-  // Search and filter actions
   setSearch: (query: string) => void
   setSort: (sortBy: string, sortOrder: 'asc' | 'desc') => void
   setFilters: (filters: Partial<QualityCheckFilterData>) => void
   clearFilters: () => void
   setPagination: (page: number, pageSize?: number) => void
 
-  // Selection actions
   toggleCheckSelection: (checkId: string) => void
   selectAllChecks: () => void
   clearSelection: () => void
 
-  // UI actions
   setTableDensity: (density: TableDensity) => void
   setLoadingState: (key: string, state: LoadingState) => void
 
-  // Computed getters
   getFilteredQualityChecks: () => QualityCheckData[]
   getPaginatedQualityChecks: () => QualityCheckData[]
   getTotalCount: () => number
@@ -195,7 +186,7 @@ interface QualityChecksState {
 }
 
 export const useQualityChecksStore = create<QualityChecksState>((set, get) => ({
-  // Initial state
+
   qualityChecks: [],
   loadingStates: {},
   searchState: {
@@ -212,7 +203,6 @@ export const useQualityChecksStore = create<QualityChecksState>((set, get) => ({
   selectedCheckIds: [],
   filters: {},
 
-  // Initialize data from mock data
   initializeData: () => {
     const prefs = userPreferences.get()
 
@@ -222,7 +212,6 @@ export const useQualityChecksStore = create<QualityChecksState>((set, get) => ({
     })
   },
 
-  // Quality check operations
   createQualityCheck: async (data: Omit<QualityCheckData, 'id'>) => {
     const key = 'create-quality-check'
     get().setLoadingState(key, { isLoading: true })
@@ -306,7 +295,6 @@ export const useQualityChecksStore = create<QualityChecksState>((set, get) => ({
     }
   },
 
-  // Search and filter actions
   setSearch: (query: string) => {
     set(state => ({
       searchState: { ...state.searchState, query },
@@ -345,7 +333,6 @@ export const useQualityChecksStore = create<QualityChecksState>((set, get) => ({
     }))
   },
 
-  // Selection actions
   toggleCheckSelection: (checkId: string) => {
     set(state => ({
       selectedCheckIds: state.selectedCheckIds.includes(checkId)
@@ -363,7 +350,6 @@ export const useQualityChecksStore = create<QualityChecksState>((set, get) => ({
     set({ selectedCheckIds: [] })
   },
 
-  // UI actions
   setTableDensity: (density: TableDensity) => {
     set({ tableDensity: density })
     userPreferences.set({ tableDensity: density })
@@ -378,13 +364,11 @@ export const useQualityChecksStore = create<QualityChecksState>((set, get) => ({
     }))
   },
 
-  // Computed getters
   getFilteredQualityChecks: () => {
     const { qualityChecks, searchState, filters } = get()
 
     let filtered = qualityChecks
 
-    // Apply search filter
     if (searchState.query) {
       const query = searchState.query.toLowerCase()
       filtered = filtered.filter(
@@ -398,7 +382,6 @@ export const useQualityChecksStore = create<QualityChecksState>((set, get) => ({
       )
     }
 
-    // Apply filters
     if (filters.status && filters.status !== 'all') {
       filtered = filtered.filter(check => check.status === filters.status)
     }
@@ -435,7 +418,6 @@ export const useQualityChecksStore = create<QualityChecksState>((set, get) => ({
       filtered = filtered.filter(check => check.date <= filters.dateTo!)
     }
 
-    // Apply sorting
     filtered = filtered.sort((a, b) => {
       let aValue: any
       let bValue: any

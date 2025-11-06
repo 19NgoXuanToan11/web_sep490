@@ -1,6 +1,5 @@
 import { useReducedMotion } from 'framer-motion'
 
-// Motion tokens
 export const motionDurations = {
   fast: 150,
   base: 240,
@@ -12,13 +11,11 @@ export const motionEasings = {
   emphasized: [0.2, 0, 0, 1] as [number, number, number, number],
 } as const
 
-// Safe motion hook that respects user preferences
 export const useReducedMotionSafe = () => {
   const shouldReduceMotion = useReducedMotion()
   return shouldReduceMotion ?? false
 }
 
-// Animation variants
 export const fadeIn = {
   hidden: { opacity: 0 },
   show: {
@@ -88,14 +85,12 @@ export const staggerContainer = {
   },
 }
 
-// Utility for consistent reveal animations
 export const inViewProps = {
   initial: 'hidden' as const,
   whileInView: 'show' as const,
   viewport: { once: true, amount: 0.25 },
 }
 
-// Utility for safe animations (returns static variants when motion is reduced)
 export const useSafeVariants = (variants: any) => {
   const shouldReduceMotion = useReducedMotionSafe()
 

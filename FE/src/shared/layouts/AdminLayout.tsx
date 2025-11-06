@@ -16,7 +16,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import LogoutButton from '@/shared/ui/LogoutButton'
-// removed search input
+
 import { Badge } from '@/shared/ui/badge'
 
 interface AdminLayoutProps {
@@ -141,7 +141,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Desktop Sidebar */}
+      {}
       <motion.div
         className={`hidden lg:fixed lg:inset-y-0 lg:flex lg:flex-col bg-white shadow-lg border-r border-gray-200 ${
           isSidebarOpen ? 'lg:w-72' : 'lg:w-20'
@@ -149,7 +149,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
         animate={{ width: isSidebarOpen ? 288 : 80 }}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
       >
-        {/* Sidebar Header */}
+        {}
         <div className="relative border-b border-gray-200">
           {isSidebarOpen ? (
             <div className="flex items-center justify-between px-6 py-6">
@@ -192,7 +192,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
           )}
         </div>
 
-        {/* Navigation */}
+        {}
         <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
           <div className="space-y-1">
             {navigationItems.map(item => (
@@ -201,7 +201,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
           </div>
         </nav>
 
-        {/* User Profile */}
+        {}
         <div
           className={`border-t border-gray-200 p-4 ${isSidebarOpen ? '' : 'flex justify-center'}`}
         >
@@ -222,7 +222,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
         </div>
       </motion.div>
 
-      {/* Mobile Sidebar */}
+      {}
       <AnimatePresence>
         {isMobileSidebarOpen && (
           <motion.div
@@ -278,9 +278,9 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
         )}
       </AnimatePresence>
 
-      {/* Main Content */}
+      {}
       <div className={`transition-all duration-300 ${isSidebarOpen ? 'lg:pl-72' : 'lg:pl-20'}`}>
-        {/* Top Header */}
+        {}
         <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40">
           <div className="px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between h-16">
@@ -294,7 +294,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                   <Menu className="h-5 w-5" />
                 </Button>
 
-                {/* Breadcrumbs hidden */}
+                {}
                 <nav className="hidden">
                   <Button
                     variant="ghost"
@@ -319,7 +319,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
               </div>
 
               <div className="flex items-center space-x-2 sm:space-x-4">
-                {/* Removed header search */}
+                {}
 
                 <Button
                   variant="ghost"
@@ -331,7 +331,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                     2
                   </Badge>
                 </Button>
-                {/* Removed user avatar/name */}
+                {}
               </div>
             </div>
           </div>

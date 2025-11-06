@@ -48,7 +48,6 @@ const RealTimeIoTDashboard: React.FC = () => {
   const [timeFilter, setTimeFilter] = useState('Trực tiếp')
   const [retryCount, setRetryCount] = useState(0)
 
-  // Auto-refresh interval (5 seconds)
   const REFRESH_INTERVAL = 5000
 
   const fetchSensorData = useCallback(async () => {
@@ -69,7 +68,7 @@ const RealTimeIoTDashboard: React.FC = () => {
       setRetryCount(prev => prev + 1)
 
       if (retryCount < 3) {
-        // Show toast only on first few failures
+
         toast({
           title: 'Mất kết nối',
           description: 'Đang thử kết nối lại với thiết bị IoT...',
@@ -81,7 +80,6 @@ const RealTimeIoTDashboard: React.FC = () => {
     }
   }, [toast, retryCount])
 
-  // Initial data fetch and auto-refresh setup
   useEffect(() => {
     fetchSensorData()
 
@@ -102,7 +100,6 @@ const RealTimeIoTDashboard: React.FC = () => {
     })
   }
 
-  // Handle pump control
   const handlePumpControl = async (newState: boolean) => {
     try {
       const success = await blynkService.sendControlCommand('v7', newState ? '1' : '0')
@@ -129,7 +126,6 @@ const RealTimeIoTDashboard: React.FC = () => {
     }
   }
 
-  // Handle servo control
   const handleServoControl = async (angle: number[]) => {
     try {
       const success = await blynkService.sendControlCommand('v6', angle[0].toString())
@@ -161,7 +157,7 @@ const RealTimeIoTDashboard: React.FC = () => {
   return (
     <ManagerLayout>
       <div className="min-h-screen bg-gray-50 p-6">
-        {/* Header */}
+        {}
         <div className="mb-8">
           <div className="mb-6">
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Bảng điều khiển IoT thời gian thực</h1>
@@ -231,7 +227,7 @@ const RealTimeIoTDashboard: React.FC = () => {
             </div>
           </div>
 
-          {/* Time Filters */}
+          {}
           <div className="flex items-center gap-2">
             {timeFilters.map(filter => (
               <Button
@@ -251,7 +247,7 @@ const RealTimeIoTDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Sensor Gauges */}
+        {}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 mb-8">
           <Gauge
             value={sensorData.temperature}
@@ -318,9 +314,9 @@ const RealTimeIoTDashboard: React.FC = () => {
           />
         </div>
 
-        {/* Control Panels */}
+        {}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
-          {/* Manual Control */}
+          {}
           <Card className="bg-white border-gray-200 shadow-sm">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
@@ -333,7 +329,7 @@ const RealTimeIoTDashboard: React.FC = () => {
             </CardContent>
           </Card>
 
-          {/* Pump Control */}
+          {}
           <Card className="bg-white border-gray-200 shadow-sm">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
@@ -350,7 +346,7 @@ const RealTimeIoTDashboard: React.FC = () => {
             </CardContent>
           </Card>
 
-          {/* Servo Control */}
+          {}
           <Card className="bg-white border-gray-200 shadow-sm">
             <CardContent className="p-6">
               <div className="mb-4">
@@ -379,9 +375,9 @@ const RealTimeIoTDashboard: React.FC = () => {
           </Card>
         </div>
 
-        {/* System Status Cards */}
+        {}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-6">
-          {/* Connection Status */}
+          {}
           <Card className="bg-white border-gray-200 shadow-sm">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
@@ -407,7 +403,7 @@ const RealTimeIoTDashboard: React.FC = () => {
             </CardContent>
           </Card>
 
-          {/* Data Quality */}
+          {}
           <Card className="bg-white border-gray-200 shadow-sm">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
@@ -447,7 +443,7 @@ const RealTimeIoTDashboard: React.FC = () => {
             </CardContent>
           </Card>
 
-          {/* Last Updated */}
+          {}
           <Card className="bg-white border-gray-200 shadow-sm">
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
@@ -470,7 +466,7 @@ const RealTimeIoTDashboard: React.FC = () => {
           </Card>
         </div>
 
-        {/* Error Alert */}
+        {}
         {!isOnline && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}

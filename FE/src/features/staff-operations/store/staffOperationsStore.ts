@@ -16,10 +16,9 @@ import type {
 } from '../model/schemas'
 
 interface StaffOperationsState {
-  // Data
+
   devices: StaffDevice[]
 
-  // UI State
   loadingStates: Record<string, LoadingState>
   searchState: SearchState
   paginationState: PaginationState
@@ -27,42 +26,34 @@ interface StaffOperationsState {
   selectedDeviceIds: string[]
   viewMode: DeviceViewMode
 
-  // Filters
   filters: DeviceFilterData
 
-  // Real-time updates
   lastUpdateTime: string
   autoRefresh: boolean
-  refreshInterval: number // in seconds
+  refreshInterval: number
 
-  // Actions
   initializeData: () => void
 
-  // Device operations
   executeDeviceAction: (data: DeviceActionData) => Promise<void>
   executeBulkDeviceAction: (data: BulkDeviceActionData) => Promise<void>
   refreshDeviceStatus: (deviceId?: string) => Promise<void>
 
-  // Search and filter actions
   setSearch: (query: string) => void
   setSort: (sortBy: string, sortOrder: 'asc' | 'desc') => void
   setFilters: (filters: Partial<DeviceFilterData>) => void
   clearFilters: () => void
   setPagination: (page: number, pageSize?: number) => void
 
-  // Selection actions
   toggleDeviceSelection: (deviceId: string) => void
   selectAllDevices: () => void
   clearSelection: () => void
 
-  // UI actions
   setViewMode: (mode: DeviceViewMode) => void
   setTableDensity: (density: TableDensity) => void
   setAutoRefresh: (enabled: boolean) => void
   setRefreshInterval: (seconds: number) => void
   setLoadingState: (key: string, state: LoadingState) => void
 
-  // Computed getters
   getFilteredDevices: () => StaffDevice[]
   getPaginatedDevices: () => StaffDevice[]
   getTotalCount: () => number
@@ -74,7 +65,7 @@ interface StaffOperationsState {
 }
 
 export const useStaffOperationsStore = create<StaffOperationsState>((set, get) => ({
-  // Initial state
+
   devices: [],
   loadingStates: {},
   searchState: {
@@ -93,9 +84,8 @@ export const useStaffOperationsStore = create<StaffOperationsState>((set, get) =
   filters: {},
   lastUpdateTime: new Date().toISOString(),
   autoRefresh: true,
-  refreshInterval: 30, // 30 seconds
+  refreshInterval: 30,
 
-  // Initialize data from fixtures
   initializeData: () => {
     const prefs = userPreferences.get()
 
@@ -107,7 +97,6 @@ export const useStaffOperationsStore = create<StaffOperationsState>((set, get) =
     })
   },
 
-  // Device operations
   executeDeviceAction: async (data: DeviceActionData) => {
     const key = `device-action-${data.deviceId}-${data.type}`
     get().setLoadingState(key, { isLoading: true })
@@ -242,18 +231,16 @@ export const useStaffOperationsStore = create<StaffOperationsState>((set, get) =
         throw new Error('Failed to refresh device status.')
       }
 
-      // Simulate real-time updates with minor random changes
       set(state => ({
         devices: state.devices.map(device => {
           if (!deviceId || device.id === deviceId) {
-            // Simulate battery drain for battery devices
+
             let newBatteryLevel = device.batteryLevel
             if (newBatteryLevel !== undefined) {
               newBatteryLevel = Math.max(0, newBatteryLevel - Math.floor(Math.random() * 3))
             }
 
-            // Randomly update uptime percentage
-            const uptimeChange = (Math.random() - 0.5) * 0.5 // ±0.25%
+            const uptimeChange = (Math.random() - 0.5) * 0.5
             const newUptimePct = Math.max(0, Math.min(100, device.uptimePct + uptimeChange))
 
             return {
@@ -277,7 +264,6 @@ export const useStaffOperationsStore = create<StaffOperationsState>((set, get) =
     }
   },
 
-  // Search and filter actions
   setSearch: (query: string) => {
     set(state => ({
       searchState: { ...state.searchState, query },
@@ -316,7 +302,6 @@ export const useStaffOperationsStore = create<StaffOperationsState>((set, get) =
     }))
   },
 
-  // Selection actions
   toggleDeviceSelection: (deviceId: string) => {
     set(state => ({
       selectedDeviceIds: state.selectedDeviceIds.includes(deviceId)
@@ -334,7 +319,6 @@ export const useStaffOperationsStore = create<StaffOperationsState>((set, get) =
     set({ selectedDeviceIds: [] })
   },
 
-  // UI actions
   setViewMode: (mode: DeviceViewMode) => {
     set({ viewMode: mode })
     userPreferences.set({
@@ -367,13 +351,11 @@ export const useStaffOperationsStore = create<StaffOperationsState>((set, get) =
     }))
   },
 
-  // Computed getters
   getFilteredDevices: () => {
     const { devices, searchState, filters } = get()
 
     let filtered = devices
 
-    // Apply search filter
     if (searchState.query) {
       const query = searchState.query.toLowerCase()
       filtered = filtered.filter(
@@ -384,7 +366,6 @@ export const useStaffOperationsStore = create<StaffOperationsState>((set, get) =
       )
     }
 
-    // Apply filters
     if (filters.status && filters.status !== 'all') {
       filtered = filtered.filter(device => device.status === filters.status)
     }
@@ -414,7 +395,6 @@ export const useStaffOperationsStore = create<StaffOperationsState>((set, get) =
       })
     }
 
-    // Apply sorting
     filtered = filtered.sort((a, b) => {
       let aValue: any
       let bValue: any

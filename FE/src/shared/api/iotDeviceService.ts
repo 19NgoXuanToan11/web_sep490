@@ -35,7 +35,7 @@ export interface PaginatedIoTDevices {
 }
 
 export const iotDeviceService = {
-  // Lấy tất cả thiết bị IoT với phân trang
+
   getAllDevices: async (
     pageIndex: number = 1,
     pageSize: number = 10
@@ -46,7 +46,6 @@ export const iotDeviceService = {
     return response.data.data
   },
 
-  // Lấy thiết bị IoT theo ID
   getDeviceById: async (deviceId: number): Promise<IoTDevice> => {
     const response = await http.get<IoTDeviceResponse>(
       `/v1/iotDevices/iotDevices-byId?id=${deviceId}`
@@ -54,7 +53,6 @@ export const iotDeviceService = {
     return response.data.data
   },
 
-  // Tạo thiết bị IoT mới
   createDevice: async (deviceData: IoTDeviceRequest): Promise<IoTDevice> => {
     const response = await http.post<IoTDeviceResponse>(
       '/v1/iotDevices/iotDevices-create',
@@ -63,7 +61,6 @@ export const iotDeviceService = {
     return response.data.data
   },
 
-  // Cập nhật trạng thái thiết bị IoT
   updateDeviceStatus: async (deviceId: number, status: string): Promise<IoTDevice> => {
     const response = await http.put<IoTDeviceResponse>(
       `/v1/iotDevices/iotDevices-update-status?iotDevicesId=${deviceId}`,
@@ -72,7 +69,6 @@ export const iotDeviceService = {
     return response.data.data
   },
 
-  // Cập nhật thiết bị IoT
   updateDevice: async (deviceId: number, deviceData: IoTDeviceRequest): Promise<IoTDevice> => {
     const response = await http.patch<IoTDeviceResponse>(
       `/v1/iotDevices/iotDevices-update?iotDevicesId=${deviceId}`,
@@ -81,7 +77,6 @@ export const iotDeviceService = {
     return response.data.data
   },
 
-  // Lấy số lượng thiết bị theo trạng thái
   getDeviceStatistics: async (): Promise<{
     total: number
     active: number
@@ -90,7 +85,7 @@ export const iotDeviceService = {
     error: number
   }> => {
     try {
-      const response = await iotDeviceService.getAllDevices(1, 1000) // Get all devices for statistics
+      const response = await iotDeviceService.getAllDevices(1, 1000)
       const devices = response.items
 
       return {

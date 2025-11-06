@@ -35,7 +35,6 @@ export const DeviceGridView: React.FC<DeviceGridViewProps> = ({
     onDeviceSelect?.(deviceId)
   }
 
-  // Check if any individual device is loading
   const getDeviceLoadingState = (deviceId: string) => {
     return Object.keys(loadingStates).some(
       key => key.includes(deviceId) && loadingStates[key]?.isLoading
@@ -93,7 +92,7 @@ export const DeviceGridView: React.FC<DeviceGridViewProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* Loading indicator for refresh */}
+      {}
       {isLoading && devices.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -107,7 +106,7 @@ export const DeviceGridView: React.FC<DeviceGridViewProps> = ({
         </motion.div>
       )}
 
-      {/* Device Grid */}
+      {}
       <motion.div
         layout
         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
@@ -134,7 +133,7 @@ export const DeviceGridView: React.FC<DeviceGridViewProps> = ({
         </AnimatePresence>
       </motion.div>
 
-      {/* Results summary */}
+      {}
       <div className="flex items-center justify-between text-sm text-gray-600 pt-4 border-t">
         <span>
           Hiển thị {devices.length} trong tổng số {totalCount} thiết bị

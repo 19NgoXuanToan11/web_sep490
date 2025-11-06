@@ -76,17 +76,17 @@ export function ProductTable({
   }
 
   const handleEdit = (product: Product) => {
-    setOpenDropdownId(null) // Close dropdown
+    setOpenDropdownId(null)
     onEditProduct?.(product)
   }
 
   const handleView = (product: Product) => {
-    setOpenDropdownId(null) // Close dropdown
+    setOpenDropdownId(null)
     onViewProduct?.(product)
   }
 
   const handleDelete = (product: Product) => {
-    setOpenDropdownId(null) // Close dropdown
+    setOpenDropdownId(null)
     onDeleteProduct?.(product)
   }
 
@@ -139,7 +139,7 @@ export function ProductTable({
 
   return (
     <div className={className}>
-      {/* Selection info */}
+      {}
       {hasSelection && (
         <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between">
           <span className="text-sm text-blue-700">
@@ -151,7 +151,7 @@ export function ProductTable({
         </div>
       )}
 
-      {/* Table */}
+      {}
       <div className="border rounded-lg overflow-hidden">
         <Table>
           <TableHeader>
@@ -318,7 +318,7 @@ export function ProductTable({
         )}
       </div>
 
-      {/* Pagination */}
+      {}
       {totalPages > 1 && (
         <div className="flex items-center justify-between mt-6">
           <div className="text-sm text-gray-700">

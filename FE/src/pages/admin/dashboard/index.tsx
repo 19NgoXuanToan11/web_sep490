@@ -17,7 +17,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/sha
 import { Badge } from '@/shared/ui/badge'
 import { AdminLayout } from '@/shared/layouts/AdminLayout'
 
-// Simple Progress component implementation
 const Progress: React.FC<{ value: number; className?: string }> = ({ value, className }) => (
   <div className={`w-full bg-gray-200 rounded-full h-2 ${className}`}>
     <div
@@ -90,22 +89,22 @@ const AdminDashboard: React.FC = () => {
   const [isRefreshing, setIsRefreshing] = useState(false)
 
   useEffect(() => {
-    // Initialize dashboard data
+
     const interval = setInterval(() => {
-      // Simulate real-time data updates
+
       setMetrics(prev => ({
         ...prev,
         onlineDevices: prev.totalDevices - Math.floor(Math.random() * 5),
         systemHealth: 90 + Math.floor(Math.random() * 10),
       }))
-    }, 30000) // Update every 30 seconds
+    }, 30000)
 
     return () => clearInterval(interval)
   }, [])
 
   const handleRefresh = async () => {
     setIsRefreshing(true)
-    // Simulate data refresh
+
     await new Promise(resolve => setTimeout(resolve, 1000))
     setIsRefreshing(false)
   }
@@ -136,7 +135,7 @@ const AdminDashboard: React.FC = () => {
   return (
     <AdminLayout>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Page Header */}
+        {}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Bảng điều khiển Admin</h1>
@@ -154,7 +153,7 @@ const AdminDashboard: React.FC = () => {
           </Button>
         </div>
 
-        {/* System Health Overview */}
+        {}
         <div className="mb-8">
           <Card>
             <CardHeader>
@@ -182,7 +181,7 @@ const AdminDashboard: React.FC = () => {
           </Card>
         </div>
 
-        {/* Metrics Cards */}
+        {}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -261,9 +260,9 @@ const AdminDashboard: React.FC = () => {
           </motion.div>
         </div>
 
-        {/* Main Content Grid */}
+        {}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Alerts Section */}
+          {}
           <div className="lg:col-span-2">
             <Card>
               <CardHeader>
@@ -307,7 +306,7 @@ const AdminDashboard: React.FC = () => {
             </Card>
           </div>
 
-          {/* Quick Actions */}
+          {}
           <div>
             <Card>
               <CardHeader>
@@ -346,7 +345,7 @@ const AdminDashboard: React.FC = () => {
               </CardContent>
             </Card>
 
-            {/* System Status */}
+            {}
             <Card className="mt-6">
               <CardHeader>
                 <CardTitle className="text-sm">Trạng thái chi tiết</CardTitle>

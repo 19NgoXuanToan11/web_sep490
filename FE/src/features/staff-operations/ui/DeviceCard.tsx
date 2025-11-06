@@ -84,7 +84,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({
             </div>
 
             <div className="flex items-center gap-2 flex-shrink-0">
-              {/* Status Badge */}
+              {}
               <Badge
                 variant="outline"
                 className={`${statusConfig.bgColor} ${statusConfig.color} border-0`}
@@ -92,7 +92,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({
                 {statusConfig.label}
               </Badge>
 
-              {/* More Actions */}
+              {}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm" className="h-8 w-8 p-0" disabled={isLoading}>
@@ -111,16 +111,16 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({
         </CardHeader>
 
         <CardContent className="space-y-4">
-          {/* Device Metrics */}
+          {}
           <div className="grid grid-cols-2 gap-3 text-xs">
-            {/* Uptime */}
+            {}
             <div className="flex items-center gap-2">
               <Wifi className="h-3 w-3 text-green-600" />
               <span className="text-gray-600">Thời gian hoạt động:</span>
               <span className="font-medium">{device.uptimePct}%</span>
             </div>
 
-            {/* Battery Level (if available) */}
+            {}
             {device.batteryLevel !== undefined && batteryConfig && (
               <div className="flex items-center gap-2">
                 <Battery className={`h-3 w-3 ${batteryConfig.color}`} />
@@ -130,7 +130,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({
             )}
           </div>
 
-          {/* Schedule Info */}
+          {}
           <div className="space-y-2 text-xs">
             <div className="flex items-center gap-2">
               <Clock className="h-3 w-3 text-blue-600" />
@@ -149,7 +149,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({
             )}
           </div>
 
-          {/* Alerts */}
+          {}
           <div className="space-y-2">
             {device.needsMaintenance && (
               <div className="flex items-center gap-2 p-2 bg-red-50 border border-red-200 rounded-lg">
@@ -168,7 +168,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({
             )}
           </div>
 
-          {/* Quick Actions - Show only main actions based on status */}
+          {}
           <div className="flex gap-2 pt-2 border-t">
             {device.status === 'Idle' && (
               <Button
@@ -220,7 +220,7 @@ export const DeviceCard: React.FC<DeviceCardProps> = ({
             )}
           </div>
 
-          {/* Loading Overlay */}
+          {}
           {isLoading && (
             <div className="absolute inset-0 bg-white bg-opacity-50 flex items-center justify-center rounded-lg">
               <motion.div

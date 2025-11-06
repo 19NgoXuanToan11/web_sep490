@@ -120,9 +120,9 @@ const AdminDevicesPage: React.FC = () => {
   const [isRefreshing, setIsRefreshing] = useState(false)
 
   useEffect(() => {
-    // Auto-refresh devices every 30 seconds
+
     const interval = setInterval(() => {
-      // Simulate random status updates
+
       setDevices(prev =>
         prev.map(device => ({
           ...device,
@@ -222,7 +222,7 @@ const AdminDevicesPage: React.FC = () => {
   return (
     <AdminLayout>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Page Header */}
+        {}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Quản lý thiết bị IoT</h1>
@@ -242,7 +242,7 @@ const AdminDevicesPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Statistics Cards */}
+        {}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -325,7 +325,7 @@ const AdminDevicesPage: React.FC = () => {
           </motion.div>
         </div>
 
-        {/* Filters and Search */}
+        {}
         <Card className="mb-6">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -385,7 +385,7 @@ const AdminDevicesPage: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* Devices Table */}
+        {}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">

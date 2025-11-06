@@ -2,17 +2,14 @@ import React, { Suspense } from 'react'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import { RoleGuard } from '@/shared/ui/router/RoleGuard'
 
-// Lazy load all pages for better performance
 const HomePage = React.lazy(() => import('../pages/home').then(m => ({ default: m.HomePage })))
 const LoginPage = React.lazy(() => import('@/pages/auth/LoginPage').then(m => ({ default: m.LoginPage })))
 
-// Admin pages
 const AdminUsersPage = React.lazy(() => import('@/pages/admin/users'))
 const AdminDashboard = React.lazy(() => import('@/pages/admin/dashboard'))
 const AdminDevicesPage = React.lazy(() => import('@/pages/admin/devices'))
 const AdminFarmsPage = React.lazy(() => import('@/pages/admin/farms'))
 
-// Manager pages
 const ManagerDashboard = React.lazy(() => import('@/pages/manager/dashboard'))
 const IrrigationPage = React.lazy(() => import('@/pages/manager/irrigation'))
 const ManagerCategoriesPage = React.lazy(() => import('@/pages/manager/categories'))
@@ -23,31 +20,26 @@ const RealTimeIoTDashboard = React.lazy(() => import('@/pages/manager/iot-dashbo
 const ManagerOrdersPage = React.lazy(() => import('@/pages/manager/orders'))
 const ProductsPage = React.lazy(() => import('@/features/products-management/pages/ProductsPage').then(m => ({ default: m.ProductsPage })))
 
-// Staff pages
 const StaffOperationsPage = React.lazy(() => import('@/pages/staff/operations'))
 const StaffWorkLogsPage = React.lazy(() => import('@/pages/staff/work-logs'))
 const StaffQualityChecksPage = React.lazy(() => import('@/pages/staff/quality-checks'))
 
-// Common pages
 const ProfilePage = React.lazy(() => import('@/pages/profile'))
 const PaymentResultPage = React.lazy(() => import('@/pages/payment/PaymentResultPage'))
 const Unauthorized = React.lazy(() => import('@/pages/Unauthorized'))
 
-// Loading component
 const PageLoader = () => (
   <div className="flex items-center justify-center min-h-screen">
     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
   </div>
 )
 
-// Wrapper component for lazy loaded pages
 const LazyWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
   <Suspense fallback={<PageLoader />}>
     {children}
   </Suspense>
 )
 
-// Router configuration - moved to separate constant to avoid fast-refresh issues
 const routerConfig = [
   {
     path: '/',
@@ -81,11 +73,7 @@ const routerConfig = [
       </LazyWrapper>
     ),
   },
-  // {
-  //   path: '/register',
-  //   element: <RegisterPage />,
-  // },
-  // Manager routes for farm management features
+
   {
     path: '/manager/dashboard',
     element: (
@@ -176,7 +164,7 @@ const routerConfig = [
       </LazyWrapper>
     ),
   },
-  // Admin routes for system administration
+
   {
     path: '/admin/dashboard',
     element: (
@@ -218,7 +206,6 @@ const routerConfig = [
     ),
   },
 
-  // Staff routes for field operations
   {
     path: '/staff/operations',
     element: (
@@ -243,7 +230,7 @@ const routerConfig = [
       </LazyWrapper>
     ),
   },
-  // Common profile page for all authenticated roles
+
   {
     path: '/profile',
     element: (

@@ -117,7 +117,7 @@ export const QualityCheckDetailsModal: React.FC<QualityCheckDetailsModalProps> =
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Overview */}
+          {}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
@@ -183,7 +183,7 @@ export const QualityCheckDetailsModal: React.FC<QualityCheckDetailsModalProps> =
             </CardContent>
           </Card>
 
-          {/* Plant Health Details */}
+          {}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
@@ -241,7 +241,7 @@ export const QualityCheckDetailsModal: React.FC<QualityCheckDetailsModalProps> =
                 )}
               </div>
 
-              {/* Health Indicators */}
+              {}
               <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
                 <div
                   className={`p-3 rounded-lg border-2 ${qualityCheck.diseasePresent ? 'border-red-200 bg-red-50' : 'border-green-200 bg-green-50'}`}
@@ -294,7 +294,7 @@ export const QualityCheckDetailsModal: React.FC<QualityCheckDetailsModalProps> =
             </CardContent>
           </Card>
 
-          {/* Environmental Conditions */}
+          {}
           {(qualityCheck.soilMoisture || qualityCheck.temperature || qualityCheck.humidity) && (
             <Card>
               <CardHeader>
@@ -341,7 +341,7 @@ export const QualityCheckDetailsModal: React.FC<QualityCheckDetailsModalProps> =
             </Card>
           )}
 
-          {/* Issues & Recommendations */}
+          {}
           {((qualityCheck.issues?.length ?? 0) > 0 ||
             (qualityCheck.recommendedActions?.length ?? 0) > 0) && (
             <Card>
@@ -393,7 +393,7 @@ export const QualityCheckDetailsModal: React.FC<QualityCheckDetailsModalProps> =
             </Card>
           )}
 
-          {/* Follow-up */}
+          {}
           {qualityCheck.requiresFollowUp && (
             <Card>
               <CardHeader>
@@ -419,7 +419,7 @@ export const QualityCheckDetailsModal: React.FC<QualityCheckDetailsModalProps> =
             </Card>
           )}
 
-          {/* Photos */}
+          {}
           {qualityCheck.photos && qualityCheck.photos.length > 0 && (
             <Card>
               <CardHeader>
@@ -446,7 +446,7 @@ export const QualityCheckDetailsModal: React.FC<QualityCheckDetailsModalProps> =
             </Card>
           )}
 
-          {/* Notes */}
+          {}
           {qualityCheck.notes && (
             <Card>
               <CardHeader>
@@ -466,7 +466,7 @@ export const QualityCheckDetailsModal: React.FC<QualityCheckDetailsModalProps> =
           )}
         </div>
 
-        {/* Delete Confirmation */}
+        {}
         {showDeleteConfirm && (
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
@@ -508,7 +508,7 @@ export const QualityCheckDetailsModal: React.FC<QualityCheckDetailsModalProps> =
           </motion.div>
         )}
 
-        {/* Action Buttons */}
+        {}
         <div className="flex justify-between pt-4 border-t">
           <Button variant="outline" onClick={onClose}>
             Đóng

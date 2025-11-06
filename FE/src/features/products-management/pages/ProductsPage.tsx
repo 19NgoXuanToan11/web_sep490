@@ -24,7 +24,6 @@ export function ProductsPage() {
 
   const { toast } = useToast()
 
-  // Helper functions
   const hasActiveFilters = () => {
     return !!(
       filters.search ||
@@ -64,7 +63,6 @@ export function ProductsPage() {
     product: null,
   })
 
-  // Load products on mount
   React.useEffect(() => {
     fetchAllProducts().catch(error => {
       console.error('Error loading products:', error)
@@ -133,7 +131,7 @@ export function ProductsPage() {
     if (selectedProductIds.length === 0) return
 
     try {
-      // Delete selected products
+
       await Promise.all(selectedProductIds.map(id => deleteProduct(id)))
 
       toast({
@@ -181,14 +179,14 @@ export function ProductsPage() {
     <ManagerLayout>
       <div className="container mx-auto px-4 py-8">
         <div className="space-y-6">
-          {/* Header */}
+          {}
           <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Quản lý sản phẩm</h1>
               <p className="text-gray-600">Quản lý thông tin sản phẩm, giá cả và tồn kho</p>
             </div>
             <div className="flex gap-2">
-              {/* Bulk actions */}
+              {}
               {selectedProductIds.length > 0 && (
                 <Button
                   variant="destructive"
@@ -221,10 +219,10 @@ export function ProductsPage() {
             </div>
           </div>
 
-          {/* Filters */}
+          {}
           <ProductFilters />
 
-          {/* Stats Cards */}
+          {}
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3">
             <Card>
               <CardContent className="p-4">
@@ -263,7 +261,7 @@ export function ProductsPage() {
             </Card>
           </div>
 
-          {/* Products Table */}
+          {}
           <Card>
             <CardHeader>
               <CardTitle>Sản phẩm</CardTitle>
@@ -309,7 +307,7 @@ export function ProductsPage() {
         </div>
       </div>
 
-      {/* Product Modal */}
+      {}
       <ProductModal
         isOpen={modalState.isOpen}
         onClose={closeModal}
@@ -317,7 +315,7 @@ export function ProductsPage() {
         mode={modalState.mode}
       />
 
-      {/* Delete Confirmation Dialog */}
+      {}
       {deleteConfirm.isOpen && deleteConfirm.product && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">

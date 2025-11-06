@@ -215,7 +215,7 @@ function RuleForm({ editingRule, onSuccess, onCancel }: RuleFormProps) {
       <CardContent>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <div className="space-y-4">
-            {/* Rule Name */}
+            {}
             <div className="space-y-2">
               <Label htmlFor="name">Tên quy tắc</Label>
               <Input id="name" placeholder="VD: Ứng phó độ ẩm thấp" {...form.register('name')} />
@@ -224,7 +224,7 @@ function RuleForm({ editingRule, onSuccess, onCancel }: RuleFormProps) {
               )}
             </div>
 
-            {/* Rule Condition */}
+            {}
             <div className="space-y-2">
               <Label htmlFor="condition">Điều kiện</Label>
               <textarea
@@ -244,7 +244,7 @@ function RuleForm({ editingRule, onSuccess, onCancel }: RuleFormProps) {
               </p>
             </div>
 
-            {/* Preview */}
+            {}
             {previewRule() && (
               <div className="p-3 bg-muted/50 rounded-lg">
                 <div className="flex items-center gap-2 mb-2">
@@ -255,7 +255,7 @@ function RuleForm({ editingRule, onSuccess, onCancel }: RuleFormProps) {
               </div>
             )}
 
-            {/* Enabled Switch */}
+            {}
             <div className="flex items-center space-x-2">
               <input
                 type="checkbox"

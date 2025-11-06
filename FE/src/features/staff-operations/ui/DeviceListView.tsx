@@ -128,7 +128,7 @@ export const DeviceListView: React.FC<DeviceListViewProps> = ({
 
   return (
     <div className="space-y-4">
-      {/* Loading indicator for refresh */}
+      {}
       {isLoading && devices.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -142,7 +142,7 @@ export const DeviceListView: React.FC<DeviceListViewProps> = ({
         </motion.div>
       )}
 
-      {/* Simple Header - Hidden on mobile */}
+      {}
       <div className="hidden md:block px-4 py-2">
         <div className="grid grid-cols-12 gap-6 items-center text-xs font-medium text-gray-500 uppercase tracking-wide">
           <div className="col-span-1">
@@ -173,7 +173,7 @@ export const DeviceListView: React.FC<DeviceListViewProps> = ({
         </div>
       </div>
 
-      {/* Device List */}
+      {}
       <div className="space-y-3">
         <AnimatePresence mode="popLayout">
           {devices.map(device => {
@@ -198,9 +198,9 @@ export const DeviceListView: React.FC<DeviceListViewProps> = ({
                 } ${isDeviceLoading ? 'opacity-75' : ''}`}
                 onClick={e => e.stopPropagation()}
               >
-                {/* Desktop Layout - Clean & Minimal */}
+                {}
                 <div className="hidden md:grid grid-cols-12 gap-6 items-center px-6 py-5">
-                  {/* Checkbox */}
+                  {}
                   <div className="col-span-1">
                     <Checkbox
                       checked={isSelected}
@@ -208,7 +208,7 @@ export const DeviceListView: React.FC<DeviceListViewProps> = ({
                     />
                   </div>
 
-                  {/* Device Info */}
+                  {}
                   <div className="col-span-4">
                     <div className="flex items-center gap-4">
                       <div className={`w-2 h-8 rounded-full ${statusConfig.bgColor}`}></div>
@@ -228,7 +228,7 @@ export const DeviceListView: React.FC<DeviceListViewProps> = ({
                     </div>
                   </div>
 
-                  {/* Status & Metrics */}
+                  {}
                   <div className="col-span-2">
                     <div className="space-y-2">
                       <Badge
@@ -253,7 +253,7 @@ export const DeviceListView: React.FC<DeviceListViewProps> = ({
                     </div>
                   </div>
 
-                  {/* Activity & Health */}
+                  {}
                   <div className="col-span-2">
                     <div className="space-y-1 text-xs text-gray-600">
                       <div className="flex items-center gap-1">
@@ -281,7 +281,7 @@ export const DeviceListView: React.FC<DeviceListViewProps> = ({
                     </div>
                   </div>
 
-                  {/* Schedule */}
+                  {}
                   <div className="col-span-2">
                     <div className="space-y-1 text-xs text-gray-600">
                       <div>
@@ -299,7 +299,7 @@ export const DeviceListView: React.FC<DeviceListViewProps> = ({
                     </div>
                   </div>
 
-                  {/* Actions - Simplified */}
+                  {}
                   <div className="col-span-1 flex justify-end">
                     <DropdownMenu modal={false}>
                       <DropdownMenuTrigger asChild>
@@ -358,7 +358,7 @@ export const DeviceListView: React.FC<DeviceListViewProps> = ({
                   </div>
                 </div>
 
-                {/* Mobile Layout - Clean & Simple */}
+                {}
                 <div className="md:hidden px-4 py-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
@@ -438,7 +438,7 @@ export const DeviceListView: React.FC<DeviceListViewProps> = ({
                     </div>
                   </div>
 
-                  {/* Mobile Metrics */}
+                  {}
                   <div className="flex items-center justify-between text-xs text-gray-600">
                     <div className="flex items-center gap-4">
                       <span>Hoạt động: {device.uptimePct}%</span>
@@ -459,7 +459,7 @@ export const DeviceListView: React.FC<DeviceListViewProps> = ({
                   </div>
                 </div>
 
-                {/* Loading Overlay */}
+                {}
                 {isDeviceLoading && (
                   <div className="absolute inset-0 bg-white bg-opacity-60 flex items-center justify-center rounded-lg">
                     <div className="flex items-center gap-2">
@@ -474,7 +474,7 @@ export const DeviceListView: React.FC<DeviceListViewProps> = ({
         </AnimatePresence>
       </div>
 
-      {/* Results summary */}
+      {}
       <div className="flex items-center justify-between text-sm text-gray-600 pt-4 border-t">
         <span>
           Hiển thị {devices.length} trong tổng số {totalCount} thiết bị

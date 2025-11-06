@@ -30,7 +30,7 @@ const StaffOperationsPage: React.FC = () => {
   const [selectedDeviceId, setSelectedDeviceId] = useState<string | null>(null)
   const [actionModalOpen, setActionModalOpen] = useState(false)
   const [detailsModalOpen, setDetailsModalOpen] = useState(false)
-  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list') // Default to list view
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list')
   const [pendingAction, setPendingAction] = useState<{ deviceId: string; action: string } | null>(
     null
   )
@@ -57,12 +57,10 @@ const StaffOperationsPage: React.FC = () => {
     getZonesList,
   } = useStaffOperationsStore()
 
-  // Initialize data on mount
   useEffect(() => {
     initializeData()
   }, [initializeData])
 
-  // Auto-refresh functionality
   useEffect(() => {
     if (!autoRefresh) return
 
@@ -130,7 +128,7 @@ const StaffOperationsPage: React.FC = () => {
   return (
     <StaffLayout>
       <div className="min-h-screen bg-gray-50">
-        {/* Header */}
+        {}
         <div className="bg-white shadow-sm border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between py-6">
@@ -144,7 +142,7 @@ const StaffOperationsPage: React.FC = () => {
                 </p>
               </div>
 
-              {/* Header Actions */}
+              {}
               <div className="mt-4 lg:mt-0 flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
                 <div className="flex items-center text-sm text-gray-500">
                   <Activity className="h-4 w-4 mr-1" />
@@ -152,7 +150,7 @@ const StaffOperationsPage: React.FC = () => {
                 </div>
 
                 <div className="flex space-x-2">
-                  {/* View Mode Toggle */}
+                  {}
                   <div className="flex border border-gray-300 rounded-lg overflow-hidden">
                     <Button
                       onClick={() => setViewMode('list')}
@@ -189,7 +187,7 @@ const StaffOperationsPage: React.FC = () => {
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Stats Cards */}
+          {}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -266,10 +264,10 @@ const StaffOperationsPage: React.FC = () => {
             </motion.div>
           </div>
 
-          {/* Search and Filters */}
+          {}
           <Card className="p-6 mb-8">
             <div className="space-y-4">
-              {/* Search */}
+              {}
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input
@@ -280,7 +278,7 @@ const StaffOperationsPage: React.FC = () => {
                 />
               </div>
 
-              {/* Filters */}
+              {}
               <div className="flex flex-wrap gap-3 items-center">
                 <span className="text-sm font-medium text-gray-700 whitespace-nowrap">
                   Lọc theo:
@@ -331,7 +329,7 @@ const StaffOperationsPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Selected Count */}
+            {}
             {selectedDeviceIds.length > 0 && (
               <div className="mt-4 flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
                 <span className="text-sm font-medium text-blue-700">
@@ -349,7 +347,7 @@ const StaffOperationsPage: React.FC = () => {
             )}
           </Card>
 
-          {/* Device View */}
+          {}
           <Card className={viewMode === 'list' ? 'p-6' : 'p-6'}>
             {viewMode === 'list' ? (
               <DeviceListView
@@ -365,7 +363,7 @@ const StaffOperationsPage: React.FC = () => {
           </Card>
         </div>
 
-        {/* Device Action Modal */}
+        {}
         {actionModalOpen && selectedDeviceId && pendingAction && (
           <DeviceActionModal
             isOpen={actionModalOpen}
@@ -379,7 +377,7 @@ const StaffOperationsPage: React.FC = () => {
           />
         )}
 
-        {/* Device Details Modal */}
+        {}
         {detailsModalOpen && selectedDeviceId && (
           <DeviceDetailsModal
             isOpen={detailsModalOpen}

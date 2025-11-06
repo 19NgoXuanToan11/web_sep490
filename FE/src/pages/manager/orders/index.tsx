@@ -42,7 +42,6 @@ import { useToast } from '@/shared/ui/use-toast'
 import { orderService, getOrderStatusLabel, getOrderStatusVariant } from '@/shared/api/orderService'
 import type { Order as ApiOrder, OrderItem } from '@/shared/api/orderService'
 
-// Transform API response to display format
 interface DisplayOrder {
   id: string
   orderNumber: string
@@ -53,14 +52,14 @@ interface DisplayOrder {
     address: string
   }
   items: OrderItem[]
-  orderDetails?: any[] // Add this for compatibility
+  orderDetails?: any[]
   status: number
   orderDate: string
   totalAmount: number
   paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded'
   paymentMethod: string
   notes?: string
-  updatedAt?: string // Add this field
+  updatedAt?: string
 }
 
 const ManagerOrdersPage: React.FC = () => {
@@ -82,17 +81,14 @@ const ManagerOrdersPage: React.FC = () => {
   const [selectedTab, setSelectedTab] = useState('all')
   const [isSearching, setIsSearching] = useState(false)
 
-  // Date search states
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
 
-  // Order detail modal states
   const [isOrderDetailOpen, setIsOrderDetailOpen] = useState(false)
   const [selectedOrderDetail, setSelectedOrderDetail] = useState<ApiOrder | null>(null)
   const [loadingOrderDetail, setLoadingOrderDetail] = useState(false)
 
-  // Transform API order to display format
   const transformApiOrder = (apiOrder: ApiOrder): DisplayOrder => {
-    // Extract customer info from email (fallback since API doesn't provide full customer details)
+
     const email = apiOrder.email || 'N/A'
     const customerName =
       email !== 'N/A' ? email.split('@')[0].replace(/[._]/g, ' ') : 'Unknown Customer'
@@ -103,21 +99,20 @@ const ManagerOrdersPage: React.FC = () => {
       customer: {
         name: customerName,
         email: email,
-        phone: 'N/A', // Not provided by API
+        phone: 'N/A',
         address: apiOrder.shippingAddress || 'N/A',
       },
       items: apiOrder.orderItems || [],
-      orderDetails: apiOrder.orderItems || apiOrder.orderDetails || [], // Add orderDetails from API
+      orderDetails: apiOrder.orderItems || apiOrder.orderDetails || [],
       status: apiOrder.status ?? 0,
       orderDate: apiOrder.createdAt || new Date().toISOString(),
       totalAmount: apiOrder.totalPrice || 0,
-      paymentStatus: 'paid', // Default assumption, could be enhanced
-      paymentMethod: 'N/A', // Not provided by API
-      updatedAt: apiOrder.updatedAt, // Add updatedAt field
+      paymentStatus: 'paid',
+      paymentMethod: 'N/A',
+      updatedAt: apiOrder.updatedAt,
     }
   }
 
-  // Fetch orders from API
   const fetchOrders = useCallback(
     async (page: number = 1, status?: number) => {
       try {
@@ -138,7 +133,7 @@ const ManagerOrdersPage: React.FC = () => {
               return null
             }
           })
-          .filter((order): order is DisplayOrder => order !== null) // Type-safe filter
+          .filter((order): order is DisplayOrder => order !== null)
 
         setOrders(transformedOrders)
         setTotalItems(response.totalItemCount)
@@ -162,14 +157,12 @@ const ManagerOrdersPage: React.FC = () => {
     fetchOrders()
   }, [])
 
-  // Handle status filter change with API call
   const handleStatusFilterChange = (status: string) => {
     setStatusFilter(status)
     const statusParam = status === 'all' ? undefined : parseInt(status)
     fetchOrders(1, statusParam)
   }
 
-  // Handle tab change to filter by status
   const handleTabChange = (tab: string) => {
     setSelectedTab(tab)
     let statusParam: number | undefined
@@ -179,7 +172,7 @@ const ManagerOrdersPage: React.FC = () => {
         statusParam = 0
         break
       case 'processing':
-        statusParam = undefined // Show confirmed, preparing, shipping (1,2,3)
+        statusParam = undefined
         break
       case 'completed':
         statusParam = 4
@@ -191,7 +184,6 @@ const ManagerOrdersPage: React.FC = () => {
     fetchOrders(1, statusParam)
   }
 
-  // Date search function
   const handleDateSearch = async (date: Date) => {
     try {
       setIsSearching(true)
@@ -221,10 +213,9 @@ const ManagerOrdersPage: React.FC = () => {
     }
   }
 
-  // Advanced search function
   const handleAdvancedSearch = async () => {
     if (!searchQuery.trim()) {
-      // If search is empty, reload all orders
+
       fetchOrders(1)
       return
     }
@@ -235,7 +226,7 @@ const ManagerOrdersPage: React.FC = () => {
 
       switch (searchType) {
         case 'orderId':
-          // For orderId search, we'll get single order detail
+
           try {
             const orderDetail = await orderService.getOrderById(searchQuery.trim())
             searchResult = {
@@ -248,11 +239,10 @@ const ManagerOrdersPage: React.FC = () => {
               previous: false,
             }
 
-            // Auto-open order detail modal for orderId search
             setSelectedOrderDetail(orderDetail)
             setIsOrderDetailOpen(true)
           } catch (error) {
-            // If order not found, show empty result
+
             searchResult = {
               items: [],
               totalItemCount: 0,
@@ -276,7 +266,7 @@ const ManagerOrdersPage: React.FC = () => {
           searchResult = await orderService.getOrdersByEmail(searchQuery.trim())
           break
         case 'date':
-          // For date search, use selectedDate instead of searchQuery
+
           if (selectedDate) {
             const dateString = format(selectedDate, 'yyyy-MM-dd')
             searchResult = await orderService.getOrdersByDate(dateString)
@@ -290,10 +280,10 @@ const ManagerOrdersPage: React.FC = () => {
           }
           break
         default:
-          // Default search - use regular order list
+
           searchResult = await orderService.getOrderList({
             pageIndex: 1,
-            pageSize: 50, // Get more results for search
+            pageSize: 50,
           })
       }
 
@@ -319,11 +309,10 @@ const ManagerOrdersPage: React.FC = () => {
     }
   }
 
-  // Handle search input change
   const handleSearchInputChange = useCallback(
     (value: string) => {
       setSearchQuery(value)
-      // If search is cleared, reload all orders
+
       if (!value.trim()) {
         fetchOrders(1)
       }
@@ -333,19 +322,17 @@ const ManagerOrdersPage: React.FC = () => {
 
   const filteredOrders = useMemo(() => {
     return orders.filter(order => {
-      // Debug logging
+
       if (!order || typeof order !== 'object') {
         return false
       }
 
-      // If using advanced search with specific search type, don't apply additional filtering
       if (searchQuery.trim() && searchType !== 'all') {
         return true
       }
 
       const searchTerm = (searchQuery || '').toLowerCase()
 
-      // Safe string handling
       const orderNumber = order.orderNumber
       const customerName = order.customer?.name
       const customerEmail = order.customer?.email
@@ -396,18 +383,18 @@ const ManagerOrdersPage: React.FC = () => {
 
   const getStatusIcon = (status: number) => {
     switch (status) {
-      case 0: // Chờ xử lý
+      case 0:
         return <Clock className="h-4 w-4 text-yellow-500" />
-      case 1: // Đã xác nhận
+      case 1:
         return <CheckCircle className="h-4 w-4 text-blue-500" />
-      case 2: // Đang chuẩn bị
+      case 2:
         return <Package className="h-4 w-4 text-purple-500" />
-      case 3: // Đang giao
+      case 3:
         return <Truck className="h-4 w-4 text-orange-500" />
-      case 4: // Đã giao
+      case 4:
         return <CheckCircle className="h-4 w-4 text-green-500" />
-      case 5: // Đã hủy
-      case 6: // Hoàn trả
+      case 5:
+      case 6:
         return <AlertTriangle className="h-4 w-4 text-red-500" />
       default:
         return <ShoppingCart className="h-4 w-4 text-gray-500" />
@@ -466,7 +453,6 @@ const ManagerOrdersPage: React.FC = () => {
     })
   }
 
-  // Fetch order detail
   const fetchOrderDetail = async (orderId: string) => {
     try {
       setLoadingOrderDetail(true)
@@ -485,7 +471,6 @@ const ManagerOrdersPage: React.FC = () => {
     }
   }
 
-  // Handle update order status
   const handleUpdateStatus = async (orderId: string, status: string) => {
     try {
       setLoading(true)
@@ -514,7 +499,6 @@ const ManagerOrdersPage: React.FC = () => {
           variant: 'default',
         })
 
-        // Refresh orders list
         await fetchOrders()
       }
     } catch (error) {
@@ -539,7 +523,7 @@ const ManagerOrdersPage: React.FC = () => {
   return (
     <ManagerLayout>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Page Header */}
+        {}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Quản lý đơn hàng</h1>
@@ -559,7 +543,7 @@ const ManagerOrdersPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Statistics Cards */}
+        {}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -640,7 +624,7 @@ const ManagerOrdersPage: React.FC = () => {
           </motion.div>
         </div>
 
-        {/* Main Content */}
+        {}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -659,7 +643,7 @@ const ManagerOrdersPage: React.FC = () => {
               </TabsList>
 
               <TabsContent value="all" className="space-y-4">
-                {/* Filters */}
+                {}
                 <div className="flex flex-col sm:flex-row gap-4">
                   <div className="flex-1">
                     <div className="flex gap-2">
@@ -820,7 +804,7 @@ const ManagerOrdersPage: React.FC = () => {
                   </DropdownMenu>
                 </div>
 
-                {/* Search Results Indicator */}
+                {}
                 {(searchQuery || selectedDate) && (
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
                     <div className="flex items-center justify-between">
@@ -866,7 +850,7 @@ const ManagerOrdersPage: React.FC = () => {
                   </div>
                 )}
 
-                {/* Orders Table */}
+                {}
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
@@ -912,7 +896,7 @@ const ManagerOrdersPage: React.FC = () => {
                             <TableCell>
                               <div className="space-y-1">
                                 {(() => {
-                                  // Try orderDetails first, then fallback to items
+
                                   const products =
                                     order.orderDetails && order.orderDetails.length > 0
                                       ? order.orderDetails
@@ -1017,7 +1001,7 @@ const ManagerOrdersPage: React.FC = () => {
                   </Table>
                 </div>
 
-                {/* Pagination */}
+                {}
                 {!loading && totalPages > 1 && (
                   <div className="flex items-center justify-between space-x-2 py-4">
                     <div className="text-sm text-muted-foreground">
@@ -1063,7 +1047,7 @@ const ManagerOrdersPage: React.FC = () => {
                 )}
               </TabsContent>
 
-              {/* Other tab contents would be filtered versions of the same table */}
+              {}
               <TabsContent value="pending">
                 <div className="text-center py-8 text-gray-500">
                   Hiển thị các đơn hàng chờ xử lý ({orderStats.pending} đơn)
@@ -1085,7 +1069,7 @@ const ManagerOrdersPage: React.FC = () => {
         </Card>
       </div>
 
-      {/* Order Detail Modal */}
+      {}
       <Dialog open={isOrderDetailOpen} onOpenChange={setIsOrderDetailOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -1103,7 +1087,7 @@ const ManagerOrdersPage: React.FC = () => {
             </div>
           ) : selectedOrderDetail ? (
             <div className="space-y-6">
-              {/* Order Information */}
+              {}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Card>
                   <CardHeader>
@@ -1204,9 +1188,9 @@ const ManagerOrdersPage: React.FC = () => {
                 </Card>
               </div>
 
-              {/* Order Details Section */}
+              {}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Order Items */}
+                {}
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-lg">Sản phẩm trong đơn hàng</CardTitle>
@@ -1328,7 +1312,7 @@ const ManagerOrdersPage: React.FC = () => {
                   </CardContent>
                 </Card>
 
-                {/* Payment Information */}
+                {}
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-lg">Thông tin thanh toán</CardTitle>
@@ -1368,7 +1352,7 @@ const ManagerOrdersPage: React.FC = () => {
                       </p>
                     )}
 
-                    {/* Order Summary */}
+                    {}
                     <div className="mt-6 pt-4 border-t">
                       <div className="flex justify-between items-center">
                         <span className="text-lg font-medium">Tổng cộng:</span>

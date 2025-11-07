@@ -63,7 +63,7 @@ export interface ApiProduct {
 export interface CreateProductRequest {
   productName: string
   productDescription: string
-  sku: string
+
   price: number
   categoryId: number
   imageUrl?: string
@@ -73,7 +73,6 @@ export interface CreateProductRequest {
 export interface UpdateProductRequest {
   productName?: string
   productDescription?: string
-  sku?: string
   price?: number
   categoryId?: number
   imageUrl?: string
@@ -105,7 +104,6 @@ const mapApiProductToProduct = (apiProduct: any): Product => {
 }
 
 export const productService = {
-
   getProductsList: async (filter?: ProductFilter): Promise<ProductListResponse> => {
     const queryParams = new URLSearchParams()
 

@@ -52,8 +52,10 @@ export const ROUTES = {
     FARM_ACTIVITIES: '/manager/farm-activities',
   },
   STAFF: {
-    OPERATIONS: '/staff/operations',
+    DASHBOARD: '/staff/dashboard',
     WORK_LOGS: '/staff/work-logs',
+    PRODUCTS: '/staff/products',
+    ORDERS: '/staff/orders',
   },
 } as const
 

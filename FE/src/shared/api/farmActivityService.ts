@@ -28,11 +28,28 @@ export interface FarmActivityResponse {
   data?: any
 }
 
-export const farmActivityService = {
+export interface PaginationData<T> {
+  totalItemCount: number
+  pageSize: number
+  totalPagesCount: number
+  pageIndex: number
+  next: boolean
+  previous: boolean
+  items: T[]
+}
 
+export interface ApiResponse<T> {
+  status: number
+  message: string
+  data: T
+}
+
+export const farmActivityService = {
   getAllFarmActivities: async (): Promise<FarmActivity[]> => {
-    const response = await http.get<FarmActivity[]>('/v1/farm-activity/get-all')
-    return response.data
+    const response = await http.get<ApiResponse<PaginationData<FarmActivity>>>(
+      '/v1/farm-activity/get-all'
+    )
+    return response.data.data.items
   },
 
   createFarmActivity: async (activityData: FarmActivityRequest): Promise<FarmActivityResponse> => {

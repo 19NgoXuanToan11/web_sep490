@@ -155,7 +155,7 @@ export default function CategoriesPage() {
     <ManagerLayout>
       <div className="container mx-auto px-4 py-8">
         <div className="space-y-6">
-          {}
+          { }
           <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Quản lý danh mục</h1>
@@ -181,7 +181,7 @@ export default function CategoriesPage() {
             </div>
           </div>
 
-          {}
+          { }
           <div className="grid gap-4 md:grid-cols-4">
             <Card className="md:col-span-3">
               <CardContent className="p-4">
@@ -210,7 +210,7 @@ export default function CategoriesPage() {
             </Card>
           </div>
 
-          {}
+          { }
           <Card>
             <CardHeader>
               <CardTitle>Danh mục</CardTitle>
@@ -245,7 +245,6 @@ export default function CategoriesPage() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Tên</TableHead>
-                      <TableHead>Sản phẩm</TableHead>
                       <TableHead className="text-right">Thao tác</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -253,9 +252,6 @@ export default function CategoriesPage() {
                     {filteredCategories.map(category => (
                       <TableRow key={category.categoryId}>
                         <TableCell className="font-medium">{category.categoryName}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline">{category.products?.length || 0} sản phẩm</Badge>
-                        </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
                             <Button
@@ -286,7 +282,7 @@ export default function CategoriesPage() {
         </div>
       </div>
 
-      {}
+      { }
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -320,7 +316,7 @@ export default function CategoriesPage() {
         </DialogContent>
       </Dialog>
 
-      {}
+      { }
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -355,7 +351,7 @@ export default function CategoriesPage() {
         </DialogContent>
       </Dialog>
 
-      {}
+      { }
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>

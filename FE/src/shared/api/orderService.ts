@@ -84,7 +84,6 @@ export interface OrderListParams {
 }
 
 export const orderService = {
-
   getOrderList: async (params: OrderListParams = {}): Promise<OrderListResponse['data']> => {
     const { pageIndex = 1, pageSize = 10, status } = params
 
@@ -138,58 +137,89 @@ export const orderService = {
     return response.data
   },
 
+  updateCompleteStatus: async (orderId: string): Promise<any> => {
+    const response = await http.put(`/v1/order/updateCompletedStatus/${orderId}`)
+    return response.data
+  },
+
   updateCancelStatus: async (orderId: string): Promise<any> => {
     const response = await http.put(`/v1/order/updateCancelStatus/${orderId}`)
     return response.data
   },
+
+  createOrderPayment: async (orderId: string): Promise<any> => {
+    const response = await http.post(`/v1/order/createOrderPayment/${orderId}`)
+    return response.data
+  },
 }
 
+/**
+ * Mapping PaymentStatus từ Backend (C# enum) sang nhãn hiển thị Frontend
+ *
+ * Backend Enum: PaymentStatus (Domain/Enum/Status.cs)
+ * 0: UNPAID       → Chưa thanh toán
+ * 1: PAID         → Đã thanh toán
+ * 2: UNDISCHARGED → Chưa thanh toán
+ * 3: PENDING      → Đang xử lý
+ * 4: CANCELLED    → Đã hủy
+ * 5: COMPLETED    → Hoàn thành
+ * 6: DELIVERED    → Đang giao hàng
+ */
 export const getOrderStatusLabel = (status: number): string => {
   const statusMap: Record<number, string> = {
-    0: 'Chờ xử lý',
-    1: 'Đã xác nhận',
-    2: 'Đang chuẩn bị',
-    3: 'Đang giao',
-    4: 'Đã giao',
-    5: 'Đã hủy',
-    6: 'Hoàn trả',
+    0: 'Chưa thanh toán',
+    1: 'Đã thanh toán',
+    2: 'Chưa thanh toán',
+    3: 'Đang xử lý',
+    4: 'Đã hủy',
+    5: 'Hoàn thành',
+    6: 'Đang giao hàng',
   }
   return statusMap[status] || 'Không xác định'
 }
 
+/**
+ * Trả về variant (màu sắc) cho badge hiển thị trạng thái
+ * - default: Màu xanh (trạng thái tích cực: đã xác nhận, hoàn thành)
+ * - secondary: Màu xám (trạng thái trung tính: chờ xử lý, đang xử lý, đang giao hàng)
+ * - destructive: Màu đỏ (trạng thái tiêu cực: đã hủy)
+ */
 export const getOrderStatusVariant = (status: number): 'default' | 'secondary' | 'destructive' => {
   switch (status) {
-    case 0:
+    case 0: // Chưa thanh toán
+    case 2: // Chưa thanh toán
+    case 3: // Đang xử lý
+    case 6: // Đang giao hàng
       return 'secondary'
-    case 1:
-    case 4:
+    case 1: // Đã thanh toán
+    case 5: // Hoàn thành
       return 'default'
-    case 2:
-    case 3:
-      return 'secondary'
-    case 5:
-    case 6:
+    case 4: // Đã hủy
       return 'destructive'
     default:
       return 'secondary'
   }
 }
 
+/**
+ * Trả về tên icon phù hợp với từng trạng thái đơn hàng
+ */
 export const getOrderStatusIcon = (status: number): string => {
   switch (status) {
-    case 0:
+    case 0: // Chưa thanh toán
       return 'clock'
-    case 1:
+    case 1: // Đã thanh toán
       return 'check-circle'
-    case 2:
-      return 'package'
-    case 3:
+    case 2: // Chưa thanh toán
+      return 'clock'
+    case 3: // Đang xử lý
       return 'truck'
-    case 4:
-      return 'check-circle'
-    case 5:
-    case 6:
+    case 4: // Đã hủy
       return 'alert-triangle'
+    case 5: // Hoàn thành
+      return 'check-circle'
+    case 6: // Đã giao hàng
+      return 'truck'
     default:
       return 'shopping-cart'
   }

@@ -11,12 +11,6 @@ export const productSchema = z.object({
     .min(10, 'Mô tả sản phẩm phải có ít nhất 10 ký tự')
     .max(500, 'Mô tả sản phẩm không được quá 500 ký tự'),
 
-  sku: z
-    .string()
-    .min(3, 'SKU phải có ít nhất 3 ký tự')
-    .max(20, 'SKU không được quá 20 ký tự')
-    .regex(/^[A-Z0-9-_]+$/, 'SKU chỉ được chứa chữ in hoa, số, dấu gạch ngang và gạch dưới'),
-
   price: z.number().min(0, 'Giá không được âm').max(999999999, 'Giá không được quá 999,999,999'),
 
   categoryId: z.number().min(1, 'Vui lòng chọn danh mục'),
@@ -59,17 +53,6 @@ export type ProductUpdateFormData = z.infer<typeof productUpdateSchema>
 export type ChangeStatusFormData = z.infer<typeof changeStatusSchema>
 export type ChangeQuantityFormData = z.infer<typeof changeQuantitySchema>
 export type ProductFilterFormData = z.infer<typeof productFilterSchema>
-
-export const validateSKU = (sku: string, existingSKUs: string[] = []) => {
-  if (existingSKUs.includes(sku.toUpperCase())) {
-    return { isValid: false, error: 'SKU đã tồn tại' }
-  }
-
-  const result = productSchema.pick({ sku: true }).safeParse({ sku })
-  return result.success
-    ? { isValid: true }
-    : { isValid: false, error: result.error.issues[0]?.message || 'SKU không hợp lệ' }
-}
 
 export const validatePrice = (price: number) => {
   const result = productSchema.pick({ price: true }).safeParse({ price })

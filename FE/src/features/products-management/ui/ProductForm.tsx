@@ -41,23 +41,21 @@ export function ProductForm({ editingProduct, onSuccess, onCancel, className }: 
     resolver: zodResolver(productSchema),
     defaultValues: isEditMode
       ? {
-          productName: editingProduct.productName,
-          productDescription: editingProduct.productDescription,
-          sku: editingProduct.sku,
-          price: editingProduct.price,
-          categoryId: editingProduct.categoryId,
-          imageUrl: editingProduct.imageUrl || '',
-          quantity: editingProduct.quantity,
-        }
+        productName: editingProduct.productName,
+        productDescription: editingProduct.productDescription,
+        price: editingProduct.price,
+        categoryId: editingProduct.categoryId,
+        imageUrl: editingProduct.imageUrl || '',
+        quantity: editingProduct.quantity,
+      }
       : {
-          productName: '',
-          productDescription: '',
-          sku: '',
-          price: 0,
-          categoryId: 0,
-          imageUrl: '',
-          quantity: 0,
-        },
+        productName: '',
+        productDescription: '',
+        price: 0,
+        categoryId: 0,
+        imageUrl: '',
+        quantity: 0,
+      },
   })
 
   React.useEffect(() => {
@@ -77,7 +75,6 @@ export function ProductForm({ editingProduct, onSuccess, onCancel, className }: 
         await updateProduct(editingProduct.productId, {
           productName: data.productName,
           productDescription: data.productDescription,
-          sku: data.sku,
           price: data.price,
           categoryId: data.categoryId,
           imageUrl: data.imageUrl,
@@ -148,23 +145,9 @@ export function ProductForm({ editingProduct, onSuccess, onCancel, className }: 
     setValue('imageUrl', '')
   }
 
-  const generateSKU = () => {
-    const productName = watch('productName')
-    if (productName) {
-      const sku =
-        productName
-          .toUpperCase()
-          .replace(/[^A-Z0-9]/g, '')
-          .substring(0, 10) +
-        '-' +
-        Date.now().toString().slice(-4)
-      setValue('sku', sku)
-    }
-  }
-
   return (
     <form onSubmit={handleSubmit(onSubmit)} className={`space-y-6 ${className}`}>
-      {}
+      { }
       <div className="space-y-2">
         <Label htmlFor="productName">Tên sản phẩm *</Label>
         <Input
@@ -176,7 +159,7 @@ export function ProductForm({ editingProduct, onSuccess, onCancel, className }: 
         {errors.productName && <p className="text-sm text-red-600">{errors.productName.message}</p>}
       </div>
 
-      {}
+      { }
       <div className="space-y-2">
         <Label htmlFor="productDescription">Mô tả sản phẩm *</Label>
         <Textarea
@@ -191,35 +174,9 @@ export function ProductForm({ editingProduct, onSuccess, onCancel, className }: 
         )}
       </div>
 
-      {}
-      <div className="space-y-2">
-        <div className="flex items-center justify-between">
-          <Label htmlFor="sku">SKU *</Label>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={generateSKU}
-            className="text-blue-600 hover:text-blue-700"
-          >
-            Tự động tạo
-          </Button>
-        </div>
-        <Input
-          id="sku"
-          {...register('sku')}
-          placeholder="VD: PRODUCT-1234"
-          className={`font-mono ${errors.sku ? 'border-red-500' : ''}`}
-        />
-        {errors.sku && <p className="text-sm text-red-600">{errors.sku.message}</p>}
-        <p className="text-xs text-gray-500">
-          SKU chỉ được chứa chữ in hoa, số, dấu gạch ngang và gạch dưới
-        </p>
-      </div>
-
-      {}
+      { }
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {}
+        { }
         <div className="space-y-2">
           <Label htmlFor="price">Giá sản phẩm (VND) *</Label>
           <Input
@@ -234,7 +191,7 @@ export function ProductForm({ editingProduct, onSuccess, onCancel, className }: 
           {errors.price && <p className="text-sm text-red-600">{errors.price.message}</p>}
         </div>
 
-        {}
+        { }
         <div className="space-y-2">
           <Label htmlFor="categoryId">Danh mục *</Label>
           <Select
@@ -256,7 +213,7 @@ export function ProductForm({ editingProduct, onSuccess, onCancel, className }: 
         </div>
       </div>
 
-      {}
+      { }
       <div className="space-y-2">
         <Label htmlFor="quantity">Số lượng ban đầu</Label>
         <Input
@@ -270,7 +227,7 @@ export function ProductForm({ editingProduct, onSuccess, onCancel, className }: 
         {errors.quantity && <p className="text-sm text-red-600">{errors.quantity.message}</p>}
       </div>
 
-      {}
+      { }
       <div className="space-y-2">
         <Label htmlFor="image">Hình ảnh sản phẩm</Label>
 
@@ -298,7 +255,13 @@ export function ProductForm({ editingProduct, onSuccess, onCancel, className }: 
         <input
           id="image"
           type="file"
-          accept="image}
+          accept="image/*"
+          onChange={handleImageChange}
+          className="hidden"
+        />
+      </div>
+
+      { }
       <div className="flex gap-3 pt-6">
         <Button type="submit" disabled={isSubmitting} className="flex-1">
           {isSubmitting ? (

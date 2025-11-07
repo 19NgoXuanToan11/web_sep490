@@ -16,7 +16,6 @@ import type {
 } from '../model/schemas'
 
 interface StaffOperationsState {
-
   devices: StaffDevice[]
 
   loadingStates: Record<string, LoadingState>
@@ -65,7 +64,6 @@ interface StaffOperationsState {
 }
 
 export const useStaffOperationsStore = create<StaffOperationsState>((set, get) => ({
-
   devices: [],
   loadingStates: {},
   searchState: {
@@ -92,7 +90,7 @@ export const useStaffOperationsStore = create<StaffOperationsState>((set, get) =
     set({
       devices: [...initialDevices],
       tableDensity: prefs.tableDensity,
-      viewMode: (prefs.lastSelectedTab?.staffOperations as DeviceViewMode) || 'grid',
+      viewMode: 'grid',
       lastUpdateTime: new Date().toISOString(),
     })
   },
@@ -234,7 +232,6 @@ export const useStaffOperationsStore = create<StaffOperationsState>((set, get) =
       set(state => ({
         devices: state.devices.map(device => {
           if (!deviceId || device.id === deviceId) {
-
             let newBatteryLevel = device.batteryLevel
             if (newBatteryLevel !== undefined) {
               newBatteryLevel = Math.max(0, newBatteryLevel - Math.floor(Math.random() * 3))
@@ -321,12 +318,6 @@ export const useStaffOperationsStore = create<StaffOperationsState>((set, get) =
 
   setViewMode: (mode: DeviceViewMode) => {
     set({ viewMode: mode })
-    userPreferences.set({
-      lastSelectedTab: {
-        ...userPreferences.get().lastSelectedTab,
-        staffOperations: mode,
-      },
-    })
   },
 
   setTableDensity: (density: TableDensity) => {

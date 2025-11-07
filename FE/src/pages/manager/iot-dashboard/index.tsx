@@ -102,22 +102,50 @@ const RealTimeIoTDashboard: React.FC = () => {
 
   const handlePumpControl = async (newState: boolean) => {
     try {
-      const success = await blynkService.sendControlCommand('v7', newState ? '1' : '0')
-      if (success) {
+      const result = await blynkService.controlPump(newState)
+      if (result.success) {
         setPumpControl(newState)
         toast({
           title: newState ? 'Máy bơm đã bật' : 'Máy bơm đã tắt',
-          description: `Trạng thái máy bơm: ${newState ? 'Hoạt động' : 'Tắt'}`,
+          description: result.message || `Trạng thái máy bơm: ${newState ? 'Hoạt động' : 'Tắt'}`,
         })
       } else {
         toast({
           title: 'Lỗi điều khiển',
-          description: 'Không thể điều khiển máy bơm',
+          description: result.message || 'Không thể điều khiển máy bơm',
           variant: 'destructive',
         })
       }
     } catch (error) {
       console.error('Failed to control pump:', error)
+      toast({
+        title: 'Lỗi kết nối',
+        description: 'Không thể gửi lệnh điều khiển',
+        variant: 'destructive',
+      })
+    }
+  }
+
+  const handleManualControl = async (newState: boolean) => {
+    try {
+      const result = await blynkService.controlManualMode(newState)
+      if (result.success) {
+        setManualControl(newState)
+        toast({
+          title: newState ? 'Chế độ thủ công đã bật' : 'Chế độ tự động đã bật',
+          description:
+            result.message ||
+            `Hệ thống đã chuyển sang chế độ ${newState ? 'thủ công' : 'tự động'}`,
+        })
+      } else {
+        toast({
+          title: 'Lỗi điều khiển',
+          description: result.message || 'Không thể thay đổi chế độ điều khiển',
+          variant: 'destructive',
+        })
+      }
+    } catch (error) {
+      console.error('Failed to control manual mode:', error)
       toast({
         title: 'Lỗi kết nối',
         description: 'Không thể gửi lệnh điều khiển',
@@ -157,7 +185,7 @@ const RealTimeIoTDashboard: React.FC = () => {
   return (
     <ManagerLayout>
       <div className="min-h-screen bg-gray-50 p-6">
-        {}
+        { }
         <div className="mb-8">
           <div className="mb-6">
             <h1 className="text-2xl font-bold text-gray-900 mb-2">Bảng điều khiển IoT thời gian thực</h1>
@@ -166,52 +194,6 @@ const RealTimeIoTDashboard: React.FC = () => {
             </p>
 
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2">
-                  {isOnline ? (
-                    <>
-                      <Wifi className="h-4 w-4 text-green-600" />
-                      <Badge className="bg-green-100 text-green-800 border-green-200">
-                        Trực tuyến
-                      </Badge>
-                    </>
-                  ) : (
-                    <>
-                      <WifiOff className="h-4 w-4 text-red-600" />
-                      <Badge className="bg-red-100 text-red-800 border-red-200">Ngoại tuyến</Badge>
-                    </>
-                  )}
-                </div>
-                <div className="flex items-center gap-3 text-sm">
-                  <span className="text-gray-500">Tổ chức của tôi - 8289XO</span>
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1">
-                      <div
-                        className={`w-2 h-2 rounded-full ${
-                          dataQuality === 'good'
-                            ? 'bg-green-500'
-                            : dataQuality === 'poor'
-                              ? 'bg-yellow-500'
-                              : 'bg-red-500'
-                        }`}
-                      />
-                      <span className="text-xs text-gray-600">
-                        Chất lượng:{' '}
-                        {dataQuality === 'good'
-                          ? 'Tốt'
-                          : dataQuality === 'poor'
-                            ? 'Trung bình'
-                            : 'Lỗi'}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <div className="w-2 h-2 rounded-full bg-blue-500" />
-                      <span className="text-xs text-gray-600">Tín hiệu: {connectionStrength}%</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
               <div className="flex items-center gap-3">
                 <Button
                   onClick={handleManualRefresh}
@@ -227,7 +209,7 @@ const RealTimeIoTDashboard: React.FC = () => {
             </div>
           </div>
 
-          {}
+          { }
           <div className="flex items-center gap-2">
             {timeFilters.map(filter => (
               <Button
@@ -235,11 +217,10 @@ const RealTimeIoTDashboard: React.FC = () => {
                 variant={timeFilter === filter ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setTimeFilter(filter)}
-                className={`${
-                  timeFilter === filter
+                className={`${timeFilter === filter
                     ? 'bg-blue-600 hover:bg-blue-700 text-white'
                     : 'bg-white border-gray-300 hover:bg-gray-50 text-gray-700'
-                }`}
+                  }`}
               >
                 {filter}
               </Button>
@@ -247,7 +228,7 @@ const RealTimeIoTDashboard: React.FC = () => {
           </div>
         </div>
 
-        {}
+        { }
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 mb-8">
           <Gauge
             value={sensorData.temperature}
@@ -314,14 +295,18 @@ const RealTimeIoTDashboard: React.FC = () => {
           />
         </div>
 
-        {}
+        { }
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
-          {}
+          { }
           <Card className="bg-white border-gray-200 shadow-sm">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-gray-900 font-semibold">Điều Khiển Tay</h3>
-                <Switch checked={manualControl} onCheckedChange={setManualControl} />
+                <Switch
+                  checked={manualControl}
+                  onCheckedChange={handleManualControl}
+                  disabled={!isOnline || isLoading}
+                />
               </div>
               <p className="text-gray-600 text-sm">
                 {manualControl ? 'Chế độ thủ công đang bật' : 'Chế độ tự động đang hoạt động'}
@@ -329,7 +314,7 @@ const RealTimeIoTDashboard: React.FC = () => {
             </CardContent>
           </Card>
 
-          {}
+          { }
           <Card className="bg-white border-gray-200 shadow-sm">
             <CardContent className="p-6">
               <div className="flex items-center justify-between mb-4">
@@ -346,7 +331,7 @@ const RealTimeIoTDashboard: React.FC = () => {
             </CardContent>
           </Card>
 
-          {}
+          { }
           <Card className="bg-white border-gray-200 shadow-sm">
             <CardContent className="p-6">
               <div className="mb-4">
@@ -375,98 +360,7 @@ const RealTimeIoTDashboard: React.FC = () => {
           </Card>
         </div>
 
-        {}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 mb-6">
-          {}
-          <Card className="bg-white border-gray-200 shadow-sm">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  {isOnline ? (
-                    <Wifi className="h-5 w-5 text-green-600" />
-                  ) : (
-                    <WifiOff className="h-5 w-5 text-red-600" />
-                  )}
-                  <div>
-                    <h4 className="font-medium text-gray-900">Kết nối</h4>
-                    <p className="text-sm text-gray-600">
-                      {isOnline ? 'Trực tuyến' : `Ngoại tuyến (Lần thử: ${retryCount})`}
-                    </p>
-                  </div>
-                </div>
-                <Badge
-                  className={isOnline ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}
-                >
-                  {connectionStrength}%
-                </Badge>
-              </div>
-            </CardContent>
-          </Card>
-
-          {}
-          <Card className="bg-white border-gray-200 shadow-sm">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div
-                    className={`w-5 h-5 rounded-full ${
-                      dataQuality === 'good'
-                        ? 'bg-green-500'
-                        : dataQuality === 'poor'
-                          ? 'bg-yellow-500'
-                          : 'bg-red-500'
-                    }`}
-                  />
-                  <div>
-                    <h4 className="font-medium text-gray-900">Chất lượng dữ liệu</h4>
-                    <p className="text-sm text-gray-600">
-                      {dataQuality === 'good'
-                        ? 'Tốt'
-                        : dataQuality === 'poor'
-                          ? 'Trung bình'
-                          : 'Lỗi'}
-                    </p>
-                  </div>
-                </div>
-                <Badge
-                  className={`${
-                    dataQuality === 'good'
-                      ? 'bg-green-100 text-green-800'
-                      : dataQuality === 'poor'
-                        ? 'bg-yellow-100 text-yellow-800'
-                        : 'bg-red-100 text-red-800'
-                  }`}
-                >
-                  {dataQuality === 'good' ? '✓' : dataQuality === 'poor' ? '!' : '✗'}
-                </Badge>
-              </div>
-            </CardContent>
-          </Card>
-
-          {}
-          <Card className="bg-white border-gray-200 shadow-sm">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Clock className="h-5 w-5 text-blue-600" />
-                  <div>
-                    <h4 className="font-medium text-gray-900">Cập nhật cuối</h4>
-                    <p className="text-sm text-gray-600">
-                      {lastUpdated ? lastUpdated.toLocaleTimeString('vi-VN') : 'Chưa có'}
-                    </p>
-                  </div>
-                </div>
-                <Badge className="bg-blue-100 text-blue-800">
-                  {lastUpdated
-                    ? Math.floor((Date.now() - lastUpdated.getTime()) / 1000) + 's'
-                    : '--'}
-                </Badge>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {}
+        { }
         {!isOnline && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}

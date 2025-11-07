@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Cpu, FileText, Shield, Menu, X, Bell, ChevronRight, Home } from 'lucide-react'
+import { Cpu, FileText, Shield, Menu, X, Bell, ChevronRight, Home, Package, ShoppingCart, MessageSquare, BarChart3 } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import LogoutButton from '@/shared/ui/LogoutButton'
 import { Badge } from '@/shared/ui/badge'
@@ -21,11 +21,10 @@ interface NavItem {
 
 const navigationItems: NavItem[] = [
   {
-    name: 'Điều khiển thiết bị',
-    href: '/staff/operations',
-    icon: Cpu,
-    badge: 3,
-    description: 'Quản lý thiết bị IoT',
+    name: 'Bảng điều khiển',
+    href: '/staff/dashboard',
+    icon: BarChart3,
+    description: 'Tổng quan & báo cáo',
   },
   {
     name: 'Nhật ký công việc',
@@ -39,6 +38,24 @@ const navigationItems: NavItem[] = [
     icon: Shield,
     badge: 2,
     description: 'Giám sát chất lượng cây trồng',
+  },
+  {
+    name: 'Quản lý sản phẩm',
+    href: '/staff/products',
+    icon: Package,
+    description: 'Quản lý sản phẩm nông nghiệp',
+  },
+  {
+    name: 'Quản lý đơn hàng',
+    href: '/staff/orders',
+    icon: ShoppingCart,
+    description: 'Theo dõi & xử lý đơn hàng',
+  },
+  {
+    name: 'Quản lý đánh giá',
+    href: '/staff/feedbacks',
+    icon: MessageSquare,
+    description: 'Xem & quản lý đánh giá khách hàng',
   },
 ]
 
@@ -61,7 +78,7 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({ children }) => {
     const breadcrumbs = []
 
     if (pathSegments[0] === 'staff') {
-      breadcrumbs.push({ name: 'Cổng nhân viên', href: '/staff/operations' })
+      breadcrumbs.push({ name: 'Cổng nhân viên', href: '/staff/dashboard' })
 
       if (pathSegments[1]) {
         const currentPage = navigationItems.find(item => item.href.includes(pathSegments[1]))
@@ -89,18 +106,16 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({ children }) => {
           navigate(item.href)
           if (mobile) setIsMobileSidebarOpen(false)
         }}
-        className={`w-full group flex items-center ${isSidebarOpen ? 'px-3' : 'px-2 justify-center'} py-2.5 text-sm font-medium rounded-lg transition-colors duration-200 ${
-          isActive
-            ? 'bg-purple-50 text-purple-700 border-r-2 border-purple-600'
-            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-        }`}
+        className={`w-full group flex items-center ${isSidebarOpen ? 'px-3' : 'px-2 justify-center'} py-2.5 text-sm font-medium rounded-lg transition-colors duration-200 ${isActive
+          ? 'bg-purple-50 text-purple-700 border-r-2 border-purple-600'
+          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+          }`}
         whileHover={{ scale: mobile ? 1 : 1.02 }}
         whileTap={{ scale: 0.98 }}
       >
         <item.icon
-          className={`${isSidebarOpen ? 'mr-3' : 'mx-auto'} h-5 w-5 flex-shrink-0 ${
-            isActive ? 'text-purple-600' : 'text-gray-400 group-hover:text-gray-600'
-          }`}
+          className={`${isSidebarOpen ? 'mr-3' : 'mx-auto'} h-5 w-5 flex-shrink-0 ${isActive ? 'text-purple-600' : 'text-gray-400 group-hover:text-gray-600'
+            }`}
         />
         {(isSidebarOpen || mobile) && (
           <div className="flex-1 text-left">
@@ -125,15 +140,14 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({ children }) => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {}
+      { }
       <motion.div
-        className={`hidden lg:fixed lg:inset-y-0 lg:flex lg:flex-col bg-white shadow-lg border-r border-gray-200 ${
-          isSidebarOpen ? 'lg:w-72' : 'lg:w-20'
-        }`}
+        className={`hidden lg:fixed lg:inset-y-0 lg:flex lg:flex-col bg-white shadow-lg border-r border-gray-200 ${isSidebarOpen ? 'lg:w-72' : 'lg:w-20'
+          }`}
         animate={{ width: isSidebarOpen ? 288 : 80 }}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
       >
-        {}
+        { }
         <div className="relative border-b border-gray-200">
           {isSidebarOpen ? (
             <div className="flex items-center justify-between px-6 py-6">
@@ -176,7 +190,7 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({ children }) => {
           )}
         </div>
 
-        {}
+        { }
         <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
           <div className="space-y-1">
             {navigationItems.map(item => (
@@ -185,7 +199,7 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({ children }) => {
           </div>
         </nav>
 
-        {}
+        { }
         <div
           className={`border-t border-gray-200 p-4 ${isSidebarOpen ? '' : 'flex justify-center'}`}
         >
@@ -206,7 +220,7 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({ children }) => {
         </div>
       </motion.div>
 
-      {}
+      { }
       <AnimatePresence>
         {isMobileSidebarOpen && (
           <motion.div
@@ -262,9 +276,9 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({ children }) => {
         )}
       </AnimatePresence>
 
-      {}
+      { }
       <div className={`transition-all duration-300 ${isSidebarOpen ? 'lg:pl-72' : 'lg:pl-20'}`}>
-        {}
+        { }
         <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40">
           <div className="px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between h-16">
@@ -278,7 +292,7 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({ children }) => {
                   <Menu className="h-5 w-5" />
                 </Button>
 
-                {}
+                { }
                 <nav className="hidden">
                   <Button
                     variant="ghost"

@@ -12,9 +12,7 @@ import {
   User,
   Activity,
   Cpu,
-  ShoppingCart,
   Monitor,
-  Package,
 } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import LogoutButton from '@/shared/ui/LogoutButton'
@@ -46,18 +44,6 @@ const navigationItems: NavItem[] = [
     icon: Droplets,
     badge: 3,
     description: 'Quản lý tưới nước tự động',
-  },
-  {
-    name: 'Quản lý đơn hàng',
-    href: '/manager/orders',
-    icon: ShoppingCart,
-    description: 'Theo dõi & xử lý đơn hàng',
-  },
-  {
-    name: 'Quản lý sản phẩm',
-    href: '/manager/products',
-    icon: Package,
-    description: 'Quản lý sản phẩm nông nghiệp',
   },
   {
     name: 'Danh mục',
@@ -158,14 +144,14 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {}
+      { }
       <motion.div
         className={`hidden lg:fixed lg:inset-y-0 lg:flex lg:flex-col bg-white shadow-lg border-r border-gray-200 ${isSidebarOpen ? 'lg:w-72' : 'lg:w-20'
           }`}
         animate={{ width: isSidebarOpen ? 288 : 80 }}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
       >
-        {}
+        { }
         <div className="relative border-b border-gray-200">
           {isSidebarOpen ? (
 
@@ -212,7 +198,7 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
           )}
         </div>
 
-        {}
+        { }
         <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
           <div className="space-y-1">
             {navigationItems.map(item => (
@@ -221,7 +207,7 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
           </div>
         </nav>
 
-        {}
+        { }
         <div
           className={`border-t border-gray-200 p-4 ${isSidebarOpen ? '' : 'flex justify-center'}`}
         >
@@ -242,7 +228,7 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
         </div>
       </motion.div>
 
-      {}
+      { }
       <AnimatePresence>
         {isMobileSidebarOpen && (
           <motion.div
@@ -251,7 +237,7 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
           >
-            {}
+            { }
             <motion.div
               className="fixed inset-0 bg-black bg-opacity-25"
               onClick={() => setIsMobileSidebarOpen(false)}
@@ -260,7 +246,7 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
               exit={{ opacity: 0 }}
             />
 
-            {}
+            { }
             <motion.nav
               className="fixed top-0 left-0 bottom-0 flex flex-col w-80 max-w-xs bg-white shadow-xl border-r border-gray-200"
               initial={{ x: -320 }}
@@ -300,14 +286,14 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
         )}
       </AnimatePresence>
 
-      {}
+      { }
       <div className={`transition-all duration-300 ${isSidebarOpen ? 'lg:pl-72' : 'lg:pl-20'}`}>
-        {}
+        { }
         <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40">
           <div className="px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between h-16">
               <div className="flex items-center">
-                {}
+                { }
                 <Button
                   variant="outline"
                   size="sm"
@@ -321,7 +307,7 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
               </div>
 
               <div className="flex items-center space-x-2 sm:space-x-4">
-                {}
+                { }
                 <Button
                   variant="ghost"
                   size="sm"
@@ -338,7 +324,7 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
           </div>
         </header>
 
-        {}
+        { }
         <main className="flex-1">
           <div className="py-8">{children}</div>
         </main>

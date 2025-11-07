@@ -23,13 +23,10 @@ const PaymentResultPage: React.FC = () => {
     if (code) params.append('code', code)
 
     const links = {
-
-      custom: `ifms:
-
-      expoDev: `exp:
-      expoLocal: `exp:
-
-      universal: `https:
+      custom: `ifms://payment-result?${params.toString()}`,
+      expoDev: `exp://192.168.1.100:8081/--/payment-result?${params.toString()}`,
+      expoLocal: `exp://127.0.0.1:19000/--/payment-result?${params.toString()}`,
+      universal: `https://web-sep490.vercel.app/payment-result?${params.toString()}`
     }
 
     return links
@@ -117,7 +114,7 @@ const PaymentResultPage: React.FC = () => {
         className="w-full max-w-md"
       >
         <Card className="p-8 shadow-2xl border-0">
-          {}
+          { }
           <div className="text-center mb-6">
             <motion.div
               initial={{ scale: 0 }}
@@ -146,7 +143,7 @@ const PaymentResultPage: React.FC = () => {
             </p>
           </div>
 
-          {}
+          { }
           <div className="bg-gray-50 rounded-lg p-4 mb-6 space-y-3">
             {orderId && (
               <div className="flex items-center justify-between">
@@ -166,7 +163,7 @@ const PaymentResultPage: React.FC = () => {
             )}
           </div>
 
-          {}
+          { }
           <div className="space-y-3">
             <Button
               onClick={handleOpenApp}
@@ -175,46 +172,6 @@ const PaymentResultPage: React.FC = () => {
               <Smartphone className="w-5 h-5 mr-2" />
               Mở ứng dụng IOTFarm
             </Button>
-
-            {}
-            {showAppInstructions && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                transition={{ duration: 0.3 }}
-                className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4"
-              >
-                <h3 className="text-sm font-semibold text-blue-800 mb-2 flex items-center">
-                  <ExternalLink className="w-4 h-4 mr-2" />
-                  Không thể mở ứng dụng?
-                </h3>
-                <div className="text-sm text-blue-700 space-y-2">
-                  <p>• Hãy đảm bảo bạn đã cài đặt ứng dụng IOTFarm trên thiết bị di động</p>
-                  <p>• Nếu chưa có ứng dụng, hãy tải về từ App Store hoặc Play Store</p>
-                  <p>• Sau khi cài đặt, thử bấm lại nút "Mở ứng dụng IOTFarm" ở trên</p>
-                </div>
-                <div className="mt-3 flex gap-2">
-                  <Button
-                    onClick={() => window.open('https://apps.apple.com/app/ifms-farm', '_blank')}
-                    variant="outline"
-                    size="sm"
-                    className="text-blue-600 border-blue-300 hover:bg-blue-50"
-                  >
-                    <Download className="w-4 h-4 mr-1" />
-                    iOS
-                  </Button>
-                  <Button
-                    onClick={() => window.open('https://play.google.com/store/apps/details?id=com.ifms.farm', '_blank')}
-                    variant="outline"
-                    size="sm"
-                    className="text-blue-600 border-blue-300 hover:bg-blue-50"
-                  >
-                    <Download className="w-4 h-4 mr-1" />
-                    Android
-                  </Button>
-                </div>
-              </motion.div>
-            )}
           </div>
         </Card>
       </motion.div>

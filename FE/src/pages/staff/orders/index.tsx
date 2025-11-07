@@ -15,6 +15,7 @@ import {
   Loader2,
   Calendar,
   XCircle,
+  CreditCard,
 } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card'
@@ -37,7 +38,7 @@ import {
   DialogTitle,
 } from '@/shared/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs'
-import { ManagerLayout } from '@/shared/layouts/ManagerLayout'
+import { StaffLayout } from '@/shared/layouts/StaffLayout'
 import { useToast } from '@/shared/ui/use-toast'
 import { orderService, getOrderStatusLabel, getOrderStatusVariant } from '@/shared/api/orderService'
 import type { Order as ApiOrder, OrderItem } from '@/shared/api/orderService'
@@ -62,7 +63,7 @@ interface DisplayOrder {
   updatedAt?: string
 }
 
-const ManagerOrdersPage: React.FC = () => {
+const StaffOrdersPage: React.FC = () => {
   const { toast } = useToast()
   const [orders, setOrders] = useState<DisplayOrder[]>([])
   const [loading, setLoading] = useState(true)
@@ -88,7 +89,6 @@ const ManagerOrdersPage: React.FC = () => {
   const [loadingOrderDetail, setLoadingOrderDetail] = useState(false)
 
   const transformApiOrder = (apiOrder: ApiOrder): DisplayOrder => {
-
     const email = apiOrder.email || 'N/A'
     const customerName =
       email !== 'N/A' ? email.split('@')[0].replace(/[._]/g, ' ') : 'Unknown Customer'
@@ -234,7 +234,6 @@ const ManagerOrdersPage: React.FC = () => {
 
   const handleAdvancedSearch = async () => {
     if (!searchQuery.trim()) {
-
       fetchOrders(1)
       return
     }
@@ -245,7 +244,6 @@ const ManagerOrdersPage: React.FC = () => {
 
       switch (searchType) {
         case 'orderId':
-
           try {
             const orderDetail = await orderService.getOrderById(searchQuery.trim())
             searchResult = {
@@ -261,7 +259,6 @@ const ManagerOrdersPage: React.FC = () => {
             setSelectedOrderDetail(orderDetail)
             setIsOrderDetailOpen(true)
           } catch (error) {
-
             searchResult = {
               items: [],
               totalItemCount: 0,
@@ -285,7 +282,6 @@ const ManagerOrdersPage: React.FC = () => {
           searchResult = await orderService.getOrdersByEmail(searchQuery.trim())
           break
         case 'date':
-
           if (selectedDate) {
             const dateString = format(selectedDate, 'yyyy-MM-dd')
             searchResult = await orderService.getOrdersByDate(dateString)
@@ -299,7 +295,6 @@ const ManagerOrdersPage: React.FC = () => {
           }
           break
         default:
-
           searchResult = await orderService.getOrderList({
             pageIndex: 1,
             pageSize: 50,
@@ -341,7 +336,6 @@ const ManagerOrdersPage: React.FC = () => {
 
   const filteredOrders = useMemo(() => {
     return orders.filter(order => {
-
       if (!order || typeof order !== 'object') {
         return false
       }
@@ -373,26 +367,15 @@ const ManagerOrdersPage: React.FC = () => {
     })
   }, [orders, searchQuery, searchType, statusFilter, paymentFilter])
 
-  /**
-   * Thống kê đơn hàng theo PaymentStatus từ Backend
-   * 0: UNPAID - Chưa thanh toán
-   * 1: PAID - Đã thanh toán
-   * 2: UNDISCHARGED - Chưa thanh toán
-   * 3: PENDING - Đang xử lý
-   * 4: CANCELLED - Đã hủy
-   * 5: COMPLETED - Hoàn thành
-   * 6: DELIVERED - Đã giao hàng
-   */
   const orderStats = useMemo(
     () => ({
       total: orders.length,
-      pending: orders.filter(o => o.status === 0).length, // Chưa thanh toán
-      confirmed: orders.filter(o => o.status === 1).length, // Đã thanh toán
-      preparing: orders.filter(o => o.status === 2).length, // Chưa thanh toán
-      shipping: orders.filter(o => o.status === 3).length, // Đang xử lý
-      cancelled: orders.filter(o => o.status === 4).length, // Đã hủy
-      completed: orders.filter(o => o.status === 5).length, // Hoàn thành
-      delivered: orders.filter(o => o.status === 6).length, // Đã giao hàng
+      pending: orders.filter(o => o.status === 0).length,
+      confirmed: orders.filter(o => o.status === 1).length,
+      preparing: orders.filter(o => o.status === 2).length,
+      shipping: orders.filter(o => o.status === 3).length,
+      delivered: orders.filter(o => o.status === 4).length,
+      cancelled: orders.filter(o => [5, 6].includes(o.status)).length,
       totalRevenue: orders
         .filter(o => o.paymentStatus === 'paid')
         .reduce((sum, o) => sum + o.totalAmount, 0),
@@ -544,6 +527,102 @@ const ManagerOrdersPage: React.FC = () => {
     }
   }
 
+  const handleDeliveryStatus = async (orderId: string) => {
+    try {
+      setLoading(true)
+      await orderService.updateDeliveryStatus(orderId)
+
+      toast({
+        title: 'Thành công',
+        description: 'Đã cập nhật trạng thái đang giao hàng',
+        variant: 'default',
+      })
+
+      await fetchOrders()
+    } catch (error) {
+      console.error('Error updating delivery status:', error)
+      toast({
+        title: 'Lỗi cập nhật',
+        description: 'Không thể cập nhật trạng thái giao hàng. Vui lòng thử lại.',
+        variant: 'destructive',
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleCompleteStatus = async (orderId: string) => {
+    try {
+      setLoading(true)
+      await orderService.updateCompleteStatus(orderId)
+
+      toast({
+        title: 'Thành công',
+        description: 'Đã đánh dấu đơn hàng hoàn thành',
+        variant: 'default',
+      })
+
+      await fetchOrders()
+    } catch (error) {
+      console.error('Error updating complete status:', error)
+      toast({
+        title: 'Lỗi cập nhật',
+        description: 'Không thể cập nhật trạng thái hoàn thành. Vui lòng thử lại.',
+        variant: 'destructive',
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleCancelStatus = async (orderId: string) => {
+    try {
+      setLoading(true)
+      await orderService.updateCancelStatus(orderId)
+
+      toast({
+        title: 'Thành công',
+        description: 'Đã hủy đơn hàng',
+        variant: 'default',
+      })
+
+      await fetchOrders()
+    } catch (error) {
+      console.error('Error cancelling order:', error)
+      toast({
+        title: 'Lỗi hủy đơn',
+        description: 'Không thể hủy đơn hàng. Vui lòng thử lại.',
+        variant: 'destructive',
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleCreatePayment = async (orderId: string) => {
+    try {
+      setLoading(true)
+      const response = await orderService.createOrderPayment(orderId)
+
+      toast({
+        title: 'Thành công',
+        description: 'Đã tạo yêu cầu thanh toán lại',
+        variant: 'default',
+      })
+
+      await fetchOrders()
+    } catch (error) {
+      console.error('Error creating payment:', error)
+      toast({
+        title: 'Lỗi tạo thanh toán',
+        description: 'Không thể tạo yêu cầu thanh toán. Vui lòng thử lại.',
+        variant: 'destructive',
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('vi-VN', {
       style: 'currency',
@@ -552,9 +631,9 @@ const ManagerOrdersPage: React.FC = () => {
   }
 
   return (
-    <ManagerLayout>
+    <StaffLayout>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        { }
+        {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Quản lý đơn hàng</h1>
@@ -574,7 +653,7 @@ const ManagerOrdersPage: React.FC = () => {
           </div>
         </div>
 
-        { }
+        {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -627,14 +706,8 @@ const ManagerOrdersPage: React.FC = () => {
                 <CheckCircle className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-green-600">
-                  {orderStats.completed + orderStats.delivered}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  <span className="text-green-600">
-                    {orderStats.completed} hoàn thành, {orderStats.delivered} đã giao
-                  </span>
-                </p>
+                <div className="text-2xl font-bold text-green-600">{orderStats.delivered}</div>
+                <p className="text-xs text-muted-foreground">Giao hàng thành công</p>
               </CardContent>
             </Card>
           </motion.div>
@@ -661,7 +734,7 @@ const ManagerOrdersPage: React.FC = () => {
           </motion.div>
         </div>
 
-        { }
+        {/* Orders Table Card */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -680,7 +753,7 @@ const ManagerOrdersPage: React.FC = () => {
               </TabsList>
 
               <TabsContent value="all" className="space-y-4">
-                { }
+                {/* Search and Filters */}
                 <div className="flex flex-col sm:flex-row gap-4">
                   <div className="flex-1">
                     <div className="flex gap-2">
@@ -841,7 +914,7 @@ const ManagerOrdersPage: React.FC = () => {
                   </DropdownMenu>
                 </div>
 
-                { }
+                {/* Search Results Info */}
                 {(searchQuery || selectedDate) && (
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
                     <div className="flex items-center justify-between">
@@ -887,7 +960,7 @@ const ManagerOrdersPage: React.FC = () => {
                   </div>
                 )}
 
-                { }
+                {/* Orders Table */}
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
@@ -933,7 +1006,6 @@ const ManagerOrdersPage: React.FC = () => {
                             <TableCell>
                               <div className="space-y-1">
                                 {(() => {
-
                                   const products =
                                     order.orderDetails && order.orderDetails.length > 0
                                       ? order.orderDetails
@@ -1019,27 +1091,36 @@ const ManagerOrdersPage: React.FC = () => {
                                     </DropdownMenuItem>
                                   )}
                                   {(order.status === 1 || order.status === 2) && (
-                                    <DropdownMenuItem
-                                      onClick={() => handleUpdateStatus(order.id, 'DELIVERED')}
-                                    >
+                                    <DropdownMenuItem onClick={() => handleDeliveryStatus(order.id)}>
                                       <Truck className="h-4 w-4 mr-2" />
                                       Đánh dấu đang giao
                                     </DropdownMenuItem>
                                   )}
-                                  {(order.status === 3 || order.status === 6) && (
-                                    <DropdownMenuItem
-                                      onClick={() => handleUpdateStatus(order.id, 'COMPLETED')}
-                                    >
+                                  {order.status === 3 && (
+                                    <DropdownMenuItem onClick={() => handleCompleteStatus(order.id)}>
+                                      <CheckCircle className="h-4 w-4 mr-2" />
+                                      Đánh dấu hoàn thành
+                                    </DropdownMenuItem>
+                                  )}
+                                  {/* Cho phép hoàn thành đơn hàng khi đang giao hàng (status = 6) */}
+                                  {order.status === 6 && (
+                                    <DropdownMenuItem onClick={() => handleCompleteStatus(order.id)}>
                                       <CheckCircle className="h-4 w-4 mr-2" />
                                       Hoàn thành đơn hàng
                                     </DropdownMenuItem>
                                   )}
+                                  {/* Chỉ cho phép hủy đơn hàng nếu chưa hoàn thành (status < 4) */}
                                   {order.status !== 4 && order.status !== 5 && order.status !== 6 && (
-                                    <DropdownMenuItem
-                                      onClick={() => handleUpdateStatus(order.id, 'CANCELLED')}
-                                    >
+                                    <DropdownMenuItem onClick={() => handleCancelStatus(order.id)}>
                                       <XCircle className="h-4 w-4 mr-2" />
                                       Hủy đơn hàng
+                                    </DropdownMenuItem>
+                                  )}
+                                  {/* Chỉ cho phép thanh toán lại nếu đơn hàng bị hủy (status = 4 = CANCELLED) */}
+                                  {order.status === 4 && (
+                                    <DropdownMenuItem onClick={() => handleCreatePayment(order.id)}>
+                                      <CreditCard className="h-4 w-4 mr-2" />
+                                      Thanh toán lại
                                     </DropdownMenuItem>
                                   )}
                                 </DropdownMenuContent>
@@ -1052,7 +1133,7 @@ const ManagerOrdersPage: React.FC = () => {
                   </Table>
                 </div>
 
-                { }
+                {/* Pagination */}
                 {!loading && totalPages > 1 && (
                   <div className="flex items-center justify-between space-x-2 py-4">
                     <div className="text-sm text-muted-foreground">
@@ -1098,7 +1179,7 @@ const ManagerOrdersPage: React.FC = () => {
                 )}
               </TabsContent>
 
-              { }
+              {/* Other Tabs Content */}
               <TabsContent value="pending">
                 <div className="text-center py-8 text-gray-500">
                   Hiển thị các đơn hàng chờ xử lý ({orderStats.pending} đơn)
@@ -1112,9 +1193,7 @@ const ManagerOrdersPage: React.FC = () => {
               </TabsContent>
               <TabsContent value="completed">
                 <div className="text-center py-8 text-gray-500">
-                  Hiển thị các đơn hàng đã hoàn thành (
-                  {orderStats.completed + orderStats.delivered} đơn: {orderStats.completed} hoàn thành,{' '}
-                  {orderStats.delivered} đã giao)
+                  Hiển thị các đơn hàng đã hoàn thành ({orderStats.delivered} đơn)
                 </div>
               </TabsContent>
             </Tabs>
@@ -1122,7 +1201,7 @@ const ManagerOrdersPage: React.FC = () => {
         </Card>
       </div>
 
-      { }
+      {/* Order Detail Dialog */}
       <Dialog open={isOrderDetailOpen} onOpenChange={setIsOrderDetailOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -1140,7 +1219,7 @@ const ManagerOrdersPage: React.FC = () => {
             </div>
           ) : selectedOrderDetail ? (
             <div className="space-y-6">
-              { }
+              {/* Order Info and Customer Info Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Card>
                   <CardHeader>
@@ -1160,14 +1239,6 @@ const ManagerOrdersPage: React.FC = () => {
                     <div className="flex justify-between">
                       <span className="font-medium">Ngày tạo:</span>
                       <span>{formatDate(selectedOrderDetail.createdAt)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="font-medium">Ngày cập nhật:</span>
-                      <span>
-                        {selectedOrderDetail.updatedAt
-                          ? formatDate(selectedOrderDetail.updatedAt)
-                          : 'N/A'}
-                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="font-medium">Trạng thái:</span>
@@ -1195,234 +1266,95 @@ const ManagerOrdersPage: React.FC = () => {
                       <span className="font-medium">Email:</span>
                       <span>{selectedOrderDetail.email}</span>
                     </div>
-                    {selectedOrderDetail.customer && (
-                      <>
-                        <div className="flex justify-between">
-                          <span className="font-medium">ID tài khoản:</span>
-                          <span>{selectedOrderDetail.customer.accountId || 'N/A'}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="font-medium">Vai trò:</span>
-                          <Badge variant="outline">
-                            {selectedOrderDetail.customer.role || 'N/A'}
-                          </Badge>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="font-medium">Trạng thái tài khoản:</span>
-                          <Badge
-                            variant={
-                              selectedOrderDetail.customer.status === 'active'
-                                ? 'default'
-                                : 'secondary'
-                            }
-                          >
-                            {selectedOrderDetail.customer.status || 'N/A'}
-                          </Badge>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="font-medium">Ngày tạo tài khoản:</span>
-                          <span className="text-sm">
-                            {selectedOrderDetail.customer.createdAt
-                              ? formatDate(selectedOrderDetail.customer.createdAt)
-                              : 'N/A'}
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="font-medium">Cập nhật lần cuối:</span>
-                          <span className="text-sm">
-                            {selectedOrderDetail.customer.updatedAt
-                              ? formatDate(selectedOrderDetail.customer.updatedAt)
-                              : 'N/A'}
-                          </span>
-                        </div>
-                      </>
-                    )}
                   </CardContent>
                 </Card>
               </div>
 
-              { }
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                { }
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Sản phẩm trong đơn hàng</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {selectedOrderDetail.orderDetails &&
-                        selectedOrderDetail.orderDetails.length > 0 ? (
-                        selectedOrderDetail.orderDetails.map((item, index) => (
-                          <div
-                            key={`detail-${item.productId}-${index}-${selectedOrderDetail.orderId}`}
-                            className="p-4 border rounded-lg space-y-3"
-                          >
-                            <div className="flex justify-between items-start">
-                              <div className="flex-1">
-                                <h4 className="font-medium text-lg">
-                                  {item.product?.productName || 'N/A'}
-                                </h4>
-                                <p className="text-sm text-muted-foreground">
-                                  ID sản phẩm: {item.productId}
-                                </p>
-                              </div>
-                              <div className="text-right">
-                                <p className="font-bold text-lg text-green-600">
-                                  {formatCurrency(item.unitPrice)}
-                                </p>
-                                <p className="text-sm text-muted-foreground">Đơn giá</p>
-                              </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4 text-sm">
-                              <div>
-                                <span className="font-medium">Số lượng:</span>
-                                <span className="ml-2">{item.quantity}</span>
-                              </div>
-                              <div>
-                                <span className="font-medium">Tồn kho:</span>
-                                <span className="ml-2">{item.stockQuantity}</span>
-                              </div>
-                            </div>
-
-                            {item.product && (
-                              <div className="pt-2 border-t space-y-2">
-                                <div className="grid grid-cols-2 gap-4 text-sm">
-                                  <div>
-                                    <span className="font-medium">Mô tả:</span>
-                                    <p className="text-muted-foreground mt-1">
-                                      {item.product.description || 'Không có mô tả'}
-                                    </p>
-                                  </div>
-                                  <div>
-                                    <span className="font-medium">Trạng thái:</span>
-                                    <Badge
-                                      variant={
-                                        item.product.status === 'active' ? 'default' : 'secondary'
-                                      }
-                                      className="ml-2"
-                                    >
-                                      {item.product.status || 'N/A'}
-                                    </Badge>
-                                  </div>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4 text-sm">
-                                  <div>
-                                    <span className="font-medium">Ngày tạo:</span>
-                                    <span className="ml-2">
-                                      {item.product.createdAt
-                                        ? formatDate(item.product.createdAt)
-                                        : 'N/A'}
-                                    </span>
-                                  </div>
-                                  <div>
-                                    <span className="font-medium">Cập nhật:</span>
-                                    <span className="ml-2">
-                                      {item.product.updatedAt
-                                        ? formatDate(item.product.updatedAt)
-                                        : 'N/A'}
-                                    </span>
-                                  </div>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4 text-sm">
-                                  <div>
-                                    <span className="font-medium">Danh mục:</span>
-                                    <span className="ml-2">{item.product.categoryId || 'N/A'}</span>
-                                  </div>
-                                  <div>
-                                    <span className="font-medium">Kho:</span>
-                                    <span className="ml-2">
-                                      {item.product.inventories?.length || 0} kho
-                                    </span>
-                                  </div>
-                                </div>
-
-                                {item.product.images && (
-                                  <div>
-                                    <span className="font-medium text-sm">Hình ảnh:</span>
+              {/* Product Details Section */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Chi tiết sản phẩm</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {selectedOrderDetail.orderDetails && selectedOrderDetail.orderDetails.length > 0 ? (
+                      selectedOrderDetail.orderDetails.map((item, index) => (
+                        <div
+                          key={`detail-${item.orderDetailId || index}`}
+                          className="p-4 border rounded-lg space-y-2 bg-gray-50"
+                        >
+                          <div className="flex justify-between items-start">
+                            <div className="flex-1">
+                              <div className="flex items-start gap-4">
+                                {/* Product Image */}
+                                {item.product?.images && (
+                                  <div className="flex-shrink-0">
                                     <img
                                       src={item.product.images}
                                       alt={item.product.productName}
-                                      className="mt-2 w-20 h-20 object-cover rounded border"
+                                      className="w-20 h-20 object-cover rounded border"
                                       onError={e => {
-                                        e.currentTarget.style.display = 'none'
+                                        e.currentTarget.src = 'https://via.placeholder.com/80x80?text=No+Image'
                                       }}
                                     />
                                   </div>
                                 )}
-                              </div>
-                            )}
-                          </div>
-                        ))
-                      ) : (
-                        <p className="text-center text-muted-foreground py-4">
-                          Không có sản phẩm trong đơn hàng
-                        </p>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
 
-                { }
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Thông tin thanh toán</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {selectedOrderDetail.payments && selectedOrderDetail.payments.length > 0 ? (
-                      selectedOrderDetail.payments.map((payment: any, index: number) => (
-                        <div
-                          key={`payment-${payment.paymentId || index}-${selectedOrderDetail.orderId}`}
-                          className="p-4 border rounded-lg space-y-3"
-                        >
-                          <div className="flex justify-between items-center">
-                            <span className="font-medium">Thanh toán #{index + 1}</span>
-                            <Badge variant="outline">{payment.status || 'N/A'}</Badge>
-                          </div>
-                          <div className="space-y-2 text-sm">
-                            <div className="flex justify-between">
-                              <span>Phương thức:</span>
-                              <span>{payment.method || 'N/A'}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span>Số tiền:</span>
-                              <span className="font-medium">{formatCurrency(payment.amount)}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span>Ngày thanh toán:</span>
-                              <span>
-                                {payment.createdAt ? formatDate(payment.createdAt) : 'N/A'}
-                              </span>
+                                {/* Product Info */}
+                                <div className="flex-1">
+                                  <div className="font-semibold text-base mb-2">
+                                    {item.product?.productName || 'N/A'}
+                                  </div>
+
+                                  <div className="grid grid-cols-2 gap-2 text-sm">
+                                    <div>
+                                      <span className="font-medium">Mã sản phẩm:</span>
+                                      <span className="ml-2">{item.productId}</span>
+                                    </div>
+                                    <div>
+                                      <span className="font-medium">Số lượng:</span>
+                                      <span className="ml-2">{item.quantity}</span>
+                                    </div>
+                                    <div>
+                                      <span className="font-medium">Đơn giá:</span>
+                                      <span className="ml-2">{formatCurrency(item.unitPrice)}</span>
+                                    </div>
+                                    <div>
+                                      <span className="font-medium">Thành tiền:</span>
+                                      <span className="ml-2 font-semibold text-green-600">
+                                        {formatCurrency(item.quantity * item.unitPrice)}
+                                      </span>
+                                    </div>
+                                  </div>
+
+                                  {item.product?.description && (
+                                    <div className="mt-2">
+                                      <span className="font-medium text-sm">Mô tả:</span>
+                                      <p className="text-sm text-gray-600 mt-1">{item.product.description}</p>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
                             </div>
                           </div>
                         </div>
                       ))
                     ) : (
                       <p className="text-center text-muted-foreground py-4">
-                        Chưa có thông tin thanh toán
+                        Không có sản phẩm trong đơn hàng
                       </p>
                     )}
-
-                    { }
-                    <div className="mt-6 pt-4 border-t">
-                      <div className="flex justify-between items-center">
-                        <span className="text-lg font-medium">Tổng cộng:</span>
-                        <span className="text-xl font-bold text-green-600">
-                          {formatCurrency(selectedOrderDetail.totalPrice)}
-                        </span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           ) : null}
         </DialogContent>
       </Dialog>
-    </ManagerLayout>
+    </StaffLayout>
   )
 }
 
-export default ManagerOrdersPage
+export default StaffOrdersPage
+
+

@@ -20,9 +20,12 @@ const RealTimeIoTDashboard = React.lazy(() => import('@/pages/manager/iot-dashbo
 const ManagerOrdersPage = React.lazy(() => import('@/pages/manager/orders'))
 const ProductsPage = React.lazy(() => import('@/features/products-management/pages/ProductsPage').then(m => ({ default: m.ProductsPage })))
 
-const StaffOperationsPage = React.lazy(() => import('@/pages/staff/operations'))
+const StaffDashboard = React.lazy(() => import('@/pages/staff/dashboard'))
 const StaffWorkLogsPage = React.lazy(() => import('@/pages/staff/work-logs'))
 const StaffQualityChecksPage = React.lazy(() => import('@/pages/staff/quality-checks'))
+const StaffProductsPage = React.lazy(() => import('@/pages/staff/products'))
+const StaffOrdersPage = React.lazy(() => import('@/pages/staff/orders'))
+const StaffFeedbacksPage = React.lazy(() => import('@/pages/staff/feedbacks'))
 
 const ProfilePage = React.lazy(() => import('@/pages/profile'))
 const PaymentResultPage = React.lazy(() => import('@/pages/payment/PaymentResultPage'))
@@ -207,10 +210,12 @@ const routerConfig = [
   },
 
   {
-    path: '/staff/operations',
+    path: '/staff/dashboard',
     element: (
       <LazyWrapper>
-        <StaffOperationsPage />
+        <RoleGuard allowed={['Staff']}>
+          <StaffDashboard />
+        </RoleGuard>
       </LazyWrapper>
     ),
   },
@@ -227,6 +232,36 @@ const routerConfig = [
     element: (
       <LazyWrapper>
         <StaffQualityChecksPage />
+      </LazyWrapper>
+    ),
+  },
+  {
+    path: '/staff/products',
+    element: (
+      <LazyWrapper>
+        <RoleGuard allowed={['Staff']}>
+          <StaffProductsPage />
+        </RoleGuard>
+      </LazyWrapper>
+    ),
+  },
+  {
+    path: '/staff/orders',
+    element: (
+      <LazyWrapper>
+        <RoleGuard allowed={['Staff']}>
+          <StaffOrdersPage />
+        </RoleGuard>
+      </LazyWrapper>
+    ),
+  },
+  {
+    path: '/staff/feedbacks',
+    element: (
+      <LazyWrapper>
+        <RoleGuard allowed={['Staff']}>
+          <StaffFeedbacksPage />
+        </RoleGuard>
       </LazyWrapper>
     ),
   },

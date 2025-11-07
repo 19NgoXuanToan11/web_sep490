@@ -1,0 +1,632 @@
+import React, { useEffect, useState, useCallback } from 'react'
+import { motion } from 'framer-motion'
+import {
+    MessageSquare,
+    Star,
+    Eye,
+    RefreshCw,
+    Search,
+    Filter,
+    CheckCircle,
+    XCircle,
+    Loader2,
+    Image as ImageIcon,
+} from 'lucide-react'
+import { Button } from '@/shared/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card'
+import { Badge } from '@/shared/ui/badge'
+import { Input } from '@/shared/ui/input'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
+import { format } from 'date-fns'
+import { vi } from 'date-fns/locale'
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+} from '@/shared/ui/dialog'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs'
+import { StaffLayout } from '@/shared/layouts/StaffLayout'
+import { useToast } from '@/shared/ui/use-toast'
+import { feedbackService, type Feedback } from '@/shared/api/feedbackService'
+
+const StaffFeedbacksPage: React.FC = () => {
+    const { toast } = useToast()
+    const [feedbacks, setFeedbacks] = useState<Feedback[]>([])
+    const [loading, setLoading] = useState(true)
+    const [totalItems, setTotalItems] = useState(0)
+    const [currentPage, setCurrentPage] = useState(1)
+    const pageSize = 10
+
+    const [searchQuery, setSearchQuery] = useState('')
+    const [statusFilter, setStatusFilter] = useState<string>('all')
+    const [ratingFilter, setRatingFilter] = useState<string>('all')
+    const [isRefreshing, setIsRefreshing] = useState(false)
+    const [selectedTab, setSelectedTab] = useState('all')
+
+    const [isDetailOpen, setIsDetailOpen] = useState(false)
+    const [selectedFeedback, setSelectedFeedback] = useState<Feedback | null>(null)
+    const [updatingStatus, setUpdatingStatus] = useState(false)
+
+    // Fetch feedbacks
+    const fetchFeedbacks = useCallback(async (page: number = 1) => {
+        try {
+            setLoading(true)
+            const response = await feedbackService.getFeedbackList({
+                pageIndex: page,
+                pageSize,
+            })
+
+            setFeedbacks(response.items || [])
+            setTotalItems(response.totalItemCount || 0)
+            setCurrentPage(response.pageIndex || 1)
+        } catch (error) {
+            console.error('Error fetching feedbacks:', error)
+            toast({
+                title: 'Lỗi tải dữ liệu',
+                description: 'Không thể tải danh sách đánh giá. Vui lòng thử lại.',
+                variant: 'destructive',
+            })
+        } finally {
+            setLoading(false)
+        }
+    }, [pageSize, toast])
+
+    useEffect(() => {
+        fetchFeedbacks(currentPage)
+    }, [fetchFeedbacks, currentPage])
+
+    // Refresh data
+    const handleRefresh = async () => {
+        setIsRefreshing(true)
+        await fetchFeedbacks(currentPage)
+        setIsRefreshing(false)
+        toast({
+            title: 'Đã làm mới',
+            description: 'Dữ liệu đã được cập nhật.',
+        })
+    }
+
+    // Filter feedbacks
+    const filteredFeedbacks = feedbacks.filter(feedback => {
+        // Status filter
+        if (statusFilter !== 'all' && feedback.status !== statusFilter) {
+            return false
+        }
+
+        // Rating filter
+        if (ratingFilter !== 'all') {
+            const rating = parseInt(ratingFilter)
+            if (feedback.rating !== rating) {
+                return false
+            }
+        }
+
+        // Tab filter
+        if (selectedTab !== 'all') {
+            if (selectedTab === 'active' && feedback.status !== 'ACTIVE') {
+                return false
+            }
+            if (selectedTab === 'inactive' && feedback.status !== 'DEACTIVATED') {
+                return false
+            }
+        }
+
+        // Search filter
+        if (searchQuery) {
+            const query = searchQuery.toLowerCase()
+            return (
+                feedback.comment?.toLowerCase().includes(query) ||
+                feedback.fullName?.toLowerCase().includes(query) ||
+                feedback.email?.toLowerCase().includes(query) ||
+                feedback.orderDetail?.productName?.toLowerCase().includes(query)
+            )
+        }
+
+        return true
+    })
+
+    // View feedback detail
+    const handleViewDetail = (feedback: Feedback) => {
+        setSelectedFeedback(feedback)
+        setIsDetailOpen(true)
+    }
+
+    // Update feedback status
+    const handleUpdateStatus = async (feedbackId: number) => {
+        try {
+            setUpdatingStatus(true)
+            await feedbackService.updateFeedbackStatus(feedbackId)
+
+            toast({
+                title: 'Thành công',
+                description: 'Đã cập nhật trạng thái đánh giá.',
+            })
+
+            // Refresh the list
+            await fetchFeedbacks(currentPage)
+
+            // Update selected feedback if detail is open
+            if (selectedFeedback && selectedFeedback.feedbackId === feedbackId) {
+                const updatedFeedback = feedbacks.find(f => f.feedbackId === feedbackId)
+                if (updatedFeedback) {
+                    setSelectedFeedback({
+                        ...updatedFeedback,
+                        status: updatedFeedback.status === 'ACTIVE' ? 'DEACTIVATED' : 'ACTIVE'
+                    })
+                }
+            }
+        } catch (error) {
+            console.error('Error updating feedback status:', error)
+            toast({
+                title: 'Lỗi',
+                description: 'Không thể cập nhật trạng thái. Vui lòng thử lại.',
+                variant: 'destructive',
+            })
+        } finally {
+            setUpdatingStatus(false)
+        }
+    }
+
+    // Get rating stars
+    const getRatingStars = (rating: number) => {
+        return Array.from({ length: 5 }, (_, i) => (
+            <Star
+                key={i}
+                className={`h-4 w-4 ${i < rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
+                    }`}
+            />
+        ))
+    }
+
+    // Get status badge
+    const getStatusBadge = (status: string) => {
+        if (status === 'ACTIVE') {
+            return (
+                <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
+                    <CheckCircle className="w-3 h-3 mr-1" />
+                    Hiển thị
+                </Badge>
+            )
+        }
+        return (
+            <Badge className="bg-gray-100 text-gray-800 hover:bg-gray-100">
+                <XCircle className="w-3 h-3 mr-1" />
+                Ẩn
+            </Badge>
+        )
+    }
+
+    // Statistics
+    const stats = {
+        total: feedbacks.length,
+        active: feedbacks.filter(f => f.status === 'ACTIVE').length,
+        inactive: feedbacks.filter(f => f.status === 'DEACTIVATED').length,
+        avgRating: feedbacks.length > 0
+            ? (feedbacks.reduce((sum, f) => sum + (f.rating || 0), 0) / feedbacks.length).toFixed(1)
+            : '0.0',
+    }
+
+    const totalPages = Math.ceil(totalItems / pageSize)
+
+    return (
+        <StaffLayout>
+            <div className="min-h-screen bg-gray-50">
+                {/* Header */}
+                <div className="bg-white shadow-sm border-b border-gray-200">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+                        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
+                            <div className="flex-1">
+                                <h1 className="text-3xl font-bold text-gray-900 flex items-center">
+                                    <MessageSquare className="h-8 w-8 mr-3 text-purple-600" />
+                                    Quản lý đánh giá
+                                </h1>
+                                <p className="mt-1 text-sm text-gray-500">
+                                    Xem và quản lý đánh giá từ khách hàng về sản phẩm
+                                </p>
+                            </div>
+
+                            <div className="mt-4 lg:mt-0 flex items-center space-x-3">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={handleRefresh}
+                                    disabled={isRefreshing}
+                                    className="flex items-center"
+                                >
+                                    <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+                                    Làm mới
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                    {/* Statistics Cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                        <Card>
+                            <CardContent className="pt-6">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-600">Tổng đánh giá</p>
+                                        <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
+                                    </div>
+                                    <MessageSquare className="h-8 w-8 text-blue-600" />
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        <Card>
+                            <CardContent className="pt-6">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-600">Đang hiển thị</p>
+                                        <p className="text-2xl font-bold text-green-600">{stats.active}</p>
+                                    </div>
+                                    <CheckCircle className="h-8 w-8 text-green-600" />
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        <Card>
+                            <CardContent className="pt-6">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-600">Đang ẩn</p>
+                                        <p className="text-2xl font-bold text-gray-600">{stats.inactive}</p>
+                                    </div>
+                                    <XCircle className="h-8 w-8 text-gray-600" />
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        <Card>
+                            <CardContent className="pt-6">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-sm font-medium text-gray-600">Đánh giá TB</p>
+                                        <p className="text-2xl font-bold text-yellow-600">{stats.avgRating} ⭐</p>
+                                    </div>
+                                    <Star className="h-8 w-8 text-yellow-600 fill-yellow-600" />
+                                </div>
+                            </CardContent>
+                        </Card>
+                    </div>
+
+                    {/* Filters and Search */}
+                    <Card className="mb-6">
+                        <CardHeader>
+                            <CardTitle className="text-lg">Bộ lọc và tìm kiếm</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                                <div className="md:col-span-2">
+                                    <div className="relative">
+                                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                        <Input
+                                            placeholder="Tìm kiếm theo tên, email, sản phẩm, nội dung..."
+                                            value={searchQuery}
+                                            onChange={e => setSearchQuery(e.target.value)}
+                                            className="pl-10"
+                                        />
+                                    </div>
+                                </div>
+
+                                <select
+                                    value={statusFilter}
+                                    onChange={e => setStatusFilter(e.target.value)}
+                                    className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                >
+                                    <option value="all">Tất cả trạng thái</option>
+                                    <option value="ACTIVE">Đang hiển thị</option>
+                                    <option value="DEACTIVATED">Đang ẩn</option>
+                                </select>
+
+                                <select
+                                    value={ratingFilter}
+                                    onChange={e => setRatingFilter(e.target.value)}
+                                    className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                >
+                                    <option value="all">Tất cả đánh giá</option>
+                                    <option value="5">⭐⭐⭐⭐⭐ 5 sao</option>
+                                    <option value="4">⭐⭐⭐⭐ 4 sao</option>
+                                    <option value="3">⭐⭐⭐ 3 sao</option>
+                                    <option value="2">⭐⭐ 2 sao</option>
+                                    <option value="1">⭐ 1 sao</option>
+                                </select>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Tabs */}
+                    <Tabs value={selectedTab} onValueChange={setSelectedTab} className="mb-6">
+                        <TabsList>
+                            <TabsTrigger value="all">
+                                Tất cả ({stats.total})
+                            </TabsTrigger>
+                            <TabsTrigger value="active">
+                                Đang hiển thị ({stats.active})
+                            </TabsTrigger>
+                            <TabsTrigger value="inactive">
+                                Đang ẩn ({stats.inactive})
+                            </TabsTrigger>
+                        </TabsList>
+                    </Tabs>
+
+                    {/* Feedbacks Table */}
+                    <Card>
+                        <CardHeader>
+                            <div className="flex items-center justify-between">
+                                <CardTitle>Danh sách đánh giá</CardTitle>
+                                <Badge variant="secondary">
+                                    {filteredFeedbacks.length} kết quả
+                                </Badge>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            {loading ? (
+                                <div className="flex items-center justify-center py-12">
+                                    <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
+                                </div>
+                            ) : filteredFeedbacks.length === 0 ? (
+                                <div className="text-center py-12">
+                                    <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                                    <p className="text-gray-500">Không tìm thấy đánh giá nào</p>
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="overflow-x-auto">
+                                        <Table>
+                                            <TableHeader>
+                                                <TableRow>
+                                                    <TableHead>Khách hàng</TableHead>
+                                                    <TableHead>Sản phẩm</TableHead>
+                                                    <TableHead>Đánh giá</TableHead>
+                                                    <TableHead>Nội dung</TableHead>
+                                                    <TableHead>Ngày tạo</TableHead>
+                                                    <TableHead>Trạng thái</TableHead>
+                                                    <TableHead className="text-right">Thao tác</TableHead>
+                                                </TableRow>
+                                            </TableHeader>
+                                            <TableBody>
+                                                {filteredFeedbacks.map(feedback => (
+                                                    <TableRow key={feedback.feedbackId}>
+                                                        <TableCell>
+                                                            <div>
+                                                                <p className="font-medium text-gray-900">{feedback.fullName}</p>
+                                                                <p className="text-sm text-gray-500">{feedback.email}</p>
+                                                            </div>
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <p className="font-medium text-gray-900">
+                                                                {feedback.orderDetail?.productName || 'N/A'}
+                                                            </p>
+                                                            <p className="text-sm text-gray-500">
+                                                                {feedback.orderDetail?.unitPrice?.toLocaleString('vi-VN')} đ x{' '}
+                                                                {feedback.orderDetail?.quantity}
+                                                            </p>
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <div className="flex items-center space-x-1">
+                                                                {getRatingStars(feedback.rating || 0)}
+                                                            </div>
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <p className="text-sm text-gray-900 max-w-xs truncate">
+                                                                {feedback.comment || 'Không có nội dung'}
+                                                            </p>
+                                                        </TableCell>
+                                                        <TableCell>
+                                                            <p className="text-sm text-gray-500">
+                                                                {feedback.createdAt
+                                                                    ? format(new Date(feedback.createdAt), 'dd/MM/yyyy', { locale: vi })
+                                                                    : 'N/A'}
+                                                            </p>
+                                                        </TableCell>
+                                                        <TableCell>{getStatusBadge(feedback.status)}</TableCell>
+                                                        <TableCell className="text-right">
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                onClick={() => handleViewDetail(feedback)}
+                                                            >
+                                                                <Eye className="h-4 w-4" />
+                                                            </Button>
+                                                        </TableCell>
+                                                    </TableRow>
+                                                ))}
+                                            </TableBody>
+                                        </Table>
+                                    </div>
+
+                                    {/* Pagination */}
+                                    {totalPages > 1 && (
+                                        <div className="flex items-center justify-between mt-4">
+                                            <p className="text-sm text-gray-600">
+                                                Trang {currentPage} / {totalPages} - Tổng {totalItems} đánh giá
+                                            </p>
+                                            <div className="flex space-x-2">
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                                                    disabled={currentPage === 1}
+                                                >
+                                                    Trước
+                                                </Button>
+                                                <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                                                    disabled={currentPage === totalPages}
+                                                >
+                                                    Sau
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </>
+                            )}
+                        </CardContent>
+                    </Card>
+                </div>
+            </div>
+
+            {/* Feedback Detail Modal */}
+            <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
+                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center">
+                            <MessageSquare className="h-5 w-5 mr-2 text-purple-600" />
+                            Chi tiết đánh giá
+                        </DialogTitle>
+                        <DialogDescription>
+                            Thông tin chi tiết về đánh giá từ khách hàng
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    {selectedFeedback && (
+                        <div className="space-y-6">
+                            {/* Customer Info */}
+                            <div>
+                                <h3 className="text-sm font-semibold text-gray-700 mb-2">Thông tin khách hàng</h3>
+                                <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                                    <div className="flex justify-between">
+                                        <span className="text-sm text-gray-600">Họ tên:</span>
+                                        <span className="text-sm font-medium">{selectedFeedback.fullName}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-sm text-gray-600">Email:</span>
+                                        <span className="text-sm font-medium">{selectedFeedback.email}</span>
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-sm text-gray-600">Ngày đánh giá:</span>
+                                        <span className="text-sm font-medium">
+                                            {selectedFeedback.createdAt
+                                                ? format(new Date(selectedFeedback.createdAt), 'dd/MM/yyyy HH:mm', {
+                                                    locale: vi,
+                                                })
+                                                : 'N/A'}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Product Info with Image */}
+                            <div>
+                                <h3 className="text-sm font-semibold text-gray-700 mb-2">Thông tin sản phẩm</h3>
+                                <div className="bg-gray-50 rounded-lg p-4 space-y-4">
+                                    {/* Product Image */}
+                                    {selectedFeedback.orderDetail?.images ? (
+                                        <div className="w-full h-48 bg-gray-200 rounded-lg overflow-hidden">
+                                            <img
+                                                src={selectedFeedback.orderDetail.images}
+                                                alt={selectedFeedback.orderDetail?.productName || 'Product'}
+                                                className="w-full h-full object-cover"
+                                                onError={(e) => {
+                                                    (e.target as HTMLImageElement).style.display = 'none';
+                                                    (e.target as HTMLImageElement).parentElement!.innerHTML =
+                                                        '<div class="w-full h-full flex items-center justify-center text-gray-400"><svg class="w-16 h-16" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd" /></svg></div>';
+                                                }}
+                                            />
+                                        </div>
+                                    ) : (
+                                        <div className="w-full h-48 bg-gray-200 rounded-lg flex items-center justify-center text-gray-400">
+                                            <ImageIcon className="w-16 h-16" />
+                                        </div>
+                                    )}
+
+                                    {/* Product Details */}
+                                    <div className="space-y-2">
+                                        <div className="flex justify-between">
+                                            <span className="text-sm text-gray-600">Tên sản phẩm:</span>
+                                            <span className="text-sm font-medium">
+                                                {selectedFeedback.orderDetail?.productName || 'N/A'}
+                                            </span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-sm text-gray-600">Đơn giá:</span>
+                                            <span className="text-sm font-medium">
+                                                {selectedFeedback.orderDetail?.unitPrice?.toLocaleString('vi-VN')} đ
+                                            </span>
+                                        </div>
+                                        <div className="flex justify-between">
+                                            <span className="text-sm text-gray-600">Số lượng:</span>
+                                            <span className="text-sm font-medium">
+                                                {selectedFeedback.orderDetail?.quantity}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Rating */}
+                            <div>
+                                <h3 className="text-sm font-semibold text-gray-700 mb-2">Đánh giá</h3>
+                                <div className="flex items-center space-x-2">
+                                    {getRatingStars(selectedFeedback.rating || 0)}
+                                    <span className="text-lg font-bold text-gray-900">
+                                        {selectedFeedback.rating}/5
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Comment */}
+                            <div>
+                                <h3 className="text-sm font-semibold text-gray-700 mb-2">Nội dung đánh giá</h3>
+                                <div className="bg-gray-50 rounded-lg p-4">
+                                    <p className="text-sm text-gray-700">
+                                        {selectedFeedback.comment || 'Không có nội dung'}
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Status */}
+                            <div>
+                                <h3 className="text-sm font-semibold text-gray-700 mb-2">Trạng thái hiển thị</h3>
+                                <div className="flex items-center justify-between bg-gray-50 rounded-lg p-4">
+                                    <div className="flex items-center space-x-2">
+                                        {getStatusBadge(selectedFeedback.status)}
+                                        <span className="text-sm text-gray-600">
+                                            {selectedFeedback.status === 'ACTIVE'
+                                                ? 'Đánh giá đang được hiển thị công khai'
+                                                : 'Đánh giá đang bị ẩn'}
+                                        </span>
+                                    </div>
+                                    <Button
+                                        onClick={() => handleUpdateStatus(selectedFeedback.feedbackId)}
+                                        disabled={updatingStatus}
+                                        size="sm"
+                                        variant={selectedFeedback.status === 'ACTIVE' ? 'destructive' : 'default'}
+                                    >
+                                        {updatingStatus ? (
+                                            <>
+                                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                                Đang xử lý...
+                                            </>
+                                        ) : selectedFeedback.status === 'ACTIVE' ? (
+                                            <>
+                                                <XCircle className="h-4 w-4 mr-2" />
+                                                Ẩn đánh giá
+                                            </>
+                                        ) : (
+                                            <>
+                                                <CheckCircle className="h-4 w-4 mr-2" />
+                                                Hiển thị đánh giá
+                                            </>
+                                        )}
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </DialogContent>
+            </Dialog>
+        </StaffLayout>
+    )
+}
+
+export default StaffFeedbacksPage
+

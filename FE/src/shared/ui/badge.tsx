@@ -3,23 +3,35 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@/shared/lib/utils'
 
 const badgeVariants = cva(
-  'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2',
+  'inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-semibold transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 shadow-sm',
   {
     variants: {
       variant: {
         default:
-          'border-transparent bg-primary text-primary-foreground hover:bg-primary/80',
+          'border-transparent bg-gradient-to-r from-emerald-500 to-emerald-600 text-white hover:from-emerald-600 hover:to-emerald-700 shadow-emerald-500/20',
         secondary:
-          'border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80',
+          'border-slate-200 bg-gradient-to-r from-slate-50 to-slate-100 text-slate-700 hover:from-slate-100 hover:to-slate-200 shadow-slate-500/10',
         destructive:
-          'border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80',
-        outline: 'text-foreground',
+          'border-transparent bg-gradient-to-r from-rose-500 to-rose-600 text-white hover:from-rose-600 hover:to-rose-700 shadow-rose-500/20',
+        outline: 'text-foreground border-slate-300',
         success:
-          'border-transparent bg-green-500 text-green-50 hover:bg-green-500/80 dark:bg-green-600',
+          'border-transparent bg-gradient-to-r from-emerald-500 to-green-600 text-white hover:from-emerald-600 hover:to-green-700 shadow-emerald-500/25',
         warning:
-          'border-transparent bg-orange-500 text-orange-50 hover:bg-orange-500/80 dark:bg-orange-600',
+          'border-transparent bg-gradient-to-r from-amber-500 to-orange-600 text-white hover:from-amber-600 hover:to-orange-700 shadow-amber-500/25',
         info:
-          'border-transparent bg-blue-500 text-blue-50 hover:bg-blue-500/80 dark:bg-blue-600',
+          'border-transparent bg-gradient-to-r from-sky-500 to-blue-600 text-white hover:from-sky-600 hover:to-blue-700 shadow-sky-500/25',
+        pending:
+          'border-transparent bg-gradient-to-r from-purple-50 to-purple-100 text-purple-700 hover:from-purple-100 hover:to-purple-200 shadow-purple-500/15 border border-purple-200',
+        processing:
+          'border-transparent bg-gradient-to-r from-blue-50 to-indigo-100 text-blue-700 hover:from-blue-100 hover:to-indigo-200 shadow-blue-500/15 border border-blue-200',
+        completed:
+          'border-transparent bg-gradient-to-r from-emerald-50 to-green-100 text-green-700 hover:from-emerald-100 hover:to-green-200 shadow-emerald-500/15 border border-emerald-200',
+        failed:
+          'border-transparent bg-gradient-to-r from-rose-50 to-red-100 text-rose-700 hover:from-rose-100 hover:to-red-200 shadow-rose-500/15 border border-rose-200',
+        paid:
+          'border-transparent bg-gradient-to-r from-teal-500 to-emerald-600 text-white hover:from-teal-600 hover:to-emerald-700 shadow-teal-500/25',
+        shipping:
+          'border-transparent bg-gradient-to-r from-indigo-500 to-blue-600 text-white hover:from-indigo-600 hover:to-blue-700 shadow-indigo-500/25',
       },
     },
     defaultVariants: {
@@ -30,7 +42,7 @@ const badgeVariants = cva(
 
 export interface BadgeProps
   extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof badgeVariants> {}
+  VariantProps<typeof badgeVariants> { }
 
 function Badge({ className, variant, ...props }: BadgeProps) {
   return <div className={cn(badgeVariants({ variant }), className)} {...props} />

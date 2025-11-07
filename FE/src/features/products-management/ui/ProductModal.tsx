@@ -123,9 +123,9 @@ function ProductViewContent({ product }: ProductViewContentProps) {
 
   return (
     <div className="space-y-6">
-      {}
+      { }
       <div className="flex flex-col sm:flex-row gap-6">
-        {}
+        { }
         <div className="flex-shrink-0">
           <div className="w-48 h-48 bg-gray-100 rounded-lg overflow-hidden">
             {product.imageUrl ? (
@@ -148,22 +148,16 @@ function ProductViewContent({ product }: ProductViewContentProps) {
           </div>
         </div>
 
-        {}
+        { }
         <div className="flex-1 space-y-4">
           <div>
             <h3 className="text-2xl font-bold text-gray-900">{product.productName}</h3>
             <p className="text-gray-600 mt-1">{product.productDescription}</p>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <span className="text-sm font-medium text-gray-500">SKU</span>
-              <p className="font-mono text-lg">{product.sku}</p>
-            </div>
-            <div>
-              <span className="text-sm font-medium text-gray-500">Trạng thái</span>
-              <div className="mt-1">{getStatusBadge(product.status)}</div>
-            </div>
+          <div>
+            <span className="text-sm font-medium text-gray-500">Trạng thái</span>
+            <div className="mt-1">{getStatusBadge(product.status)}</div>
           </div>
 
           <div>
@@ -173,9 +167,9 @@ function ProductViewContent({ product }: ProductViewContentProps) {
         </div>
       </div>
 
-      {}
+      { }
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {}
+        { }
         <div className="space-y-4">
           <h4 className="text-lg font-semibold text-gray-900">Thông tin kho</h4>
 
@@ -192,7 +186,7 @@ function ProductViewContent({ product }: ProductViewContentProps) {
           </div>
         </div>
 
-        {}
+        { }
         <div className="space-y-4">
           <h4 className="text-lg font-semibold text-gray-900">Thông tin khác</h4>
 
@@ -215,7 +209,7 @@ function ProductViewContent({ product }: ProductViewContentProps) {
         </div>
       </div>
 
-      {}
+      { }
       {product.productDescription && (
         <div>
           <h4 className="text-lg font-semibold text-gray-900 mb-3">Mô tả chi tiết</h4>

@@ -1,4 +1,3 @@
-
 const STORAGE_KEYS = {
   USER_PREFERENCES: 'ifms-user-preferences',
   DEVICES: 'ifms-devices',
@@ -10,7 +9,6 @@ export interface UserPreferences {
   tableDensity: 'compact' | 'comfortable'
   lastSelectedTab: {
     irrigation?: string
-    staffOperations?: string
   }
   language: string
   theme: 'light' | 'dark' | 'system'
@@ -36,17 +34,13 @@ export const storage = {
   set<T>(key: string, value: T): void {
     try {
       localStorage.setItem(key, JSON.stringify(value))
-    } catch {
-
-    }
+    } catch {}
   },
 
   remove(key: string): void {
     try {
       localStorage.removeItem(key)
-    } catch {
-
-    }
+    } catch {}
   },
 
   clear(): void {
@@ -54,9 +48,7 @@ export const storage = {
       Object.values(STORAGE_KEYS).forEach(key => {
         localStorage.removeItem(key)
       })
-    } catch {
-
-    }
+    } catch {}
   },
 }
 

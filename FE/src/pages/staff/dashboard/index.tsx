@@ -6,26 +6,21 @@ import {
     Star,
     TrendingUp,
     DollarSign,
-    AlertCircle,
-    CheckCircle,
     Clock,
     ArrowUpRight,
     ArrowDownRight,
-    Calendar,
-    Users,
     BarChart3,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
 import { Button } from '@/shared/ui/button'
 import { Badge } from '@/shared/ui/badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs'
+import { Tabs, TabsList, TabsTrigger } from '@/shared/ui/tabs'
 import { useNavigate } from 'react-router-dom'
 import { StaffLayout } from '@/shared/layouts/StaffLayout'
 import { orderService, getOrderStatusLabel } from '@/shared/api/orderService'
 import type { Order } from '@/shared/api/orderService'
 import { feedbackService } from '@/shared/api/feedbackService'
 import type { Feedback } from '@/shared/api/feedbackService'
-import { productService } from '@/shared/api/productService'
 import {
     BarChart,
     Bar,
@@ -35,8 +30,6 @@ import {
     Tooltip,
     Legend,
     ResponsiveContainer,
-    LineChart,
-    Line,
     PieChart,
     Pie,
     Cell,
@@ -118,7 +111,7 @@ export default function StaffDashboard() {
                 setOrders(ordersData.items || [])
                 setFeedbacks(feedbacksData.items || [])
             } catch (error) {
-                            } finally {
+            } finally {
                 setIsLoading(false)
             }
         }
@@ -225,7 +218,6 @@ export default function StaffDashboard() {
         }))
     }, [feedbacks])
 
-    const COLORS = ['#8B5CF6', '#3B82F6', '#10B981', '#F59E0B', '#EF4444']
 
     if (isLoading) {
         return (
@@ -240,7 +232,7 @@ export default function StaffDashboard() {
     return (
         <StaffLayout>
             <div className="px-4 sm:px-6 lg:px-8">
-                {}
+                { }
                 <div className="mb-8">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                         <div>
@@ -263,7 +255,7 @@ export default function StaffDashboard() {
                     </div>
                 </div>
 
-                {}
+                { }
                 <div className="grid gap-6 mb-8 md:grid-cols-2 lg:grid-cols-4">
                     <MetricCard
                         title="Tổng đơn hàng"
@@ -303,9 +295,9 @@ export default function StaffDashboard() {
                     />
                 </div>
 
-                {}
+                { }
                 <div className="grid gap-8 lg:grid-cols-2 mb-8">
-                    {}
+                    { }
                     <Card className="border-0 shadow-lg">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
@@ -332,7 +324,7 @@ export default function StaffDashboard() {
                         </CardContent>
                     </Card>
 
-                    {}
+                    { }
                     <Card className="border-0 shadow-lg">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
@@ -364,9 +356,9 @@ export default function StaffDashboard() {
                     </Card>
                 </div>
 
-                {}
+                { }
                 <div className="grid gap-8 lg:grid-cols-2 mb-8">
-                    {}
+                    { }
                     <Card className="border-0 shadow-lg">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
@@ -387,7 +379,7 @@ export default function StaffDashboard() {
                         </CardContent>
                     </Card>
 
-                    {}
+                    { }
                     <Card className="border-0 shadow-lg">
                         <CardHeader className="border-b border-gray-100">
                             <div className="flex items-center justify-between">
@@ -442,7 +434,7 @@ export default function StaffDashboard() {
                     </Card>
                 </div>
 
-                {}
+                { }
                 <Card className="border-0 shadow-lg mb-8">
                     <CardHeader className="border-b border-gray-100">
                         <div className="flex items-center justify-between">
@@ -506,7 +498,7 @@ export default function StaffDashboard() {
                     </CardContent>
                 </Card>
 
-                {}
+                { }
                 <Card className="border-0 shadow-lg">
                     <CardHeader>
                         <CardTitle>Thao tác nhanh</CardTitle>

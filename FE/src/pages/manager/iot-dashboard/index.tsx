@@ -6,17 +6,13 @@ import {
   CloudRain,
   Sprout,
   Sun,
-  Wifi,
-  WifiOff,
   RefreshCw,
-  Clock,
   AlertCircle,
 } from 'lucide-react'
 import { ManagerLayout } from '@/shared/layouts/ManagerLayout'
 import { Button } from '@/shared/ui/button'
 import { Card, CardContent } from '@/shared/ui/card'
 import { Switch } from '@/shared/ui/switch'
-import { Badge } from '@/shared/ui/badge'
 import { Slider } from '@/shared/ui/slider'
 import { blynkService, type SensorData } from '@/shared/api/blynkService'
 import Gauge from '@/components/iot-dashboard/Gauge'
@@ -39,12 +35,9 @@ const RealTimeIoTDashboard: React.FC = () => {
 
   const [isOnline, setIsOnline] = useState(true)
   const [isLoading, setIsLoading] = useState(true)
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
   const [manualControl, setManualControl] = useState(false)
   const [pumpControl, setPumpControl] = useState(false)
   const [servoAngle, setServoAngle] = useState([90])
-  const [dataQuality, setDataQuality] = useState<'good' | 'poor' | 'error'>('good')
-  const [connectionStrength, setConnectionStrength] = useState(100)
   const [timeFilter, setTimeFilter] = useState('Trực tiếp')
   const [retryCount, setRetryCount] = useState(0)
 
@@ -57,13 +50,10 @@ const RealTimeIoTDashboard: React.FC = () => {
       setSensorData(data)
       setPumpControl(data.pumpState)
       setServoAngle([data.servoAngle])
-      setDataQuality(data.dataQuality)
-      setConnectionStrength(data.connectionStrength)
-      setLastUpdated(data.lastUpdated)
       setIsOnline(true)
       setRetryCount(0)
     } catch (error) {
-            setIsOnline(false)
+      setIsOnline(false)
       setRetryCount(prev => prev + 1)
 
       if (retryCount < 3) {
@@ -116,7 +106,7 @@ const RealTimeIoTDashboard: React.FC = () => {
         })
       }
     } catch (error) {
-            toast({
+      toast({
         title: 'Lỗi kết nối',
         description: 'Không thể gửi lệnh điều khiển',
         variant: 'destructive',
@@ -143,7 +133,7 @@ const RealTimeIoTDashboard: React.FC = () => {
         })
       }
     } catch (error) {
-            toast({
+      toast({
         title: 'Lỗi kết nối',
         description: 'Không thể gửi lệnh điều khiển',
         variant: 'destructive',
@@ -168,7 +158,7 @@ const RealTimeIoTDashboard: React.FC = () => {
         })
       }
     } catch (error) {
-            toast({
+      toast({
         title: 'Lỗi kết nối',
         description: 'Không thể gửi lệnh điều khiển',
         variant: 'destructive',
@@ -214,8 +204,8 @@ const RealTimeIoTDashboard: React.FC = () => {
                 size="sm"
                 onClick={() => setTimeFilter(filter)}
                 className={`${timeFilter === filter
-                    ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                    : 'bg-white border-gray-300 hover:bg-gray-50 text-gray-700'
+                  ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                  : 'bg-white border-gray-300 hover:bg-gray-50 text-gray-700'
                   }`}
               >
                 {filter}

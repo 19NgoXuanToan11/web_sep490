@@ -1,14 +1,13 @@
 import React, { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { CheckCircle2, XCircle, Smartphone, Package, ExternalLink, Download } from 'lucide-react'
+import { CheckCircle2, XCircle, Smartphone, Package } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import { Card } from '@/shared/ui/card'
 
 const PaymentResultPage: React.FC = () => {
   const [searchParams] = useSearchParams()
   const [countdown, setCountdown] = useState(3)
-  const [showAppInstructions, setShowAppInstructions] = useState(false)
 
   const success = searchParams.get('success') === 'true'
   const orderId = searchParams.get('orderId')
@@ -87,9 +86,9 @@ const PaymentResultPage: React.FC = () => {
 
     trySequentially()
 
-    setTimeout(() => {
-      setShowAppInstructions(true)
-    }, 5000)
+    // setTimeout(() => {
+    //   setShowAppInstructions(true)
+    // }, 5000)
   }
 
   const handleOpenApp = () => {

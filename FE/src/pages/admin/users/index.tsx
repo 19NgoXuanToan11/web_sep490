@@ -1,8 +1,7 @@
 ﻿import React, { useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
-import { Users, UserX, Activity, RefreshCw } from 'lucide-react'
+import { RefreshCw } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card'
+import { Card, CardContent } from '@/shared/ui/card'
 
 import { AdminLayout } from '@/shared/layouts/AdminLayout'
 import { useToast } from '@/shared/ui/use-toast'
@@ -23,7 +22,7 @@ import {
 import type { User } from '@/shared/lib/localData'
 
 const AdminUsersPage: React.FC = () => {
-  const { users, loadingStates, initializeData, deleteUser, getInactiveUsersCount } =
+  const { loadingStates, initializeData, deleteUser } =
     useAdminUsersStore()
 
   const { toast } = useToast()
@@ -40,23 +39,20 @@ const AdminUsersPage: React.FC = () => {
     initializeData()
   }, [initializeData])
 
-  const totalUsers = users.length
-  const activeUsers = users.filter(u => u.status === 'Active').length
-  const inactiveUsers = getInactiveUsersCount()
 
   const handleEditUser = (user: User) => {
     try {
       setSelectedUser(user)
       setIsUserFormOpen(true)
     } catch (error) {
-          }
+    }
   }
 
   const handleDeleteUser = (user: User) => {
     try {
       setDeleteConfirm({ user })
     } catch (error) {
-          }
+    }
   }
 
   const handleUpdatePassword = (user: User) => {
@@ -64,7 +60,7 @@ const AdminUsersPage: React.FC = () => {
       setPasswordUpdateUser(user)
       setIsPasswordUpdateOpen(true)
     } catch (error) {
-          }
+    }
   }
 
   const confirmDelete = async () => {

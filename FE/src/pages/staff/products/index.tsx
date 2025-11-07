@@ -64,8 +64,8 @@ export function StaffProductsPage() {
     })
 
     React.useEffect(() => {
-        fetchAllProducts().catch(error => {
-                        toast({
+        fetchAllProducts().catch(() => {
+            toast({
                 title: 'Lỗi tải dữ liệu',
                 description: 'Không thể tải danh sách sản phẩm. Vui lòng thử lại.',
                 variant: 'destructive',
@@ -148,17 +148,6 @@ export function StaffProductsPage() {
         })
     }
 
-    const handleModalSuccess = async () => {
-        handleModalClose()
-        await fetchAllProducts()
-        toast({
-            title: modalState.mode === 'create' ? 'Tạo mới thành công' : 'Cập nhật thành công',
-            description:
-                modalState.mode === 'create'
-                    ? 'Sản phẩm mới đã được thêm vào kho'
-                    : 'Thông tin sản phẩm đã được cập nhật',
-        })
-    }
 
     const handleBulkDelete = async () => {
         if (selectedProductIds.length === 0) {
@@ -190,7 +179,7 @@ export function StaffProductsPage() {
     return (
         <StaffLayout>
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                {}
+                { }
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
                     <div>
                         <h1 className="text-3xl font-bold text-gray-900 mb-2">Quản lý sản phẩm</h1>
@@ -215,7 +204,7 @@ export function StaffProductsPage() {
                     </div>
                 </div>
 
-                {}
+                { }
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between pb-2">
@@ -253,12 +242,12 @@ export function StaffProductsPage() {
                     </Card>
                 </div>
 
-                {}
+                { }
                 <div className="mb-6">
                     <ProductFilters />
                 </div>
 
-                {}
+                { }
                 <Card>
                     <CardHeader>
                         <CardTitle>Sản phẩm</CardTitle>
@@ -302,7 +291,7 @@ export function StaffProductsPage() {
                     </CardContent>
                 </Card>
 
-                {}
+                { }
                 <ProductModal
                     isOpen={modalState.isOpen}
                     onClose={handleModalClose}
@@ -310,7 +299,7 @@ export function StaffProductsPage() {
                     mode={modalState.mode}
                 />
 
-                {}
+                { }
                 {deleteConfirm.isOpen && (
                     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
                         <Card className="max-w-md w-full mx-4">

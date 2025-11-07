@@ -11,8 +11,6 @@ import {
   ChevronRight,
   Home,
   LayoutDashboard,
-  Cpu,
-  Building2,
 } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import LogoutButton from '@/shared/ui/LogoutButton'
@@ -93,18 +91,16 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
           navigate(item.href)
           if (mobile) setIsMobileSidebarOpen(false)
         }}
-        className={`w-full group flex items-center ${isSidebarOpen ? 'px-3' : 'px-2 justify-center'} py-2.5 text-sm font-medium rounded-lg transition-colors duration-200 ${
-          isActive
+        className={`w-full group flex items-center ${isSidebarOpen ? 'px-3' : 'px-2 justify-center'} py-2.5 text-sm font-medium rounded-lg transition-colors duration-200 ${isActive
             ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600'
             : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-        }`}
+          }`}
         whileHover={{ scale: mobile ? 1 : 1.02 }}
         whileTap={{ scale: 0.98 }}
       >
         <item.icon
-          className={`${isSidebarOpen ? 'mr-3' : 'mx-auto'} h-5 w-5 flex-shrink-0 ${
-            isActive ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-600'
-          }`}
+          className={`${isSidebarOpen ? 'mr-3' : 'mx-auto'} h-5 w-5 flex-shrink-0 ${isActive ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-600'
+            }`}
         />
         {(isSidebarOpen || mobile) && (
           <div className="flex-1 text-left">
@@ -129,15 +125,14 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {}
+      { }
       <motion.div
-        className={`hidden lg:fixed lg:inset-y-0 lg:flex lg:flex-col bg-white shadow-lg border-r border-gray-200 ${
-          isSidebarOpen ? 'lg:w-72' : 'lg:w-20'
-        }`}
+        className={`hidden lg:fixed lg:inset-y-0 lg:flex lg:flex-col bg-white shadow-lg border-r border-gray-200 ${isSidebarOpen ? 'lg:w-72' : 'lg:w-20'
+          }`}
         animate={{ width: isSidebarOpen ? 288 : 80 }}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
       >
-        {}
+        { }
         <div className="relative border-b border-gray-200">
           {isSidebarOpen ? (
             <div className="flex items-center justify-between px-6 py-6">
@@ -180,7 +175,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
           )}
         </div>
 
-        {}
+        { }
         <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
           <div className="space-y-1">
             {navigationItems.map(item => (
@@ -189,7 +184,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
           </div>
         </nav>
 
-        {}
+        { }
         <div
           className={`border-t border-gray-200 p-4 ${isSidebarOpen ? '' : 'flex justify-center'}`}
         >
@@ -210,7 +205,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
         </div>
       </motion.div>
 
-      {}
+      { }
       <AnimatePresence>
         {isMobileSidebarOpen && (
           <motion.div
@@ -266,9 +261,9 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
         )}
       </AnimatePresence>
 
-      {}
+      { }
       <div className={`transition-all duration-300 ${isSidebarOpen ? 'lg:pl-72' : 'lg:pl-20'}`}>
-        {}
+        { }
         <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40">
           <div className="px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between h-16">
@@ -282,7 +277,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                   <Menu className="h-5 w-5" />
                 </Button>
 
-                {}
+                { }
                 <nav className="hidden">
                   <Button
                     variant="ghost"
@@ -307,7 +302,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
               </div>
 
               <div className="flex items-center space-x-2 sm:space-x-4">
-                {}
+                { }
 
                 <Button
                   variant="ghost"
@@ -319,7 +314,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                     2
                   </Badge>
                 </Button>
-                {}
+                { }
               </div>
             </div>
           </div>

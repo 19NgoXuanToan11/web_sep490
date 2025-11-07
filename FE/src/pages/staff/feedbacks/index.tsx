@@ -1,19 +1,17 @@
 ﻿import React, { useEffect, useState, useCallback } from 'react'
-import { motion } from 'framer-motion'
 import {
     MessageSquare,
     Star,
     Eye,
     RefreshCw,
     Search,
-    Filter,
     CheckCircle,
     XCircle,
     Loader2,
     Image as ImageIcon,
 } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
 import { Badge } from '@/shared/ui/badge'
 import { Input } from '@/shared/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
@@ -26,7 +24,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/shared/ui/dialog'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs'
+import { Tabs, TabsList, TabsTrigger } from '@/shared/ui/tabs'
 import { StaffLayout } from '@/shared/layouts/StaffLayout'
 import { useToast } from '@/shared/ui/use-toast'
 import { feedbackService, type Feedback } from '@/shared/api/feedbackService'
@@ -61,7 +59,7 @@ const StaffFeedbacksPage: React.FC = () => {
             setTotalItems(response.totalItemCount || 0)
             setCurrentPage(response.pageIndex || 1)
         } catch (error) {
-                        toast({
+            toast({
                 title: 'Lỗi tải dữ liệu',
                 description: 'Không thể tải danh sách đánh giá. Vui lòng thử lại.',
                 variant: 'destructive',
@@ -146,7 +144,7 @@ const StaffFeedbacksPage: React.FC = () => {
                 }
             }
         } catch (error) {
-                        toast({
+            toast({
                 title: 'Lỗi',
                 description: 'Không thể cập nhật trạng thái. Vui lòng thử lại.',
                 variant: 'destructive',
@@ -197,7 +195,7 @@ const StaffFeedbacksPage: React.FC = () => {
     return (
         <StaffLayout>
             <div className="min-h-screen bg-gray-50">
-                {}
+                { }
                 <div className="bg-white shadow-sm border-b border-gray-200">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
@@ -228,7 +226,7 @@ const StaffFeedbacksPage: React.FC = () => {
                 </div>
 
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                    {}
+                    { }
                     <Card className="mb-6">
                         <CardHeader>
                             <CardTitle className="text-lg">Bộ lọc và tìm kiếm</CardTitle>
@@ -273,7 +271,7 @@ const StaffFeedbacksPage: React.FC = () => {
                         </CardContent>
                     </Card>
 
-                    {}
+                    { }
                     <Tabs value={selectedTab} onValueChange={setSelectedTab} className="mb-6">
                         <TabsList>
                             <TabsTrigger value="all">
@@ -288,7 +286,7 @@ const StaffFeedbacksPage: React.FC = () => {
                         </TabsList>
                     </Tabs>
 
-                    {}
+                    { }
                     <Card>
                         <CardHeader>
                             <div className="flex items-center justify-between">
@@ -374,7 +372,7 @@ const StaffFeedbacksPage: React.FC = () => {
                                         </Table>
                                     </div>
 
-                                    {}
+                                    { }
                                     {totalPages > 1 && (
                                         <div className="flex items-center justify-between mt-4">
                                             <p className="text-sm text-gray-600">
@@ -407,7 +405,7 @@ const StaffFeedbacksPage: React.FC = () => {
                 </div>
             </div>
 
-            {}
+            { }
             <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
                 <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
@@ -422,7 +420,7 @@ const StaffFeedbacksPage: React.FC = () => {
 
                     {selectedFeedback && (
                         <div className="space-y-6">
-                            {}
+                            { }
                             <div>
                                 <h3 className="text-sm font-semibold text-gray-700 mb-2">Thông tin khách hàng</h3>
                                 <div className="bg-gray-50 rounded-lg p-4 space-y-2">
@@ -447,11 +445,11 @@ const StaffFeedbacksPage: React.FC = () => {
                                 </div>
                             </div>
 
-                            {}
+                            { }
                             <div>
                                 <h3 className="text-sm font-semibold text-gray-700 mb-2">Thông tin sản phẩm</h3>
                                 <div className="bg-gray-50 rounded-lg p-4 space-y-4">
-                                    {}
+                                    { }
                                     {selectedFeedback.orderDetail?.images ? (
                                         <div className="w-full h-48 bg-gray-200 rounded-lg overflow-hidden">
                                             <img
@@ -471,7 +469,7 @@ const StaffFeedbacksPage: React.FC = () => {
                                         </div>
                                     )}
 
-                                    {}
+                                    { }
                                     <div className="space-y-2">
                                         <div className="flex justify-between">
                                             <span className="text-sm text-gray-600">Tên sản phẩm:</span>
@@ -495,7 +493,7 @@ const StaffFeedbacksPage: React.FC = () => {
                                 </div>
                             </div>
 
-                            {}
+                            { }
                             <div>
                                 <h3 className="text-sm font-semibold text-gray-700 mb-2">Đánh giá</h3>
                                 <div className="flex items-center space-x-2">
@@ -506,7 +504,7 @@ const StaffFeedbacksPage: React.FC = () => {
                                 </div>
                             </div>
 
-                            {}
+                            { }
                             <div>
                                 <h3 className="text-sm font-semibold text-gray-700 mb-2">Nội dung đánh giá</h3>
                                 <div className="bg-gray-50 rounded-lg p-4">
@@ -516,7 +514,7 @@ const StaffFeedbacksPage: React.FC = () => {
                                 </div>
                             </div>
 
-                            {}
+                            { }
                             <div>
                                 <h3 className="text-sm font-semibold text-gray-700 mb-2">Trạng thái hiển thị</h3>
                                 <div className="flex items-center justify-between bg-gray-50 rounded-lg p-4">

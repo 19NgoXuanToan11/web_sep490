@@ -59,8 +59,8 @@ export function ProductForm({ editingProduct, onSuccess, onCancel, className }: 
   })
 
   React.useEffect(() => {
-    fetchCategories().catch(error => {
-            toast({
+    fetchCategories().catch(() => {
+      toast({
         title: 'Lỗi tải danh mục',
         description: 'Không thể tải danh sách danh mục',
         variant: 'destructive',

@@ -6,7 +6,6 @@ import {
   Truck,
   CheckCircle,
   Clock,
-  AlertTriangle,
   Eye,
   RefreshCw,
   Filter,
@@ -142,7 +141,7 @@ const ManagerOrdersPage: React.FC = () => {
         })
 
         const transformedOrders = response.items
-          .map((apiOrder: any, index: number) => {
+          .map((apiOrder: any) => {
             try {
               const transformed = transformApiOrder(apiOrder)
               return transformed

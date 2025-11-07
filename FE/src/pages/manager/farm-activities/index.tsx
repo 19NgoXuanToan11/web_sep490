@@ -20,10 +20,7 @@ import {
   Edit,
   Trash2,
   RefreshCw,
-  Calendar,
-  Activity,
   CheckCircle,
-  AlertTriangle,
 } from 'lucide-react'
 import { useToast } from '@/shared/ui/use-toast'
 import {
@@ -79,7 +76,7 @@ export default function FarmActivitiesPage() {
       const activitiesData = Array.isArray(response) ? response : []
       setActivities(activitiesData)
     } catch (error) {
-            setActivities([])
+      setActivities([])
       toast({
         title: 'Lỗi',
         description: 'Không thể tải danh sách hoạt động nông trại',

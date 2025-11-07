@@ -1,4 +1,4 @@
-interface BlynkData {
+﻿interface BlynkData {
   v0: string
   v1: string
   v2: string
@@ -126,11 +126,6 @@ class BlynkService {
     }
   }
 
-  /**
-   * Control pump using the new API endpoint
-   * @param state - true to turn ON, false to turn OFF
-   * @returns Promise with success status and message
-   */
   async controlPump(state: boolean): Promise<{ success: boolean; message: string }> {
     try {
       const response = await fetch(`${this.baseUrl}/pump?state=${state}`, {
@@ -151,19 +146,13 @@ class BlynkService {
           data.message || `Pump has been ${state ? 'turned ON' : 'turned OFF'} successfully.`,
       }
     } catch (error) {
-      console.error('Failed to control pump:', error)
-      return {
+            return {
         success: false,
         message: 'Failed to send pump command to Blynk Cloud.',
       }
     }
   }
 
-  /**
-   * Control manual mode using the API endpoint
-   * @param state - true to enable manual mode, false to disable (enable auto mode)
-   * @returns Promise with success status and message
-   */
   async controlManualMode(state: boolean): Promise<{ success: boolean; message: string }> {
     try {
       const response = await fetch(`${this.baseUrl}/manual-mode?state=${state}`, {
@@ -184,8 +173,7 @@ class BlynkService {
           data.message || `Manual mode has been ${state ? 'enabled' : 'disabled'} successfully.`,
       }
     } catch (error) {
-      console.error('Failed to control manual mode:', error)
-      return {
+            return {
         success: false,
         message: 'Failed to send manual mode command to Blynk Cloud.',
       }

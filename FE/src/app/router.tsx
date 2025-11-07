@@ -7,8 +7,6 @@ const LoginPage = React.lazy(() => import('@/pages/auth/LoginPage').then(m => ({
 
 const AdminUsersPage = React.lazy(() => import('@/pages/admin/users'))
 const AdminDashboard = React.lazy(() => import('@/pages/admin/dashboard'))
-const AdminDevicesPage = React.lazy(() => import('@/pages/admin/devices'))
-const AdminFarmsPage = React.lazy(() => import('@/pages/admin/farms'))
 
 const ManagerDashboard = React.lazy(() => import('@/pages/manager/dashboard'))
 const IrrigationPage = React.lazy(() => import('@/pages/manager/irrigation'))
@@ -184,26 +182,6 @@ const routerConfig = [
       <LazyWrapper>
         <RoleGuard allowed={['Admin']}>
           <AdminUsersPage />
-        </RoleGuard>
-      </LazyWrapper>
-    ),
-  },
-  {
-    path: '/admin/devices',
-    element: (
-      <LazyWrapper>
-        <RoleGuard allowed={['Admin']}>
-          <AdminDevicesPage />
-        </RoleGuard>
-      </LazyWrapper>
-    ),
-  },
-  {
-    path: '/admin/farms',
-    element: (
-      <LazyWrapper>
-        <RoleGuard allowed={['Admin']}>
-          <AdminFarmsPage />
         </RoleGuard>
       </LazyWrapper>
     ),

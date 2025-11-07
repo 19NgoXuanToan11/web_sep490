@@ -1,4 +1,4 @@
-
+﻿
 const defaults = {
 
   API_URL: 'https://iotfarm.onrender.com/api',
@@ -30,7 +30,4 @@ export const env = {
 } as const
 
 if (env.isDevelopment) {
-  console.info('[Config] Running in development mode')
-  console.info('[Config] API URL:', env.API_URL)
-  console.info('[Config] Mock API enabled:', env.ENABLE_MOCK_API)
-}
+      }

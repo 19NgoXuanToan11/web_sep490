@@ -44,18 +44,6 @@ const navigationItems: NavItem[] = [
     icon: Users,
     description: 'Quản lý người dùng hệ thống',
   },
-  {
-    name: 'Thiết bị IoT',
-    href: '/admin/devices',
-    icon: Cpu,
-    description: 'Giám sát thiết bị IoT toàn hệ thống',
-  },
-  {
-    name: 'Quản lý trang trại',
-    href: '/admin/farms',
-    icon: Building2,
-    description: 'Giám sát tất cả trang trại',
-  },
 ]
 
 export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {

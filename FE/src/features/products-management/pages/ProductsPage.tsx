@@ -1,4 +1,4 @@
-import React from 'react'
+﻿import React from 'react'
 import { Button } from '@/shared/ui/button'
 import { useToast } from '@/shared/ui/use-toast'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card'
@@ -65,8 +65,7 @@ export function ProductsPage() {
 
   React.useEffect(() => {
     fetchAllProducts().catch(error => {
-      console.error('Error loading products:', error)
-      toast({
+            toast({
         title: 'Lỗi tải dữ liệu',
         description: 'Không thể tải danh sách sản phẩm',
         variant: 'destructive',

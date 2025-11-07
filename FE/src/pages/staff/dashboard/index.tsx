@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react'
+﻿import React, { useEffect, useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import {
     ShoppingCart,
@@ -107,7 +107,6 @@ export default function StaffDashboard() {
     const [isLoading, setIsLoading] = useState(true)
     const [timeRange, setTimeRange] = useState<'week' | 'month'>('week')
 
-    // Fetch data
     useEffect(() => {
         const fetchData = async () => {
             setIsLoading(true)
@@ -119,8 +118,7 @@ export default function StaffDashboard() {
                 setOrders(ordersData.items || [])
                 setFeedbacks(feedbacksData.items || [])
             } catch (error) {
-                console.error('Failed to fetch dashboard data:', error)
-            } finally {
+                            } finally {
                 setIsLoading(false)
             }
         }
@@ -128,7 +126,6 @@ export default function StaffDashboard() {
         fetchData()
     }, [])
 
-    // Calculate statistics
     const stats = useMemo(() => {
         const now = new Date()
         const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
@@ -157,13 +154,11 @@ export default function StaffDashboard() {
         }
     }, [orders, feedbacks, timeRange])
 
-    // Revenue by day/week data
     const revenueData = useMemo(() => {
         const now = new Date()
         const data: { name: string; revenue: number; orders: number }[] = []
 
         if (timeRange === 'week') {
-            // Last 7 days
             for (let i = 6; i >= 0; i--) {
                 const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000)
                 const dayOrders = orders.filter(order => {
@@ -177,7 +172,6 @@ export default function StaffDashboard() {
                 })
             }
         } else {
-            // Last 4 weeks
             for (let i = 3; i >= 0; i--) {
                 const weekStart = new Date(now.getTime() - (i + 1) * 7 * 24 * 60 * 60 * 1000)
                 const weekEnd = new Date(now.getTime() - i * 7 * 24 * 60 * 60 * 1000)
@@ -196,7 +190,6 @@ export default function StaffDashboard() {
         return data
     }, [orders, timeRange])
 
-    // Order status pie chart data
     const orderStatusData = useMemo(() => {
         const statusMap: Record<number, { label: string; color: string }> = {
             0: { label: 'Chờ xử lý', color: '#FFA500' },
@@ -219,7 +212,6 @@ export default function StaffDashboard() {
         }))
     }, [orders])
 
-    // Rating distribution
     const ratingData = useMemo(() => {
         const distribution = [0, 0, 0, 0, 0]
         feedbacks.forEach(fb => {
@@ -248,7 +240,7 @@ export default function StaffDashboard() {
     return (
         <StaffLayout>
             <div className="px-4 sm:px-6 lg:px-8">
-                {/* Header */}
+                {}
                 <div className="mb-8">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                         <div>
@@ -271,7 +263,7 @@ export default function StaffDashboard() {
                     </div>
                 </div>
 
-                {/* Metrics Cards */}
+                {}
                 <div className="grid gap-6 mb-8 md:grid-cols-2 lg:grid-cols-4">
                     <MetricCard
                         title="Tổng đơn hàng"
@@ -311,9 +303,9 @@ export default function StaffDashboard() {
                     />
                 </div>
 
-                {/* Charts Section */}
+                {}
                 <div className="grid gap-8 lg:grid-cols-2 mb-8">
-                    {/* Revenue Chart */}
+                    {}
                     <Card className="border-0 shadow-lg">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
@@ -340,7 +332,7 @@ export default function StaffDashboard() {
                         </CardContent>
                     </Card>
 
-                    {/* Order Status Pie Chart */}
+                    {}
                     <Card className="border-0 shadow-lg">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
@@ -372,9 +364,9 @@ export default function StaffDashboard() {
                     </Card>
                 </div>
 
-                {/* Rating Distribution & Recent Activities */}
+                {}
                 <div className="grid gap-8 lg:grid-cols-2 mb-8">
-                    {/* Rating Distribution */}
+                    {}
                     <Card className="border-0 shadow-lg">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
@@ -395,7 +387,7 @@ export default function StaffDashboard() {
                         </CardContent>
                     </Card>
 
-                    {/* Recent Orders */}
+                    {}
                     <Card className="border-0 shadow-lg">
                         <CardHeader className="border-b border-gray-100">
                             <div className="flex items-center justify-between">
@@ -450,7 +442,7 @@ export default function StaffDashboard() {
                     </Card>
                 </div>
 
-                {/* Recent Feedbacks */}
+                {}
                 <Card className="border-0 shadow-lg mb-8">
                     <CardHeader className="border-b border-gray-100">
                         <div className="flex items-center justify-between">
@@ -514,7 +506,7 @@ export default function StaffDashboard() {
                     </CardContent>
                 </Card>
 
-                {/* Quick Actions */}
+                {}
                 <Card className="border-0 shadow-lg">
                     <CardHeader>
                         <CardTitle>Thao tác nhanh</CardTitle>

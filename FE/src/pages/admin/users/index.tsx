@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+﻿import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Users, UserX, Activity, RefreshCw } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
@@ -49,16 +49,14 @@ const AdminUsersPage: React.FC = () => {
       setSelectedUser(user)
       setIsUserFormOpen(true)
     } catch (error) {
-      console.error('Error opening edit user modal:', error)
-    }
+          }
   }
 
   const handleDeleteUser = (user: User) => {
     try {
       setDeleteConfirm({ user })
     } catch (error) {
-      console.error('Error opening delete confirmation:', error)
-    }
+          }
   }
 
   const handleUpdatePassword = (user: User) => {
@@ -66,8 +64,7 @@ const AdminUsersPage: React.FC = () => {
       setPasswordUpdateUser(user)
       setIsPasswordUpdateOpen(true)
     } catch (error) {
-      console.error('Error opening password update modal:', error)
-    }
+          }
   }
 
   const confirmDelete = async () => {
@@ -91,7 +88,7 @@ const AdminUsersPage: React.FC = () => {
   return (
     <AdminLayout>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {}
+        { }
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Quản lý người dùng</h1>
@@ -101,71 +98,8 @@ const AdminUsersPage: React.FC = () => {
           <div className="flex items-center gap-2" />
         </div>
 
-        {}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-          >
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Tổng số người dùng</CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{totalUsers}</div>
-                <p className="text-xs text-muted-foreground">Đăng ký trong hệ thống</p>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Đang hoạt động</CardTitle>
-                <Activity className="h-4 w-4 text-green-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-green-600">{activeUsers}</div>
-                <p className="text-xs text-muted-foreground">Đang hoạt động</p>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-          >
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Ngưng hoạt động</CardTitle>
-                <UserX className="h-4 w-4 text-orange-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-orange-600">{inactiveUsers}</div>
-                <p className="text-xs text-muted-foreground">Cần xem xét</p>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </div>
-
-        {}
+        { }
         <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              Tất cả người dùng
-            </CardTitle>
-            <CardDescription>
-              Xem và quản lý tất cả người dùng. Sử dụng bộ lọc và tìm kiếm để tìm người dùng cụ thể.
-            </CardDescription>
-          </CardHeader>
           <CardContent>
             <UsersTable
               onEditUser={handleEditUser}
@@ -175,7 +109,7 @@ const AdminUsersPage: React.FC = () => {
           </CardContent>
         </Card>
 
-        {}
+        { }
         <UserFormModal
           isOpen={isUserFormOpen}
           onClose={() => {
@@ -185,7 +119,7 @@ const AdminUsersPage: React.FC = () => {
           user={selectedUser}
         />
 
-        {}
+        { }
         <PasswordUpdateModal
           isOpen={isPasswordUpdateOpen}
           onClose={() => {
@@ -195,7 +129,7 @@ const AdminUsersPage: React.FC = () => {
           user={passwordUpdateUser}
         />
 
-        {}
+        { }
         <Dialog open={!!deleteConfirm} onOpenChange={() => setDeleteConfirm(null)}>
           <DialogContent>
             <DialogHeader>
@@ -235,7 +169,7 @@ const AdminUsersPage: React.FC = () => {
                 }
               >
                 {loadingStates['delete-user']?.isLoading ||
-                loadingStates['bulk-delete-users']?.isLoading ? (
+                  loadingStates['bulk-delete-users']?.isLoading ? (
                   <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
                 ) : null}
                 Xóa

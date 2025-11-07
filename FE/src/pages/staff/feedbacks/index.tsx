@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react'
+﻿import React, { useEffect, useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import {
     MessageSquare,
@@ -49,7 +49,6 @@ const StaffFeedbacksPage: React.FC = () => {
     const [selectedFeedback, setSelectedFeedback] = useState<Feedback | null>(null)
     const [updatingStatus, setUpdatingStatus] = useState(false)
 
-    // Fetch feedbacks
     const fetchFeedbacks = useCallback(async (page: number = 1) => {
         try {
             setLoading(true)
@@ -62,8 +61,7 @@ const StaffFeedbacksPage: React.FC = () => {
             setTotalItems(response.totalItemCount || 0)
             setCurrentPage(response.pageIndex || 1)
         } catch (error) {
-            console.error('Error fetching feedbacks:', error)
-            toast({
+                        toast({
                 title: 'Lỗi tải dữ liệu',
                 description: 'Không thể tải danh sách đánh giá. Vui lòng thử lại.',
                 variant: 'destructive',
@@ -77,7 +75,6 @@ const StaffFeedbacksPage: React.FC = () => {
         fetchFeedbacks(currentPage)
     }, [fetchFeedbacks, currentPage])
 
-    // Refresh data
     const handleRefresh = async () => {
         setIsRefreshing(true)
         await fetchFeedbacks(currentPage)
@@ -88,14 +85,11 @@ const StaffFeedbacksPage: React.FC = () => {
         })
     }
 
-    // Filter feedbacks
     const filteredFeedbacks = feedbacks.filter(feedback => {
-        // Status filter
         if (statusFilter !== 'all' && feedback.status !== statusFilter) {
             return false
         }
 
-        // Rating filter
         if (ratingFilter !== 'all') {
             const rating = parseInt(ratingFilter)
             if (feedback.rating !== rating) {
@@ -103,7 +97,6 @@ const StaffFeedbacksPage: React.FC = () => {
             }
         }
 
-        // Tab filter
         if (selectedTab !== 'all') {
             if (selectedTab === 'active' && feedback.status !== 'ACTIVE') {
                 return false
@@ -113,7 +106,6 @@ const StaffFeedbacksPage: React.FC = () => {
             }
         }
 
-        // Search filter
         if (searchQuery) {
             const query = searchQuery.toLowerCase()
             return (
@@ -127,13 +119,11 @@ const StaffFeedbacksPage: React.FC = () => {
         return true
     })
 
-    // View feedback detail
     const handleViewDetail = (feedback: Feedback) => {
         setSelectedFeedback(feedback)
         setIsDetailOpen(true)
     }
 
-    // Update feedback status
     const handleUpdateStatus = async (feedbackId: number) => {
         try {
             setUpdatingStatus(true)
@@ -144,10 +134,8 @@ const StaffFeedbacksPage: React.FC = () => {
                 description: 'Đã cập nhật trạng thái đánh giá.',
             })
 
-            // Refresh the list
             await fetchFeedbacks(currentPage)
 
-            // Update selected feedback if detail is open
             if (selectedFeedback && selectedFeedback.feedbackId === feedbackId) {
                 const updatedFeedback = feedbacks.find(f => f.feedbackId === feedbackId)
                 if (updatedFeedback) {
@@ -158,8 +146,7 @@ const StaffFeedbacksPage: React.FC = () => {
                 }
             }
         } catch (error) {
-            console.error('Error updating feedback status:', error)
-            toast({
+                        toast({
                 title: 'Lỗi',
                 description: 'Không thể cập nhật trạng thái. Vui lòng thử lại.',
                 variant: 'destructive',
@@ -169,7 +156,6 @@ const StaffFeedbacksPage: React.FC = () => {
         }
     }
 
-    // Get rating stars
     const getRatingStars = (rating: number) => {
         return Array.from({ length: 5 }, (_, i) => (
             <Star
@@ -180,7 +166,6 @@ const StaffFeedbacksPage: React.FC = () => {
         ))
     }
 
-    // Get status badge
     const getStatusBadge = (status: string) => {
         if (status === 'ACTIVE') {
             return (
@@ -198,7 +183,6 @@ const StaffFeedbacksPage: React.FC = () => {
         )
     }
 
-    // Statistics
     const stats = {
         total: feedbacks.length,
         active: feedbacks.filter(f => f.status === 'ACTIVE').length,
@@ -213,7 +197,7 @@ const StaffFeedbacksPage: React.FC = () => {
     return (
         <StaffLayout>
             <div className="min-h-screen bg-gray-50">
-                {/* Header */}
+                {}
                 <div className="bg-white shadow-sm border-b border-gray-200">
                     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
                         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
@@ -244,58 +228,7 @@ const StaffFeedbacksPage: React.FC = () => {
                 </div>
 
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                    {/* Statistics Cards */}
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-                        <Card>
-                            <CardContent className="pt-6">
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <p className="text-sm font-medium text-gray-600">Tổng đánh giá</p>
-                                        <p className="text-2xl font-bold text-gray-900">{stats.total}</p>
-                                    </div>
-                                    <MessageSquare className="h-8 w-8 text-blue-600" />
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardContent className="pt-6">
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <p className="text-sm font-medium text-gray-600">Đang hiển thị</p>
-                                        <p className="text-2xl font-bold text-green-600">{stats.active}</p>
-                                    </div>
-                                    <CheckCircle className="h-8 w-8 text-green-600" />
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardContent className="pt-6">
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <p className="text-sm font-medium text-gray-600">Đang ẩn</p>
-                                        <p className="text-2xl font-bold text-gray-600">{stats.inactive}</p>
-                                    </div>
-                                    <XCircle className="h-8 w-8 text-gray-600" />
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardContent className="pt-6">
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <p className="text-sm font-medium text-gray-600">Đánh giá TB</p>
-                                        <p className="text-2xl font-bold text-yellow-600">{stats.avgRating} ⭐</p>
-                                    </div>
-                                    <Star className="h-8 w-8 text-yellow-600 fill-yellow-600" />
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-
-                    {/* Filters and Search */}
+                    {}
                     <Card className="mb-6">
                         <CardHeader>
                             <CardTitle className="text-lg">Bộ lọc và tìm kiếm</CardTitle>
@@ -340,7 +273,7 @@ const StaffFeedbacksPage: React.FC = () => {
                         </CardContent>
                     </Card>
 
-                    {/* Tabs */}
+                    {}
                     <Tabs value={selectedTab} onValueChange={setSelectedTab} className="mb-6">
                         <TabsList>
                             <TabsTrigger value="all">
@@ -355,7 +288,7 @@ const StaffFeedbacksPage: React.FC = () => {
                         </TabsList>
                     </Tabs>
 
-                    {/* Feedbacks Table */}
+                    {}
                     <Card>
                         <CardHeader>
                             <div className="flex items-center justify-between">
@@ -441,7 +374,7 @@ const StaffFeedbacksPage: React.FC = () => {
                                         </Table>
                                     </div>
 
-                                    {/* Pagination */}
+                                    {}
                                     {totalPages > 1 && (
                                         <div className="flex items-center justify-between mt-4">
                                             <p className="text-sm text-gray-600">
@@ -474,7 +407,7 @@ const StaffFeedbacksPage: React.FC = () => {
                 </div>
             </div>
 
-            {/* Feedback Detail Modal */}
+            {}
             <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
                 <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
@@ -489,7 +422,7 @@ const StaffFeedbacksPage: React.FC = () => {
 
                     {selectedFeedback && (
                         <div className="space-y-6">
-                            {/* Customer Info */}
+                            {}
                             <div>
                                 <h3 className="text-sm font-semibold text-gray-700 mb-2">Thông tin khách hàng</h3>
                                 <div className="bg-gray-50 rounded-lg p-4 space-y-2">
@@ -514,11 +447,11 @@ const StaffFeedbacksPage: React.FC = () => {
                                 </div>
                             </div>
 
-                            {/* Product Info with Image */}
+                            {}
                             <div>
                                 <h3 className="text-sm font-semibold text-gray-700 mb-2">Thông tin sản phẩm</h3>
                                 <div className="bg-gray-50 rounded-lg p-4 space-y-4">
-                                    {/* Product Image */}
+                                    {}
                                     {selectedFeedback.orderDetail?.images ? (
                                         <div className="w-full h-48 bg-gray-200 rounded-lg overflow-hidden">
                                             <img
@@ -538,7 +471,7 @@ const StaffFeedbacksPage: React.FC = () => {
                                         </div>
                                     )}
 
-                                    {/* Product Details */}
+                                    {}
                                     <div className="space-y-2">
                                         <div className="flex justify-between">
                                             <span className="text-sm text-gray-600">Tên sản phẩm:</span>
@@ -562,7 +495,7 @@ const StaffFeedbacksPage: React.FC = () => {
                                 </div>
                             </div>
 
-                            {/* Rating */}
+                            {}
                             <div>
                                 <h3 className="text-sm font-semibold text-gray-700 mb-2">Đánh giá</h3>
                                 <div className="flex items-center space-x-2">
@@ -573,7 +506,7 @@ const StaffFeedbacksPage: React.FC = () => {
                                 </div>
                             </div>
 
-                            {/* Comment */}
+                            {}
                             <div>
                                 <h3 className="text-sm font-semibold text-gray-700 mb-2">Nội dung đánh giá</h3>
                                 <div className="bg-gray-50 rounded-lg p-4">
@@ -583,7 +516,7 @@ const StaffFeedbacksPage: React.FC = () => {
                                 </div>
                             </div>
 
-                            {/* Status */}
+                            {}
                             <div>
                                 <h3 className="text-sm font-semibold text-gray-700 mb-2">Trạng thái hiển thị</h3>
                                 <div className="flex items-center justify-between bg-gray-50 rounded-lg p-4">

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo, useCallback } from 'react'
+﻿import React, { useEffect, useState, useMemo, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import {
   Activity,
@@ -126,8 +126,7 @@ export default function ManagerDashboard() {
       const stats = await iotDeviceService.getDeviceStatistics()
       setIotDeviceStats(stats)
     } catch (error) {
-      console.error('Failed to fetch IoT device statistics:', error)
-    }
+          }
   }, [])
 
   const fetchWeather = useCallback(async () => {
@@ -136,8 +135,7 @@ export default function ManagerDashboard() {
       const weatherData = await weatherService.getWeather('Ho Chi Minh')
       setWeather(weatherData)
     } catch (error) {
-      console.error('Failed to fetch weather data:', error)
-    } finally {
+          } finally {
       setIsLoadingWeather(false)
     }
   }, [])

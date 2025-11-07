@@ -1,4 +1,4 @@
-import { http } from './client'
+﻿import { http } from './client'
 
 export interface OrderItem {
   productId: string
@@ -153,18 +153,6 @@ export const orderService = {
   },
 }
 
-/**
- * Mapping PaymentStatus từ Backend (C# enum) sang nhãn hiển thị Frontend
- *
- * Backend Enum: PaymentStatus (Domain/Enum/Status.cs)
- * 0: UNPAID       → Chưa thanh toán
- * 1: PAID         → Đã thanh toán
- * 2: UNDISCHARGED → Chưa thanh toán
- * 3: PENDING      → Đang xử lý
- * 4: CANCELLED    → Đã hủy
- * 5: COMPLETED    → Hoàn thành
- * 6: DELIVERED    → Đang giao hàng
- */
 export const getOrderStatusLabel = (status: number): string => {
   const statusMap: Record<number, string> = {
     0: 'Chưa thanh toán',
@@ -178,12 +166,6 @@ export const getOrderStatusLabel = (status: number): string => {
   return statusMap[status] || 'Không xác định'
 }
 
-/**
- * Trả về variant (màu sắc) cho badge hiển thị trạng thái
- * - default: Màu xanh (trạng thái tích cực: đã xác nhận, hoàn thành)
- * - secondary: Màu xám (trạng thái trung tính: chờ xử lý, đang xử lý, đang giao hàng)
- * - destructive: Màu đỏ (trạng thái tiêu cực: đã hủy)
- */
 export const getOrderStatusVariant = (status: number): 'default' | 'secondary' | 'destructive' => {
   switch (status) {
     case 0: // Chưa thanh toán
@@ -201,9 +183,6 @@ export const getOrderStatusVariant = (status: number): 'default' | 'secondary' |
   }
 }
 
-/**
- * Trả về tên icon phù hợp với từng trạng thái đơn hàng
- */
 export const getOrderStatusIcon = (status: number): string => {
   switch (status) {
     case 0: // Chưa thanh toán

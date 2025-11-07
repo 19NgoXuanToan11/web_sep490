@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+﻿import React, { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
@@ -97,8 +97,7 @@ export const QualityCheckEditModal: React.FC<QualityCheckEditModalProps> = ({
       }
       onClose()
     } catch (error) {
-      console.error('Failed to save quality check:', error)
-    } finally {
+          } finally {
       setSaving(false)
     }
   }

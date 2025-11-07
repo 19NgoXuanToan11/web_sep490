@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react'
+﻿import React, { useEffect, useState, useCallback, useMemo } from 'react'
 import {
   ShoppingCart,
   Package,
@@ -91,7 +91,6 @@ const StaffOrdersPage: React.FC = () => {
     const customerName =
       email !== 'N/A' ? email.split('@')[0].replace(/[._]/g, ' ') : 'Unknown Customer'
 
-    // Helper function để map backend status sang frontend paymentStatus
     const mapPaymentStatus = (status: number): 'pending' | 'paid' | 'failed' | 'refunded' => {
       switch (status) {
         case 1: // PAID - Đã thanh toán
@@ -146,7 +145,6 @@ const StaffOrdersPage: React.FC = () => {
               const transformed = transformApiOrder(apiOrder)
               return transformed
             } catch (error) {
-              console.error(`Error transforming order ${index}:`, error, 'Raw data:', apiOrder)
               return null
             }
           })
@@ -157,7 +155,6 @@ const StaffOrdersPage: React.FC = () => {
         setTotalPages(response.totalPageCount)
         setCurrentPage(response.pageIndex)
       } catch (error) {
-        console.error('Error fetching orders:', error)
         toast({
           title: 'Lỗi tải dữ liệu',
           description: 'Không thể tải danh sách đơn hàng. Vui lòng thử lại.',
@@ -219,7 +216,6 @@ const StaffOrdersPage: React.FC = () => {
         description: `Tìm thấy ${searchResult.totalItemCount} đơn hàng trong ngày ${format(date, 'dd/MM/yyyy', { locale: vi })}`,
       })
     } catch (error) {
-      console.error('Date search error:', error)
       toast({
         title: 'Lỗi tìm kiếm',
         description: 'Không thể tìm kiếm đơn hàng theo ngày. Vui lòng thử lại.',
@@ -310,7 +306,6 @@ const StaffOrdersPage: React.FC = () => {
         description: `Tìm thấy ${searchResult.totalItemCount} đơn hàng`,
       })
     } catch (error) {
-      console.error('Search error:', error)
       toast({
         title: 'Lỗi tìm kiếm',
         description: 'Không thể thực hiện tìm kiếm. Vui lòng thử lại.',
@@ -472,7 +467,6 @@ const StaffOrdersPage: React.FC = () => {
       setSelectedOrderDetail(orderDetail)
       setIsOrderDetailOpen(true)
     } catch (error) {
-      console.error('Error fetching order detail:', error)
       toast({
         title: 'Lỗi tải dữ liệu',
         description: 'Không thể tải chi tiết đơn hàng. Vui lòng thử lại.',
@@ -514,7 +508,6 @@ const StaffOrdersPage: React.FC = () => {
         await fetchOrders()
       }
     } catch (error) {
-      console.error('Error updating order status:', error)
       toast({
         title: 'Lỗi cập nhật',
         description: 'Không thể cập nhật trạng thái đơn hàng. Vui lòng thử lại.',
@@ -538,7 +531,6 @@ const StaffOrdersPage: React.FC = () => {
 
       await fetchOrders()
     } catch (error) {
-      console.error('Error updating delivery status:', error)
       toast({
         title: 'Lỗi cập nhật',
         description: 'Không thể cập nhật trạng thái giao hàng. Vui lòng thử lại.',
@@ -562,7 +554,6 @@ const StaffOrdersPage: React.FC = () => {
 
       await fetchOrders()
     } catch (error) {
-      console.error('Error updating complete status:', error)
       toast({
         title: 'Lỗi cập nhật',
         description: 'Không thể cập nhật trạng thái hoàn thành. Vui lòng thử lại.',
@@ -586,7 +577,6 @@ const StaffOrdersPage: React.FC = () => {
 
       await fetchOrders()
     } catch (error) {
-      console.error('Error cancelling order:', error)
       toast({
         title: 'Lỗi hủy đơn',
         description: 'Không thể hủy đơn hàng. Vui lòng thử lại.',
@@ -610,7 +600,6 @@ const StaffOrdersPage: React.FC = () => {
 
       await fetchOrders()
     } catch (error) {
-      console.error('Error creating payment:', error)
       toast({
         title: 'Lỗi tạo thanh toán',
         description: 'Không thể tạo yêu cầu thanh toán. Vui lòng thử lại.',
@@ -631,7 +620,7 @@ const StaffOrdersPage: React.FC = () => {
   return (
     <StaffLayout>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
+        { }
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Quản lý đơn hàng</h1>
@@ -651,10 +640,10 @@ const StaffOrdersPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Tabs and Search/Filters - OUTSIDE Card */}
+        { }
         <Tabs value={selectedTab} onValueChange={handleTabChange} className="space-y-4 mb-6">
           <TabsContent value="all" className="space-y-4 mt-4">
-            {/* Search and Filters */}
+            { }
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="flex-1">
                 <div className="flex gap-2">
@@ -815,7 +804,7 @@ const StaffOrdersPage: React.FC = () => {
               </DropdownMenu>
             </div>
 
-            {/* Search Results Info */}
+            { }
             {(searchQuery || selectedDate) && (
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
                 <div className="flex items-center justify-between">
@@ -882,7 +871,7 @@ const StaffOrdersPage: React.FC = () => {
           </TabsContent>
         </Tabs>
 
-        {/* Orders Table Card - ONLY for displaying data */}
+        { }
         <Card>
           <CardContent className="p-0">
             <div className="overflow-x-auto">
@@ -1026,21 +1015,21 @@ const StaffOrdersPage: React.FC = () => {
                                   Đánh dấu hoàn thành
                                 </DropdownMenuItem>
                               )}
-                              {/* Cho phép hoàn thành đơn hàng khi đang giao hàng (status = 6) */}
+                              { }
                               {order.status === 6 && (
                                 <DropdownMenuItem onClick={() => handleCompleteStatus(order.id)}>
                                   <CheckCircle className="h-4 w-4 mr-2" />
                                   Hoàn thành đơn hàng
                                 </DropdownMenuItem>
                               )}
-                              {/* Chỉ cho phép hủy đơn hàng nếu chưa hoàn thành (status < 4) */}
+                              { }
                               {order.status !== 4 && order.status !== 5 && order.status !== 6 && (
                                 <DropdownMenuItem onClick={() => handleCancelStatus(order.id)}>
                                   <XCircle className="h-4 w-4 mr-2" />
                                   Hủy đơn hàng
                                 </DropdownMenuItem>
                               )}
-                              {/* Chỉ cho phép thanh toán lại nếu đơn hàng bị hủy (status = 4 = CANCELLED) */}
+                              { }
                               {order.status === 4 && (
                                 <DropdownMenuItem onClick={() => handleCreatePayment(order.id)}>
                                   <CreditCard className="h-4 w-4 mr-2" />
@@ -1057,7 +1046,7 @@ const StaffOrdersPage: React.FC = () => {
               </Table>
             </div>
 
-            {/* Pagination */}
+            { }
             {!loading && totalPages > 1 && (
               <div className="flex items-center justify-between space-x-2 py-4 px-6 border-t">
                 <div className="text-sm text-muted-foreground">
@@ -1105,7 +1094,7 @@ const StaffOrdersPage: React.FC = () => {
         </Card>
       </div>
 
-      {/* Order Detail Dialog */}
+      { }
       <Dialog open={isOrderDetailOpen} onOpenChange={setIsOrderDetailOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -1123,7 +1112,7 @@ const StaffOrdersPage: React.FC = () => {
             </div>
           ) : selectedOrderDetail ? (
             <div className="space-y-6">
-              {/* Order Info and Customer Info Cards */}
+              { }
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Card>
                   <CardHeader>
@@ -1174,7 +1163,7 @@ const StaffOrdersPage: React.FC = () => {
                 </Card>
               </div>
 
-              {/* Product Details Section */}
+              { }
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">Chi tiết sản phẩm</CardTitle>
@@ -1190,7 +1179,7 @@ const StaffOrdersPage: React.FC = () => {
                           <div className="flex justify-between items-start">
                             <div className="flex-1">
                               <div className="flex items-start gap-4">
-                                {/* Product Image */}
+                                { }
                                 {item.product?.images && (
                                   <div className="flex-shrink-0">
                                     <img
@@ -1204,7 +1193,7 @@ const StaffOrdersPage: React.FC = () => {
                                   </div>
                                 )}
 
-                                {/* Product Info */}
+                                { }
                                 <div className="flex-1">
                                   <div className="font-semibold text-base mb-2">
                                     {item.product?.productName || 'N/A'}
@@ -1260,5 +1249,4 @@ const StaffOrdersPage: React.FC = () => {
 }
 
 export default StaffOrdersPage
-
 

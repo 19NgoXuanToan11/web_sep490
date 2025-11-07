@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+﻿import { useState, useEffect } from 'react'
 import { ManagerLayout } from '@/shared/layouts/ManagerLayout'
 import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
@@ -79,8 +79,7 @@ export default function FarmActivitiesPage() {
       const activitiesData = Array.isArray(response) ? response : []
       setActivities(activitiesData)
     } catch (error) {
-      console.error('Error loading activities:', error)
-      setActivities([])
+            setActivities([])
       toast({
         title: 'Lỗi',
         description: 'Không thể tải danh sách hoạt động nông trại',
@@ -255,7 +254,7 @@ export default function FarmActivitiesPage() {
     <ManagerLayout>
       <div className="p-6">
         <div className="space-y-8">
-          {}
+          { }
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Quản Lý Hoạt Động Nông Trại</h1>
             <p className="text-gray-600 mt-2">
@@ -263,68 +262,7 @@ export default function FarmActivitiesPage() {
             </p>
           </div>
 
-          {}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Tổng Hoạt Động</CardTitle>
-                <Activity className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {Array.isArray(activities) ? activities.length : 0}
-                </div>
-                <p className="text-xs text-muted-foreground">Đang quản lý trong hệ thống</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Đang Thực Hiện</CardTitle>
-                <Calendar className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-blue-600">
-                  {Array.isArray(activities)
-                    ? activities.filter(a => a && a.status === 'ACTIVE').length
-                    : 0}
-                </div>
-                <p className="text-xs text-muted-foreground">Hoạt động đang diễn ra</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Hoàn Thành</CardTitle>
-                <CheckCircle className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-green-600">
-                  {Array.isArray(activities)
-                    ? activities.filter(a => a && a.status === 'COMPLETED').length
-                    : 0}
-                </div>
-                <p className="text-xs text-muted-foreground">Hoạt động đã hoàn thành</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Chờ Thực Hiện</CardTitle>
-                <AlertTriangle className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-yellow-600">
-                  {Array.isArray(activities)
-                    ? activities.filter(a => a && a.status === 'PENDING').length
-                    : 0}
-                </div>
-                <p className="text-xs text-muted-foreground">Hoạt động chờ thực hiện</p>
-              </CardContent>
-            </Card>
-          </div>
-
-          {}
+          { }
           <Card>
             <CardHeader>
               <CardTitle>Danh Sách Hoạt Động Nông Trại</CardTitle>
@@ -387,7 +325,7 @@ export default function FarmActivitiesPage() {
                 </div>
               </div>
 
-              {}
+              { }
               <div className="border rounded-lg">
                 <Table>
                   <TableHeader>
@@ -463,7 +401,7 @@ export default function FarmActivitiesPage() {
         </div>
       </div>
 
-      {}
+      { }
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -535,7 +473,7 @@ export default function FarmActivitiesPage() {
         </DialogContent>
       </Dialog>
 
-      {}
+      { }
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>

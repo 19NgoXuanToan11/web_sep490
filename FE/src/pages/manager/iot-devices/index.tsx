@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+﻿import React, { useEffect, useState } from 'react'
 import {
   Cpu,
   Activity,
@@ -74,8 +74,7 @@ const ManagerIoTDevicesPage: React.FC = () => {
       const stats = await iotDeviceService.getDeviceStatistics()
       setStatistics(stats)
     } catch (error) {
-      console.error('Failed to fetch statistics:', error)
-    }
+          }
   }
 
   const handleRefresh = () => {

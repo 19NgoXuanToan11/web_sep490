@@ -1,4 +1,4 @@
-import React from 'react'
+﻿import React from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Button } from '@/shared/ui/button'
@@ -60,8 +60,7 @@ export function ProductForm({ editingProduct, onSuccess, onCancel, className }: 
 
   React.useEffect(() => {
     fetchCategories().catch(error => {
-      console.error('Error loading categories:', error)
-      toast({
+            toast({
         title: 'Lỗi tải danh mục',
         description: 'Không thể tải danh sách danh mục',
         variant: 'destructive',

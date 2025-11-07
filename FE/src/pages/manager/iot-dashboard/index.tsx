@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react'
+﻿import React, { useEffect, useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import {
   Thermometer,
@@ -63,8 +63,7 @@ const RealTimeIoTDashboard: React.FC = () => {
       setIsOnline(true)
       setRetryCount(0)
     } catch (error) {
-      console.error('Failed to fetch sensor data:', error)
-      setIsOnline(false)
+            setIsOnline(false)
       setRetryCount(prev => prev + 1)
 
       if (retryCount < 3) {
@@ -117,8 +116,7 @@ const RealTimeIoTDashboard: React.FC = () => {
         })
       }
     } catch (error) {
-      console.error('Failed to control pump:', error)
-      toast({
+            toast({
         title: 'Lỗi kết nối',
         description: 'Không thể gửi lệnh điều khiển',
         variant: 'destructive',
@@ -145,8 +143,7 @@ const RealTimeIoTDashboard: React.FC = () => {
         })
       }
     } catch (error) {
-      console.error('Failed to control manual mode:', error)
-      toast({
+            toast({
         title: 'Lỗi kết nối',
         description: 'Không thể gửi lệnh điều khiển',
         variant: 'destructive',
@@ -171,8 +168,7 @@ const RealTimeIoTDashboard: React.FC = () => {
         })
       }
     } catch (error) {
-      console.error('Failed to control servo:', error)
-      toast({
+            toast({
         title: 'Lỗi kết nối',
         description: 'Không thể gửi lệnh điều khiển',
         variant: 'destructive',

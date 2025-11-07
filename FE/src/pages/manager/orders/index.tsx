@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react'
+﻿import React, { useEffect, useState, useCallback, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import {
   ShoppingCart,
@@ -93,7 +93,6 @@ const ManagerOrdersPage: React.FC = () => {
     const customerName =
       email !== 'N/A' ? email.split('@')[0].replace(/[._]/g, ' ') : 'Unknown Customer'
 
-    // Helper function để map backend status sang frontend paymentStatus
     const mapPaymentStatus = (status: number): 'pending' | 'paid' | 'failed' | 'refunded' => {
       switch (status) {
         case 1: // PAID - Đã thanh toán
@@ -148,7 +147,6 @@ const ManagerOrdersPage: React.FC = () => {
               const transformed = transformApiOrder(apiOrder)
               return transformed
             } catch (error) {
-              console.error(`Error transforming order ${index}:`, error, 'Raw data:', apiOrder)
               return null
             }
           })
@@ -159,7 +157,6 @@ const ManagerOrdersPage: React.FC = () => {
         setTotalPages(response.totalPageCount)
         setCurrentPage(response.pageIndex)
       } catch (error) {
-        console.error('Error fetching orders:', error)
         toast({
           title: 'Lỗi tải dữ liệu',
           description: 'Không thể tải danh sách đơn hàng. Vui lòng thử lại.',
@@ -221,7 +218,6 @@ const ManagerOrdersPage: React.FC = () => {
         description: `Tìm thấy ${searchResult.totalItemCount} đơn hàng trong ngày ${format(date, 'dd/MM/yyyy', { locale: vi })}`,
       })
     } catch (error) {
-      console.error('Date search error:', error)
       toast({
         title: 'Lỗi tìm kiếm',
         description: 'Không thể tìm kiếm đơn hàng theo ngày. Vui lòng thử lại.',
@@ -317,7 +313,6 @@ const ManagerOrdersPage: React.FC = () => {
         description: `Tìm thấy ${searchResult.totalItemCount} đơn hàng`,
       })
     } catch (error) {
-      console.error('Search error:', error)
       toast({
         title: 'Lỗi tìm kiếm',
         description: 'Không thể thực hiện tìm kiếm. Vui lòng thử lại.',
@@ -373,16 +368,6 @@ const ManagerOrdersPage: React.FC = () => {
     })
   }, [orders, searchQuery, searchType, statusFilter, paymentFilter])
 
-  /**
-   * Thống kê đơn hàng theo PaymentStatus từ Backend
-   * 0: UNPAID - Chưa thanh toán
-   * 1: PAID - Đã thanh toán
-   * 2: UNDISCHARGED - Chưa thanh toán
-   * 3: PENDING - Đang xử lý
-   * 4: CANCELLED - Đã hủy
-   * 5: COMPLETED - Hoàn thành
-   * 6: DELIVERED - Đã giao hàng
-   */
   const orderStats = useMemo(
     () => ({
       total: orders.length,
@@ -491,7 +476,6 @@ const ManagerOrdersPage: React.FC = () => {
       setSelectedOrderDetail(orderDetail)
       setIsOrderDetailOpen(true)
     } catch (error) {
-      console.error('Error fetching order detail:', error)
       toast({
         title: 'Lỗi tải dữ liệu',
         description: 'Không thể tải chi tiết đơn hàng. Vui lòng thử lại.',
@@ -533,7 +517,6 @@ const ManagerOrdersPage: React.FC = () => {
         await fetchOrders()
       }
     } catch (error) {
-      console.error('Error updating order status:', error)
       toast({
         title: 'Lỗi cập nhật',
         description: 'Không thể cập nhật trạng thái đơn hàng. Vui lòng thử lại.',

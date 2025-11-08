@@ -1,16 +1,3 @@
-
-export type DeviceStatus = 'Idle' | 'Running' | 'Paused'
-
-export interface Device {
-  id: string
-  zone: string
-  name: string
-  status: DeviceStatus
-  lastRun: string
-  nextRun: string
-  uptimePct: number
-}
-
 export type ScheduleStatus = 'Scheduled' | 'Running' | 'Paused'
 
 export interface IrrigationSchedule {
@@ -26,20 +13,6 @@ export interface IrrigationSchedule {
   status: ScheduleStatus
 }
 
-export interface IrrigationRule {
-  id: string
-  name: string
-  conditionText: string
-  enabled: boolean
-  createdAt: string
-}
-
-export interface DeviceAction {
-  type: 'start' | 'stop' | 'pause' | 'run-now' | 'maintenance'
-  deviceId: string
-  notes?: string
-}
-
 export interface ScheduleFormData {
   title: string
   deviceId: string
@@ -47,12 +20,6 @@ export interface ScheduleFormData {
   startTime: string
   endTime: string
   moistureThresholdPct: number
-  enabled: boolean
-}
-
-export interface RuleFormData {
-  name: string
-  conditionText: string
   enabled: boolean
 }
 

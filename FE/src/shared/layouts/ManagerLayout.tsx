@@ -39,11 +39,11 @@ const navigationItems: NavItem[] = [
     description: 'Tổng quan & Phân tích',
   },
   {
-    name: 'Tưới tiêu thông minh',
+    name: 'Lịch',
     href: '/manager/irrigation',
     icon: Droplets,
     badge: 3,
-    description: 'Quản lý tưới nước tự động',
+    description: 'Quản lý lịch tưới',
   },
   {
     name: 'Danh mục',

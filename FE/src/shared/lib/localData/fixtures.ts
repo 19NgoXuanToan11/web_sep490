@@ -1,105 +1,10 @@
 import type {
-  Device,
   IrrigationSchedule,
-  IrrigationRule,
   SystemSettings,
   StaffDevice,
   WorkLog,
   QualityCheck,
 } from '@/shared/lib/localData'
-
-export const devices: Device[] = [
-  {
-    id: 'dev-1',
-    zone: 'Khu A - Nhà kính 1',
-    name: 'Hệ thống phun nước A1',
-    status: 'Idle',
-    lastRun: '2024-01-15T06:00:00Z',
-    nextRun: '2024-01-16T06:00:00Z',
-    uptimePct: 95.2,
-  },
-  {
-    id: 'dev-2',
-    zone: 'Khu A - Nhà kính 1',
-    name: 'Hệ thống nhỏ giọt A2',
-    status: 'Running',
-    lastRun: '2024-01-15T14:00:00Z',
-    nextRun: '2024-01-15T18:00:00Z',
-    uptimePct: 98.7,
-  },
-  {
-    id: 'dev-3',
-    zone: 'Khu B - Cánh đồng ngoài trời',
-    name: 'Hệ thống phun nước B1',
-    status: 'Paused',
-    lastRun: '2024-01-14T19:00:00Z',
-    nextRun: '2024-01-16T05:30:00Z',
-    uptimePct: 92.1,
-  },
-  {
-    id: 'dev-4',
-    zone: 'Khu B - Cánh đồng ngoài trời',
-    name: 'Hệ thống nhỏ giọt B2',
-    status: 'Idle',
-    lastRun: '2024-01-15T08:00:00Z',
-    nextRun: '2024-01-16T08:00:00Z',
-    uptimePct: 96.8,
-  },
-  {
-    id: 'dev-5',
-    zone: 'Khu C - Nhà kính 2',
-    name: 'Hệ thống phun sương C1',
-    status: 'Running',
-    lastRun: '2024-01-15T10:00:00Z',
-    nextRun: '2024-01-15T16:00:00Z',
-    uptimePct: 99.1,
-  },
-  {
-    id: 'dev-6',
-    zone: 'Khu C - Nhà kính 2',
-    name: 'Hệ thống phun nước C2',
-    status: 'Idle',
-    lastRun: '2024-01-15T12:00:00Z',
-    nextRun: '2024-01-16T12:00:00Z',
-    uptimePct: 94.5,
-  },
-  {
-    id: 'dev-7',
-    zone: 'Khu D - Vườn ươm',
-    name: 'Hệ thống nhỏ giọt D1',
-    status: 'Idle',
-    lastRun: '2024-01-15T07:00:00Z',
-    nextRun: '2024-01-16T07:00:00Z',
-    uptimePct: 97.3,
-  },
-  {
-    id: 'dev-8',
-    zone: 'Khu D - Vườn ươm',
-    name: 'Hệ thống phun sương D2',
-    status: 'Running',
-    lastRun: '2024-01-15T13:00:00Z',
-    nextRun: '2024-01-15T19:00:00Z',
-    uptimePct: 93.8,
-  },
-  {
-    id: 'dev-9',
-    zone: 'Khu E - Khu nghiên cứu',
-    name: 'Hệ thống nhỏ giọt chính xác E1',
-    status: 'Idle',
-    lastRun: '2024-01-15T09:00:00Z',
-    nextRun: '2024-01-16T09:00:00Z',
-    uptimePct: 98.9,
-  },
-  {
-    id: 'dev-10',
-    zone: 'Khu E - Khu nghiên cứu',
-    name: 'Hệ thống phun nước thông minh E2',
-    status: 'Paused',
-    lastRun: '2024-01-15T11:00:00Z',
-    nextRun: '2024-01-16T11:00:00Z',
-    uptimePct: 91.7,
-  },
-]
 
 export const irrigationSchedules: IrrigationSchedule[] = [
   {
@@ -162,32 +67,6 @@ export const irrigationSchedules: IrrigationSchedule[] = [
     nextRun: '2024-01-15T16:00:00Z',
     status: 'Running',
   },
-
-]
-
-export const irrigationRules: IrrigationRule[] = [
-  {
-    id: 'rule-1',
-    name: 'Khẩn cấp độ ẩm thấp',
-    conditionText: 'Nếu độ ẩm đất < 15%, chạy ngay lập tức trong 30 phút',
-    enabled: true,
-    createdAt: '2024-01-10T10:00:00Z',
-  },
-  {
-    id: 'rule-2',
-    name: 'Tăng cường nhà kính buổi sáng',
-    conditionText: 'Nếu độ ẩm đất < 30% từ 5:00-6:00 sáng, chạy trong 15 phút',
-    enabled: true,
-    createdAt: '2024-01-08T14:30:00Z',
-  },
-  {
-    id: 'rule-3',
-    name: 'Gia hạn ngày nóng',
-    conditionText: 'Nếu nhiệt độ > 85°F và độ ẩm đất < 40%, kéo dài thời gian chạy thêm 10 phút',
-    enabled: true,
-    createdAt: '2024-01-05T09:15:00Z',
-  },
-
 ]
 
 export const systemSettings: SystemSettings = {
@@ -234,7 +113,6 @@ export const staffDevices: StaffDevice[] = [
     needsMaintenance: false,
     uptimePct: 94.2,
   },
-
 ]
 
 export const workLogs: WorkLog[] = [
@@ -260,7 +138,6 @@ export const workLogs: WorkLog[] = [
     createdAt: '2024-01-15T08:45:00Z',
     updatedAt: '2024-01-15T08:45:00Z',
   },
-
 ]
 
 export const qualityChecks: QualityCheck[] = [
@@ -286,5 +163,4 @@ export const qualityChecks: QualityCheck[] = [
     createdAt: '2024-01-15T14:25:00Z',
     updatedAt: '2024-01-15T14:25:00Z',
   },
-
 ]

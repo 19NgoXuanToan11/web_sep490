@@ -3,7 +3,7 @@ import { ManagerLayout } from '@/shared/layouts/ManagerLayout'
 import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
 import { Label } from '@/shared/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card'
+import { Card, CardContent } from '@/shared/ui/card'
 import { Badge } from '@/shared/ui/badge'
 import {
   Dialog,
@@ -261,16 +261,9 @@ export default function FarmActivitiesPage() {
 
           { }
           <Card>
-            <CardHeader>
-              <CardTitle>Danh Sách Hoạt Động Nông Trại</CardTitle>
-              <CardDescription>
-                Quản lý thông tin chi tiết của từng hoạt động nông nghiệp
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-col md:flex-row gap-4 mb-6">
+            <CardContent className="pt-6">
+              <div className="flex flex-col md:flex-row gap-4">
                 <div className="flex-1">
-                  <Label htmlFor="search">Tìm kiếm theo loại hoạt động</Label>
                   <Input
                     id="search"
                     placeholder="Nhập loại hoạt động..."
@@ -279,7 +272,6 @@ export default function FarmActivitiesPage() {
                   />
                 </div>
                 <div className="w-full md:w-48">
-                  <Label>Loại hoạt động</Label>
                   <Select value={activityTypeFilter} onValueChange={setActivityTypeFilter}>
                     <SelectTrigger>
                       <SelectValue placeholder="Tất cả loại" />
@@ -295,7 +287,6 @@ export default function FarmActivitiesPage() {
                   </Select>
                 </div>
                 <div className="w-full md:w-48">
-                  <Label>Trạng thái</Label>
                   <Select value={statusFilter} onValueChange={setStatusFilter}>
                     <SelectTrigger>
                       <SelectValue placeholder="Tất cả trạng thái" />
@@ -321,80 +312,80 @@ export default function FarmActivitiesPage() {
                   </Button>
                 </div>
               </div>
-
-              { }
-              <div className="border rounded-lg">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>ID</TableHead>
-                      <TableHead>Loại hoạt động</TableHead>
-                      <TableHead>Ngày bắt đầu</TableHead>
-                      <TableHead>Ngày kết thúc</TableHead>
-                      <TableHead>Trạng thái</TableHead>
-                      <TableHead className="text-right">Hành động</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {loading ? (
-                      <TableRow>
-                        <TableCell colSpan={6} className="text-center py-4">
-                          Đang tải...
-                        </TableCell>
-                      </TableRow>
-                    ) : filteredActivities.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={6} className="text-center py-4">
-                          Không có hoạt động nào
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      filteredActivities.map(activity => (
-                        <TableRow key={activity.farmActivitiesId}>
-                          <TableCell className="font-medium">
-                            #{activity.farmActivitiesId}
-                          </TableCell>
-                          <TableCell>{getActivityTypeLabel(activity.activityType)}</TableCell>
-                          <TableCell>{formatDate(activity.startDate)}</TableCell>
-                          <TableCell>{formatDate(activity.endDate)}</TableCell>
-                          <TableCell>{getStatusBadge(activity.status)}</TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleEditClick(activity)}
-                                title="Chỉnh sửa"
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleChangeStatus(activity.farmActivitiesId)}
-                                title="Thay đổi trạng thái"
-                              >
-                                <CheckCircle className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleDeleteActivity(activity.farmActivitiesId)}
-                                title="Xóa"
-                                className="text-red-600 hover:text-red-700"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
             </CardContent>
           </Card>
+
+          { }
+          <div className="border rounded-lg bg-white mt-8">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>ID</TableHead>
+                  <TableHead>Loại hoạt động</TableHead>
+                  <TableHead>Ngày bắt đầu</TableHead>
+                  <TableHead>Ngày kết thúc</TableHead>
+                  <TableHead>Trạng thái</TableHead>
+                  <TableHead className="text-right">Hành động</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {loading ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-4">
+                      Đang tải...
+                    </TableCell>
+                  </TableRow>
+                ) : filteredActivities.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-4">
+                      Không có hoạt động nào
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredActivities.map(activity => (
+                    <TableRow key={activity.farmActivitiesId}>
+                      <TableCell className="font-medium">
+                        #{activity.farmActivitiesId}
+                      </TableCell>
+                      <TableCell>{getActivityTypeLabel(activity.activityType)}</TableCell>
+                      <TableCell>{formatDate(activity.startDate)}</TableCell>
+                      <TableCell>{formatDate(activity.endDate)}</TableCell>
+                      <TableCell>{getStatusBadge(activity.status)}</TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEditClick(activity)}
+                            title="Chỉnh sửa"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleChangeStatus(activity.farmActivitiesId)}
+                            title="Thay đổi trạng thái"
+                          >
+                            <CheckCircle className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDeleteActivity(activity.farmActivitiesId)}
+                            title="Xóa"
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </div>
       </div>
 

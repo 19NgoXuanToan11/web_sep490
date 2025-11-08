@@ -174,25 +174,12 @@ const RealTimeIoTDashboard: React.FC = () => {
         { }
         <div className="mb-8">
           <div className="mb-6">
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">Bảng điều khiển IoT thời gian thực</h1>
-            <p className="text-gray-600 mb-6">
+            <div className="flex items-center justify-between mb-2">
+              <h1 className="text-2xl font-bold text-gray-900">Bảng điều khiển IoT thời gian thực</h1>
+            </div>
+            <p className="text-gray-600">
               Giám sát cảm biến thời gian thực và điều khiển thiết bị IoT
             </p>
-
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <Button
-                  onClick={handleManualRefresh}
-                  variant="outline"
-                  size="sm"
-                  disabled={isLoading}
-                  className="border-gray-300 hover:bg-gray-50"
-                >
-                  <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-                  Làm mới
-                </Button>
-              </div>
-            </div>
           </div>
 
           { }

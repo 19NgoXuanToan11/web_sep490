@@ -21,7 +21,6 @@ export const scheduleFormSchema = z
   })
   .refine(
     data => {
-
       const [startHour, startMin] = data.startTime.split(':').map(Number)
       const [endHour, endMin] = data.endTime.split(':').map(Number)
       const startMinutes = startHour * 60 + startMin
@@ -34,22 +33,4 @@ export const scheduleFormSchema = z
     }
   )
 
-export const ruleFormSchema = z.object({
-  name: z.string().min(1, 'Tên quy tắc là bắt buộc').max(100, 'Tên phải ít hơn 100 ký tự'),
-  conditionText: z
-    .string()
-    .min(10, 'Mô tả điều kiện phải ít nhất 10 ký tự')
-    .max(500, 'Mô tả điều kiện phải ít hơn 500 ký tự'),
-  enabled: z.boolean().default(true),
-})
-
-export const deviceActionSchema = z.object({
-  type: z.enum(['start', 'stop', 'pause', 'run-now'], {
-    required_error: 'Loại hành động là bắt buộc',
-  }),
-  deviceId: z.string().min(1, 'ID thiết bị là bắt buộc'),
-})
-
 export type ScheduleFormData = z.infer<typeof scheduleFormSchema>
-export type RuleFormData = z.infer<typeof ruleFormSchema>
-export type DeviceActionData = z.infer<typeof deviceActionSchema>

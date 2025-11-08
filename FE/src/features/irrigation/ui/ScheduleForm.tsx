@@ -28,7 +28,7 @@ interface ScheduleFormProps {
 }
 
 export function ScheduleForm({ open, onOpenChange, editingSchedule, onClose }: ScheduleFormProps) {
-  const { devices, createSchedule, updateSchedule, loadingStates } = useIrrigationStore()
+  const { createSchedule, updateSchedule, loadingStates } = useIrrigationStore()
   const { toast } = useToast()
   const isEditing = !!editingSchedule
 
@@ -145,7 +145,7 @@ export function ScheduleForm({ open, onOpenChange, editingSchedule, onClose }: S
 
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <div className="space-y-4">
-            {}
+            { }
             <div className="space-y-2">
               <Label htmlFor="title">Tên lịch</Label>
               <InputWithError
@@ -156,33 +156,18 @@ export function ScheduleForm({ open, onOpenChange, editingSchedule, onClose }: S
               />
             </div>
 
-            {}
+            { }
             <div className="space-y-2">
-              <Label htmlFor="device">Thiết bị tưới</Label>
-              <Select
-                value={form.watch('deviceId')}
-                onValueChange={value => form.setValue('deviceId', value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Chọn thiết bị" />
-                </SelectTrigger>
-                <SelectContent>
-                  {devices.map(device => (
-                    <SelectItem key={device.id} value={device.id}>
-                      <div>
-                        <div className="font-medium">{device.name}</div>
-                        <div className="text-xs text-muted-foreground">{device.zone}</div>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {form.formState.errors.deviceId && (
-                <p className="text-sm text-destructive">{form.formState.errors.deviceId.message}</p>
-              )}
+              <Label htmlFor="deviceId">ID Thiết bị tưới</Label>
+              <InputWithError
+                id="deviceId"
+                placeholder="VD: device-001"
+                {...form.register('deviceId')}
+                error={form.formState.errors.deviceId?.message}
+              />
             </div>
 
-            {}
+            { }
             <div className="space-y-2">
               <Label htmlFor="recurrence">Kiểu lặp</Label>
               <Select
@@ -200,7 +185,7 @@ export function ScheduleForm({ open, onOpenChange, editingSchedule, onClose }: S
               </Select>
             </div>
 
-            {}
+            { }
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="startTime" className="flex items-center gap-1">
@@ -228,7 +213,7 @@ export function ScheduleForm({ open, onOpenChange, editingSchedule, onClose }: S
               </div>
             </div>
 
-            {}
+            { }
             <div className="space-y-2">
               <Label htmlFor="threshold" className="flex items-center gap-1">
                 <Droplets className="h-3 w-3" />
@@ -248,7 +233,7 @@ export function ScheduleForm({ open, onOpenChange, editingSchedule, onClose }: S
               </p>
             </div>
 
-            {}
+            { }
             <div className="flex items-center space-x-2">
               <input
                 type="checkbox"

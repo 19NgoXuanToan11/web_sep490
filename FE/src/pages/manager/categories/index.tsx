@@ -195,26 +195,10 @@ export default function CategoriesPage() {
                 </div>
               </CardContent>
             </Card>
-
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-600">Tổng số danh mục</p>
-                    <p className="text-2xl font-bold text-green-600">{categories.length}</p>
-                  </div>
-                  <Package className="h-8 w-8 text-green-600" />
-                </div>
-              </CardContent>
-            </Card>
           </div>
 
           { }
           <Card>
-            <CardHeader>
-              <CardTitle>Danh mục</CardTitle>
-              <CardDescription>Danh sách tất cả danh mục sản phẩm</CardDescription>
-            </CardHeader>
             <CardContent>
               {loading ? (
                 <div className="flex items-center justify-center h-32">

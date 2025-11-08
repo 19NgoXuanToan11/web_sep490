@@ -210,7 +210,7 @@ export default function CropsPage() {
     <ManagerLayout>
       <div className="p-6">
         <div className="space-y-8">
-          {}
+          { }
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Quản Lý Cây Trồng</h1>
             <p className="text-gray-600 mt-2">
@@ -218,78 +218,22 @@ export default function CropsPage() {
             </p>
           </div>
 
-          {}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Tổng Cây Trồng</CardTitle>
-                <Sprout className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{totalCrops}</div>
-                <p className="text-xs text-muted-foreground">Đang quản lý trong hệ thống</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Đang Hoạt Động</CardTitle>
-                <Calendar className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-green-600">
-                  {crops.filter(c => c.status.toLowerCase() === 'active').length}
-                </div>
-                <p className="text-xs text-muted-foreground">Cây trồng đang phát triển</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Tạm Dừng</CardTitle>
-                <AlertCircle className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-orange-600">
-                  {crops.filter(c => c.status.toLowerCase() === 'inactive').length}
-                </div>
-                <p className="text-xs text-muted-foreground">Cây trồng tạm dừng</p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Tổng Số Lượng</CardTitle>
-                <Sprout className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {crops.reduce((sum, crop) => sum + (crop.quantity || 0), 0)}
-                </div>
-                <p className="text-xs text-muted-foreground">Tổng số cây trong trang trại</p>
-              </CardContent>
-            </Card>
-          </div>
-
-          {}
+          { }
           <Card>
-            <CardHeader>
-              <CardTitle>Danh Sách Cây Trồng</CardTitle>
-              <CardDescription>Quản lý thông tin chi tiết của từng loại cây trồng</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-col md:flex-row gap-4 mb-6">
+            <CardContent className="p-4">
+              <div className="flex flex-col md:flex-row gap-4 items-end">
                 <div className="flex-1">
-                  <Label htmlFor="search">Tìm kiếm theo tên</Label>
-                  <Input
-                    id="search"
-                    placeholder="Nhập tên cây trồng..."
-                    value={searchTerm}
-                    onChange={e => setSearchTerm(e.target.value)}
-                  />
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input
+                      placeholder="Nhập tên cây trồng..."
+                      value={searchTerm}
+                      onChange={e => setSearchTerm(e.target.value)}
+                      className="pl-9"
+                    />
+                  </div>
                 </div>
                 <div className="w-full md:w-48">
-                  <Label>Trạng thái</Label>
                   <Select
                     value={statusFilter || undefined}
                     onValueChange={value => setStatusFilter(value || '')}
@@ -304,117 +248,117 @@ export default function CropsPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="flex gap-2 items-end">
-                  <Button onClick={searchCrops} variant="outline">
+                <div className="flex gap-2 w-full md:w-auto">
+                  <Button onClick={searchCrops} variant="outline" className="flex-1 md:flex-none">
                     <Search className="h-4 w-4 mr-2" />
                     Tìm kiếm
                   </Button>
-                  <Button onClick={loadCrops} variant="outline">
+                  <Button onClick={loadCrops} variant="outline" className="flex-1 md:flex-none">
                     <RefreshCw className="h-4 w-4 mr-2" />
                     Làm mới
                   </Button>
-                  <Button onClick={() => setCreateDialogOpen(true)}>
+                  <Button onClick={() => setCreateDialogOpen(true)} className="flex-1 md:flex-none bg-green-600 hover:bg-green-700">
                     <Plus className="h-4 w-4 mr-2" />
                     Thêm cây trồng
                   </Button>
                 </div>
               </div>
-
-              {}
-              <div className="border rounded-lg">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Tên cây trồng</TableHead>
-                      <TableHead>Mô tả</TableHead>
-                      <TableHead>Số lượng</TableHead>
-                      <TableHead>Ngày gieo trồng</TableHead>
-                      <TableHead>Ngày thu hoạch</TableHead>
-                      <TableHead>Trạng thái</TableHead>
-                      <TableHead className="text-right">Hành động</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {loading ? (
-                      <TableRow>
-                        <TableCell colSpan={7} className="text-center py-4">
-                          Đang tải...
-                        </TableCell>
-                      </TableRow>
-                    ) : crops.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={7} className="text-center py-4">
-                          Không có cây trồng nào
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      crops.map(crop => (
-                        <TableRow key={crop.cropId}>
-                          <TableCell className="font-medium">{crop.cropName}</TableCell>
-                          <TableCell className="max-w-xs truncate">{crop.description}</TableCell>
-                          <TableCell>{crop.quantity}</TableCell>
-                          <TableCell>{formatDate(crop.plantingDate)}</TableCell>
-                          <TableCell>{formatDate(crop.harvestDate)}</TableCell>
-                          <TableCell>
-                            <Badge variant={getStatusVariant(crop.status)}>
-                              {crop.status === 'ACTIVE' ? 'Hoạt động' : 'Tạm dừng'}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end gap-2">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleEditClick(crop)}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => handleChangeStatus(crop.cropId)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-
-              {}
-              {totalPages > 1 && (
-                <div className="flex justify-center items-center space-x-2 mt-4">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                    disabled={currentPage === 1}
-                  >
-                    Trước
-                  </Button>
-                  <span className="text-sm text-gray-600">
-                    Trang {currentPage} / {totalPages}
-                  </span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                    disabled={currentPage === totalPages}
-                  >
-                    Sau
-                  </Button>
-                </div>
-              )}
             </CardContent>
           </Card>
+
+          { }
+          <div className="border rounded-lg bg-white">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Tên cây trồng</TableHead>
+                  <TableHead>Mô tả</TableHead>
+                  <TableHead>Số lượng</TableHead>
+                  <TableHead>Ngày gieo trồng</TableHead>
+                  <TableHead>Ngày thu hoạch</TableHead>
+                  <TableHead>Trạng thái</TableHead>
+                  <TableHead className="text-right">Hành động</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {loading ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-4">
+                      Đang tải...
+                    </TableCell>
+                  </TableRow>
+                ) : crops.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-4">
+                      Không có cây trồng nào
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  crops.map(crop => (
+                    <TableRow key={crop.cropId}>
+                      <TableCell className="font-medium">{crop.cropName}</TableCell>
+                      <TableCell className="max-w-xs truncate">{crop.description}</TableCell>
+                      <TableCell>{crop.quantity}</TableCell>
+                      <TableCell>{formatDate(crop.plantingDate)}</TableCell>
+                      <TableCell>{formatDate(crop.harvestDate)}</TableCell>
+                      <TableCell>
+                        <Badge variant={getStatusVariant(crop.status)}>
+                          {crop.status === 'ACTIVE' ? 'Hoạt động' : 'Tạm dừng'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEditClick(crop)}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleChangeStatus(crop.cropId)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          { }
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center space-x-2 mt-4">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+              >
+                Trước
+              </Button>
+              <span className="text-sm text-gray-600">
+                Trang {currentPage} / {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+              >
+                Sau
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 
-      {}
+      { }
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -481,7 +425,7 @@ export default function CropsPage() {
         </DialogContent>
       </Dialog>
 
-      {}
+      { }
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>

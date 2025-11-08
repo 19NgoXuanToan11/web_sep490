@@ -2,7 +2,6 @@ const STORAGE_KEYS = {
   USER_PREFERENCES: 'ifms-user-preferences',
   DEVICES: 'ifms-devices',
   SCHEDULES: 'ifms-schedules',
-  RULES: 'ifms-rules',
 } as const
 
 export interface UserPreferences {

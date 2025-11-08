@@ -22,10 +22,10 @@ const PaymentResultPage: React.FC = () => {
     if (code) params.append('code', code)
 
     const links = {
-      custom: `ifms://payment-result?${params.toString()}`,
-      expoDev: `exp://192.168.1.100:8081/--/payment-result?${params.toString()}`,
-      expoLocal: `exp://127.0.0.1:19000/--/payment-result?${params.toString()}`,
-      universal: `https://web-sep490.vercel.app/payment-result?${params.toString()}`
+      custom: `ifms://payment-callback?${params.toString()}`,
+      expoDev: `exp://192.168.1.100:8081/--/payment-callback?${params.toString()}`,
+      expoLocal: `exp://127.0.0.1:19000/--/payment-callback?${params.toString()}`,
+      universal: `https://web-sep490.vercel.app/mobile-redirect/payment-callback?${params.toString()}`
     }
 
     return links

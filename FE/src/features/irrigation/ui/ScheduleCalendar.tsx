@@ -22,14 +22,20 @@ import { ScheduleForm } from './ScheduleForm'
 
 interface ScheduleCalendarProps {
   className?: string
+  showScheduleForm?: boolean
+  onShowScheduleFormChange?: (show: boolean) => void
 }
 
-export function ScheduleCalendar({ className }: ScheduleCalendarProps) {
-  const { schedules, devices, loadingStates, deleteSchedule, toggleSchedule } = useIrrigationStore()
+export function ScheduleCalendar({ className, showScheduleForm: externalShowScheduleForm, onShowScheduleFormChange }: ScheduleCalendarProps) {
+  const { schedules, loadingStates, deleteSchedule, toggleSchedule } = useIrrigationStore()
   const { toast } = useToast()
   const [selectedDate, setSelectedDate] = React.useState(new Date())
-  const [showScheduleForm, setShowScheduleForm] = React.useState(false)
+  const [internalShowScheduleForm, setInternalShowScheduleForm] = React.useState(false)
   const [editingSchedule, setEditingSchedule] = React.useState<IrrigationSchedule | null>(null)
+
+  // Use external state if provided, otherwise use internal state
+  const showScheduleForm = externalShowScheduleForm !== undefined ? externalShowScheduleForm : internalShowScheduleForm
+  const setShowScheduleForm = onShowScheduleFormChange || setInternalShowScheduleForm
 
   const handleDeleteSchedule = async (schedule: IrrigationSchedule) => {
     try {
@@ -123,19 +129,8 @@ export function ScheduleCalendar({ className }: ScheduleCalendarProps) {
 
   return (
     <div className={className}>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="text-2xl font-semibold">Lịch tưới</h2>
-          <p className="text-muted-foreground">Quản lý các lịch tưới nước của bạn</p>
-        </div>
-        <Button onClick={() => setShowScheduleForm(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Lịch mới
-        </Button>
-      </div>
-
       <div className="grid gap-6 lg:grid-cols-3">
-        {}
+        { }
         <div className="lg:col-span-2">
           <Card>
             <CardHeader>
@@ -164,9 +159,9 @@ export function ScheduleCalendar({ className }: ScheduleCalendarProps) {
           </Card>
         </div>
 
-        {}
+        { }
         <div className="space-y-6">
-          {}
+          { }
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Lịch hôm nay</CardTitle>
@@ -180,7 +175,6 @@ export function ScheduleCalendar({ className }: ScheduleCalendarProps) {
                     <ScheduleCard
                       key={schedule.id}
                       schedule={schedule}
-                      devices={devices}
                       onEdit={() => handleEditSchedule(schedule)}
                       onDelete={() => handleDeleteSchedule(schedule)}
                       onToggle={() => handleToggleSchedule(schedule)}
@@ -192,7 +186,7 @@ export function ScheduleCalendar({ className }: ScheduleCalendarProps) {
             </CardContent>
           </Card>
 
-          {}
+          { }
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Sắp diễn ra</CardTitle>
@@ -261,7 +255,7 @@ function CalendarGrid({ selectedDate, schedules, onEditSchedule }: CalendarGridP
 
   return (
     <div className="w-full">
-      {}
+      { }
       <div className="grid grid-cols-7 gap-1 mb-2">
         {weekdays.map(day => (
           <div key={day} className="p-2 text-center text-sm font-medium text-muted-foreground">
@@ -270,7 +264,7 @@ function CalendarGrid({ selectedDate, schedules, onEditSchedule }: CalendarGridP
         ))}
       </div>
 
-      {}
+      { }
       <div className="grid grid-cols-7 gap-1">
         {days.map((day, index) => {
           const isCurrentMonth = day.getMonth() === selectedDate.getMonth()
@@ -312,7 +306,6 @@ function CalendarGrid({ selectedDate, schedules, onEditSchedule }: CalendarGridP
 
 interface ScheduleCardProps {
   schedule: IrrigationSchedule
-  devices: any[]
   onEdit: () => void
   onDelete: () => void
   onToggle: () => void
@@ -321,21 +314,18 @@ interface ScheduleCardProps {
 
 function ScheduleCard({
   schedule,
-  devices,
   onEdit,
   onDelete,
   onToggle,
   loading,
 }: ScheduleCardProps) {
-  const device = devices.find(d => d.id === schedule.deviceId)
-
   return (
     <div className="p-3 border rounded-lg bg-card">
       <div className="flex items-start justify-between mb-2">
         <div>
           <h4 className="font-medium">{schedule.title}</h4>
           <p className="text-sm text-muted-foreground">
-            {device?.name || 'Thiết bị không xác định'}
+            Thiết bị: {schedule.deviceId}
           </p>
         </div>
         <Badge variant={schedule.enabled ? 'success' : 'secondary'} className="text-xs">

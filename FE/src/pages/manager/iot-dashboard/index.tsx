@@ -6,7 +6,6 @@ import {
   CloudRain,
   Sprout,
   Sun,
-  RefreshCw,
   AlertCircle,
 } from 'lucide-react'
 import { ManagerLayout } from '@/shared/layouts/ManagerLayout'
@@ -81,13 +80,6 @@ const RealTimeIoTDashboard: React.FC = () => {
     return () => clearInterval(interval)
   }, [fetchSensorData, manualControl])
 
-  const handleManualRefresh = () => {
-    fetchSensorData()
-    toast({
-      title: 'Đã làm mới',
-      description: 'Dữ liệu cảm biến đã được cập nhật',
-    })
-  }
 
   const handlePumpControl = async (newState: boolean) => {
     try {

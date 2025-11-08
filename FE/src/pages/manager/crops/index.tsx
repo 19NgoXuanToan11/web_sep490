@@ -3,7 +3,7 @@ import { ManagerLayout } from '@/shared/layouts/ManagerLayout'
 import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
 import { Label } from '@/shared/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card'
+import { Card, CardContent } from '@/shared/ui/card'
 import { Badge } from '@/shared/ui/badge'
 import {
   Dialog,
@@ -16,7 +16,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
 import { Textarea } from '@/shared/ui/textarea'
-import { Plus, Edit, Trash2, Search, RefreshCw, Sprout, Calendar, AlertCircle } from 'lucide-react'
+import { Plus, Edit, Trash2, Search, RefreshCw } from 'lucide-react'
 import { useToast } from '@/shared/ui/use-toast'
 import { cropService, type Crop, type CropRequest, type CropUpdate } from '@/shared/api/cropService'
 
@@ -27,7 +27,7 @@ export default function CropsPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
-  const [totalCrops, setTotalCrops] = useState(0)
+  const [, setTotalCrops] = useState(0)
   const pageSize = 10
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false)

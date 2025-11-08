@@ -1,6 +1,6 @@
 import React from 'react'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs'
-import { Calendar, Plus } from 'lucide-react'
+import { Tabs, TabsContent } from '@/shared/ui/tabs'
+import { Plus } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import { useIrrigationStore } from '@/features/irrigation/store/irrigationStore'
 import { userPreferences } from '@/shared/lib/localData/storage'

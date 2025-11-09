@@ -80,6 +80,14 @@ const RealTimeIoTDashboard: React.FC = () => {
     return () => clearInterval(interval)
   }, [fetchSensorData, manualControl])
 
+  // Đảm bảo máy bơm luôn bật khi ở chế độ tự động
+  useEffect(() => {
+    if (!manualControl && !pumpControl) {
+      setPumpControl(true)
+      handlePumpControl(true)
+    }
+  }, [manualControl])
+
 
   const handlePumpControl = async (newState: boolean) => {
     try {
@@ -114,6 +122,7 @@ const RealTimeIoTDashboard: React.FC = () => {
 
         // Khi tắt chế độ thủ công, tự động bật máy bơm
         if (!newState) {
+          setPumpControl(true) // Cập nhật state ngay lập tức
           await handlePumpControl(true)
         }
 
@@ -291,13 +300,13 @@ const RealTimeIoTDashboard: React.FC = () => {
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-gray-900 font-semibold">Điều Khiển Máy Bơm</h3>
                 <Switch
-                  checked={pumpControl}
+                  checked={!manualControl ? true : pumpControl}
                   onCheckedChange={handlePumpControl}
                   disabled={!isOnline || isLoading || !manualControl}
                 />
               </div>
               <p className="text-gray-600 text-sm">
-                {pumpControl ? 'Máy bơm đang hoạt động' : 'Máy bơm đang tắt'}
+                {(!manualControl || pumpControl) ? 'Máy bơm đang hoạt động' : 'Máy bơm đang tắt'}
               </p>
               {!manualControl && (
                 <p className="text-gray-500 text-xs mt-2 italic">

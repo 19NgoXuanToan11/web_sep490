@@ -50,9 +50,9 @@ export interface Payment {
 export interface Order {
   orderId: string
   totalPrice: number
-  email: string
+  email?: string // Optional vì có thể lấy từ customer.email
   customerId?: string
-  orderDetailIds: string[]
+  orderDetailIds?: string[]
   createdAt: string
   updatedAt?: string
   status: number
@@ -115,16 +115,41 @@ export const orderService = {
     return response.data.data
   },
 
+  getOrdersByCustomerId: async (customerId: string): Promise<OrderListResponse['data']> => {
+    const response = await http.get<OrderListResponse>(
+      `/v1/order/order-list-by-customer/${encodeURIComponent(customerId)}`
+    )
+    return response.data.data
+  },
+
   getOrdersByDate: async (
     date: string,
     pageIndex: number = 1,
     pageSize: number = 10
   ): Promise<OrderListResponse['data']> => {
-    const response = await http.post<OrderListResponse>(
-      `/v1/order/order-list-by-date?pageIndex=${pageIndex}&pageSize=${pageSize}`,
-      date
-    )
-    return response.data.data
+    try {
+      const response = await http.post<{ status: number; message: string; data: Order[] }>(
+        `/v1/order/order-list-by-date?pageIndex=${pageIndex}&pageSize=${pageSize}`,
+        date
+      )
+
+      // Transform response từ array sang format OrderListResponse
+      // API trả về data là array trực tiếp, không phải object có items
+      const orders = Array.isArray(response.data.data) ? response.data.data : []
+
+      return {
+        items: orders,
+        totalItemCount: orders.length,
+        totalPageCount: Math.ceil(orders.length / pageSize) || 1,
+        pageIndex: pageIndex,
+        pageSize: pageSize,
+        next: false,
+        previous: pageIndex > 1,
+      }
+    } catch (error) {
+      console.error('Error in getOrdersByDate:', error)
+      throw error
+    }
   },
 
   updateOrderStatus: async (orderId: string, status: string | number): Promise<Order> => {
@@ -155,26 +180,26 @@ export const orderService = {
 
 export const getOrderStatusLabel = (status: number): string => {
   const statusMap: Record<number, string> = {
-    0: 'Chưa thanh toán',
-    1: 'Đã thanh toán',
-    2: 'Chưa thanh toán',
-    3: 'Đang xử lý',
-    4: 'Đã hủy',
-    5: 'Hoàn thành',
-    6: 'Đang giao hàng',
+    0: 'Chờ xử lý', // UNPAID - Đơn hàng mới, chờ xử lý
+    1: 'Đã xác nhận', // PAID - Đã thanh toán và xác nhận
+    2: 'Đang chuẩn bị', // UNDISCHARGED - Đang chuẩn bị hàng
+    3: 'Đang giao', // PENDING - Đang trong quá trình giao hàng
+    4: 'Đã hủy', // CANCELLED - Đơn hàng đã bị hủy
+    5: 'Hoàn thành', // COMPLETED - Đơn hàng đã hoàn thành
+    6: 'Đã giao', // DELIVERED - Đã giao hàng thành công
   }
   return statusMap[status] || 'Không xác định'
 }
 
 export const getOrderStatusVariant = (status: number): 'default' | 'secondary' | 'destructive' => {
   switch (status) {
-    case 0: // Chưa thanh toán
-    case 2: // Chưa thanh toán
-    case 3: // Đang xử lý
-    case 6: // Đang giao hàng
+    case 0: // Chờ xử lý
+    case 2: // Đang chuẩn bị
+    case 3: // Đang giao
       return 'secondary'
-    case 1: // Đã thanh toán
+    case 1: // Đã xác nhận
     case 5: // Hoàn thành
+    case 6: // Đã giao
       return 'default'
     case 4: // Đã hủy
       return 'destructive'
@@ -185,19 +210,19 @@ export const getOrderStatusVariant = (status: number): 'default' | 'secondary' |
 
 export const getOrderStatusIcon = (status: number): string => {
   switch (status) {
-    case 0: // Chưa thanh toán
+    case 0: // Chờ xử lý
       return 'clock'
-    case 1: // Đã thanh toán
+    case 1: // Đã xác nhận
       return 'check-circle'
-    case 2: // Chưa thanh toán
-      return 'clock'
-    case 3: // Đang xử lý
+    case 2: // Đang chuẩn bị
+      return 'package'
+    case 3: // Đang giao
       return 'truck'
     case 4: // Đã hủy
       return 'alert-triangle'
     case 5: // Hoàn thành
       return 'check-circle'
-    case 6: // Đã giao hàng
+    case 6: // Đã giao
       return 'truck'
     default:
       return 'shopping-cart'

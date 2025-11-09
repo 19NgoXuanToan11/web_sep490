@@ -14,6 +14,7 @@ import {
   Loader2,
   Calendar,
   XCircle,
+  CreditCard,
 } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card'
@@ -87,8 +88,8 @@ const ManagerOrdersPage: React.FC = () => {
   const [loadingOrderDetail, setLoadingOrderDetail] = useState(false)
 
   const transformApiOrder = (apiOrder: ApiOrder): DisplayOrder => {
-
-    const email = apiOrder.email || 'N/A'
+    // Ưu tiên lấy email từ customer object, nếu không có thì dùng email trực tiếp
+    const email = apiOrder.customer?.email || apiOrder.email || 'N/A'
     const customerName =
       email !== 'N/A' ? email.split('@')[0].replace(/[._]/g, ' ') : 'Unknown Customer'
 
@@ -773,7 +774,11 @@ const ManagerOrdersPage: React.FC = () => {
                     <DropdownMenuTrigger asChild>
                       <Button variant="outline">
                         <Filter className="h-4 w-4 mr-2" />
-                        Trạng thái: {statusFilter === 'all' ? 'Tất cả' : statusFilter}
+                        Trạng thái: {(() => {
+                          if (statusFilter === 'all') return 'Tất cả'
+                          const statusNum = parseInt(statusFilter)
+                          return getOrderStatusLabel(statusNum)
+                        })()}
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>
@@ -781,29 +786,39 @@ const ManagerOrdersPage: React.FC = () => {
                         Tất cả
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => handleStatusFilterChange('0')}>
-                        Chờ xử lý
+                        {getOrderStatusLabel(0)}
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => handleStatusFilterChange('1')}>
-                        Đã xác nhận
+                        {getOrderStatusLabel(1)}
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => handleStatusFilterChange('2')}>
-                        Đang chuẩn bị
+                        {getOrderStatusLabel(2)}
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => handleStatusFilterChange('3')}>
-                        Đang giao
+                        {getOrderStatusLabel(3)}
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => handleStatusFilterChange('4')}>
-                        Đã giao
+                        {getOrderStatusLabel(4)}
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => handleStatusFilterChange('5')}>
-                        Đã hủy
+                        {getOrderStatusLabel(5)}
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleStatusFilterChange('6')}>
+                        {getOrderStatusLabel(6)}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="outline">
-                        Thanh toán: {paymentFilter === 'all' ? 'Tất cả' : paymentFilter}
+                        <CreditCard className="h-4 w-4 mr-2" />
+                        Thanh toán: {(() => {
+                          if (paymentFilter === 'all') return 'Tất cả'
+                          if (paymentFilter === 'paid') return 'Đã thanh toán'
+                          if (paymentFilter === 'pending') return 'Chờ thanh toán'
+                          if (paymentFilter === 'failed') return 'Thất bại'
+                          return 'Tất cả'
+                        })()}
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent>

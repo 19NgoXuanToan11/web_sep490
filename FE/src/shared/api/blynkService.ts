@@ -63,7 +63,7 @@ class BlynkService {
         soilMoisture,
         light,
         servoAngle,
-        pumpState: data.v7 === '1',
+        pumpState: data.v5 === '1', // V5 = Pump control, V7 = Manual mode
         dataQuality,
         lastUpdated: new Date(),
         connectionStrength: this.calculateConnectionStrength(data),

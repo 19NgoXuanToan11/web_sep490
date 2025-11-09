@@ -72,7 +72,7 @@ const StaffOrdersPage: React.FC = () => {
 
   const [searchQuery, setSearchQuery] = useState('')
   const [searchType, setSearchType] = useState<
-    'all' | 'orderId' | 'customerName' | 'email' | 'date'
+    'all' | 'orderId' | 'customerName' | 'customerId' | 'email' | 'date'
   >('all')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [paymentFilter, setPaymentFilter] = useState<string>('all')
@@ -87,7 +87,8 @@ const StaffOrdersPage: React.FC = () => {
   const [loadingOrderDetail, setLoadingOrderDetail] = useState(false)
 
   const transformApiOrder = (apiOrder: ApiOrder): DisplayOrder => {
-    const email = apiOrder.email || 'N/A'
+    // Ưu tiên lấy email từ customer object, nếu không có thì dùng email trực tiếp
+    const email = apiOrder.customer?.email || apiOrder.email || 'N/A'
     const customerName =
       email !== 'N/A' ? email.split('@')[0].replace(/[._]/g, ' ') : 'Unknown Customer'
 
@@ -173,8 +174,12 @@ const StaffOrdersPage: React.FC = () => {
 
   const handleStatusFilterChange = (status: string) => {
     setStatusFilter(status)
-    const statusParam = status === 'all' ? undefined : parseInt(status)
-    fetchOrders(1, statusParam)
+    // Nếu đang có kết quả tìm kiếm, chỉ cập nhật filter (filteredOrders sẽ tự động filter)
+    // Nếu không có tìm kiếm, mới gọi API
+    if (!searchQuery && !selectedDate) {
+      const statusParam = status === 'all' ? undefined : parseInt(status)
+      fetchOrders(1, statusParam)
+    }
   }
 
   const handleTabChange = (tab: string) => {
@@ -272,13 +277,17 @@ const StaffOrdersPage: React.FC = () => {
         case 'customerName':
           searchResult = await orderService.getOrdersByCustomerName(searchQuery.trim())
           break
+        case 'customerId':
+          searchResult = await orderService.getOrdersByCustomerId(searchQuery.trim())
+          break
         case 'email':
           searchResult = await orderService.getOrdersByEmail(searchQuery.trim())
           break
         case 'date':
           if (selectedDate) {
             const dateString = format(selectedDate, 'yyyy-MM-dd')
-            searchResult = await orderService.getOrdersByDate(dateString)
+            // Sử dụng pageSize lớn để lấy tất cả đơn hàng trong ngày
+            searchResult = await orderService.getOrdersByDate(dateString, 1, 1000)
           } else {
             toast({
               title: 'Chưa chọn ngày',
@@ -295,22 +304,32 @@ const StaffOrdersPage: React.FC = () => {
           })
       }
 
+      // Đảm bảo searchResult có items
+      if (!searchResult || !searchResult.items) {
+        throw new Error('Invalid search result format')
+      }
+
       const transformedOrders = searchResult.items.map(transformApiOrder)
       setOrders(transformedOrders)
-      setTotalItems(searchResult.totalItemCount)
-      setTotalPages(searchResult.totalPageCount)
+      setTotalItems(searchResult.totalItemCount || 0)
+      setTotalPages(searchResult.totalPageCount || 1)
       setCurrentPage(1)
 
       toast({
         title: 'Tìm kiếm hoàn tất',
-        description: `Tìm thấy ${searchResult.totalItemCount} đơn hàng`,
+        description: `Tìm thấy ${searchResult.totalItemCount || 0} đơn hàng`,
       })
     } catch (error) {
+      const errorMessage =
+        searchType === 'date'
+          ? 'Không thể tìm kiếm đơn hàng theo ngày. Vui lòng thử lại.'
+          : 'Không thể thực hiện tìm kiếm. Vui lòng thử lại.'
       toast({
         title: 'Lỗi tìm kiếm',
-        description: 'Không thể thực hiện tìm kiếm. Vui lòng thử lại.',
+        description: errorMessage,
         variant: 'destructive',
       })
+      console.error('Search error:', error)
     } finally {
       setIsSearching(false)
     }
@@ -653,6 +672,7 @@ const StaffOrdersPage: React.FC = () => {
                         {searchType === 'all' && 'Tất cả'}
                         {searchType === 'orderId' && 'Mã đơn hàng'}
                         {searchType === 'customerName' && 'Tên khách hàng'}
+                        {searchType === 'customerId' && 'Mã khách hàng'}
                         {searchType === 'email' && 'Email'}
                         {searchType === 'date' && 'Theo ngày'}
                       </Button>
@@ -666,6 +686,9 @@ const StaffOrdersPage: React.FC = () => {
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => setSearchType('customerName')}>
                         Tên khách hàng
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setSearchType('customerId')}>
+                        Mã khách hàng
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => setSearchType('email')}>
                         Email
@@ -706,9 +729,11 @@ const StaffOrdersPage: React.FC = () => {
                             ? 'Nhập mã đơn hàng...'
                             : searchType === 'customerName'
                               ? 'Nhập tên khách hàng...'
-                              : searchType === 'email'
-                                ? 'Nhập email khách hàng...'
-                                : 'Tìm kiếm đơn hàng...'
+                              : searchType === 'customerId'
+                                ? 'Nhập mã khách hàng...'
+                                : searchType === 'email'
+                                  ? 'Nhập email khách hàng...'
+                                  : 'Tìm kiếm đơn hàng...'
                         }
                         value={searchQuery}
                         onChange={e => handleSearchInputChange(e.target.value)}
@@ -754,7 +779,11 @@ const StaffOrdersPage: React.FC = () => {
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline">
                     <Filter className="h-4 w-4 mr-2" />
-                    Trạng thái: {statusFilter === 'all' ? 'Tất cả' : statusFilter}
+                    Trạng thái: {(() => {
+                      if (statusFilter === 'all') return 'Tất cả'
+                      const statusNum = parseInt(statusFilter)
+                      return getOrderStatusLabel(statusNum)
+                    })()}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
@@ -762,29 +791,39 @@ const StaffOrdersPage: React.FC = () => {
                     Tất cả
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => handleStatusFilterChange('0')}>
-                    Chờ xử lý
+                    {getOrderStatusLabel(0)}
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => handleStatusFilterChange('1')}>
-                    Đã xác nhận
+                    {getOrderStatusLabel(1)}
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => handleStatusFilterChange('2')}>
-                    Đang chuẩn bị
+                    {getOrderStatusLabel(2)}
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => handleStatusFilterChange('3')}>
-                    Đang giao
+                    {getOrderStatusLabel(3)}
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => handleStatusFilterChange('4')}>
-                    Đã giao
+                    {getOrderStatusLabel(4)}
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => handleStatusFilterChange('5')}>
-                    Đã hủy
+                    {getOrderStatusLabel(5)}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleStatusFilterChange('6')}>
+                    {getOrderStatusLabel(6)}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline">
-                    Thanh toán: {paymentFilter === 'all' ? 'Tất cả' : paymentFilter}
+                    <CreditCard className="h-4 w-4 mr-2" />
+                    Thanh toán: {(() => {
+                      if (paymentFilter === 'all') return 'Tất cả'
+                      if (paymentFilter === 'paid') return 'Đã thanh toán'
+                      if (paymentFilter === 'pending') return 'Chờ thanh toán'
+                      if (paymentFilter === 'failed') return 'Thất bại'
+                      return 'Tất cả'
+                    })()}
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
@@ -833,9 +872,11 @@ const StaffOrdersPage: React.FC = () => {
                                 ? 'mã đơn hàng'
                                 : searchType === 'customerName'
                                   ? 'tên khách hàng'
-                                  : searchType === 'email'
-                                    ? 'email'
-                                    : ''}
+                                  : searchType === 'customerId'
+                                    ? 'mã khách hàng'
+                                    : searchType === 'email'
+                                      ? 'email'
+                                      : ''}
                               )
                             </span>
                           )}

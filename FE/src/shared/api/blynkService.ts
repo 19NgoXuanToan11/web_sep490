@@ -146,7 +146,7 @@ class BlynkService {
           data.message || `Pump has been ${state ? 'turned ON' : 'turned OFF'} successfully.`,
       }
     } catch (error) {
-            return {
+      return {
         success: false,
         message: 'Failed to send pump command to Blynk Cloud.',
       }
@@ -173,9 +173,42 @@ class BlynkService {
           data.message || `Manual mode has been ${state ? 'enabled' : 'disabled'} successfully.`,
       }
     } catch (error) {
-            return {
+      return {
         success: false,
         message: 'Failed to send manual mode command to Blynk Cloud.',
+      }
+    }
+  }
+
+  async controlServo(angle: number): Promise<{ success: boolean; message: string }> {
+    try {
+      if (angle < 0 || angle > 180) {
+        return {
+          success: false,
+          message: 'Servo angle must be between 0 and 180 degrees.',
+        }
+      }
+
+      const response = await fetch(`${this.baseUrl}/servo?angle=${angle}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const data = await response.json()
+      return {
+        success: data.success || true,
+        message: data.message || `Servo angle has been set to ${angle} degrees successfully.`,
+      }
+    } catch (error) {
+      return {
+        success: false,
+        message: 'Failed to send servo command to Blynk Cloud.',
       }
     }
   }

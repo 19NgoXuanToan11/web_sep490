@@ -111,6 +111,12 @@ const RealTimeIoTDashboard: React.FC = () => {
       const result = await blynkService.controlManualMode(newState)
       if (result.success) {
         setManualControl(newState)
+
+        // Khi tắt chế độ thủ công, tự động bật máy bơm
+        if (!newState) {
+          await handlePumpControl(true)
+        }
+
         toast({
           title: newState ? 'Chế độ thủ công đã bật' : 'Chế độ tự động đã bật',
           description:
@@ -135,17 +141,17 @@ const RealTimeIoTDashboard: React.FC = () => {
 
   const handleServoControl = async (angle: number[]) => {
     try {
-      const success = await blynkService.sendControlCommand('v6', angle[0].toString())
-      if (success) {
+      const result = await blynkService.controlServo(angle[0])
+      if (result.success) {
         setServoAngle(angle)
         toast({
           title: 'Servo đã điều chỉnh',
-          description: `Góc servo: ${angle[0]}°`,
+          description: result.message || `Góc servo: ${angle[0]}°`,
         })
       } else {
         toast({
           title: 'Lỗi điều khiển',
-          description: 'Không thể điều chỉnh servo',
+          description: result.message || 'Không thể điều chỉnh servo',
           variant: 'destructive',
         })
       }
@@ -287,12 +293,17 @@ const RealTimeIoTDashboard: React.FC = () => {
                 <Switch
                   checked={pumpControl}
                   onCheckedChange={handlePumpControl}
-                  disabled={!isOnline || isLoading}
+                  disabled={!isOnline || isLoading || !manualControl}
                 />
               </div>
               <p className="text-gray-600 text-sm">
                 {pumpControl ? 'Máy bơm đang hoạt động' : 'Máy bơm đang tắt'}
               </p>
+              {!manualControl && (
+                <p className="text-gray-500 text-xs mt-2 italic">
+                  Ở chế độ tự động, máy bơm luôn được bật
+                </p>
+              )}
             </CardContent>
           </Card>
 
@@ -305,11 +316,11 @@ const RealTimeIoTDashboard: React.FC = () => {
                   <span className="text-blue-600 text-xl font-bold">{servoAngle[0]}°</span>
                 </div>
                 <div
-                  className={`${!isOnline || isLoading ? 'opacity-50 pointer-events-none' : ''}`}
+                  className={`${!isOnline || isLoading || !manualControl ? 'opacity-50 pointer-events-none' : ''}`}
                 >
                   <Slider
                     value={servoAngle}
-                    onValueChange={handleServoControl}
+                    onValueChange={manualControl && isOnline && !isLoading ? handleServoControl : () => { }}
                     max={180}
                     min={0}
                     step={1}
@@ -321,6 +332,11 @@ const RealTimeIoTDashboard: React.FC = () => {
                 <span>0°</span>
                 <span>180°</span>
               </div>
+              {!manualControl && (
+                <p className="text-gray-500 text-xs mt-2 italic">
+                  Vui lòng bật chế độ thủ công để điều chỉnh servo
+                </p>
+              )}
             </CardContent>
           </Card>
         </div>

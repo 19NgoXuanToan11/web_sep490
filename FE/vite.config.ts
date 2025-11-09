@@ -18,6 +18,14 @@ export default defineConfig({
   },
   server: {
     port: 5173,
-    host: true
+    host: true,
+    // Allow specific hosts for development (ngrok, localtunnel, cloudflare tunnel, etc.)
+    allowedHosts: [
+      '6de8642bde33.ngrok-free.app',
+      'localhost',
+      '127.0.0.1'
+    ],
+    // Disable strict host check for development
+    strictPort: false
   }
 })

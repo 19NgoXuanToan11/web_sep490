@@ -21,11 +21,16 @@ const PaymentResultPage: React.FC = () => {
     if (amount) params.append('amount', amount)
     if (code) params.append('code', code)
 
+    const queryString = params.toString()
+    
     const links = {
-      custom: `ifms://payment-callback?${params.toString()}`,
-      expoDev: `exp://192.168.1.100:8081/--/payment-callback?${params.toString()}`,
-      expoLocal: `exp://127.0.0.1:19000/--/payment-callback?${params.toString()}`,
-      universal: `https://web-sep490.vercel.app/mobile-redirect/payment-callback?${params.toString()}`
+      // Custom scheme - hoạt động cả dev và production
+      custom: `ifms://payment-callback?${queryString}`,
+      // Universal link - hoạt động cả dev và production (fallback tốt nhất)
+      universal: `https://web-sep490.vercel.app/mobile-redirect/payment-callback?${queryString}`,
+      // Expo dev links - chỉ hoạt động khi chạy expo start (dev mode)
+      expoDev: `exp://192.168.2.14:8081/--/payment-callback?${queryString}`,
+      expoLocal: `exp://localhost:8081/--/payment-callback?${queryString}`,
     }
 
     return links
@@ -44,25 +49,65 @@ const PaymentResultPage: React.FC = () => {
   }, [countdown, deeplinks])
 
   const tryOpenMultipleDeepLinks = (links: any) => {
-
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
 
-    const trySequentially = async () => {
-      const urlsToTry = isMobile
-        ? [links.expoDev, links.expoLocal, links.custom, links.universal]
-        : [links.custom, links.expoDev, links.expoLocal, links.universal]
+    if (isMobile) {
+      // Trên mobile: Ưu tiên custom scheme (ifms://) - hoạt động cả dev và production
+      // Universal link là fallback tốt nhất vì tự động handle cả app đã cài và chưa cài
+      
+      let appOpened = false
+      const pageVisibilityHandler = () => {
+        // Nếu trang bị blur (user chuyển sang app), đánh dấu là app đã mở
+        if (document.hidden) {
+          appOpened = true
+        }
+      }
+      
+      document.addEventListener('visibilitychange', pageVisibilityHandler)
+      window.addEventListener('blur', pageVisibilityHandler)
+      
+      // Thử mở custom scheme (ifms://) - ưu tiên cao nhất
+      // Custom scheme sẽ mở app ngay nếu app đã cài đặt
+      try {
+        // Tạo link element để thử mở
+        const link = document.createElement('a')
+        link.href = links.custom
+        link.style.display = 'none'
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+      } catch (e) {
+        console.warn('Failed to open custom scheme', e)
+      }
 
-      for (let i = 0; i < urlsToTry.length; i++) {
-        const url = urlsToTry[i]
+      // Đợi một chút để xem app có mở không
+      // Nếu sau 2 giây user vẫn ở trang web, fallback sang universal link
+      setTimeout(() => {
+        document.removeEventListener('visibilitychange', pageVisibilityHandler)
+        window.removeEventListener('blur', pageVisibilityHandler)
+        
+        // Nếu app chưa mở, thử universal link
+        // Universal link sẽ:
+        // - Mở app nếu app đã cài và được cấu hình đúng
+        // - Redirect về web nếu app chưa cài
+        if (!appOpened && document.hasFocus()) {
+          window.location.href = links.universal
+        }
+      }, 2000)
+    } else {
+      // Trên desktop: Thử tất cả các links bằng iframe (không redirect trang)
+      const trySequentially = async () => {
+        const urlsToTry = [
+          links.custom,        // Custom scheme
+          links.universal,     // Universal link  
+          links.expoDev,       // Expo dev (chỉ hoạt động khi expo start)
+          links.expoLocal      // Expo local (chỉ hoạt động khi expo start)
+        ]
 
-        try {
-          if (isMobile) {
+        for (let i = 0; i < urlsToTry.length; i++) {
+          const url = urlsToTry[i]
 
-            window.location.href = url
-
-            break
-          } else {
-
+          try {
             const iframe = document.createElement('iframe')
             iframe.style.display = 'none'
             iframe.src = url
@@ -72,23 +117,22 @@ const PaymentResultPage: React.FC = () => {
               try {
                 document.body.removeChild(iframe)
               } catch (e) {
+                // Ignore errors
               }
             }, 1000)
+            
+            // Đợi trước khi thử link tiếp theo
+            if (i < urlsToTry.length - 1) {
+              await new Promise(resolve => setTimeout(resolve, 500))
+            }
+          } catch (e) {
+            console.warn(`Failed to open deep link: ${url}`, e)
           }
-        } catch (e) {
-        }
-
-        if (i < urlsToTry.length - 1) {
-          await new Promise(resolve => setTimeout(resolve, 1000))
         }
       }
+
+      trySequentially()
     }
-
-    trySequentially()
-
-    // setTimeout(() => {
-    //   setShowAppInstructions(true)
-    // }, 5000)
   }
 
   const handleOpenApp = () => {

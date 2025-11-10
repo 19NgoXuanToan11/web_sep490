@@ -13,6 +13,8 @@ export interface Product {
   quantity: number
   createdAt?: string
   updatedAt?: string
+  cropId?: string | number
+  cropName?: string
 }
 
 export interface ProductFilter {
@@ -100,6 +102,8 @@ const mapApiProductToProduct = (apiProduct: any): Product => {
     quantity: Number(apiProduct.stockQuantity || 0),
     createdAt: apiProduct.createdAt || new Date().toISOString(),
     updatedAt: apiProduct.updatedAt || new Date().toISOString(),
+    cropId: apiProduct.cropId ?? undefined,
+    cropName: apiProduct.cropName ?? undefined,
   }
 }
 
@@ -152,15 +156,17 @@ export const productService = {
   },
 
   getProductById: async (productId: number): Promise<Product> => {
-    const response = await http.get<Product>(`/v1/products/get-product/${productId}`)
-    return response.data
+    const response = await http.get<any>(`/v1/products/get-product/${productId}`)
+    const apiProduct = response.data?.data ?? response.data
+    return mapApiProductToProduct(apiProduct)
   },
 
   searchProductByName: async (productName: string): Promise<Product[]> => {
-    const response = await http.get<Product[]>(
+    const response = await http.get<any>(
       `/v1/products/search-product/${encodeURIComponent(productName)}`
     )
-    return response.data
+    const list = response.data?.data ?? response.data ?? []
+    return (Array.isArray(list) ? list : []).map(mapApiProductToProduct)
   },
 
   createProduct: async (product: CreateProductRequest): Promise<Product> => {

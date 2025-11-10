@@ -139,7 +139,7 @@ export function ProductTable({
 
   return (
     <div className={className}>
-      {}
+      { }
       {hasSelection && (
         <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between">
           <span className="text-sm text-blue-700">
@@ -151,7 +151,7 @@ export function ProductTable({
         </div>
       )}
 
-      {}
+      { }
       <div className="border rounded-lg overflow-hidden">
         <Table>
           <TableHeader>
@@ -176,7 +176,8 @@ export function ProductTable({
                 </div>
               </TableHead>
               <TableHead className="font-semibold">Danh mục</TableHead>
-              <TableHead className="font-semibold text-right">Giá</TableHead>
+              <TableHead className="font-semibold">Mùa vụ</TableHead>
+              <TableHead className="font-semibold text-center">Giá</TableHead>
               <TableHead className="font-semibold text-center">Số lượng</TableHead>
               <TableHead className="font-semibold text-center">Trạng thái</TableHead>
               <TableHead className="font-semibold">Cập nhật</TableHead>
@@ -228,7 +229,11 @@ export function ProductTable({
                     <span className="text-sm">{product.categoryName || 'Chưa phân loại'}</span>
                   </TableCell>
 
-                  <TableCell className="text-right font-medium">
+                  <TableCell>
+                    <span className="text-sm">{product.cropName || '-'}</span>
+                  </TableCell>
+
+                  <TableCell className="text-center font-medium">
                     {formatPrice(product.price)}
                   </TableCell>
 
@@ -318,7 +323,7 @@ export function ProductTable({
         )}
       </div>
 
-      {}
+      { }
       {totalPages > 1 && (
         <div className="flex items-center justify-between mt-6">
           <div className="text-sm text-gray-700">

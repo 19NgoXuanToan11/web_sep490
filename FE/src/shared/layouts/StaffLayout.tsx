@@ -27,19 +27,19 @@ const navigationItems: NavItem[] = [
     description: 'Tổng quan & báo cáo',
   },
   {
-    name: 'Quản lý sản phẩm',
+    name: 'Sản phẩm',
     href: '/staff/products',
     icon: Package,
     description: 'Quản lý sản phẩm nông nghiệp',
   },
   {
-    name: 'Quản lý đơn hàng',
+    name: 'Đơn hàng',
     href: '/staff/orders',
     icon: ShoppingCart,
     description: 'Theo dõi & xử lý đơn hàng',
   },
   {
-    name: 'Quản lý đánh giá',
+    name: 'Đánh giá',
     href: '/staff/feedbacks',
     icon: MessageSquare,
     description: 'Xem & quản lý đánh giá khách hàng',

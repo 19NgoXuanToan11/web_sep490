@@ -172,6 +172,29 @@ const StaffOrdersPage: React.FC = () => {
     fetchOrders()
   }, [])
 
+  // Auto-refresh orders every 5 seconds without reloading the page.
+  // It respects current page, filters, and search mode.
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      // If user is running an advanced search, re-run the corresponding search
+      if (searchType === 'date' && selectedDate) {
+        handleDateSearch(selectedDate)
+        return
+      }
+      if (searchType !== 'all' && searchQuery.trim()) {
+        handleAdvancedSearch()
+        return
+      }
+      // Otherwise, refresh using current pagination and status filter
+      const statusParam = statusFilter === 'all' ? undefined : parseInt(statusFilter)
+      fetchOrders(currentPage, statusParam)
+    }, 5000)
+
+    return () => {
+      window.clearInterval(intervalId)
+    }
+  }, [currentPage, statusFilter, searchType, searchQuery, selectedDate, fetchOrders])
+
   const handleStatusFilterChange = (status: string) => {
     setStatusFilter(status)
     // Nếu đang có kết quả tìm kiếm, chỉ cập nhật filter (filteredOrders sẽ tự động filter)
@@ -437,6 +460,19 @@ const StaffOrdersPage: React.FC = () => {
         {label}
       </Badge>
     )
+  }
+
+  // Nếu thanh toán thất bại -> hiển thị Trạng thái là "Chưa thanh toán"
+  const getDisplayStatusBadge = (order: DisplayOrder) => {
+    if (order.paymentStatus === 'failed' || order.paymentStatus === 'pending') {
+      return (
+        <Badge variant="secondary" className="flex items-center gap-1">
+          {getStatusIcon(0)}
+          Chưa thanh toán
+        </Badge>
+      )
+    }
+    return getStatusBadge(order.status)
   }
 
   const getPaymentBadge = (paymentStatus: string) => {
@@ -922,7 +958,7 @@ const StaffOrdersPage: React.FC = () => {
                     <TableHead>Mã đơn hàng</TableHead>
                     <TableHead>Khách hàng</TableHead>
                     <TableHead>Sản phẩm & Số lượng</TableHead>
-                    <TableHead>Trạng thái</TableHead>
+                    <TableHead>Trạng thái đơn hàng</TableHead>
                     <TableHead>Thanh toán</TableHead>
                     <TableHead>Tổng tiền</TableHead>
                     <TableHead>Ngày đặt</TableHead>
@@ -1016,7 +1052,7 @@ const StaffOrdersPage: React.FC = () => {
                             })()}
                           </div>
                         </TableCell>
-                        <TableCell>{getStatusBadge(order.status)}</TableCell>
+                        <TableCell>{getDisplayStatusBadge(order)}</TableCell>
                         <TableCell>{getPaymentBadge(order.paymentStatus)}</TableCell>
                         <TableCell>
                           <div className="font-medium">{formatCurrency(order.totalAmount)}</div>

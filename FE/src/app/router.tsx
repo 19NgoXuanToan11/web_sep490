@@ -19,8 +19,6 @@ const ManagerOrdersPage = React.lazy(() => import('@/pages/manager/orders'))
 const ProductsPage = React.lazy(() => import('@/features/products-management/pages/ProductsPage').then(m => ({ default: m.ProductsPage })))
 
 const StaffDashboard = React.lazy(() => import('@/pages/staff/dashboard'))
-const StaffWorkLogsPage = React.lazy(() => import('@/pages/staff/work-logs'))
-const StaffQualityChecksPage = React.lazy(() => import('@/pages/staff/quality-checks'))
 const StaffProductsPage = React.lazy(() => import('@/pages/staff/products'))
 const StaffOrdersPage = React.lazy(() => import('@/pages/staff/orders'))
 const StaffFeedbacksPage = React.lazy(() => import('@/pages/staff/feedbacks'))
@@ -194,22 +192,6 @@ const routerConfig = [
         <RoleGuard allowed={['Staff']}>
           <StaffDashboard />
         </RoleGuard>
-      </LazyWrapper>
-    ),
-  },
-  {
-    path: '/staff/work-logs',
-    element: (
-      <LazyWrapper>
-        <StaffWorkLogsPage />
-      </LazyWrapper>
-    ),
-  },
-  {
-    path: '/staff/quality-checks',
-    element: (
-      <LazyWrapper>
-        <StaffQualityChecksPage />
       </LazyWrapper>
     ),
   },

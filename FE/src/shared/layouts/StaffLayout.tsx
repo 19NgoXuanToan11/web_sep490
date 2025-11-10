@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Cpu, FileText, Shield, Menu, X, Bell, ChevronRight, Home, Package, ShoppingCart, MessageSquare, BarChart3 } from 'lucide-react'
+import { Cpu, Menu, X, Bell, ChevronRight, Home, Package, ShoppingCart, MessageSquare, BarChart3 } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import LogoutButton from '@/shared/ui/LogoutButton'
 import { Badge } from '@/shared/ui/badge'
@@ -25,19 +25,6 @@ const navigationItems: NavItem[] = [
     href: '/staff/dashboard',
     icon: BarChart3,
     description: 'Tổng quan & báo cáo',
-  },
-  {
-    name: 'Nhật ký công việc',
-    href: '/staff/work-logs',
-    icon: FileText,
-    description: 'Theo dõi nhiệm vụ hàng ngày',
-  },
-  {
-    name: 'Kiểm tra chất lượng',
-    href: '/staff/quality-checks',
-    icon: Shield,
-    badge: 2,
-    description: 'Giám sát chất lượng cây trồng',
   },
   {
     name: 'Quản lý sản phẩm',

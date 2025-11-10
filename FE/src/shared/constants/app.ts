@@ -53,7 +53,6 @@ export const ROUTES = {
   },
   STAFF: {
     DASHBOARD: '/staff/dashboard',
-    WORK_LOGS: '/staff/work-logs',
     PRODUCTS: '/staff/products',
     ORDERS: '/staff/orders',
   },

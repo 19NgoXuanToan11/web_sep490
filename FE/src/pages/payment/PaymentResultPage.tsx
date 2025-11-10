@@ -205,17 +205,6 @@ const PaymentResultPage: React.FC = () => {
               </div>
             )}
           </div>
-
-          { }
-          <div className="space-y-3">
-            <Button
-              onClick={handleOpenApp}
-              className="w-full bg-green-600 hover:bg-green-700 text-white py-6 text-lg font-semibold shadow-lg hover:shadow-xl transition-all"
-            >
-              <Smartphone className="w-5 h-5 mr-2" />
-              Mở ứng dụng IOTFarm
-            </Button>
-          </div>
         </Card>
       </motion.div>
     </div>

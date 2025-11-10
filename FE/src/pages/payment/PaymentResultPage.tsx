@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { CheckCircle2, XCircle, Smartphone, Package } from 'lucide-react'
-import { Button } from '@/shared/ui/button'
+import { CheckCircle2, XCircle, Package } from 'lucide-react'
 import { Card } from '@/shared/ui/card'
 
 const PaymentResultPage: React.FC = () => {
@@ -133,10 +132,6 @@ const PaymentResultPage: React.FC = () => {
 
       trySequentially()
     }
-  }
-
-  const handleOpenApp = () => {
-    tryOpenMultipleDeepLinks(deeplinks)
   }
 
   const formatCurrency = (value: string | null) => {

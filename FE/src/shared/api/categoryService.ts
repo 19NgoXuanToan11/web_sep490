@@ -28,6 +28,6 @@ export const categoryService = {
   },
 
   deleteCategory: async (id: number): Promise<void> => {
-    await http.delete(`/api/v1/category/${id}`)
+    await http.delete(`/v1/category/${id}`)
   },
 }

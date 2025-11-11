@@ -91,7 +91,7 @@ const ManagerIoTDevicesPage: React.FC = () => {
     })
   }
 
-  const handleUpdateStatus = async (deviceId: number, newStatus: string) => {
+  const handleUpdateStatus = async (deviceId: number, newStatus: number) => {
     try {
       await iotDeviceService.updateDeviceStatus(deviceId, newStatus)
       await fetchDevices()
@@ -114,34 +114,18 @@ const ManagerIoTDevicesPage: React.FC = () => {
     fetchStatistics()
   }
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'ACTIVE':
-        return <Badge className="bg-green-100 text-green-800 border-green-200">Hoạt động</Badge>
-      case 'INACTIVE':
-        return <Badge className="bg-gray-100 text-gray-800 border-gray-200">Không hoạt động</Badge>
-      case 'MAINTENANCE':
-        return <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">Bảo trì</Badge>
-      case 'ERROR':
-        return <Badge className="bg-red-100 text-red-800 border-red-200">Lỗi</Badge>
-      default:
-        return <Badge variant="secondary">Không xác định</Badge>
+  const getStatusBadge = (status: number) => {
+    if (status === 1) {
+      return <Badge className="bg-green-100 text-green-800 border-green-200">Hoạt động</Badge>
     }
+    return <Badge className="bg-gray-100 text-gray-800 border-gray-200">Không xác định</Badge>
   }
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'ACTIVE':
-        return <CheckCircle className="h-4 w-4 text-green-500" />
-      case 'INACTIVE':
-        return <XCircle className="h-4 w-4 text-gray-500" />
-      case 'MAINTENANCE':
-        return <AlertTriangle className="h-4 w-4 text-yellow-500" />
-      case 'ERROR':
-        return <XCircle className="h-4 w-4 text-red-500" />
-      default:
-        return <Activity className="h-4 w-4 text-gray-400" />
+  const getStatusIcon = (status: number) => {
+    if (status === 1) {
+      return <CheckCircle className="h-4 w-4 text-green-500" />
     }
+    return <Activity className="h-4 w-4 text-gray-400" />
   }
 
   const getDeviceTypeIcon = (deviceType: string) => {
@@ -162,7 +146,10 @@ const ManagerIoTDevicesPage: React.FC = () => {
     const matchesSearch =
       device.deviceName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       device.deviceType?.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesStatus = statusFilter === 'all' || device.status === statusFilter
+    const matchesStatus =
+      statusFilter === 'all' ||
+      (statusFilter === '1' && device.status === 1) ||
+      (statusFilter === '0' && device.status !== 1)
     const matchesType = typeFilter === 'all' || device.deviceType === typeFilter
     return matchesSearch && matchesStatus && matchesType
   })
@@ -199,10 +186,8 @@ const ManagerIoTDevicesPage: React.FC = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="all">Tất cả trạng thái</SelectItem>
-                      <SelectItem value="ACTIVE">Hoạt động</SelectItem>
-                      <SelectItem value="INACTIVE">Không hoạt động</SelectItem>
-                      <SelectItem value="MAINTENANCE">Bảo trì</SelectItem>
-                      <SelectItem value="ERROR">Lỗi</SelectItem>
+                      <SelectItem value="1">Hoạt động</SelectItem>
+                      <SelectItem value="0">Khác</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -243,7 +228,6 @@ const ManagerIoTDevicesPage: React.FC = () => {
                   <TableHead>Thiết bị</TableHead>
                   <TableHead>Loại</TableHead>
                   <TableHead>Trạng thái</TableHead>
-                  <TableHead>Giá trị cảm biến</TableHead>
                   <TableHead>Cập nhật cuối</TableHead>
                   <TableHead>Hành động</TableHead>
                 </TableRow>
@@ -291,18 +275,6 @@ const ManagerIoTDevicesPage: React.FC = () => {
                         </div>
                       </TableCell>
                       <TableCell>
-                        {device.sensorValue ? (
-                          <div className="flex items-center gap-1">
-                            <span className="font-medium">{device.sensorValue}</span>
-                            {device.unit && (
-                              <span className="text-sm text-gray-500">{device.unit}</span>
-                            )}
-                          </div>
-                        ) : (
-                          <span className="text-gray-400">N/A</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
                         <div className="flex items-center gap-2">
                           <Clock className="h-4 w-4 text-gray-400" />
                           {device.lastUpdate ? (
@@ -325,26 +297,22 @@ const ManagerIoTDevicesPage: React.FC = () => {
                               Xem chi tiết
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              onClick={() => handleUpdateStatus(device.ioTdevicesId!, 'ACTIVE')}
-                              disabled={device.status === 'ACTIVE'}
+                              onClick={() => handleUpdateStatus(device.ioTdevicesId!, 1)}
+                              disabled={device.status === 1}
                             >
                               <CheckCircle className="h-4 w-4 mr-2" />
                               Kích hoạt
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              onClick={() =>
-                                handleUpdateStatus(device.ioTdevicesId!, 'INACTIVE')
-                              }
-                              disabled={device.status === 'INACTIVE'}
+                              onClick={() => handleUpdateStatus(device.ioTdevicesId!, 0)}
+                              disabled={device.status === 0}
                             >
                               <XCircle className="h-4 w-4 mr-2" />
                               Tạm dừng
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              onClick={() =>
-                                handleUpdateStatus(device.ioTdevicesId!, 'MAINTENANCE')
-                              }
-                              disabled={device.status === 'MAINTENANCE'}
+                              onClick={() => handleUpdateStatus(device.ioTdevicesId!, 2)}
+                              disabled={device.status === 2}
                             >
                               <AlertTriangle className="h-4 w-4 mr-2" />
                               Bảo trì

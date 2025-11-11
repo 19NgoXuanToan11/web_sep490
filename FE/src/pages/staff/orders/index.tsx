@@ -188,7 +188,7 @@ const StaffOrdersPage: React.FC = () => {
       // Otherwise, refresh using current pagination and status filter
       const statusParam = statusFilter === 'all' ? undefined : parseInt(statusFilter)
       fetchOrders(currentPage, statusParam)
-    }, 5000)
+    }, 10000)
 
     return () => {
       window.clearInterval(intervalId)

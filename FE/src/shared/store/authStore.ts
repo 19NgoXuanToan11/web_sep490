@@ -1,5 +1,4 @@
 import { create } from 'zustand'
-import { authApi } from '@/shared/api/auth'
 import { abortAllRequests } from '@/shared/api/client'
 import { decodeJwt, isJwtExpired } from '@/shared/lib/auth/jwt'
 

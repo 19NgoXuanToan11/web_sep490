@@ -146,10 +146,16 @@ const ManagerIoTDevicesPage: React.FC = () => {
     const matchesSearch =
       device.deviceName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       device.deviceType?.toLowerCase().includes(searchQuery.toLowerCase())
+
+    // Convert string filter from Select into number for safe comparisons
+    const selectedStatus =
+      statusFilter === 'all' ? null : Number.isNaN(Number(statusFilter)) ? null : Number(statusFilter)
+
     const matchesStatus =
-      statusFilter === 'all' ||
-      (statusFilter === '1' && device.status === 1) ||
-      (statusFilter === '0' && device.status !== 1)
+      selectedStatus === null ||
+      (selectedStatus === 1 && device.status === 1) ||
+      (selectedStatus === 0 && device.status !== 1)
+
     const matchesType = typeFilter === 'all' || device.deviceType === typeFilter
     return matchesSearch && matchesStatus && matchesType
   })

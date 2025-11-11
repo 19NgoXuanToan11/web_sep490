@@ -186,11 +186,6 @@ export default function CropsPage() {
     setEditDialogOpen(true)
   }
 
-  const formatDate = (dateString: string) => {
-    if (!dateString) return ''
-    return new Date(dateString).toLocaleDateString('vi-VN')
-  }
-
   const getStatusVariant = (status: string) => {
     switch (status.toLowerCase()) {
       case 'active':

@@ -6,7 +6,6 @@ import {
   Droplets,
   Menu,
   X,
-  Bell,
   Sprout,
   Trees,
   User,
@@ -42,7 +41,6 @@ const navigationItems: NavItem[] = [
     name: 'Lịch',
     href: '/manager/irrigation',
     icon: Droplets,
-    badge: 3,
     description: 'Quản lý lịch tưới',
   },
   {
@@ -213,8 +211,8 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
         >
           <div
             className={`${isSidebarOpen
-                ? 'flex items-center space-x-3'
-                : 'flex flex-col items-center space-y-3'
+              ? 'flex items-center space-x-3'
+              : 'flex flex-col items-center space-y-3'
               }`}
           >
             <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
@@ -313,20 +311,7 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
 
               </div>
 
-              <div className="flex items-center space-x-2 sm:space-x-4">
-                { }
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="relative text-gray-500 hover:text-gray-700 hover:bg-gray-50"
-                  title="Thông báo"
-                >
-                  <Bell className="h-5 w-5" />
-                  <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 text-xs bg-red-500 text-white border-2 border-white">
-                    3
-                  </Badge>
-                </Button>
-              </div>
+              <div className="flex items-center space-x-2 sm:space-x-4"></div>
             </div>
           </div>
         </header>

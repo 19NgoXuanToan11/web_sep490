@@ -15,6 +15,15 @@ interface CreateDeviceModalProps {
   onSuccess: () => void
 }
 
+interface CreateDeviceFormState {
+  deviceName: string
+  deviceType: string
+  sensorValue: string
+  unit: string
+  expiryDate?: string
+  farmDetailsId: number
+}
+
 const deviceTypes = [
   'Temperature Sensor',
   'Humidity Sensor',
@@ -47,7 +56,7 @@ export const CreateDeviceModal: React.FC<CreateDeviceModalProps> = ({
 }) => {
   const { toast } = useToast()
   const [loading, setLoading] = useState(false)
-  const [formData, setFormData] = useState<IoTDeviceRequest>({
+  const [formData, setFormData] = useState<CreateDeviceFormState>({
     deviceName: '',
     deviceType: '',
     sensorValue: '',
@@ -71,11 +80,14 @@ export const CreateDeviceModal: React.FC<CreateDeviceModalProps> = ({
     try {
       setLoading(true)
 
-      const submissionData = {
-        ...formData,
-        unit: formData.unit === 'none' ? '' : formData.unit,
+      // Only send fields the backend expects
+      const payload: IoTDeviceRequest = {
+        deviceName: formData.deviceName,
+        deviceType: formData.deviceType,
+        expiryDate: formData.expiryDate,
+        farmDetailsId: formData.farmDetailsId,
       }
-      await iotDeviceService.createDevice(submissionData)
+      await iotDeviceService.createDevice(payload)
 
       toast({
         title: 'Thành công',
@@ -104,7 +116,7 @@ export const CreateDeviceModal: React.FC<CreateDeviceModalProps> = ({
     }
   }
 
-  const handleInputChange = (field: keyof IoTDeviceRequest, value: string | number) => {
+  const handleInputChange = (field: keyof CreateDeviceFormState, value: string | number) => {
     setFormData(prev => ({
       ...prev,
       [field]: value,

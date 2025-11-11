@@ -4,9 +4,7 @@ export interface IoTDevice {
   ioTdevicesId?: number
   deviceName: string
   deviceType: string
-  status: 'ACTIVE' | 'INACTIVE' | 'MAINTENANCE' | 'ERROR'
-  sensorValue?: string
-  unit?: string
+  status: number | string
   lastUpdate?: string
   expiryDate?: string
   farmDetailsId: number
@@ -15,8 +13,6 @@ export interface IoTDevice {
 export interface IoTDeviceRequest {
   deviceName: string
   deviceType: string
-  sensorValue?: string
-  unit?: string
   expiryDate?: string
   farmDetailsId: number
 }
@@ -30,12 +26,14 @@ export interface IoTDeviceResponse {
 export interface PaginatedIoTDevices {
   totalItemCount: number
   pageSize: number
+  totalPagesCount?: number
   pageIndex: number
+  next?: boolean
+  previous?: boolean
   items: IoTDevice[]
 }
 
 export const iotDeviceService = {
-
   getAllDevices: async (
     pageIndex: number = 1,
     pageSize: number = 10
@@ -61,10 +59,13 @@ export const iotDeviceService = {
     return response.data.data
   },
 
-  updateDeviceStatus: async (deviceId: number, status: string): Promise<IoTDevice> => {
+  updateDeviceStatus: async (
+    deviceId: number | string,
+    status: number | string
+  ): Promise<IoTDevice> => {
     const response = await http.put<IoTDeviceResponse>(
-      `/v1/iotDevices/iotDevices-update-status?iotDevicesId=${deviceId}`,
-      status
+      `/v1/iotDevices/iotDevices-update-status?iotDevicesId=${Number(deviceId)}`,
+      String(Number(status))
     )
     return response.data.data
   },
@@ -90,10 +91,10 @@ export const iotDeviceService = {
 
       return {
         total: devices.length,
-        active: devices.filter(d => d.status === 'ACTIVE').length,
-        inactive: devices.filter(d => d.status === 'INACTIVE').length,
-        maintenance: devices.filter(d => d.status === 'MAINTENANCE').length,
-        error: devices.filter(d => d.status === 'ERROR').length,
+        active: devices.filter(d => d.status === 1).length,
+        inactive: devices.filter(d => d.status !== 1).length,
+        maintenance: 0,
+        error: 0,
       }
     } catch (error) {
       return { total: 0, active: 0, inactive: 0, maintenance: 0, error: 0 }

@@ -151,10 +151,13 @@ const ManagerIoTDevicesPage: React.FC = () => {
     const selectedStatus =
       statusFilter === 'all' ? null : Number.isNaN(Number(statusFilter)) ? null : Number(statusFilter)
 
+    // Normalize possibly-string status coming from backend
+    const deviceStatus = Number(device.status)
+
     const matchesStatus =
       selectedStatus === null ||
-      (selectedStatus === 1 && device.status === 1) ||
-      (selectedStatus === 0 && device.status !== 1)
+      (selectedStatus === 1 && deviceStatus === 1) ||
+      (selectedStatus === 0 && deviceStatus !== 1)
 
     const matchesType = typeFilter === 'all' || device.deviceType === typeFilter
     return matchesSearch && matchesStatus && matchesType
@@ -276,8 +279,8 @@ const ManagerIoTDevicesPage: React.FC = () => {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          {getStatusIcon(device.status)}
-                          {getStatusBadge(device.status)}
+                          {getStatusIcon(Number(device.status))}
+                          {getStatusBadge(Number(device.status))}
                         </div>
                       </TableCell>
                       <TableCell>
@@ -303,22 +306,22 @@ const ManagerIoTDevicesPage: React.FC = () => {
                               Xem chi tiết
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              onClick={() => handleUpdateStatus(device.ioTdevicesId!, 1)}
-                              disabled={device.status === 1}
+                              onClick={() => handleUpdateStatus(Number(device.ioTdevicesId!), 1)}
+                              disabled={Number(device.status) === 1}
                             >
                               <CheckCircle className="h-4 w-4 mr-2" />
                               Kích hoạt
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              onClick={() => handleUpdateStatus(device.ioTdevicesId!, 0)}
-                              disabled={device.status === 0}
+                              onClick={() => handleUpdateStatus(Number(device.ioTdevicesId!), 0)}
+                              disabled={Number(device.status) === 0}
                             >
                               <XCircle className="h-4 w-4 mr-2" />
                               Tạm dừng
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              onClick={() => handleUpdateStatus(device.ioTdevicesId!, 2)}
-                              disabled={device.status === 2}
+                              onClick={() => handleUpdateStatus(Number(device.ioTdevicesId!), 2)}
+                              disabled={Number(device.status) === 2}
                             >
                               <AlertTriangle className="h-4 w-4 mr-2" />
                               Bảo trì

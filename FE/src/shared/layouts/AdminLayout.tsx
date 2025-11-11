@@ -92,8 +92,8 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
           if (mobile) setIsMobileSidebarOpen(false)
         }}
         className={`w-full group flex items-center ${isSidebarOpen ? 'px-3' : 'px-2 justify-center'} py-2.5 text-sm font-medium rounded-lg transition-colors duration-200 ${isActive
-            ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600'
-            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+          ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600'
+          : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
           }`}
         whileHover={{ scale: mobile ? 1 : 1.02 }}
         whileTap={{ scale: 0.98 }}
@@ -188,7 +188,12 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
         <div
           className={`border-t border-gray-200 p-4 ${isSidebarOpen ? '' : 'flex justify-center'}`}
         >
-          <div className={`flex items-center ${isSidebarOpen ? 'space-x-3' : 'justify-center'}`}>
+          <div
+            className={`${isSidebarOpen
+                ? 'flex items-center space-x-3'
+                : 'flex flex-col items-center space-y-3'
+              }`}
+          >
             <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
               <User className="w-4 h-4 text-gray-600" />
             </div>
@@ -198,9 +203,11 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                 <p className="text-xs text-gray-500 truncate">admin@system.com</p>
               </div>
             )}
-            {isSidebarOpen && (
-              <LogoutButton className="text-gray-500 hover:text-gray-700" iconOnly />
-            )}
+            <LogoutButton
+              className={`text-gray-500 hover:text-gray-700 ${isSidebarOpen ? '' : 'w-10 h-10 p-2 border border-gray-300 rounded-lg shadow-sm'
+                }`}
+              iconOnly
+            />
           </div>
         </div>
       </motion.div>

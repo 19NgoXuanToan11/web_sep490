@@ -190,7 +190,12 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({ children }) => {
         <div
           className={`border-t border-gray-200 p-4 ${isSidebarOpen ? '' : 'flex justify-center'}`}
         >
-          <div className={`flex items-center ${isSidebarOpen ? 'space-x-3' : 'justify-center'}`}>
+          <div
+            className={`${isSidebarOpen
+              ? 'flex items-center space-x-3'
+              : 'flex flex-col items-center space-y-3'
+              }`}
+          >
             <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
               <User className="w-4 h-4 text-gray-600" />
             </div>
@@ -200,9 +205,12 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({ children }) => {
                 <p className="text-xs text-gray-500 truncate">staff@farm.com</p>
               </div>
             )}
-            {isSidebarOpen && (
-              <LogoutButton className="text-gray-500 hover:text-gray-700" iconOnly />
-            )}
+            {/* Hiển thị nút đăng xuất ở cả hai trạng thái; khi thu nhỏ đặt dưới avatar */}
+            <LogoutButton
+              className={`text-gray-500 hover:text-gray-700 ${isSidebarOpen ? '' : 'w-10 h-10 p-2 border border-gray-300 rounded-lg shadow-sm'
+                }`}
+              iconOnly
+            />
           </div>
         </div>
       </motion.div>

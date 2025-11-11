@@ -16,7 +16,7 @@ type AuthState = {
   logout: () => void
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>(set => ({
   token: null,
   role: null,
   email: null,
@@ -47,17 +47,7 @@ export const useAuthStore = create<AuthState>((set) => ({
         }
       }
 
-      const me = await authApi.me().catch(() => null)
-      if (me) {
-        set({
-          role: me.role as Role,
-          email: me.email,
-          accountId: me.accountId,
-          initializing: false,
-        })
-      } else {
-        set({ token: null, role: null, email: null, accountId: null, initializing: false })
-      }
+      set({ token: null, role: null, email: null, accountId: null, initializing: false })
     } catch {
       set({ initializing: false })
     }

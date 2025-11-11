@@ -30,12 +30,6 @@ export const authApi = {
     const { data } = await http.post<BasicResponse>('/v1/account/register', payload)
     return data
   },
-  me: async (): Promise<{ accountId: number; email: string; role: string }> => {
-    const { data } = await http.get<{ accountId: number; email: string; role: string }>(
-      '/v1/account-profile/profile'
-    )
-    return data
-  },
 }
 
 export interface AccountDto {
@@ -144,17 +138,6 @@ export const accountApi = {
     payload: { oldPassword: string; newPassword: string; confirmPassword: string }
   ): Promise<BasicResponse> => {
     const { data } = await http.put<BasicResponse>(`/v1/account/update-password?id=${id}`, payload)
-    return data
-  },
-}
-
-export const profileApi = {
-  getProfile: async (): Promise<ProfileDto> => {
-    const { data } = await http.get<ProfileDto>('/v1/account-profile/profile')
-    return data
-  },
-  updateProfile: async (payload: UpdateProfileRequest): Promise<BasicResponse> => {
-    const { data } = await http.put<BasicResponse>('/v1/account-profile/update', payload)
     return data
   },
 }

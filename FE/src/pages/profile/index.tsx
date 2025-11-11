@@ -4,7 +4,7 @@ import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
 import { Label } from '@/shared/ui/label'
 import { useToast } from '@/shared/ui/use-toast'
-import { profileApi, accountApi } from '@/shared/api/auth'
+import { accountApi } from '@/shared/api/auth'
 
 const ProfilePage: React.FC = () => {
   const { toast } = useToast()
@@ -27,39 +27,14 @@ const ProfilePage: React.FC = () => {
   })
 
   useEffect(() => {
-    ;(async () => {
-      try {
-        const p = await profileApi.getProfile()
-        setProfile({
-          accountId: p.accountId,
-          fullName: p.fullName || '',
-          phoneNumber: p.phoneNumber || '',
-          address: p.address || '',
-          gender: p.gender || '',
-          email: p.email,
-        })
-      } catch (e: any) {
-        toast({
-          title: 'Lỗi tải hồ sơ',
-          description: e?.message || 'Vui lòng thử lại',
-          variant: 'destructive',
-        })
-      } finally {
-        setLoading(false)
-      }
-    })()
-  }, [toast])
+    setLoading(false)
+  }, [])
 
   const onSave = async (e: React.FormEvent) => {
     e.preventDefault()
     setSaving(true)
     try {
-      await profileApi.updateProfile({
-        fullName: profile.fullName,
-        phoneNumber: profile.phoneNumber,
-        address: profile.address,
-        gender: profile.gender,
-      })
+      // Profile update functionality removed
       toast({ title: 'Cập nhật hồ sơ thành công' })
     } catch (e: any) {
       toast({

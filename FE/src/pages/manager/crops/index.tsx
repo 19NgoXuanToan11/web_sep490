@@ -273,9 +273,6 @@ export default function CropsPage() {
                 <TableRow>
                   <TableHead>Tên cây trồng</TableHead>
                   <TableHead>Mô tả</TableHead>
-                  <TableHead>Số lượng</TableHead>
-                  <TableHead>Ngày gieo trồng</TableHead>
-                  <TableHead>Ngày thu hoạch</TableHead>
                   <TableHead>Trạng thái</TableHead>
                   <TableHead className="text-right">Hành động</TableHead>
                 </TableRow>
@@ -283,13 +280,13 @@ export default function CropsPage() {
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-4">
+                    <TableCell colSpan={4} className="text-center py-4">
                       Đang tải...
                     </TableCell>
                   </TableRow>
                 ) : crops.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-4">
+                    <TableCell colSpan={4} className="text-center py-4">
                       Không có cây trồng nào
                     </TableCell>
                   </TableRow>
@@ -298,9 +295,6 @@ export default function CropsPage() {
                     <TableRow key={crop.cropId}>
                       <TableCell className="font-medium">{crop.cropName}</TableCell>
                       <TableCell className="max-w-xs truncate">{crop.description}</TableCell>
-                      <TableCell>{crop.quantity}</TableCell>
-                      <TableCell>{formatDate(crop.plantingDate)}</TableCell>
-                      <TableCell>{formatDate(crop.harvestDate)}</TableCell>
                       <TableCell>
                         <Badge variant={getStatusVariant(crop.status)}>
                           {crop.status === 'ACTIVE' ? 'Hoạt động' : 'Tạm dừng'}

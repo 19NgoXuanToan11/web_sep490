@@ -84,20 +84,29 @@ const RealTimeIoTDashboard: React.FC = () => {
   useEffect(() => {
     if (!manualControl && !pumpControl) {
       setPumpControl(true)
-      handlePumpControl(true)
+      handlePumpControl(true, { showSuccessToast: false })
     }
   }, [manualControl])
 
 
-  const handlePumpControl = async (newState: boolean) => {
+  const handlePumpControl = async (
+    newState: boolean,
+    options?: {
+      showSuccessToast?: boolean
+    }
+  ) => {
+    const showSuccessToast = options?.showSuccessToast ?? true
+
     try {
       const result = await blynkService.controlPump(newState)
       if (result.success) {
         setPumpControl(newState)
-        toast({
-          title: newState ? 'Máy bơm đã bật' : 'Máy bơm đã tắt',
-          description: result.message || `Trạng thái máy bơm: ${newState ? 'Hoạt động' : 'Tắt'}`,
-        })
+        if (showSuccessToast) {
+          toast({
+            title: newState ? 'Máy bơm đã bật' : 'Máy bơm đã tắt',
+            description: result.message || `Trạng thái máy bơm: ${newState ? 'Hoạt động' : 'Tắt'}`,
+          })
+        }
       } else {
         toast({
           title: 'Lỗi điều khiển',

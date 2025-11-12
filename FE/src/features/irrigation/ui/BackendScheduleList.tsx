@@ -13,7 +13,7 @@ import { farmService } from '@/shared/api/farmService'
 import { cropService } from '@/shared/api/cropService'
 import { accountApi } from '@/shared/api/auth'
 import { farmActivityService } from '@/shared/api/farmActivityService'
-import { handleFetchError, handleCreateError, handleUpdateError, handleApiSuccess, handleApiError } from '@/shared/lib/error-handler'
+import { handleFetchError, handleCreateError, handleApiSuccess } from '@/shared/lib/error-handler'
 
 interface BackendScheduleListProps {
     showCreate?: boolean

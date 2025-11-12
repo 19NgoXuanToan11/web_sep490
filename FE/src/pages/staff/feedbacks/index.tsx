@@ -334,10 +334,6 @@ const StaffFeedbacksPage: React.FC = () => {
                                                             <p className="font-medium text-gray-900">
                                                                 {feedback.orderDetail?.productName || 'N/A'}
                                                             </p>
-                                                            <p className="text-sm text-gray-500">
-                                                                {feedback.orderDetail?.unitPrice?.toLocaleString('vi-VN')} đ x{' '}
-                                                                {feedback.orderDetail?.quantity}
-                                                            </p>
                                                         </TableCell>
                                                         <TableCell>
                                                             <div className="flex items-center space-x-1">
@@ -436,7 +432,7 @@ const StaffFeedbacksPage: React.FC = () => {
                                         <span className="text-sm text-gray-600">Ngày đánh giá:</span>
                                         <span className="text-sm font-medium">
                                             {selectedFeedback.createdAt
-                                                ? format(new Date(selectedFeedback.createdAt), 'dd/MM/yyyy HH:mm', {
+                                                ? format(new Date(selectedFeedback.createdAt), 'dd/MM/yyyy', {
                                                     locale: vi,
                                                 })
                                                 : 'N/A'}
@@ -480,13 +476,7 @@ const StaffFeedbacksPage: React.FC = () => {
                                         <div className="flex justify-between">
                                             <span className="text-sm text-gray-600">Đơn giá:</span>
                                             <span className="text-sm font-medium">
-                                                {selectedFeedback.orderDetail?.unitPrice?.toLocaleString('vi-VN')} đ
-                                            </span>
-                                        </div>
-                                        <div className="flex justify-between">
-                                            <span className="text-sm text-gray-600">Số lượng:</span>
-                                            <span className="text-sm font-medium">
-                                                {selectedFeedback.orderDetail?.quantity}
+                                                {selectedFeedback.orderDetail?.unitPrice?.toLocaleString('vi-VN', { minimumFractionDigits: 3, maximumFractionDigits: 3 })} đ
                                             </span>
                                         </div>
                                     </div>

@@ -186,7 +186,8 @@ export default function CropsPage() {
     setEditDialogOpen(true)
   }
 
-  const getStatusVariant = (status: string) => {
+  const getStatusVariant = (status: string | undefined) => {
+    if (!status) return 'outline'
     switch (status.toLowerCase()) {
       case 'active':
         return 'default'
@@ -292,7 +293,7 @@ export default function CropsPage() {
                       <TableCell className="max-w-xs truncate">{crop.description}</TableCell>
                       <TableCell>
                         <Badge variant={getStatusVariant(crop.status)}>
-                          {crop.status === 'ACTIVE' ? 'Hoạt động' : 'Tạm dừng'}
+                          {crop.status === 'ACTIVE' ? 'Hoạt động' : crop.status === 'INACTIVE' ? 'Tạm dừng' : 'Không xác định'}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">

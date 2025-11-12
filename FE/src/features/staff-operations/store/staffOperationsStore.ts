@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { mapErrorToVietnamese } from '@/shared/lib/error-handler'
 import type {
   StaffDevice,
   LoadingState,
@@ -152,7 +153,7 @@ export const useStaffOperationsStore = create<StaffOperationsState>((set, get) =
     } catch (error) {
       get().setLoadingState(key, {
         isLoading: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: mapErrorToVietnamese(error).vietnamese,
       })
       throw error
     }
@@ -212,7 +213,7 @@ export const useStaffOperationsStore = create<StaffOperationsState>((set, get) =
     } catch (error) {
       get().setLoadingState(key, {
         isLoading: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: mapErrorToVietnamese(error).vietnamese,
       })
       throw error
     }
@@ -255,7 +256,7 @@ export const useStaffOperationsStore = create<StaffOperationsState>((set, get) =
     } catch (error) {
       get().setLoadingState(key, {
         isLoading: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: mapErrorToVietnamese(error).vietnamese,
       })
       throw error
     }

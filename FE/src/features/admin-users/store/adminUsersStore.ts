@@ -10,6 +10,7 @@ import type {
 } from '@/shared/lib/localData'
 import { userPreferences } from '@/shared/lib/localData/storage'
 import { accountApi, type AccountDto } from '@/shared/api/auth'
+import { mapErrorToVietnamese } from '@/shared/lib/error-handler'
 import type { UserFormData } from '../model/schemas'
 
 interface Role {
@@ -167,7 +168,7 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
     } catch (error) {
       get().setLoadingState(key, {
         isLoading: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: mapErrorToVietnamese(error).vietnamese,
       })
       throw error
     }
@@ -208,7 +209,7 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
     } catch (error) {
       get().setLoadingState(key, {
         isLoading: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: mapErrorToVietnamese(error).vietnamese,
       })
       throw error
     }
@@ -227,7 +228,7 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
     } catch (error) {
       get().setLoadingState(key, {
         isLoading: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: mapErrorToVietnamese(error).vietnamese,
       })
       throw error
     }
@@ -247,7 +248,7 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
     } catch (error) {
       get().setLoadingState(key, {
         isLoading: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: mapErrorToVietnamese(error).vietnamese,
       })
       throw error
     }
@@ -267,7 +268,7 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
     } catch (error) {
       get().setLoadingState(key, {
         isLoading: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: mapErrorToVietnamese(error).vietnamese,
       })
       throw error
     }
@@ -287,7 +288,7 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
     } catch (error) {
       get().setLoadingState(key, {
         isLoading: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: mapErrorToVietnamese(error).vietnamese,
       })
       throw error
     }
@@ -320,7 +321,7 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
     } catch (error) {
       get().setLoadingState(key, {
         isLoading: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: mapErrorToVietnamese(error).vietnamese,
       })
       throw error
     }

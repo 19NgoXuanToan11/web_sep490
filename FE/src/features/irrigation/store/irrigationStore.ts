@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { mapErrorToVietnamese } from '@/shared/lib/error-handler'
 import type { IrrigationSchedule, LoadingState } from '@/shared/lib/localData'
 import { irrigationSchedules as initialSchedules } from '@/shared/lib/localData/fixtures'
 import { simulateLatency, simulateError, addDays } from '@/shared/lib/localData/storage'
@@ -63,7 +64,7 @@ export const useIrrigationStore = create<IrrigationState>((set, get) => ({
     } catch (error) {
       get().setLoadingState(key, {
         isLoading: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: mapErrorToVietnamese(error).vietnamese,
       })
       throw error
     }
@@ -90,7 +91,7 @@ export const useIrrigationStore = create<IrrigationState>((set, get) => ({
     } catch (error) {
       get().setLoadingState(key, {
         isLoading: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: mapErrorToVietnamese(error).vietnamese,
       })
       throw error
     }
@@ -115,7 +116,7 @@ export const useIrrigationStore = create<IrrigationState>((set, get) => ({
     } catch (error) {
       get().setLoadingState(key, {
         isLoading: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: mapErrorToVietnamese(error).vietnamese,
       })
       throw error
     }

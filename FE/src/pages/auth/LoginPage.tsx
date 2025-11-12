@@ -7,7 +7,7 @@ import { useToast } from '@/shared/ui/use-toast'
 import { Mail, Lock, ArrowRight, Home } from 'lucide-react'
 import { authApi } from '@/shared/api/auth'
 import { useAuthStore } from '@/shared/store/authStore'
-import { handleApiError } from '@/shared/lib/error-handler'
+import { handleAuthError } from '@/shared/lib/error-handler'
 
 export const LoginPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -33,7 +33,7 @@ export const LoginPage: React.FC = () => {
         else navigate('/')
       }
     } catch (err) {
-      handleApiError(err, toast)
+      handleAuthError(err, toast)
     } finally {
       setIsSubmitting(false)
     }

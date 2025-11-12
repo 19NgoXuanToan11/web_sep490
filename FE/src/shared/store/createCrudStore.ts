@@ -1,4 +1,5 @@
-import type { StateCreator } from 'zustand'
+import { type StateCreator } from 'zustand'
+import { mapErrorToVietnamese } from '@/shared/lib/error-handler'
 
 export interface CrudService<T> {
   getAll: (params?: any) => Promise<{ items: T[]; totalCount: number }>
@@ -48,9 +49,10 @@ export const createCrudStore =
         })
         get().setLoadingState(key, { isLoading: false })
       } catch (error) {
+        const errorMessage = mapErrorToVietnamese(error)
         get().setLoadingState(key, {
           isLoading: false,
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: errorMessage.vietnamese,
         })
         throw error
       }
@@ -66,9 +68,10 @@ export const createCrudStore =
         get().setLoadingState(key, { isLoading: false })
         return item
       } catch (error) {
+        const errorMessage = mapErrorToVietnamese(error)
         get().setLoadingState(key, {
           isLoading: false,
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: errorMessage.vietnamese,
         })
         throw error
       }
@@ -88,9 +91,10 @@ export const createCrudStore =
         get().setLoadingState(key, { isLoading: false })
         return newItem
       } catch (error) {
+        const errorMessage = mapErrorToVietnamese(error)
         get().setLoadingState(key, {
           isLoading: false,
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: errorMessage.vietnamese,
         })
         throw error
       }
@@ -114,9 +118,10 @@ export const createCrudStore =
         get().setLoadingState(key, { isLoading: false })
         return updatedItem
       } catch (error) {
+        const errorMessage = mapErrorToVietnamese(error)
         get().setLoadingState(key, {
           isLoading: false,
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: errorMessage.vietnamese,
         })
         throw error
       }
@@ -137,9 +142,10 @@ export const createCrudStore =
 
         get().setLoadingState(key, { isLoading: false })
       } catch (error) {
+        const errorMessage = mapErrorToVietnamese(error)
         get().setLoadingState(key, {
           isLoading: false,
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: errorMessage.vietnamese,
         })
         throw error
       }

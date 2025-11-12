@@ -34,9 +34,18 @@ async function request<T>(
   const text = await res.text()
   const data = text ? (JSON.parse(text) as T) : (undefined as unknown as T)
   if (!res.ok) {
-
-    const message = (data as any)?.message || (data as any)?.Message || `HTTP ${status}`
-    throw Object.assign(new Error(message), { status, data })
+    // Extract meaningful error message from response
+    const message = (data as any)?.message || (data as any)?.Message || (data as any)?.error || `HTTP ${status}`
+    
+    // Create enhanced error object with status and data
+    const error = Object.assign(new Error(message), { 
+      status, 
+      data,
+      url: path,
+      method: options.method || 'GET'
+    })
+    
+    throw error
   }
   return { data, status }
 }

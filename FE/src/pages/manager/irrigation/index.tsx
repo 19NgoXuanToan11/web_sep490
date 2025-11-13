@@ -17,8 +17,8 @@ export default function IrrigationPage() {
           <div>
             <div className="flex items-center justify-between">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Quản lý tưới tiêu thông minh</h1>
-                <p>Quản lý lịch tưới và điều khiển thiết bị tự động</p>
+                <h1 className="text-3xl font-bold text-gray-900">Quản lý tưới nước</h1>
+                <p>Quản lý và lập lịch tưới nước</p>
               </div>
               <Button size="sm" onClick={() => setShowCreate(v => !v)}>Tạo lịch mới</Button>
             </div>

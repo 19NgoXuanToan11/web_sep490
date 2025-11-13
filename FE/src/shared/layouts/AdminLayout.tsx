@@ -6,7 +6,6 @@ import {
   Shield,
   Menu,
   X,
-  Bell,
   User,
   ChevronRight,
   Home,
@@ -37,7 +36,7 @@ const navigationItems: NavItem[] = [
     description: 'Tổng quan hệ thống',
   },
   {
-    name: 'Quản lý người dùng',
+    name: 'Người dùng',
     href: '/admin/users',
     icon: Users,
     description: 'Quản lý người dùng hệ thống',
@@ -190,8 +189,8 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
         >
           <div
             className={`${isSidebarOpen
-                ? 'flex items-center space-x-3'
-                : 'flex flex-col items-center space-y-3'
+              ? 'flex items-center space-x-3'
+              : 'flex flex-col items-center space-y-3'
               }`}
           >
             <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
@@ -311,16 +310,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
               <div className="flex items-center space-x-2 sm:space-x-4">
                 { }
 
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="relative text-gray-500 hover:text-gray-700 hover:bg-gray-50"
-                >
-                  <Bell className="h-5 w-5" />
-                  <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 text-xs bg-red-500 text-white border-2 border-white">
-                    2
-                  </Badge>
-                </Button>
+                <div></div>
                 { }
               </div>
             </div>

@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState, useMemo } from 'react'
+﻿import React, { useEffect, useState, useMemo, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import {
     ShoppingCart,
@@ -98,26 +98,46 @@ export default function StaffDashboard() {
     const [orders, setOrders] = useState<Order[]>([])
     const [feedbacks, setFeedbacks] = useState<Feedback[]>([])
     const [isLoading, setIsLoading] = useState(true)
+    const [dashboardError, setDashboardError] = useState<string | null>(null)
     const [timeRange, setTimeRange] = useState<'week' | 'month'>('week')
 
-    useEffect(() => {
-        const fetchData = async () => {
-            setIsLoading(true)
-            try {
-                const [ordersData, feedbacksData] = await Promise.all([
-                    orderService.getOrderList({ pageIndex: 1, pageSize: 100 }),
-                    feedbackService.getFeedbackList({ pageIndex: 1, pageSize: 100 }),
-                ])
-                setOrders(ordersData.items || [])
-                setFeedbacks(feedbacksData.items || [])
-            } catch (error) {
-            } finally {
-                setIsLoading(false)
-            }
-        }
+    const fetchDashboardData = useCallback(async () => {
+        setIsLoading(true)
+        setDashboardError(null)
 
-        fetchData()
+        try {
+            const [orderResult, feedbackResult] = await Promise.allSettled([
+                orderService.getOrderList({ pageIndex: 1, pageSize: 100 }),
+                feedbackService.getFeedbackList({ pageIndex: 1, pageSize: 100 }),
+            ])
+
+            const errors: string[] = []
+
+            if (orderResult.status === 'fulfilled') {
+                setOrders(orderResult.value?.items ?? [])
+            } else {
+                errors.push('đơn hàng')
+            }
+
+            if (feedbackResult.status === 'fulfilled') {
+                setFeedbacks(feedbackResult.value?.items ?? [])
+            } else {
+                errors.push('đánh giá')
+            }
+
+            if (errors.length > 0) {
+                setDashboardError(`Không thể tải dữ liệu: ${errors.join(', ')}`)
+            }
+        } catch (error) {
+            setDashboardError('Không thể tải dữ liệu bảng điều khiển')
+        } finally {
+            setIsLoading(false)
+        }
     }, [])
+
+    useEffect(() => {
+        fetchDashboardData()
+    }, [fetchDashboardData])
 
     const stats = useMemo(() => {
         const now = new Date()
@@ -125,14 +145,26 @@ export default function StaffDashboard() {
         const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
         const cutoffDate = timeRange === 'week' ? weekAgo : monthAgo
 
-        const recentOrders = orders.filter(order => new Date(order.createdAt) >= cutoffDate)
-        const totalRevenue = recentOrders.reduce((sum, order) => sum + order.totalPrice, 0)
-        const avgRating = feedbacks.length > 0
-            ? feedbacks.reduce((sum, fb) => sum + fb.rating, 0) / feedbacks.length
-            : 0
+        const recentOrders = orders.filter(order => {
+            if (!order.createdAt) return false
+            const orderDate = new Date(order.createdAt)
+            if (Number.isNaN(orderDate.getTime())) return false
+            return orderDate >= cutoffDate
+        })
+
+        const totalRevenue = recentOrders.reduce((sum, order) => {
+            const price = order.totalPrice ?? 0
+            return sum + (typeof price === 'number' ? price : 0)
+        }, 0)
+
+        const validFeedbacks = feedbacks.filter(fb => fb.rating >= 1 && fb.rating <= 5)
+        const avgRating =
+            validFeedbacks.length > 0
+                ? validFeedbacks.reduce((sum, fb) => sum + fb.rating, 0) / validFeedbacks.length
+                : 0
 
         const statusCounts = orders.reduce((acc, order) => {
-            const status = getOrderStatusLabel(order.status)
+            const status = getOrderStatusLabel(order.status ?? 0)
             acc[status] = (acc[status] || 0) + 1
             return acc
         }, {} as Record<string, number>)
@@ -155,12 +187,17 @@ export default function StaffDashboard() {
             for (let i = 6; i >= 0; i--) {
                 const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000)
                 const dayOrders = orders.filter(order => {
+                    if (!order.createdAt) return false
                     const orderDate = new Date(order.createdAt)
+                    if (Number.isNaN(orderDate.getTime())) return false
                     return orderDate.toDateString() === date.toDateString()
                 })
                 data.push({
                     name: date.toLocaleDateString('vi-VN', { weekday: 'short' }),
-                    revenue: dayOrders.reduce((sum, order) => sum + order.totalPrice, 0),
+                    revenue: dayOrders.reduce((sum, order) => {
+                        const price = order.totalPrice ?? 0
+                        return sum + (typeof price === 'number' ? price : 0)
+                    }, 0),
                     orders: dayOrders.length,
                 })
             }
@@ -169,12 +206,17 @@ export default function StaffDashboard() {
                 const weekStart = new Date(now.getTime() - (i + 1) * 7 * 24 * 60 * 60 * 1000)
                 const weekEnd = new Date(now.getTime() - i * 7 * 24 * 60 * 60 * 1000)
                 const weekOrders = orders.filter(order => {
+                    if (!order.createdAt) return false
                     const orderDate = new Date(order.createdAt)
+                    if (Number.isNaN(orderDate.getTime())) return false
                     return orderDate >= weekStart && orderDate <= weekEnd
                 })
                 data.push({
                     name: `Tuần ${4 - i}`,
-                    revenue: weekOrders.reduce((sum, order) => sum + order.totalPrice, 0),
+                    revenue: weekOrders.reduce((sum, order) => {
+                        const price = order.totalPrice ?? 0
+                        return sum + (typeof price === 'number' ? price : 0)
+                    }, 0),
                     orders: weekOrders.length,
                 })
             }
@@ -194,7 +236,8 @@ export default function StaffDashboard() {
         }
 
         const statusCounts = orders.reduce((acc, order) => {
-            acc[order.status] = (acc[order.status] || 0) + 1
+            const status = order.status ?? 0
+            acc[status] = (acc[status] || 0) + 1
             return acc
         }, {} as Record<number, number>)
 
@@ -206,12 +249,18 @@ export default function StaffDashboard() {
     }, [orders])
 
     const ratingData = useMemo(() => {
+        // Khởi tạo mảng 5 phần tử: 1 sao, 2 sao, 3 sao, 4 sao, 5 sao
         const distribution = [0, 0, 0, 0, 0]
+
         feedbacks.forEach(fb => {
-            if (fb.rating >= 1 && fb.rating <= 5) {
-                distribution[fb.rating - 1]++
+            // Chỉ lấy rating là số nguyên từ 1 đến 5
+            const rating = Math.floor(fb.rating ?? 0)
+            if (rating >= 1 && rating <= 5) {
+                distribution[rating - 1]++
             }
         })
+
+        // Luôn trả về đầy đủ 5 mức đánh giá từ 1 sao đến 5 sao
         return distribution.map((count, index) => ({
             name: `${index + 1} sao`,
             count,
@@ -244,7 +293,15 @@ export default function StaffDashboard() {
                                 Theo dõi hoạt động kinh doanh và hiệu suất làm việc
                             </p>
                         </div>
-                        <div className="mt-4 sm:mt-0">
+                        <div className="mt-4 sm:mt-0 flex gap-3">
+                            <Button
+                                variant="outline"
+                                className="border-purple-200 text-purple-700 hover:bg-purple-50"
+                                onClick={fetchDashboardData}
+                                disabled={isLoading}
+                            >
+                                {isLoading ? 'Đang tải...' : 'Làm mới'}
+                            </Button>
                             <Tabs value={timeRange} onValueChange={(v) => setTimeRange(v as 'week' | 'month')}>
                                 <TabsList>
                                     <TabsTrigger value="week">7 ngày</TabsTrigger>
@@ -253,6 +310,11 @@ export default function StaffDashboard() {
                             </Tabs>
                         </div>
                     </div>
+                    {dashboardError && (
+                        <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                            {dashboardError}
+                        </div>
+                    )}
                 </div>
 
                 { }
@@ -370,7 +432,7 @@ export default function StaffDashboard() {
                             <ResponsiveContainer width="100%" height={300}>
                                 <BarChart data={ratingData} layout="vertical">
                                     <CartesianGrid strokeDasharray="3 3" />
-                                    <XAxis type="number" />
+                                    <XAxis type="number" domain={[0, 5]} />
                                     <YAxis dataKey="name" type="category" />
                                     <Tooltip />
                                     <Bar dataKey="count" fill="#F59E0B" name="Số lượng" />
@@ -407,18 +469,20 @@ export default function StaffDashboard() {
                                     >
                                         <div className="flex-1 min-w-0">
                                             <p className="text-sm font-medium text-gray-900 truncate">
-                                                Đơn hàng #{String(order.orderId).slice(0, 8)}
+                                                Đơn hàng #{String(order.orderId ?? '').slice(0, 8)}
                                             </p>
                                             <p className="text-xs text-gray-500">
-                                                {new Date(order.createdAt).toLocaleDateString('vi-VN')}
+                                                {order.createdAt
+                                                    ? new Date(order.createdAt).toLocaleDateString('vi-VN')
+                                                    : 'Không xác định'}
                                             </p>
                                         </div>
                                         <div className="flex items-center gap-3">
                                             <span className="text-sm font-semibold text-gray-900">
-                                                {order.totalPrice.toLocaleString('vi-VN')} đ
+                                                {(order.totalPrice ?? 0).toLocaleString('vi-VN')} đ
                                             </span>
-                                            <Badge variant={order.status === 4 ? 'default' : 'secondary'}>
-                                                {getOrderStatusLabel(order.status)}
+                                            <Badge variant={(order.status ?? 0) === 4 ? 'default' : 'secondary'}>
+                                                {getOrderStatusLabel(order.status ?? 0)}
                                             </Badge>
                                         </div>
                                     </div>
@@ -477,13 +541,15 @@ export default function StaffDashboard() {
                                                     ))}
                                                 </div>
                                             </div>
-                                            <p className="text-sm text-gray-600 mb-1">{feedback.comment}</p>
+                                            <p className="text-sm text-gray-600 mb-1">{feedback.comment || 'Không có bình luận'}</p>
                                             <p className="text-xs text-gray-500">
                                                 Sản phẩm: {feedback.orderDetail?.productName || 'N/A'}
                                             </p>
                                         </div>
                                         <span className="text-xs text-gray-400">
-                                            {new Date(feedback.createdAt).toLocaleDateString('vi-VN')}
+                                            {feedback.createdAt
+                                                ? new Date(feedback.createdAt).toLocaleDateString('vi-VN')
+                                                : 'Không xác định'}
                                         </span>
                                     </div>
                                 </div>

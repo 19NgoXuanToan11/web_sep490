@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Cpu, Menu, X, Bell, ChevronRight, Home, Package, ShoppingCart, MessageSquare, BarChart3 } from 'lucide-react'
+import { Cpu, Menu, X, ChevronRight, Home, Package, ShoppingCart, MessageSquare, BarChart3 } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import LogoutButton from '@/shared/ui/LogoutButton'
 import { Badge } from '@/shared/ui/badge'
@@ -311,18 +311,7 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({ children }) => {
                 </nav>
               </div>
 
-              <div className="flex items-center space-x-2 sm:space-x-4">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="relative text-gray-500 hover:text-gray-700 hover:bg-gray-50"
-                >
-                  <Bell className="h-5 w-5" />
-                  <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 text-xs bg-red-500 text-white border-2 border-white">
-                    5
-                  </Badge>
-                </Button>
-              </div>
+              <div className="flex items-center space-x-2 sm:space-x-4"></div>
             </div>
           </div>
         </header>

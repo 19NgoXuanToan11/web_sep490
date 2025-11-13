@@ -50,7 +50,7 @@ const navigationItems: NavItem[] = [
     description: 'Quản lý danh mục sản phẩm',
   },
   {
-    name: 'Quản lý cây trồng',
+    name: 'Cây trồng',
     href: '/manager/crops',
     icon: Trees,
     description: 'Lập kế hoạch & theo dõi',

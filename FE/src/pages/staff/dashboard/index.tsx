@@ -10,6 +10,9 @@ import {
     ArrowUpRight,
     ArrowDownRight,
     BarChart3,
+    CheckCircle,
+    Truck,
+    XCircle,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
 import { Button } from '@/shared/ui/button'
@@ -17,7 +20,7 @@ import { Badge } from '@/shared/ui/badge'
 import { Tabs, TabsList, TabsTrigger } from '@/shared/ui/tabs'
 import { useNavigate } from 'react-router-dom'
 import { StaffLayout } from '@/shared/layouts/StaffLayout'
-import { orderService, getOrderStatusLabel } from '@/shared/api/orderService'
+import { orderService, getOrderStatusLabel, getOrderStatusVariant } from '@/shared/api/orderService'
 import type { Order } from '@/shared/api/orderService'
 import { feedbackService } from '@/shared/api/feedbackService'
 import type { Feedback } from '@/shared/api/feedbackService'
@@ -226,26 +229,35 @@ export default function StaffDashboard() {
     }, [orders, timeRange])
 
     const orderStatusData = useMemo(() => {
+        // Chỉ hiển thị 3 trạng thái: Đã xác nhận (1), Đang giao (3), Hoàn thành (5)
         const statusMap: Record<number, { label: string; color: string }> = {
-            0: { label: 'Chờ xử lý', color: '#FFA500' },
-            1: { label: 'Đã xác nhận', color: '#4CAF50' },
-            2: { label: 'Đang chuẩn bị', color: '#2196F3' },
-            3: { label: 'Đang giao', color: '#9C27B0' },
-            4: { label: 'Đã giao', color: '#4CAF50' },
-            5: { label: 'Đã hủy', color: '#F44336' },
+            1: { label: 'Đã xác nhận', color: '#4CAF50' },     // Green - Đã thanh toán
+            3: { label: 'Đang giao', color: '#9C27B0' },       // Purple - Đang giao hàng
+            5: { label: 'Hoàn thành', color: '#4CAF50' },       // Green - Hoàn thành
         }
 
+        // Chỉ lọc các trạng thái được phép hiển thị
+        const allowedStatuses = [1, 3, 5]
+
+        // Đếm số lượng đơn hàng theo từng trạng thái từ dữ liệu thật
         const statusCounts = orders.reduce((acc, order) => {
             const status = order.status ?? 0
-            acc[status] = (acc[status] || 0) + 1
+            // Chỉ đếm các trạng thái được phép
+            if (allowedStatuses.includes(status)) {
+                acc[status] = (acc[status] || 0) + 1
+            }
             return acc
         }, {} as Record<number, number>)
 
-        return Object.entries(statusCounts).map(([status, count]) => ({
-            name: statusMap[Number(status)]?.label || 'Khác',
-            value: count,
-            color: statusMap[Number(status)]?.color || '#999',
-        }))
+        // Chỉ hiển thị các trạng thái có đơn hàng (value > 0)
+        return Object.entries(statusCounts)
+            .filter(([_, count]) => count > 0)
+            .map(([status, count]) => ({
+                name: statusMap[Number(status)]?.label || getOrderStatusLabel(Number(status)),
+                value: count,
+                color: statusMap[Number(status)]?.color || '#999',
+            }))
+            .sort((a, b) => b.value - a.value) // Sắp xếp theo số lượng giảm dần
     }, [orders])
 
     const ratingData = useMemo(() => {
@@ -266,6 +278,95 @@ export default function StaffDashboard() {
             count,
         }))
     }, [feedbacks])
+
+    // Sắp xếp đơn hàng theo thời gian tạo mới nhất trước (giống như trong trang quản lý đơn hàng)
+    const recentOrdersSorted = useMemo(() => {
+        return [...orders]
+            .filter(order => order.createdAt)
+            .sort((a, b) => {
+                const dateA = new Date(a.createdAt || 0).getTime()
+                const dateB = new Date(b.createdAt || 0).getTime()
+                return dateB - dateA // Mới nhất trước
+            })
+            .slice(0, 5) // Lấy 5 đơn hàng mới nhất
+    }, [orders])
+
+    // Hàm xác định paymentStatus từ order status (giống như trong orders/index.tsx)
+    const mapPaymentStatus = (status: number): 'pending' | 'paid' | 'failed' | 'refunded' => {
+        switch (status) {
+            case 1: // PAID - Đã thanh toán
+            case 5: // COMPLETED - Hoàn thành
+            case 6: // DELIVERED - Đã giao hàng
+                return 'paid'
+            case 0: // UNPAID - Chưa thanh toán
+            case 3: // PENDING - Đang xử lý
+                return 'pending'
+            case 2: // UNDISCHARGED - Thanh toán thất bại/Chưa thanh toán
+                return 'failed'
+            case 4: // CANCELLED - Đã hủy
+                return 'refunded'
+            default:
+                return 'pending'
+        }
+    }
+
+    // Hàm hiển thị icon trạng thái (giống như trong orders/index.tsx)
+    const getStatusIcon = (status: number) => {
+        switch (status) {
+            case 0:
+                return <Clock className="h-4 w-4 text-yellow-500" />
+            case 1:
+                return <CheckCircle className="h-4 w-4 text-blue-500" />
+            case 2:
+                return <Package className="h-4 w-4 text-purple-500" />
+            case 3:
+                return <Truck className="h-4 w-4 text-orange-500" />
+            case 4:
+                return <XCircle className="h-4 w-4 text-red-500" />
+            case 5:
+                return <CheckCircle className="h-4 w-4 text-green-500" />
+            case 6:
+                return <Truck className="h-4 w-4 text-blue-500" />
+            default:
+                return <ShoppingCart className="h-4 w-4 text-gray-500" />
+        }
+    }
+
+    // Hàm hiển thị badge trạng thái (giống như trong orders/index.tsx)
+    const getStatusBadge = (status: number) => {
+        const variant = getOrderStatusVariant(status)
+        const label = getOrderStatusLabel(status)
+
+        return (
+            <Badge variant={variant} className="flex items-center gap-1">
+                {getStatusIcon(status)}
+                {label}
+            </Badge>
+        )
+    }
+
+    // Hàm hiển thị trạng thái với xử lý paymentStatus (giống như trong orders/index.tsx)
+    const getDisplayStatusBadge = (order: Order) => {
+        const paymentStatus = mapPaymentStatus(order.status ?? 0)
+        if (paymentStatus === 'failed' || paymentStatus === 'pending') {
+            return (
+                <Badge variant="secondary" className="flex items-center gap-1">
+                    {getStatusIcon(0)}
+                    Chưa thanh toán
+                </Badge>
+            )
+        }
+        return getStatusBadge(order.status ?? 0)
+    }
+
+    // Hàm format ngày (giống như trong orders/index.tsx)
+    const formatDateOnly = (dateString: string) => {
+        return new Date(dateString).toLocaleDateString('vi-VN', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+        })
+    }
 
 
     if (isLoading) {
@@ -395,25 +496,40 @@ export default function StaffDashboard() {
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <ResponsiveContainer width="100%" height={300}>
-                                <PieChart>
-                                    <Pie
-                                        data={orderStatusData}
-                                        cx="50%"
-                                        cy="50%"
-                                        labelLine={false}
-                                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                                        outerRadius={80}
-                                        fill="#8884d8"
-                                        dataKey="value"
-                                    >
-                                        {orderStatusData.map((entry, index) => (
-                                            <Cell key={`cell-${index}`} fill={entry.color} />
-                                        ))}
-                                    </Pie>
-                                    <Tooltip />
-                                </PieChart>
-                            </ResponsiveContainer>
+                            {orderStatusData.length > 0 ? (
+                                <ResponsiveContainer width="100%" height={300}>
+                                    <PieChart>
+                                        <Pie
+                                            data={orderStatusData}
+                                            cx="50%"
+                                            cy="50%"
+                                            labelLine={false}
+                                            label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                                            outerRadius={80}
+                                            fill="#8884d8"
+                                            dataKey="value"
+                                        >
+                                            {orderStatusData.map((entry, index) => (
+                                                <Cell key={`cell-${index}`} fill={entry.color} />
+                                            ))}
+                                        </Pie>
+                                        <Tooltip
+                                            formatter={(value: number, _name: string, props: any) => {
+                                                const total = orderStatusData.reduce((sum, item) => sum + item.value, 0)
+                                                const percent = total > 0 ? ((value / total) * 100).toFixed(1) : '0'
+                                                return [`${value} đơn (${percent}%)`, props.payload.name]
+                                            }}
+                                        />
+                                    </PieChart>
+                                </ResponsiveContainer>
+                            ) : (
+                                <div className="flex items-center justify-center h-[300px] text-gray-500">
+                                    <div className="text-center">
+                                        <ShoppingCart className="h-12 w-12 mx-auto mb-2 text-gray-400" />
+                                        <p>Chưa có dữ liệu đơn hàng</p>
+                                    </div>
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
                 </div>
@@ -461,33 +577,32 @@ export default function StaffDashboard() {
                         </CardHeader>
                         <CardContent className="p-0">
                             <div className="space-y-1 max-h-80 overflow-y-auto">
-                                {orders.slice(0, 5).map((order) => (
-                                    <div
-                                        key={order.orderId}
-                                        className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors cursor-pointer"
-                                        onClick={() => navigate('/staff/orders')}
-                                    >
-                                        <div className="flex-1 min-w-0">
-                                            <p className="text-sm font-medium text-gray-900 truncate">
-                                                Đơn hàng #{String(order.orderId ?? '').slice(0, 8)}
-                                            </p>
-                                            <p className="text-xs text-gray-500">
-                                                {order.createdAt
-                                                    ? new Date(order.createdAt).toLocaleDateString('vi-VN')
-                                                    : 'Không xác định'}
-                                            </p>
+                                {recentOrdersSorted.length > 0 ? (
+                                    recentOrdersSorted.map((order) => (
+                                        <div
+                                            key={order.orderId}
+                                            className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+                                            onClick={() => navigate('/staff/orders')}
+                                        >
+                                            <div className="flex-1 min-w-0">
+                                                <p className="text-sm font-medium text-gray-900 truncate">
+                                                    Đơn hàng #{String(order.orderId ?? '').slice(0, 8)}
+                                                </p>
+                                                <p className="text-xs text-gray-500">
+                                                    {order.createdAt
+                                                        ? formatDateOnly(order.createdAt)
+                                                        : 'Không xác định'}
+                                                </p>
+                                            </div>
+                                            <div className="flex items-center gap-3">
+                                                <span className="text-sm font-semibold text-gray-900">
+                                                    {(order.totalPrice ?? 0).toLocaleString('vi-VN')} đ
+                                                </span>
+                                                {getDisplayStatusBadge(order)}
+                                            </div>
                                         </div>
-                                        <div className="flex items-center gap-3">
-                                            <span className="text-sm font-semibold text-gray-900">
-                                                {(order.totalPrice ?? 0).toLocaleString('vi-VN')} đ
-                                            </span>
-                                            <Badge variant={(order.status ?? 0) === 4 ? 'default' : 'secondary'}>
-                                                {getOrderStatusLabel(order.status ?? 0)}
-                                            </Badge>
-                                        </div>
-                                    </div>
-                                ))}
-                                {orders.length === 0 && (
+                                    ))
+                                ) : (
                                     <div className="text-center py-8 text-gray-500">
                                         <ShoppingCart className="h-12 w-12 mx-auto mb-2 text-gray-400" />
                                         <p>Chưa có đơn hàng nào</p>

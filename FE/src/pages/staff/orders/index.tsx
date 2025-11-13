@@ -826,14 +826,8 @@ const StaffOrdersPage: React.FC = () => {
                   <DropdownMenuItem onClick={() => handleStatusFilterChange('all')}>
                     Tất cả
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleStatusFilterChange('0')}>
-                    {getOrderStatusLabel(0)}
-                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => handleStatusFilterChange('1')}>
                     {getOrderStatusLabel(1)}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleStatusFilterChange('2')}>
-                    {getOrderStatusLabel(2)}
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => handleStatusFilterChange('3')}>
                     {getOrderStatusLabel(3)}
@@ -843,9 +837,6 @@ const StaffOrdersPage: React.FC = () => {
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => handleStatusFilterChange('5')}>
                     {getOrderStatusLabel(5)}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleStatusFilterChange('6')}>
-                    {getOrderStatusLabel(6)}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

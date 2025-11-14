@@ -1,39 +1,111 @@
-﻿import React, { useEffect, useState, useMemo, useCallback } from 'react'
+import React, { useEffect, useState, useMemo, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import {
-  Activity,
-  Droplets,
-  Package,
-  AlertTriangle,
-  CheckCircle,
   Sprout,
   Thermometer,
   ArrowUpRight,
   ArrowDownRight,
   Cpu,
-  Wifi,
-  CalendarCheck,
-  ClipboardList,
-  TrendingUp,
-  Clock,
   Gauge,
   Cloud,
-  Wind,
   CloudRain,
+  ShoppingCart,
+  DollarSign,
+  Star,
+  Package,
+  TrendingUp,
+  Clock,
+  CheckCircle,
+  Truck,
+  XCircle,
+  BarChart3,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
 import { Button } from '@/shared/ui/button'
 import { Badge } from '@/shared/ui/badge'
-import { useNavigate } from 'react-router-dom'
+import { Tabs, TabsList, TabsTrigger } from '@/shared/ui/tabs'
 import { ManagerLayout } from '@/shared/layouts/ManagerLayout'
 import { iotDeviceService } from '@/shared/api/iotDeviceService'
 import { weatherService, type WeatherResponse } from '@/shared/api/weatherService'
-import { farmActivityService, type FarmActivity } from '@/shared/api/farmActivityService'
-import { scheduleService, type ScheduleListItem } from '@/shared/api/scheduleService'
-import { orderService, type Order, getOrderStatusLabel } from '@/shared/api/orderService'
-import { productService, type Product as InventoryProduct } from '@/shared/api/productService'
 import { cropService, type Crop } from '@/shared/api/cropService'
 import { blynkService, type SensorData } from '@/shared/api/blynkService'
+import { orderService, getOrderStatusLabel, getOrderStatusVariant, type Order } from '@/shared/api/orderService'
+import { feedbackService, type Feedback } from '@/shared/api/feedbackService'
+import { productService } from '@/shared/api/productService'
+import { useNavigate } from 'react-router-dom'
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+} from 'recharts'
+
+const WEATHER_DESCRIPTION_MAP: Record<string, string> = {
+  'clear sky': 'Trời quang mây',
+  'few clouds': 'Ít mây',
+  'scattered clouds': 'Mây rải rác',
+  'broken clouds': 'Mây đứt đoạn',
+  'overcast clouds': 'Nhiều mây',
+  'light rain': 'Mưa nhẹ',
+  'moderate rain': 'Mưa vừa',
+  'heavy intensity rain': 'Mưa lớn',
+  'very heavy rain': 'Mưa rất to',
+  'extreme rain': 'Mưa dữ dội',
+  'freezing rain': 'Mưa băng giá',
+  'light intensity shower rain': 'Mưa rào nhẹ',
+  'shower rain': 'Mưa rào',
+  'heavy intensity shower rain': 'Mưa rào nặng hạt',
+  'ragged shower rain': 'Mưa rào gián đoạn',
+  drizzle: 'Mưa phùn',
+  thunderstorm: 'Dông',
+  snow: 'Tuyết',
+  mist: 'Sương mù',
+  smoke: 'Khói',
+  haze: 'Mù sương',
+  dust: 'Bụi',
+  fog: 'Sương mù',
+  sand: 'Cát bay',
+  ash: 'Tro bụi',
+  squalls: 'Gió giật',
+  tornado: 'Lốc xoáy',
+}
+
+const WEATHER_DESCRIPTION_KEYWORDS: Array<[RegExp, string]> = [
+  [/thunderstorm/, 'Dông bão'],
+  [/drizzle/, 'Mưa phùn'],
+  [/light rain/, 'Mưa nhẹ'],
+  [/moderate rain/, 'Mưa vừa'],
+  [/heavy rain/, 'Mưa lớn'],
+  [/rain/, 'Mưa'],
+  [/snow/, 'Tuyết'],
+  [/mist|fog|haze/, 'Sương mù'],
+  [/cloud/, 'Nhiều mây'],
+  [/clear/, 'Trời quang'],
+]
+
+const translateWeatherDescription = (description?: string) => {
+  if (!description) return ''
+  const normalized = description.trim().toLowerCase()
+
+  if (WEATHER_DESCRIPTION_MAP[normalized]) {
+    return WEATHER_DESCRIPTION_MAP[normalized]
+  }
+
+  for (const [pattern, value] of WEATHER_DESCRIPTION_KEYWORDS) {
+    if (pattern.test(normalized)) {
+      return value
+    }
+  }
+
+  return description
+}
 
 interface MetricCardProps {
   title: string
@@ -42,26 +114,33 @@ interface MetricCardProps {
   changeType?: 'increase' | 'decrease'
   icon: React.ComponentType<{ className?: string }>
   description?: string
-  color?: 'green' | 'green-light' | 'green-medium' | 'green-dark'
+  color?: 'green' | 'green-light' | 'green-medium' | 'green-dark' | 'purple' | 'blue' | 'orange'
+  onClick?: () => void
 }
 
 const MetricCard = React.memo<MetricCardProps>(
-  ({ title, value, change, changeType = 'increase', icon: Icon, description, color = 'green' }) => {
+  ({ title, value, change, changeType = 'increase', icon: Icon, description, color = 'green', onClick }) => {
     const colorClasses = {
       green: 'from-green-500 to-green-600',
       'green-light': 'from-green-400 to-green-500',
       'green-medium': 'from-green-600 to-green-700',
       'green-dark': 'from-green-700 to-green-800',
+      purple: 'from-purple-500 to-purple-600',
+      blue: 'from-blue-500 to-blue-600',
+      orange: 'from-orange-500 to-orange-600',
     }
 
     const ChangeIcon = changeType === 'increase' ? ArrowUpRight : ArrowDownRight
 
     return (
-      <motion.div whileHover={{ scale: 1.02, y: -2 }} transition={{ duration: 0.2 }}>
+      <motion.div
+        whileHover={{ scale: 1.02, y: -2 }}
+        transition={{ duration: 0.2 }}
+        onClick={onClick}
+        className={onClick ? 'cursor-pointer' : ''}
+      >
         <Card className="relative overflow-hidden border-0 shadow-lg bg-white h-full">
-          <div
-            className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${colorClasses[color]}`}
-          />
+          <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${colorClasses[color]}`} />
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-600">{title}</CardTitle>
             <div className={`p-2 rounded-lg bg-gradient-to-br ${colorClasses[color]} shadow-lg`}>
@@ -72,9 +151,8 @@ const MetricCard = React.memo<MetricCardProps>(
             <div className="text-2xl font-bold text-gray-900 mb-1">{value}</div>
             {change && (
               <div
-                className={`flex items-center text-sm ${
-                  changeType === 'increase' ? 'text-green-600' : 'text-green-800'
-                }`}
+                className={`flex items-center text-sm ${changeType === 'increase' ? 'text-green-600' : 'text-red-600'
+                  }`}
               >
                 <ChangeIcon className="h-3 w-3 mr-1" />
                 {change}
@@ -87,59 +165,6 @@ const MetricCard = React.memo<MetricCardProps>(
     )
   }
 )
-
-interface ActivityItemProps {
-  title: string
-  description: string
-  time: string
-  type: 'success' | 'warning' | 'info' | 'error'
-  icon: React.ComponentType<{ className?: string }>
-}
-
-const ActivityItem = React.memo<ActivityItemProps>(
-  ({ title, description, time, type, icon: Icon }) => {
-    const typeClasses = {
-      success: 'text-green-600 bg-green-50',
-      warning: 'text-green-700 bg-green-100',
-      info: 'text-green-500 bg-green-50',
-      error: 'text-green-800 bg-green-200',
-    }
-
-    return (
-      <div className="flex items-start space-x-3 p-3 rounded-lg hover:bg-gray-50 transition-colors">
-        <div className={`p-1.5 rounded-full ${typeClasses[type]}`}>
-          <Icon className="h-3 w-3" />
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-gray-900 truncate">{title}</p>
-          <p className="text-xs text-gray-500 mt-0.5">{description}</p>
-        </div>
-        <span className="text-xs text-gray-400">{time}</span>
-      </div>
-    )
-  }
-)
-
-interface ModuleSnapshot {
-  title: string
-  summary: string
-  trend: string
-  link: string
-  icon: React.ComponentType<{ className?: string }>
-  tag: string
-  tagTone: 'positive' | 'neutral' | 'alert'
-}
-
-interface ActionCenterItem {
-  title: string
-  description: string
-  status: 'critical' | 'warning' | 'info'
-  module: string
-  ctaLabel: string
-  onClick: () => void
-}
-
-type TimelineStatus = 'upcoming' | 'ongoing' | 'completed' | 'overdue'
 
 interface OverviewBadge {
   label: string
@@ -156,15 +181,6 @@ interface GrowthOverviewItem {
   badges?: OverviewBadge[]
 }
 
-interface ScheduleItem {
-  id: number | string
-  title: string
-  timeRange: string
-  responsible: string
-  progress: number
-  status: TimelineStatus
-}
-
 export default function ManagerDashboard() {
   const navigate = useNavigate()
   const [iotDeviceStats, setIotDeviceStats] = useState({
@@ -176,14 +192,14 @@ export default function ManagerDashboard() {
   })
   const [weather, setWeather] = useState<WeatherResponse | null>(null)
   const [isLoadingWeather, setIsLoadingWeather] = useState(false)
-  const [schedules, setSchedules] = useState<ScheduleListItem[]>([])
-  const [farmActivities, setFarmActivities] = useState<FarmActivity[]>([])
-  const [orders, setOrders] = useState<Order[]>([])
-  const [products, setProducts] = useState<InventoryProduct[]>([])
   const [crops, setCrops] = useState<Crop[]>([])
   const [sensorData, setSensorData] = useState<SensorData | null>(null)
+  const [orders, setOrders] = useState<Order[]>([])
+  const [feedbacks, setFeedbacks] = useState<Feedback[]>([])
+  const [products, setProducts] = useState<any[]>([])
   const [isLoadingDashboard, setIsLoadingDashboard] = useState(false)
   const [dashboardError, setDashboardError] = useState<string | null>(null)
+  const [timeRange, setTimeRange] = useState<'week' | 'month'>('week')
 
   const fetchIoTDeviceStats = useCallback(async () => {
     try {
@@ -198,7 +214,10 @@ export default function ManagerDashboard() {
     setIsLoadingWeather(true)
     try {
       const weatherData = await weatherService.getWeather('Ho Chi Minh')
-      setWeather(weatherData)
+      setWeather({
+        ...weatherData,
+        description: translateWeatherDescription(weatherData.description),
+      })
     } catch (error) {
       // keep previous weather state
     } finally {
@@ -211,47 +230,15 @@ export default function ManagerDashboard() {
     setDashboardError(null)
 
     try {
-      const [
-        scheduleResult,
-        activityResult,
-        orderResult,
-        productResult,
-        cropResult,
-        sensorResult,
-      ] = await Promise.allSettled([
-        scheduleService.getScheduleList(1, 20),
-        farmActivityService.getAllFarmActivities(),
-        orderService.getOrderList({ pageSize: 20 }),
-        productService.getProductsList({ pageSize: 100 }),
+      const [cropResult, sensorResult, orderResult, feedbackResult, productResult] = await Promise.allSettled([
         cropService.getAllCropsActive(),
         blynkService.getBlynkData(),
+        orderService.getOrderList({ pageIndex: 1, pageSize: 100 }),
+        feedbackService.getFeedbackList({ pageIndex: 1, pageSize: 100 }),
+        productService.getProductsList({ page: 1, pageSize: 100 }),
       ])
 
       const errors: string[] = []
-
-      if (scheduleResult.status === 'fulfilled') {
-        setSchedules(scheduleResult.value?.data?.items ?? [])
-      } else {
-        errors.push('lịch tác nghiệp')
-      }
-
-      if (activityResult.status === 'fulfilled') {
-        setFarmActivities(activityResult.value ?? [])
-      } else {
-        errors.push('hoạt động nông trại')
-      }
-
-      if (orderResult.status === 'fulfilled') {
-        setOrders(orderResult.value?.items ?? [])
-      } else {
-        errors.push('đơn hàng')
-      }
-
-      if (productResult.status === 'fulfilled') {
-        setProducts(productResult.value?.products ?? [])
-      } else {
-        errors.push('sản phẩm')
-      }
 
       if (cropResult.status === 'fulfilled') {
         setCrops(cropResult.value ?? [])
@@ -264,6 +251,24 @@ export default function ManagerDashboard() {
       } else {
         setSensorData(null)
         errors.push('cảm biến IoT')
+      }
+
+      if (orderResult.status === 'fulfilled') {
+        setOrders(orderResult.value?.items ?? [])
+      } else {
+        errors.push('đơn hàng')
+      }
+
+      if (feedbackResult.status === 'fulfilled') {
+        setFeedbacks(feedbackResult.value?.items ?? [])
+      } else {
+        errors.push('đánh giá')
+      }
+
+      if (productResult.status === 'fulfilled') {
+        setProducts(productResult.value?.products ?? [])
+      } else {
+        errors.push('sản phẩm')
       }
 
       if (errors.length > 0) {
@@ -282,203 +287,9 @@ export default function ManagerDashboard() {
     fetchDashboardData()
   }, [fetchIoTDeviceStats, fetchWeather, fetchDashboardData])
 
-  const formatDateTime = useCallback((value?: string | null) => {
-    if (!value) return 'Không xác định'
-    const date = new Date(value)
-    if (Number.isNaN(date.getTime())) {
-      return 'Không xác định'
-    }
-    return new Intl.DateTimeFormat('vi-VN', {
-      day: '2-digit',
-      month: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(date)
-  }, [])
-
-  const formatDateRange = useCallback(
-    (start?: string | null, end?: string | null) => {
-      const startText = formatDateTime(start)
-      const endText = formatDateTime(end)
-
-      if (startText === 'Không xác định' && endText === 'Không xác định') {
-        return 'Không xác định'
-      }
-
-      return `${startText} - ${endText}`
-    },
-    [formatDateTime]
-  )
-
-  const toTimestamp = useCallback((value?: string | null) => {
-    if (!value) return 0
-    const date = new Date(value)
-    const time = date.getTime()
-    return Number.isNaN(time) ? 0 : time
-  }, [])
-
-  const computeScheduleProgress = useCallback((schedule: ScheduleListItem) => {
-    if (!schedule.startDate || !schedule.endDate) return 0
-    const start = new Date(schedule.startDate)
-    const end = new Date(schedule.endDate)
-    const now = new Date()
-
-    if (
-      Number.isNaN(start.getTime()) ||
-      Number.isNaN(end.getTime()) ||
-      start.getTime() === end.getTime()
-    ) {
-      return 0
-    }
-
-    if (now <= start) return 0
-    if (now >= end) return 100
-
-    const progress = ((now.getTime() - start.getTime()) / (end.getTime() - start.getTime())) * 100
-    return Math.min(100, Math.max(0, Math.round(progress)))
-  }, [])
-
-  const getScheduleTimelineStatus = useCallback(
-    (schedule: ScheduleListItem): TimelineStatus => {
-      const progress = computeScheduleProgress(schedule)
-      const now = new Date()
-      const start = schedule.startDate ? new Date(schedule.startDate) : null
-      const end = schedule.endDate ? new Date(schedule.endDate) : null
-
-      if (start && Number.isNaN(start.getTime())) {
-        return 'upcoming'
-      }
-      if (end && Number.isNaN(end.getTime())) {
-        return 'upcoming'
-      }
-
-      if (end && now > end && progress >= 100) {
-        return 'completed'
-      }
-
-      if (end && now > end && progress < 100) {
-        return 'overdue'
-      }
-
-      if (start && now < start) {
-        return 'upcoming'
-      }
-
-      return 'ongoing'
-    },
-    [computeScheduleProgress]
-  )
-
-  const formatCurrency = useCallback((value?: number | string) => {
-    if (value === undefined || value === null) return '0 đ'
-    const numberValue = typeof value === 'string' ? Number(value) : value
-    if (Number.isNaN(numberValue)) return '0 đ'
-    return new Intl.NumberFormat('vi-VN', {
-      style: 'currency',
-      currency: 'VND',
-      maximumFractionDigits: 0,
-    }).format(numberValue)
-  }, [])
-
   const formatNumber = useCallback((value: number) => {
     return new Intl.NumberFormat('vi-VN').format(value)
   }, [])
-
-  const lowStockThreshold = 10
-
-  const scheduleStats = useMemo(() => {
-    const now = new Date()
-    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-    const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999)
-
-    let upcomingToday = 0
-    let inProgress = 0
-    let overdue = 0
-
-    schedules.forEach(schedule => {
-      const start = schedule.startDate ? new Date(schedule.startDate) : null
-      const end = schedule.endDate ? new Date(schedule.endDate) : null
-
-      if (start && !Number.isNaN(start.getTime())) {
-        if (start >= startOfToday && start <= endOfToday) {
-          upcomingToday += 1
-        }
-      }
-
-      if (start && end && !Number.isNaN(start.getTime()) && !Number.isNaN(end.getTime())) {
-        if (now >= start && now <= end) {
-          inProgress += 1
-        } else if (end < now) {
-          overdue += 1
-        }
-      }
-    })
-
-    return {
-      total: schedules.length,
-      upcomingToday,
-      inProgress,
-      overdue,
-    }
-  }, [schedules])
-
-  const inventoryStats = useMemo(() => {
-    const totalQuantity = products.reduce((sum, product) => {
-      const quantity =
-        product.quantity !== undefined
-          ? product.quantity
-          : (product as unknown as { stockQuantity?: number }).stockQuantity ?? 0
-      return sum + quantity
-    }, 0)
-
-    const lowStock = products.filter(product => {
-      const quantity =
-        product.quantity !== undefined
-          ? product.quantity
-          : (product as unknown as { stockQuantity?: number }).stockQuantity ?? 0
-      return quantity <= lowStockThreshold
-    }).length
-
-    return {
-      totalProducts: products.length,
-      totalQuantity,
-      lowStock,
-    }
-  }, [products, lowStockThreshold])
-
-  const orderStats = useMemo(() => {
-    const pendingStatuses = new Set([0, 1, 2, 3])
-    const completedStatuses = new Set([5, 6])
-
-    let pending = 0
-    let completedToday = 0
-
-    const now = new Date()
-    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-    const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999)
-
-    orders.forEach(order => {
-      const status = order.status ?? -1
-      if (pendingStatuses.has(status)) {
-        pending += 1
-      }
-
-      if (completedStatuses.has(status) && order.updatedAt) {
-        const updatedAt = new Date(order.updatedAt)
-        if (!Number.isNaN(updatedAt.getTime())) {
-          if (updatedAt >= startOfToday && updatedAt <= endOfToday) {
-            completedToday += 1
-          }
-        }
-      }
-    })
-
-    return {
-      total: orders.length,
-      pending,
-      completedToday,
-    }
-  }, [orders])
 
   const cropStats = useMemo(() => {
     const active = crops.filter(crop => crop.status?.toLowerCase() === 'active').length
@@ -499,9 +310,219 @@ export default function ManagerDashboard() {
     }
   }, [crops])
 
+  const businessStats = useMemo(() => {
+    const now = new Date()
+    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+    const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
+    const cutoffDate = timeRange === 'week' ? weekAgo : monthAgo
+
+    const recentOrders = orders.filter(order => {
+      if (!order.createdAt) return false
+      const orderDate = new Date(order.createdAt)
+      if (Number.isNaN(orderDate.getTime())) return false
+      return orderDate >= cutoffDate
+    })
+
+    const totalRevenue = recentOrders.reduce((sum, order) => {
+      const price = order.totalPrice ?? 0
+      return sum + (typeof price === 'number' ? price : 0)
+    }, 0)
+
+    const validFeedbacks = feedbacks.filter(fb => fb.rating >= 1 && fb.rating <= 5)
+    const avgRating =
+      validFeedbacks.length > 0
+        ? validFeedbacks.reduce((sum, fb) => sum + fb.rating, 0) / validFeedbacks.length
+        : 0
+
+    const activeProducts = products.filter(p => p.status === 'Active').length
+
+    return {
+      totalOrders: orders.length,
+      recentOrders: recentOrders.length,
+      totalRevenue,
+      avgRating: avgRating.toFixed(1),
+      totalFeedbacks: feedbacks.length,
+      activeProducts,
+      totalProducts: products.length,
+    }
+  }, [orders, feedbacks, products, timeRange])
+
+  const revenueData = useMemo(() => {
+    const now = new Date()
+    const data: { name: string; revenue: number; orders: number }[] = []
+
+    if (timeRange === 'week') {
+      for (let i = 6; i >= 0; i--) {
+        const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000)
+        const dayOrders = orders.filter(order => {
+          if (!order.createdAt) return false
+          const orderDate = new Date(order.createdAt)
+          if (Number.isNaN(orderDate.getTime())) return false
+          return orderDate.toDateString() === date.toDateString()
+        })
+        data.push({
+          name: date.toLocaleDateString('vi-VN', { weekday: 'short' }),
+          revenue: dayOrders.reduce((sum, order) => {
+            const price = order.totalPrice ?? 0
+            return sum + (typeof price === 'number' ? price : 0)
+          }, 0),
+          orders: dayOrders.length,
+        })
+      }
+    } else {
+      for (let i = 3; i >= 0; i--) {
+        const weekStart = new Date(now.getTime() - (i + 1) * 7 * 24 * 60 * 60 * 1000)
+        const weekEnd = new Date(now.getTime() - i * 7 * 24 * 60 * 60 * 1000)
+        const weekOrders = orders.filter(order => {
+          if (!order.createdAt) return false
+          const orderDate = new Date(order.createdAt)
+          if (Number.isNaN(orderDate.getTime())) return false
+          return orderDate >= weekStart && orderDate <= weekEnd
+        })
+        data.push({
+          name: `Tuần ${4 - i}`,
+          revenue: weekOrders.reduce((sum, order) => {
+            const price = order.totalPrice ?? 0
+            return sum + (typeof price === 'number' ? price : 0)
+          }, 0),
+          orders: weekOrders.length,
+        })
+      }
+    }
+
+    return data
+  }, [orders, timeRange])
+
+  const orderStatusData = useMemo(() => {
+    const statusMap: Record<number, { label: string; color: string }> = {
+      1: { label: 'Đã xác nhận', color: '#4CAF50' },
+      3: { label: 'Đang giao', color: '#9C27B0' },
+      5: { label: 'Hoàn thành', color: '#4CAF50' },
+    }
+
+    const allowedStatuses = [1, 3, 5]
+
+    const statusCounts = orders.reduce((acc, order) => {
+      const status = order.status ?? 0
+      if (allowedStatuses.includes(status)) {
+        acc[status] = (acc[status] || 0) + 1
+      }
+      return acc
+    }, {} as Record<number, number>)
+
+    return Object.entries(statusCounts)
+      .filter(([_, count]) => count > 0)
+      .map(([status, count]) => ({
+        name: statusMap[Number(status)]?.label || getOrderStatusLabel(Number(status)),
+        value: count,
+        color: statusMap[Number(status)]?.color || '#999',
+      }))
+      .sort((a, b) => b.value - a.value)
+  }, [orders])
+
+  const ratingData = useMemo(() => {
+    const distribution = [0, 0, 0, 0, 0]
+
+    feedbacks.forEach(fb => {
+      const rating = Math.floor(fb.rating ?? 0)
+      if (rating >= 1 && rating <= 5) {
+        distribution[rating - 1]++
+      }
+    })
+
+    return distribution.map((count, index) => ({
+      name: `${index + 1} sao`,
+      count,
+    }))
+  }, [feedbacks])
+
+  const recentOrdersSorted = useMemo(() => {
+    return [...orders]
+      .filter(order => order.createdAt)
+      .sort((a, b) => {
+        const dateA = new Date(a.createdAt || 0).getTime()
+        const dateB = new Date(b.createdAt || 0).getTime()
+        return dateB - dateA
+      })
+      .slice(0, 5)
+  }, [orders])
+
+  const mapPaymentStatus = (status: number): 'pending' | 'paid' | 'failed' | 'refunded' => {
+    switch (status) {
+      case 1:
+      case 5:
+      case 6:
+        return 'paid'
+      case 0:
+      case 3:
+        return 'pending'
+      case 2:
+        return 'failed'
+      case 4:
+        return 'refunded'
+      default:
+        return 'pending'
+    }
+  }
+
+  const getStatusIcon = (status: number) => {
+    switch (status) {
+      case 0:
+        return <Clock className="h-4 w-4 text-yellow-500" />
+      case 1:
+        return <CheckCircle className="h-4 w-4 text-blue-500" />
+      case 2:
+        return <Package className="h-4 w-4 text-purple-500" />
+      case 3:
+        return <Truck className="h-4 w-4 text-orange-500" />
+      case 4:
+        return <XCircle className="h-4 w-4 text-red-500" />
+      case 5:
+        return <CheckCircle className="h-4 w-4 text-green-500" />
+      case 6:
+        return <Truck className="h-4 w-4 text-blue-500" />
+      default:
+        return <ShoppingCart className="h-4 w-4 text-gray-500" />
+    }
+  }
+
+  const getStatusBadge = (status: number) => {
+    const variant = getOrderStatusVariant(status)
+    const label = getOrderStatusLabel(status)
+
+    return (
+      <Badge variant={variant} className="flex items-center gap-1">
+        {getStatusIcon(status)}
+        {label}
+      </Badge>
+    )
+  }
+
+  const getDisplayStatusBadge = (order: Order) => {
+    const paymentStatus = mapPaymentStatus(order.status ?? 0)
+    if (paymentStatus === 'failed' || paymentStatus === 'pending') {
+      return (
+        <Badge variant="secondary" className="flex items-center gap-1">
+          {getStatusIcon(0)}
+          Chưa thanh toán
+        </Badge>
+      )
+    }
+    return getStatusBadge(order.status ?? 0)
+  }
+
+  const formatDateOnly = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('vi-VN', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    })
+  }
+
   const dashboardMetrics = useMemo(() => {
     const metrics: MetricCardProps[] = []
 
+    // Farm Management Metrics
     metrics.push({
       title: 'Thiết bị IoT hoạt động',
       value: `${iotDeviceStats.active}/${iotDeviceStats.total}`,
@@ -525,58 +546,13 @@ export default function ManagerDashboard() {
       icon: Thermometer,
       color: 'green-light',
       description: sensorData
-        ? `Chất lượng dữ liệu: ${
-            sensorData.dataQuality === 'good'
-              ? 'Tốt'
-              : sensorData.dataQuality === 'poor'
-                ? 'Cần kiểm tra'
-                : 'Không khả dụng'
-          }`
+        ? `Chất lượng dữ liệu: ${sensorData.dataQuality === 'good'
+          ? 'Tốt'
+          : sensorData.dataQuality === 'poor'
+            ? 'Cần kiểm tra'
+            : 'Không khả dụng'
+        }`
         : 'Không có tín hiệu từ trạm IoT',
-    })
-
-    metrics.push({
-      title: 'Lịch tác nghiệp',
-      value: formatNumber(scheduleStats.total),
-      change:
-        scheduleStats.upcomingToday > 0
-          ? `${scheduleStats.upcomingToday} lịch bắt đầu hôm nay`
-          : scheduleStats.inProgress > 0
-            ? `${scheduleStats.inProgress} lịch đang diễn ra`
-            : 'Không có lịch hôm nay',
-      changeType: scheduleStats.overdue > 0 ? 'decrease' : 'increase',
-      icon: CalendarCheck,
-      color: scheduleStats.overdue > 0 ? 'green-dark' : 'green',
-      description:
-        scheduleStats.overdue > 0
-          ? `${scheduleStats.overdue} lịch đã quá hạn`
-          : 'Tổng số lịch đang quản lý',
-    })
-
-    metrics.push({
-      title: 'Tồn kho hiện tại',
-      value: formatNumber(inventoryStats.totalQuantity),
-      change:
-        inventoryStats.lowStock > 0
-          ? `${inventoryStats.lowStock} sản phẩm dưới ${lowStockThreshold}`
-          : `${inventoryStats.totalProducts} sản phẩm đang lưu kho`,
-      changeType: inventoryStats.lowStock > 0 ? 'decrease' : 'increase',
-      icon: Package,
-      color: inventoryStats.lowStock > 0 ? 'green-medium' : 'green',
-      description: 'Số lượng tính từ danh sách sản phẩm',
-    })
-
-    metrics.push({
-      title: 'Đơn hàng đang xử lý',
-      value: formatNumber(orderStats.pending),
-      change:
-        orderStats.completedToday > 0
-          ? `${orderStats.completedToday} đơn hoàn tất hôm nay`
-          : `${orderStats.total} đơn trong hệ thống`,
-      changeType: orderStats.pending > 0 ? 'decrease' : 'increase',
-      icon: ClipboardList,
-      color: orderStats.pending > 0 ? 'green-dark' : 'green',
-      description: 'Trạng thái tính từ danh sách đơn hàng',
     })
 
     metrics.push({
@@ -589,7 +565,45 @@ export default function ManagerDashboard() {
       changeType: 'increase',
       icon: Sprout,
       color: 'green',
-      description: 'Dựa trên danh sách cây trồng Active',
+      description: 'Dựa trên danh sách cây trồng',
+    })
+
+    // Business Metrics
+    metrics.push({
+      title: 'Tổng đơn hàng',
+      value: businessStats.totalOrders,
+      change: `${businessStats.recentOrders} đơn mới`,
+      icon: ShoppingCart,
+      color: 'purple',
+      description: `Trong ${timeRange === 'week' ? '7 ngày' : '30 ngày'} qua`,
+    })
+
+    metrics.push({
+      title: `Doanh thu (${timeRange === 'week' ? 'tuần' : 'tháng'})`,
+      value: `${businessStats.totalRevenue.toLocaleString('vi-VN')} đ`,
+      change: businessStats.recentOrders > 0 ? `Từ ${businessStats.recentOrders} đơn` : 'Chưa có đơn',
+      changeType: businessStats.recentOrders > 0 ? 'increase' : 'decrease',
+      icon: DollarSign,
+      color: 'green',
+      description: `Tổng thu ${timeRange === 'week' ? '7 ngày' : '30 ngày'} qua`,
+    })
+
+    metrics.push({
+      title: 'Đánh giá trung bình',
+      value: `${businessStats.avgRating} ⭐`,
+      change: `${businessStats.totalFeedbacks} đánh giá`,
+      icon: Star,
+      color: 'orange',
+      description: 'Mức độ hài lòng khách hàng',
+    })
+
+    metrics.push({
+      title: 'Sản phẩm',
+      value: `${businessStats.activeProducts}/${businessStats.totalProducts}`,
+      change: 'Đang hoạt động',
+      icon: Package,
+      color: 'blue',
+      description: 'Tổng số sản phẩm trong hệ thống',
     })
 
     return metrics
@@ -602,18 +616,9 @@ export default function ManagerDashboard() {
     iotDeviceStats.error,
     iotDeviceStats.inactive,
     iotDeviceStats.total,
-    inventoryStats.lowStock,
-    inventoryStats.totalProducts,
-    inventoryStats.totalQuantity,
-    lowStockThreshold,
-    orderStats.completedToday,
-    orderStats.pending,
-    orderStats.total,
-    scheduleStats.inProgress,
-    scheduleStats.overdue,
-    scheduleStats.total,
-    scheduleStats.upcomingToday,
     sensorData,
+    businessStats,
+    timeRange,
   ])
 
   const growthOverviewItems = useMemo<GrowthOverviewItem[]>(() => {
@@ -622,30 +627,13 @@ export default function ManagerDashboard() {
     items.push({
       icon: Sprout,
       gradient: 'from-green-500 to-green-600',
-      title: 'Cây trồng active',
+      title: 'Lô cây trồng',
       value:
         cropStats.total > 0
           ? `${formatNumber(cropStats.active)}/${formatNumber(cropStats.total)} lô`
           : 'Chưa có dữ liệu',
       description:
-        cropStats.nearingHarvest > 0
-          ? `${cropStats.nearingHarvest} lô sắp thu hoạch`
-          : 'Không có lô sắp thu hoạch trong 14 ngày',
-      badges:
-        cropStats.total > 0
-          ? [
-              {
-                label: 'Theo dõi sinh trưởng',
-                variant: 'default',
-                className: 'bg-green-100 text-green-800 border-0',
-              },
-              {
-                label: `${formatNumber(cropStats.total)} tổng lô`,
-                variant: 'outline',
-                className: 'border-green-200 text-green-700',
-              },
-            ]
-          : undefined,
+        cropStats.nearingHarvest > 0 ? `${cropStats.nearingHarvest} lô sắp thu hoạch` : '',
     })
 
     items.push({
@@ -655,347 +643,77 @@ export default function ManagerDashboard() {
       value: sensorData ? `${sensorData.temperature.toFixed(1)}°C` : '--',
       description: sensorData
         ? `Độ ẩm ${sensorData.humidity.toFixed(0)}% • Độ ẩm đất ${sensorData.soilMoisture.toFixed(
-            0
-          )}%`
+          0
+        )}%`
         : 'Chưa có dữ liệu cảm biến môi trường',
       badges: sensorData
         ? [
-            {
-              label:
-                sensorData.dataQuality === 'good'
-                  ? 'Chất lượng tốt'
-                  : sensorData.dataQuality === 'poor'
-                    ? 'Cần kiểm tra'
-                    : 'Mất tín hiệu',
-              variant: 'default',
-              className:
-                sensorData.dataQuality === 'good'
-                  ? 'bg-green-50 text-green-700 border-0'
-                  : 'bg-yellow-100 text-yellow-800 border-0',
-            },
-          ]
+          {
+            label:
+              sensorData.dataQuality === 'good'
+                ? 'Chất lượng tốt'
+                : sensorData.dataQuality === 'poor'
+                  ? 'Cần kiểm tra'
+                  : 'Mất tín hiệu',
+            variant: 'default',
+            className:
+              sensorData.dataQuality === 'good'
+                ? 'bg-green-50 text-green-700 border-0'
+                : 'bg-yellow-100 text-yellow-800 border-0',
+          },
+        ]
         : undefined,
     })
 
-    items.push({
-      icon: Clock,
-      gradient: 'from-green-600 to-green-700',
-      title: 'Tiến độ lịch tác nghiệp',
-      value: `${formatNumber(scheduleStats.inProgress)} đang thực hiện`,
-      description:
-        scheduleStats.upcomingToday > 0
-          ? `${scheduleStats.upcomingToday} lịch bắt đầu hôm nay`
-          : scheduleStats.overdue > 0
-            ? `${scheduleStats.overdue} lịch quá hạn`
-            : 'Không có lịch mới trong hôm nay',
-      badges:
-        scheduleStats.total > 0
-          ? [
-              {
-                label: `${formatNumber(scheduleStats.total)} lịch`,
-                variant: 'default',
-                className: 'bg-green-100 text-green-800 border-0',
-              },
-            ]
-          : undefined,
-    })
-
     return items
-  }, [
-    cropStats.active,
-    cropStats.nearingHarvest,
-    cropStats.total,
-    formatNumber,
-    scheduleStats.inProgress,
-    scheduleStats.overdue,
-    scheduleStats.total,
-    scheduleStats.upcomingToday,
-    sensorData,
-  ])
+  }, [cropStats.active, cropStats.nearingHarvest, cropStats.total, formatNumber, sensorData])
 
-  const recentActivities = useMemo(() => {
-    const entries: Array<{ item: ActivityItemProps; timestamp: number }> = []
-
-    farmActivities.forEach(activity => {
-      const timestamp = toTimestamp(activity.endDate ?? activity.startDate)
-      entries.push({
-        timestamp,
-        item: {
-          title: activity.activityType || 'Hoạt động nông trại',
-          description: `Trạng thái: ${activity.status}`,
-          time: formatDateTime(activity.endDate ?? activity.startDate),
-          type: activity.status?.toLowerCase().includes('complete') ? 'success' : 'info',
-          icon: Activity,
-        },
-      })
-    })
-
-    orders.forEach(order => {
-      const timestamp = toTimestamp(order.updatedAt ?? order.createdAt)
-      const status = order.status ?? 0
-      const statusLabel = getOrderStatusLabel(status)
-      const type: ActivityItemProps['type'] =
-        status === 5 ? 'success' : status === 4 ? 'error' : status === 0 ? 'warning' : 'info'
-
-      entries.push({
-        timestamp,
-        item: {
-          title: `Đơn hàng #${order.orderId}`,
-          description: `Giá trị ${formatCurrency(order.totalPrice)} - ${statusLabel}`,
-          time: formatDateTime(order.updatedAt ?? order.createdAt),
-          type,
-          icon: ClipboardList,
-        },
-      })
-    })
-
-    schedules.forEach(schedule => {
-      const timestamp = toTimestamp(schedule.updatedAt ?? schedule.startDate)
-      const status = typeof schedule.status === 'string' ? schedule.status : String(schedule.status ?? '')
-
-      entries.push({
-        timestamp,
-        item: {
-          title:
-            schedule.farmActivityView?.activityType ||
-            schedule.cropView?.cropName ||
-            'Lịch tác nghiệp',
-          description: `Khối lượng: ${schedule.quantity} - Trạng thái: ${status}`,
-          time: formatDateTime(schedule.startDate),
-          type: 'info',
-          icon: CalendarCheck,
-        },
-      })
-    })
-
-    return entries
-      .sort((a, b) => b.timestamp - a.timestamp)
-      .slice(0, 8)
-      .map(entry => entry.item)
-  }, [farmActivities, orders, schedules, formatDateTime, formatCurrency, toTimestamp])
-
-  const quickActions = useMemo(
-    () => [
-      {
-        title: 'Bắt đầu tưới',
-        description: sensorData
-          ? sensorData.pumpState
-            ? 'Máy bơm đang hoạt động'
-            : 'Máy bơm đang tắt'
-          : 'Điều khiển hệ thống tưới',
-        icon: Droplets,
-        color: 'green-light' as const,
-        action: () => navigate('/manager/irrigation'),
-      },
-      {
-        title: 'Quản lý IoT',
-        description: `${formatNumber(iotDeviceStats.total)} thiết bị đã kết nối`,
-        icon: Cpu,
-        color: 'green-dark' as const,
-        action: () => navigate('/manager/iot-devices'),
-      },
-    ],
-    [navigate, sensorData, formatNumber, iotDeviceStats.total]
-  )
-
-  const moduleSnapshots = useMemo<ModuleSnapshot[]>(() => {
-    const snapshots: ModuleSnapshot[] = []
-
-    snapshots.push({
-      title: 'Quản lý cây trồng',
-      summary:
-        cropStats.total > 0
-          ? `${cropStats.active}/${cropStats.total} lô đang active`
-          : 'Chưa có dữ liệu cây trồng',
-      trend:
-        cropStats.nearingHarvest > 0
-          ? `${cropStats.nearingHarvest} lô sắp thu hoạch`
-          : 'Không có lô sắp thu hoạch trong 14 ngày',
-      link: '/manager/crops',
-      icon: Sprout,
-      tag: cropStats.active > 0 ? 'Hoạt động' : 'Chưa cập nhật',
-      tagTone: cropStats.active > 0 ? 'positive' : 'neutral',
-    })
-
-    snapshots.push({
-      title: 'Lịch & Hoạt động',
-      summary: `${formatNumber(scheduleStats.total)} lịch đang quản lý`,
-      trend:
-        scheduleStats.overdue > 0
-          ? `${scheduleStats.overdue} lịch quá hạn`
-          : `${scheduleStats.inProgress} lịch đang thực hiện`,
-      link: '/manager/farm-activities',
-      icon: CalendarCheck,
-      tag: scheduleStats.overdue > 0 ? 'Cần xử lý' : 'Ổn định',
-      tagTone: scheduleStats.overdue > 0 ? 'alert' : 'positive',
-    })
-
-    snapshots.push({
-      title: 'Đơn hàng & tồn kho',
-      summary: `${formatNumber(orderStats.pending)} đơn chờ - ${inventoryStats.lowStock} sản phẩm thấp`,
-      trend:
-        orderStats.completedToday > 0
-          ? `${orderStats.completedToday} đơn hoàn tất hôm nay`
-          : `${inventoryStats.totalProducts} sản phẩm theo dõi`,
-      link: '/manager/orders',
-      icon: Package,
-      tag: inventoryStats.lowStock > 0 ? 'Kiểm tra tồn kho' : 'An toàn',
-      tagTone: inventoryStats.lowStock > 0 ? 'alert' : 'positive',
-    })
-
-    snapshots.push({
-      title: 'Thiết bị IoT',
-      summary: `${iotDeviceStats.active} hoạt động, ${iotDeviceStats.maintenance} bảo trì, ${iotDeviceStats.error} lỗi`,
-      trend: `${iotDeviceStats.total} thiết bị đã đăng ký`,
-      link: '/manager/iot-devices',
-      icon: Cpu,
-      tag: iotDeviceStats.error > 0 ? 'Cảnh báo' : 'Ổn định',
-      tagTone: iotDeviceStats.error > 0 ? 'alert' : 'positive',
-    })
-
-    return snapshots
-  }, [
-    cropStats.active,
-    cropStats.nearingHarvest,
-    cropStats.total,
-    formatNumber,
-    iotDeviceStats.active,
-    iotDeviceStats.error,
-    iotDeviceStats.maintenance,
-    iotDeviceStats.total,
-    inventoryStats.lowStock,
-    inventoryStats.totalProducts,
-    orderStats.completedToday,
-    orderStats.pending,
-    scheduleStats.inProgress,
-    scheduleStats.overdue,
-    scheduleStats.total,
-  ])
-
-  const actionCenterItems = useMemo<ActionCenterItem[]>(() => {
-    const items: ActionCenterItem[] = []
-
-    if (iotDeviceStats.error > 0) {
-      items.push({
-        title: `${iotDeviceStats.error} thiết bị IoT cần kiểm tra`,
-        description: 'Có thiết bị báo lỗi, nên rà soát trạng thái ngay',
-        status: 'critical',
-        module: 'Thiết bị IoT',
-        ctaLabel: 'Xem thiết bị',
-        onClick: () => navigate('/manager/iot-devices'),
-      })
-    }
-
-    if (scheduleStats.overdue > 0) {
-      items.push({
-        title: `${scheduleStats.overdue} lịch đã quá hạn`,
-        description: 'Một số lịch chưa cập nhật trạng thái sau thời gian kết thúc',
-        status: 'warning',
-        module: 'Lịch tác nghiệp',
-        ctaLabel: 'Kiểm tra lịch',
-        onClick: () => navigate('/manager/farm-activities'),
-      })
-    }
-
-    if (inventoryStats.lowStock > 0) {
-      items.push({
-        title: `${inventoryStats.lowStock} sản phẩm gần hết`,
-        description: `Kiểm tra danh mục để bổ sung tồn kho dưới ${lowStockThreshold} đơn vị`,
-        status: 'warning',
-        module: 'Kho & Sản phẩm',
-        ctaLabel: 'Xem tồn kho',
-        onClick: () => navigate('/manager/products'),
-      })
-    }
-
-    if (orderStats.pending > 0) {
-      items.push({
-        title: `${orderStats.pending} đơn hàng đang chờ xử lý`,
-        description: 'Ưu tiên xác nhận các đơn hàng mới để đảm bảo tiến độ giao',
-        status: 'info',
-        module: 'Đơn hàng',
-        ctaLabel: 'Quản lý đơn hàng',
-        onClick: () => navigate('/manager/orders'),
-      })
-    }
-
-    if (items.length === 0) {
-      items.push({
-        title: 'Tất cả hệ thống hoạt động ổn định',
-        description: 'Không có cảnh báo mới, tiếp tục giám sát dữ liệu theo thời gian thực',
-        status: 'info',
-        module: 'Tổng quan',
-        ctaLabel: 'Làm mới',
-        onClick: () => fetchDashboardData(),
-      })
-    }
-
-    return items
-  }, [
-    fetchDashboardData,
-    inventoryStats.lowStock,
-    iotDeviceStats.error,
-    lowStockThreshold,
-    navigate,
-    orderStats.pending,
-    scheduleStats.overdue,
-  ])
-
-  const scheduleTimeline = useMemo<ScheduleItem[]>(() => {
-    return schedules
-      .filter(schedule => toTimestamp(schedule.startDate) > 0)
-      .slice()
-      .sort((a, b) => toTimestamp(a.startDate) - toTimestamp(b.startDate))
-      .slice(0, 5)
-      .map(schedule => {
-        const progress = computeScheduleProgress(schedule)
-        const status = getScheduleTimelineStatus(schedule)
-        const responsible =
-          schedule.staff?.accountProfile?.fullname ||
-          schedule.staffName ||
-          schedule.managerName ||
-          'Chưa phân công'
-        const identifier =
-          schedule.scheduleId ??
-          schedule.farmActivitiesId ??
-          `${schedule.startDate}-${schedule.endDate ?? ''}`
-
-        return {
-          id: identifier,
-          title:
-            schedule.farmActivityView?.activityType ||
-            schedule.cropView?.cropName ||
-            `Lịch #${schedule.scheduleId ?? ''}`,
-          timeRange: formatDateRange(schedule.startDate, schedule.endDate),
-          responsible,
-          progress,
-          status,
-        }
-      })
-  }, [
-    computeScheduleProgress,
-    formatDateRange,
-    getScheduleTimelineStatus,
-    schedules,
-    toTimestamp,
-  ])
+  if (isLoadingDashboard && orders.length === 0 && feedbacks.length === 0) {
+    return (
+      <ManagerLayout>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+        </div>
+      </ManagerLayout>
+    )
+  }
 
   return (
     <ManagerLayout>
       <div className="px-4 sm:px-6 lg:px-8">
-        <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-          <h1 className="text-3xl font-bold text-gray-900">Bảng điều khiển quản lý nông trại</h1>
-            <p className="mt-2 text-gray-600">
-              Tổng hợp các chỉ số cốt lõi từ cây trồng, lịch tác nghiệp, thiết bị IoT và kinh doanh.
-            </p>
+        <div className="mb-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+                <BarChart3 className="h-8 w-8 text-green-600" />
+                Bảng điều khiển quản lý nông trại
+              </h1>
+              <p className="mt-2 text-gray-600">
+                Tổng hợp các chỉ số cốt lõi từ cây trồng, lịch tác nghiệp, thiết bị IoT và kinh doanh.
+              </p>
+            </div>
+            <div className="mt-4 sm:mt-0 flex gap-3">
+              <Button
+                variant="outline"
+                className="border-green-200 text-green-700 hover:bg-green-50"
+                onClick={fetchDashboardData}
+                disabled={isLoadingDashboard}
+              >
+                {isLoadingDashboard ? 'Đang tải...' : 'Làm mới'}
+              </Button>
+              <Tabs value={timeRange} onValueChange={(v) => setTimeRange(v as 'week' | 'month')}>
+                <TabsList>
+                  <TabsTrigger value="week">7 ngày</TabsTrigger>
+                  <TabsTrigger value="month">30 ngày</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            </div>
           </div>
-          <div className="flex gap-3">
-            <Button variant="outline" className="border-green-200 text-green-700 hover:bg-green-50">
-              Tải báo cáo
-            </Button>
-            <Button className="bg-green-600 hover:bg-green-700 text-white">Thêm ghi chú</Button>
-          </div>
+          {dashboardError && (
+            <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+              {dashboardError}
+            </div>
+          )}
         </div>
 
         {isLoadingDashboard && (
@@ -1005,19 +723,89 @@ export default function ManagerDashboard() {
           </div>
         )}
 
-        {dashboardError && (
-          <div className="mb-4 rounded-lg border border-yellow-200 bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
-            {dashboardError}
-          </div>
-        )}
-
+        {/* Farm Management & Business Metrics */}
         <div className="grid gap-6 mb-10 md:grid-cols-2 xl:grid-cols-4">
           {dashboardMetrics.map(metric => (
             <MetricCard key={metric.title} {...metric} />
           ))}
         </div>
 
-        <div className="grid gap-8 xl:grid-cols-3">
+        {/* Charts Section */}
+        <div className="grid gap-8 lg:grid-cols-2 mb-8">
+          <Card className="border-0 shadow-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-green-600" />
+                Doanh thu {timeRange === 'week' ? 'theo ngày' : 'theo tuần'}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={revenueData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <Tooltip
+                    formatter={(value: number, name: string) => [
+                      name === 'revenue' ? `${value.toLocaleString('vi-VN')} đ` : value,
+                      name === 'revenue' ? 'Doanh thu' : 'Đơn hàng',
+                    ]}
+                  />
+                  <Legend />
+                  <Bar dataKey="revenue" fill="#10B981" name="Doanh thu" />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          <Card className="border-0 shadow-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <ShoppingCart className="h-5 w-5 text-green-600" />
+                Trạng thái đơn hàng
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {orderStatusData.length > 0 ? (
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={orderStatusData}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                      outerRadius={80}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {orderStatusData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      formatter={(value: number, _name: string, props: any) => {
+                        const total = orderStatusData.reduce((sum, item) => sum + item.value, 0)
+                        const percent = total > 0 ? ((value / total) * 100).toFixed(1) : '0'
+                        return [`${value} đơn (${percent}%)`, props.payload.name]
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="flex items-center justify-center h-[300px] text-gray-500">
+                  <div className="text-center">
+                    <ShoppingCart className="h-12 w-12 mx-auto mb-2 text-gray-400" />
+                    <p>Chưa có dữ liệu đơn hàng</p>
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Growth Overview & Business Lists */}
+        <div className="grid gap-8 xl:grid-cols-3 mb-8">
           <div className="xl:col-span-2 space-y-8">
             <Card className="border-0 shadow-lg bg-white">
               <CardHeader className="border-b border-gray-100">
@@ -1035,17 +823,19 @@ export default function ManagerDashboard() {
                 </div>
               </CardHeader>
               <CardContent className="p-6">
-                <div className="grid gap-6 md:grid-cols-3">
+                <div className="grid gap-6 md:grid-cols-2">
                   {growthOverviewItems.map(item => (
                     <div key={item.title} className="flex flex-col items-center text-center">
                       <div
                         className={`w-16 h-16 mx-auto mb-3 bg-gradient-to-br ${item.gradient} rounded-full flex items-center justify-center shadow-lg`}
                       >
                         <item.icon className="w-8 h-8 text-white" />
-                    </div>
+                      </div>
                       <h3 className="text-lg font-semibold text-gray-900">{item.title}</h3>
                       <p className="text-sm text-gray-800 font-semibold mt-1">{item.value}</p>
-                      <p className="text-sm text-gray-600 mb-2">{item.description}</p>
+                      {item.description && (
+                        <p className="text-sm text-gray-600 mb-2">{item.description}</p>
+                      )}
                       {item.badges && (
                         <div className="flex items-center gap-2 flex-wrap justify-center">
                           {item.badges.map(badge => (
@@ -1055,9 +845,9 @@ export default function ManagerDashboard() {
                               className={badge.className}
                             >
                               {badge.label}
-                    </Badge>
+                            </Badge>
                           ))}
-                  </div>
+                        </div>
                       )}
                     </div>
                   ))}
@@ -1065,147 +855,81 @@ export default function ManagerDashboard() {
               </CardContent>
             </Card>
 
-            <Card className="border-0 shadow-lg bg-white">
-              <CardHeader className="border-b border-gray-100">
-                <CardTitle className="text-lg font-semibold text-gray-900">
-                  Thao tác nhanh & hành động ưu tiên
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="space-y-4 mb-6">
-                  {actionCenterItems.map(item => {
-                    const toneClasses =
-                      item.status === 'critical'
-                        ? 'border-red-100 bg-red-50/40 text-red-700'
-                        : item.status === 'warning'
-                          ? 'border-yellow-100 bg-yellow-50/40 text-yellow-700'
-                          : 'border-green-100 bg-green-50/40 text-green-700'
-                    return (
-                      <div
-                        key={item.title}
-                        className={`rounded-lg border p-4 transition-shadow hover:shadow-md ${toneClasses}`}
-                      >
-                        <div className="flex flex-wrap items-start justify-between gap-3">
-                          <div>
-                            <p className="text-sm font-semibold">{item.title}</p>
-                            <p className="text-sm text-gray-600 mt-1">{item.description}</p>
-                            <span className="text-xs font-medium uppercase tracking-wide text-gray-500">
-                              {item.module}
-                            </span>
-                          </div>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="border-green-200 text-green-700 hover:bg-green-50"
-                            onClick={item.onClick}
-                          >
-                            {item.ctaLabel}
-                          </Button>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-
-                <div className="grid gap-4 md:grid-cols-2">
-                  {quickActions.map(action => (
-                    <motion.button
-                      key={action.title}
-                      onClick={action.action}
-                      className="p-4 text-left rounded-lg border border-gray-200 hover:border-green-300 hover:shadow-md hover:bg-green-50/30 transition-all duration-200"
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <div className="flex items-center space-x-3">
-                        <div
-                          className={`p-2 rounded-lg bg-gradient-to-br ${
-                            action.color === 'green-light'
-                              ? 'from-green-400 to-green-500'
-                              : 'from-green-700 to-green-800'
-                          } shadow-lg`}
-                        >
-                          <action.icon className="w-5 h-5 text-white" />
-                        </div>
-                        <div>
-                          <h3 className="font-medium text-gray-900">{action.title}</h3>
-                          <p className="text-sm text-gray-600">{action.description}</p>
-                        </div>
-                      </div>
-                    </motion.button>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-0 shadow-lg bg-white">
-              <CardHeader className="border-b border-gray-100">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg font-semibold text-gray-900">
-                    Lịch tác nghiệp hôm nay
+            <div className="grid gap-8 lg:grid-cols-2">
+              <Card className="border-0 shadow-lg">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Star className="h-5 w-5 text-orange-500" />
+                    Phân bố đánh giá
                   </CardTitle>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => navigate('/manager/farm-activities')}
-                    className="border-green-200 text-green-700 hover:bg-green-50"
-                  >
-                    Quản lý lịch
-                  </Button>
-          </div>
-              </CardHeader>
-              <CardContent className="p-0">
-                {scheduleTimeline.length > 0 ? (
-                  <div className="divide-y divide-gray-100">
-                    {scheduleTimeline.map(item => {
-                      const statusLabel =
-                        item.status === 'ongoing'
-                          ? 'Đang thực hiện'
-                          : item.status === 'upcoming'
-                            ? 'Sắp diễn ra'
-                            : item.status === 'completed'
-                              ? 'Hoàn tất'
-                              : 'Quá hạn'
-                      const statusTone =
-                        item.status === 'ongoing'
-                          ? 'bg-green-100 text-green-800'
-                          : item.status === 'upcoming'
-                            ? 'bg-green-50 text-green-700'
-                            : item.status === 'completed'
-                              ? 'bg-gray-100 text-gray-700'
-                              : 'bg-red-50 text-red-700'
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={ratingData} layout="vertical">
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis type="number" domain={[0, 5]} />
+                      <YAxis dataKey="name" type="category" />
+                      <Tooltip />
+                      <Bar dataKey="count" fill="#F59E0B" name="Số lượng" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
 
-                      return (
+              <Card className="border-0 shadow-lg">
+                <CardHeader className="border-b border-gray-100">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center gap-2">
+                      <Clock className="h-5 w-5 text-green-600" />
+                      Đơn hàng gần đây
+                    </CardTitle>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigate('/manager/orders')}
+                      className="border-green-200 text-green-700 hover:bg-green-50"
+                    >
+                      Xem tất cả
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <div className="space-y-1 max-h-80 overflow-y-auto">
+                    {recentOrdersSorted.length > 0 ? (
+                      recentOrdersSorted.map((order) => (
                         <div
-                          key={item.id}
-                          className="p-5 flex flex-col gap-2 md:flex-row md:items-center"
+                          key={order.orderId}
+                          className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+                          onClick={() => navigate('/manager/orders')}
                         >
-                          <div className="flex-1">
-                            <p className="font-medium text-gray-900">{item.title}</p>
-                            <p className="text-sm text-gray-500">{item.timeRange}</p>
-                            <p className="text-sm text-gray-500">Phụ trách: {item.responsible}</p>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900 truncate">
+                              Đơn hàng #{String(order.orderId ?? '').slice(0, 8)}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {order.createdAt
+                                ? formatDateOnly(order.createdAt)
+                                : 'Không xác định'}
+                            </p>
                           </div>
-                          <div className="flex flex-col items-start md:items-end gap-2">
-                            <div className="w-32 h-2 bg-gray-100 rounded-full">
-                              <div
-                                className="h-full rounded-full bg-gradient-to-r from-green-500 to-green-600"
-                                style={{ width: `${item.progress}%` }}
-                              />
-                            </div>
-                            <Badge variant="default" className={`${statusTone} border-0`}>
-                              {statusLabel}
-                            </Badge>
+                          <div className="flex items-center gap-3">
+                            <span className="text-sm font-semibold text-gray-900">
+                              {(order.totalPrice ?? 0).toLocaleString('vi-VN')} đ
+                            </span>
+                            {getDisplayStatusBadge(order)}
                           </div>
                         </div>
-                      )
-                    })}
+                      ))
+                    ) : (
+                      <div className="text-center py-8 text-gray-500">
+                        <ShoppingCart className="h-12 w-12 mx-auto mb-2 text-gray-400" />
+                        <p>Chưa có đơn hàng nào</p>
+                      </div>
+                    )}
                   </div>
-                ) : (
-                  <div className="py-8 text-center text-sm text-gray-500">
-                    Chưa có lịch tác nghiệp để hiển thị
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            </div>
           </div>
 
           <div className="space-y-8">
@@ -1254,55 +978,9 @@ export default function ManagerDashboard() {
                       <p className="text-xs text-gray-500">{weather.cityName}</p>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="bg-gray-50 rounded-lg p-3">
-                        <div className="flex items-center gap-2 text-gray-600 mb-1">
-                          <Thermometer className="h-4 w-4" />
-                          <span className="text-xs font-medium">Cảm nhận</span>
-                        </div>
-                        <p className="text-lg font-semibold text-gray-900">
-                          {Math.round(weather.feelsLikeC)}°C
-                        </p>
-                      </div>
-
-                      <div className="bg-gray-50 rounded-lg p-3">
-                        <div className="flex items-center gap-2 text-gray-600 mb-1">
-                          <Droplets className="h-4 w-4" />
-                          <span className="text-xs font-medium">Độ ẩm</span>
-                        </div>
-                        <p className="text-lg font-semibold text-gray-900">{weather.humidity}%</p>
-                      </div>
-
-                      <div className="bg-gray-50 rounded-lg p-3">
-                        <div className="flex items-center gap-2 text-gray-600 mb-1">
-                          <Wind className="h-4 w-4" />
-                          <span className="text-xs font-medium">Gió</span>
-                        </div>
-                        <p className="text-lg font-semibold text-gray-900">
-                          {weather.windSpeedMps.toFixed(1)} m/s
-                        </p>
-                      </div>
-
-                      <div className="bg-gray-50 rounded-lg p-3">
-                        <div className="flex items-center gap-2 text-gray-600 mb-1">
-                          <Activity className="h-4 w-4" />
-                          <span className="text-xs font-medium">Áp suất</span>
-                        </div>
-                        <p className="text-lg font-semibold text-gray-900">
-                          {weather.pressureHpa} hPa
-                        </p>
-                      </div>
-                    </div>
-
-                    <div className="pt-3 border-t border-gray-100">
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-gray-600">Nhiệt độ cao/thấp</span>
-                        <span className="font-semibold text-gray-900">
-                          {Math.round(weather.tempMaxC)}° / {Math.round(weather.tempMinC)}°
-                        </span>
-                      </div>
-                      {weather.rainVolumeMm && weather.rainVolumeMm > 0 && (
-                        <div className="flex justify-between items-center text-sm mt-2">
+                    {weather.rainVolumeMm && weather.rainVolumeMm > 0 && (
+                      <div className="pt-3 border-t border-gray-100">
+                        <div className="flex justify-between items-center text-sm">
                           <div className="flex items-center gap-1 text-green-600">
                             <CloudRain className="h-4 w-4" />
                             <span>Lượng mưa</span>
@@ -1311,8 +989,8 @@ export default function ManagerDashboard() {
                             {weather.rainVolumeMm.toFixed(1)} mm
                           </span>
                         </div>
-                      )}
-                    </div>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="text-center py-8">
@@ -1326,193 +1004,66 @@ export default function ManagerDashboard() {
               </CardContent>
             </Card>
 
-            <Card className="border-0 shadow-lg bg-white">
+            <Card className="border-0 shadow-lg">
               <CardHeader className="border-b border-gray-100">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg font-semibold text-gray-900">
-                    Hoạt động gần đây
+                  <CardTitle className="flex items-center gap-2">
+                    <Star className="h-5 w-5 text-orange-500" />
+                    Đánh giá gần đây
                   </CardTitle>
-                  <Badge variant="outline" className="text-xs border-green-200 text-green-700">
-                    Trực tiếp
-                  </Badge>
                 </div>
               </CardHeader>
               <CardContent className="p-0">
-                {recentActivities.length > 0 ? (
-                  <>
-                <div className="space-y-1">
-                  {recentActivities.map((activity, index) => (
-                    <ActivityItem key={`activity-${activity.title}-${index}`} {...activity} />
+                <div className="space-y-1 max-h-80 overflow-y-auto">
+                  {feedbacks.slice(0, 5).map((feedback) => (
+                    <div
+                      key={feedback.feedbackId}
+                      className="p-4 hover:bg-gray-50 transition-colors"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-sm font-medium text-gray-900">
+                              {feedback.fullName}
+                            </span>
+                            <div className="flex items-center">
+                              {Array.from({ length: 5 }).map((_, i) => (
+                                <Star
+                                  key={i}
+                                  className={`h-3 w-3 ${i < feedback.rating
+                                    ? 'text-orange-500 fill-orange-500'
+                                    : 'text-gray-300'
+                                    }`}
+                                />
+                              ))}
+                            </div>
+                          </div>
+                          <p className="text-sm text-gray-600 mb-1">
+                            {feedback.comment || 'Không có bình luận'}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            Sản phẩm: {feedback.orderDetail?.productName || 'N/A'}
+                          </p>
+                        </div>
+                        <span className="text-xs text-gray-400">
+                          {feedback.createdAt
+                            ? new Date(feedback.createdAt).toLocaleDateString('vi-VN')
+                            : 'Không xác định'}
+                        </span>
+                      </div>
+                    </div>
                   ))}
-                </div>
-                <div className="p-3 border-t border-gray-100">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full border-green-200 text-green-700 hover:bg-green-50"
-                        onClick={() => fetchDashboardData()}
-                  >
-                        Làm mới dữ liệu
-                  </Button>
-                </div>
-                  </>
-                ) : (
-                  <div className="py-8 text-center text-sm text-gray-500">
-                    Chưa ghi nhận hoạt động mới
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card className="border-0 shadow-lg bg-white">
-              <CardHeader className="border-b border-gray-100">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg font-semibold text-gray-900">
-                    Thiết bị IoT
-                  </CardTitle>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => navigate('/manager/iot-devices')}
-                    className="border-green-200 text-green-700 hover:bg-green-50"
-                  >
-                    Xem tất cả
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-green-600" />
-                      <span className="text-sm font-medium text-gray-700">Hoạt động</span>
+                  {feedbacks.length === 0 && (
+                    <div className="text-center py-8 text-gray-500">
+                      <Star className="h-12 w-12 mx-auto mb-2 text-gray-400" />
+                      <p>Chưa có đánh giá nào</p>
                     </div>
-                    <Badge variant="default" className="bg-green-100 text-green-800 border-0">
-                      {iotDeviceStats.active}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <AlertTriangle className="h-4 w-4 text-green-500" />
-                      <span className="text-sm font-medium text-gray-700">Bảo trì</span>
-                    </div>
-                    <Badge variant="default" className="bg-green-50 text-green-700 border-0">
-                      {iotDeviceStats.maintenance}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <AlertTriangle className="h-4 w-4 text-green-700" />
-                      <span className="text-sm font-medium text-gray-700">Có lỗi</span>
-                    </div>
-                    <Badge
-                      variant="default"
-                      className={
-                        iotDeviceStats.error > 0
-                          ? 'bg-green-700 text-white border-0'
-                          : 'bg-gray-100 text-gray-800 border-0'
-                      }
-                    >
-                      {iotDeviceStats.error}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Wifi className="h-4 w-4 text-green-600" />
-                      <span className="text-sm font-medium text-gray-700">Tổng thiết bị</span>
-                    </div>
-                    <Badge variant="default" className="bg-green-100 text-green-800 border-0">
-                      {iotDeviceStats.total}
-                    </Badge>
-                  </div>
+                  )}
                 </div>
-
-                {iotDeviceStats.total === 0 && (
-                  <div className="text-center py-4 border-t border-gray-100 mt-4">
-                    <Cpu className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                    <p className="text-sm text-gray-500 mb-3">Chưa có thiết bị IoT nào</p>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full border-green-200 text-green-700 hover:bg-green-50"
-                      onClick={() => navigate('/manager/iot-devices')}
-                    >
-                      <Cpu className="w-4 h-4 mr-2" />
-                      Thêm thiết bị
-                    </Button>
-                  </div>
-                )}
-
-                {iotDeviceStats.total > 0 && (
-                  <div className="mt-6 pt-4 border-t border-gray-100">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full border-green-200 text-green-700 hover:bg-green-50"
-                      onClick={() => navigate('/manager/iot-devices')}
-                    >
-                      <Cpu className="w-4 h-4 mr-2" />
-                      Quản lý thiết bị
-                    </Button>
-                  </div>
-                )}
               </CardContent>
             </Card>
           </div>
         </div>
-
-        <Card className="border-0 shadow-lg bg-white mt-10">
-          <CardHeader className="border-b border-gray-100">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg font-semibold text-gray-900">
-                Ảnh chụp nhanh theo mô-đun
-              </CardTitle>
-              <Button
-                variant="outline"
-                size="sm"
-                className="border-green-200 text-green-700 hover:bg-green-50"
-              >
-                Tùy chỉnh bố cục
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent className="p-6">
-            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-              {moduleSnapshots.map(snapshot => {
-                const tagStyles =
-                  snapshot.tagTone === 'positive'
-                    ? 'bg-green-100 text-green-800'
-                    : snapshot.tagTone === 'alert'
-                      ? 'bg-red-100 text-red-800'
-                      : 'bg-gray-100 text-gray-700'
-
-                return (
-                  <motion.button
-                    key={snapshot.title}
-                    onClick={() => navigate(snapshot.link)}
-                    whileHover={{ scale: 1.02 }}
-                    className="text-left h-full rounded-xl border border-gray-100 bg-white p-5 shadow-sm hover:shadow-lg hover:border-green-200 transition-all duration-200"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="h-10 w-10 rounded-lg bg-green-50 flex items-center justify-center">
-                        <snapshot.icon className="h-5 w-5 text-green-600" />
-                      </div>
-                      <Badge variant="default" className={`${tagStyles} border-0`}>
-                        {snapshot.tag}
-                      </Badge>
-                    </div>
-                    <h3 className="mt-4 text-base font-semibold text-gray-900">{snapshot.title}</h3>
-                    <p className="mt-2 text-sm text-gray-600 min-h-[48px]">{snapshot.summary}</p>
-                    <div className="mt-4 flex items-center text-sm font-medium text-green-700">
-                      <TrendingUp className="h-4 w-4 mr-1" />
-                      {snapshot.trend}
-                    </div>
-                  </motion.button>
-                )
-              })}
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </ManagerLayout>
   )

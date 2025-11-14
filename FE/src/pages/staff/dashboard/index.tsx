@@ -4,8 +4,6 @@ import {
     ShoppingCart,
     Package,
     Star,
-    TrendingUp,
-    DollarSign,
     Clock,
     ArrowUpRight,
     ArrowDownRight,
@@ -13,6 +11,8 @@ import {
     CheckCircle,
     Truck,
     XCircle,
+    AlertCircle,
+    TrendingUp,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
 import { Button } from '@/shared/ui/button'
@@ -24,6 +24,8 @@ import { orderService, getOrderStatusLabel, getOrderStatusVariant } from '@/shar
 import type { Order } from '@/shared/api/orderService'
 import { feedbackService } from '@/shared/api/feedbackService'
 import type { Feedback } from '@/shared/api/feedbackService'
+import { productService, type Product } from '@/shared/api/productService'
+import { categoryService, type Category } from '@/shared/api/categoryService'
 import {
     BarChart,
     Bar,
@@ -100,6 +102,8 @@ export default function StaffDashboard() {
     const navigate = useNavigate()
     const [orders, setOrders] = useState<Order[]>([])
     const [feedbacks, setFeedbacks] = useState<Feedback[]>([])
+    const [products, setProducts] = useState<Product[]>([])
+    const [categories, setCategories] = useState<Category[]>([])
     const [isLoading, setIsLoading] = useState(true)
     const [dashboardError, setDashboardError] = useState<string | null>(null)
     const [timeRange, setTimeRange] = useState<'week' | 'month'>('week')
@@ -109,9 +113,11 @@ export default function StaffDashboard() {
         setDashboardError(null)
 
         try {
-            const [orderResult, feedbackResult] = await Promise.allSettled([
+            const [orderResult, feedbackResult, productResult, categoryResult] = await Promise.allSettled([
                 orderService.getOrderList({ pageIndex: 1, pageSize: 100 }),
                 feedbackService.getFeedbackList({ pageIndex: 1, pageSize: 100 }),
+                productService.getProductsList({ page: 1, pageSize: 100 }),
+                categoryService.getAllCategories(),
             ])
 
             const errors: string[] = []
@@ -126,6 +132,18 @@ export default function StaffDashboard() {
                 setFeedbacks(feedbackResult.value?.items ?? [])
             } else {
                 errors.push('đánh giá')
+            }
+
+            if (productResult.status === 'fulfilled') {
+                setProducts(productResult.value?.products ?? [])
+            } else {
+                errors.push('sản phẩm')
+            }
+
+            if (categoryResult.status === 'fulfilled') {
+                setCategories(categoryResult.value ?? [])
+            } else {
+                errors.push('danh mục')
             }
 
             if (errors.length > 0) {
@@ -155,10 +173,17 @@ export default function StaffDashboard() {
             return orderDate >= cutoffDate
         })
 
-        const totalRevenue = recentOrders.reduce((sum, order) => {
-            const price = order.totalPrice ?? 0
-            return sum + (typeof price === 'number' ? price : 0)
-        }, 0)
+        // Đơn hàng cần xử lý (chưa thanh toán hoặc đang xử lý)
+        const pendingOrders = orders.filter(order => {
+            const status = order.status ?? 0
+            return status === 0 || status === 3 // UNPAID hoặc PENDING
+        })
+
+        // Đơn hàng đang giao
+        const deliveringOrders = orders.filter(order => {
+            const status = order.status ?? 0
+            return status === 3 // PENDING (đang giao)
+        })
 
         const validFeedbacks = feedbacks.filter(fb => fb.rating >= 1 && fb.rating <= 5)
         const avgRating =
@@ -166,25 +191,51 @@ export default function StaffDashboard() {
                 ? validFeedbacks.reduce((sum, fb) => sum + fb.rating, 0) / validFeedbacks.length
                 : 0
 
-        const statusCounts = orders.reduce((acc, order) => {
-            const status = getOrderStatusLabel(order.status ?? 0)
-            acc[status] = (acc[status] || 0) + 1
-            return acc
-        }, {} as Record<string, number>)
+        const activeProducts = products.filter(p => p.status === 'Active').length
 
         return {
             totalOrders: orders.length,
             recentOrders: recentOrders.length,
-            totalRevenue,
+            pendingOrders: pendingOrders.length,
+            deliveringOrders: deliveringOrders.length,
             avgRating: avgRating.toFixed(1),
             totalFeedbacks: feedbacks.length,
-            statusCounts,
+            activeProducts,
+            totalProducts: products.length,
         }
-    }, [orders, feedbacks, timeRange])
+    }, [orders, feedbacks, products, timeRange])
 
-    const revenueData = useMemo(() => {
+    const orderStatusData = useMemo(() => {
+        const statusMap: Record<number, { label: string; color: string }> = {
+            0: { label: 'Chưa thanh toán', color: '#F59E0B' },
+            1: { label: 'Đã xác nhận', color: '#4CAF50' },
+            3: { label: 'Đang giao', color: '#9C27B0' },
+            5: { label: 'Hoàn thành', color: '#10B981' },
+        }
+
+        const allowedStatuses = [0, 1, 3, 5]
+
+        const statusCounts = orders.reduce((acc, order) => {
+            const status = order.status ?? 0
+            if (allowedStatuses.includes(status)) {
+                acc[status] = (acc[status] || 0) + 1
+            }
+            return acc
+        }, {} as Record<number, number>)
+
+        return Object.entries(statusCounts)
+            .filter(([_, count]) => count > 0)
+            .map(([status, count]) => ({
+                name: statusMap[Number(status)]?.label || getOrderStatusLabel(Number(status)),
+                value: count,
+                color: statusMap[Number(status)]?.color || '#999',
+            }))
+            .sort((a, b) => b.value - a.value)
+    }, [orders])
+
+    const orderCountData = useMemo(() => {
         const now = new Date()
-        const data: { name: string; revenue: number; orders: number }[] = []
+        const data: { name: string; orders: number }[] = []
 
         if (timeRange === 'week') {
             for (let i = 6; i >= 0; i--) {
@@ -197,10 +248,6 @@ export default function StaffDashboard() {
                 })
                 data.push({
                     name: date.toLocaleDateString('vi-VN', { weekday: 'short' }),
-                    revenue: dayOrders.reduce((sum, order) => {
-                        const price = order.totalPrice ?? 0
-                        return sum + (typeof price === 'number' ? price : 0)
-                    }, 0),
                     orders: dayOrders.length,
                 })
             }
@@ -216,10 +263,6 @@ export default function StaffDashboard() {
                 })
                 data.push({
                     name: `Tuần ${4 - i}`,
-                    revenue: weekOrders.reduce((sum, order) => {
-                        const price = order.totalPrice ?? 0
-                        return sum + (typeof price === 'number' ? price : 0)
-                    }, 0),
                     orders: weekOrders.length,
                 })
             }
@@ -228,89 +271,87 @@ export default function StaffDashboard() {
         return data
     }, [orders, timeRange])
 
-    const orderStatusData = useMemo(() => {
-        // Chỉ hiển thị 3 trạng thái: Đã xác nhận (1), Đang giao (3), Hoàn thành (5)
-        const statusMap: Record<number, { label: string; color: string }> = {
-            1: { label: 'Đã xác nhận', color: '#4CAF50' },     // Green - Đã thanh toán
-            3: { label: 'Đang giao', color: '#9C27B0' },       // Purple - Đang giao hàng
-            5: { label: 'Hoàn thành', color: '#4CAF50' },       // Green - Hoàn thành
-        }
-
-        // Chỉ lọc các trạng thái được phép hiển thị
-        const allowedStatuses = [1, 3, 5]
-
-        // Đếm số lượng đơn hàng theo từng trạng thái từ dữ liệu thật
-        const statusCounts = orders.reduce((acc, order) => {
-            const status = order.status ?? 0
-            // Chỉ đếm các trạng thái được phép
-            if (allowedStatuses.includes(status)) {
-                acc[status] = (acc[status] || 0) + 1
-            }
-            return acc
-        }, {} as Record<number, number>)
-
-        // Chỉ hiển thị các trạng thái có đơn hàng (value > 0)
-        return Object.entries(statusCounts)
-            .filter(([_, count]) => count > 0)
-            .map(([status, count]) => ({
-                name: statusMap[Number(status)]?.label || getOrderStatusLabel(Number(status)),
-                value: count,
-                color: statusMap[Number(status)]?.color || '#999',
-            }))
-            .sort((a, b) => b.value - a.value) // Sắp xếp theo số lượng giảm dần
-    }, [orders])
-
     const ratingData = useMemo(() => {
-        // Khởi tạo mảng 5 phần tử: 1 sao, 2 sao, 3 sao, 4 sao, 5 sao
         const distribution = [0, 0, 0, 0, 0]
 
         feedbacks.forEach(fb => {
-            // Chỉ lấy rating là số nguyên từ 1 đến 5
             const rating = Math.floor(fb.rating ?? 0)
             if (rating >= 1 && rating <= 5) {
                 distribution[rating - 1]++
             }
         })
 
-        // Luôn trả về đầy đủ 5 mức đánh giá từ 1 sao đến 5 sao
         return distribution.map((count, index) => ({
             name: `${index + 1} sao`,
             count,
         }))
     }, [feedbacks])
 
-    // Sắp xếp đơn hàng theo thời gian tạo mới nhất trước (giống như trong trang quản lý đơn hàng)
     const recentOrdersSorted = useMemo(() => {
         return [...orders]
             .filter(order => order.createdAt)
             .sort((a, b) => {
                 const dateA = new Date(a.createdAt || 0).getTime()
                 const dateB = new Date(b.createdAt || 0).getTime()
-                return dateB - dateA // Mới nhất trước
+                return dateB - dateA
             })
-            .slice(0, 5) // Lấy 5 đơn hàng mới nhất
+            .slice(0, 5)
     }, [orders])
 
-    // Hàm xác định paymentStatus từ order status (giống như trong orders/index.tsx)
+    const categoryStats = useMemo(() => {
+        const statsMap = new Map<number, { name: string; count: number; activeCount: number }>()
+
+        // Khởi tạo với tất cả categories
+        categories.forEach(category => {
+            statsMap.set(category.categoryId, {
+                name: category.categoryName,
+                count: 0,
+                activeCount: 0,
+            })
+        })
+
+        // Đếm sản phẩm theo category
+        products.forEach(product => {
+            const categoryId = product.categoryId
+            const existing = statsMap.get(categoryId)
+            if (existing) {
+                existing.count++
+                if (product.status === 'Active') {
+                    existing.activeCount++
+                }
+            } else {
+                // Nếu category không có trong danh sách, thêm vào
+                statsMap.set(categoryId, {
+                    name: product.categoryName || `Danh mục ${categoryId}`,
+                    count: 1,
+                    activeCount: product.status === 'Active' ? 1 : 0,
+                })
+            }
+        })
+
+        return Array.from(statsMap.values())
+            .filter(item => item.count > 0)
+            .sort((a, b) => b.count - a.count)
+    }, [products, categories])
+
     const mapPaymentStatus = (status: number): 'pending' | 'paid' | 'failed' | 'refunded' => {
         switch (status) {
-            case 1: // PAID - Đã thanh toán
-            case 5: // COMPLETED - Hoàn thành
-            case 6: // DELIVERED - Đã giao hàng
+            case 1:
+            case 5:
+            case 6:
                 return 'paid'
-            case 0: // UNPAID - Chưa thanh toán
-            case 3: // PENDING - Đang xử lý
+            case 0:
+            case 3:
                 return 'pending'
-            case 2: // UNDISCHARGED - Thanh toán thất bại/Chưa thanh toán
+            case 2:
                 return 'failed'
-            case 4: // CANCELLED - Đã hủy
+            case 4:
                 return 'refunded'
             default:
                 return 'pending'
         }
     }
 
-    // Hàm hiển thị icon trạng thái (giống như trong orders/index.tsx)
     const getStatusIcon = (status: number) => {
         switch (status) {
             case 0:
@@ -332,7 +373,6 @@ export default function StaffDashboard() {
         }
     }
 
-    // Hàm hiển thị badge trạng thái (giống như trong orders/index.tsx)
     const getStatusBadge = (status: number) => {
         const variant = getOrderStatusVariant(status)
         const label = getOrderStatusLabel(status)
@@ -345,7 +385,6 @@ export default function StaffDashboard() {
         )
     }
 
-    // Hàm hiển thị trạng thái với xử lý paymentStatus (giống như trong orders/index.tsx)
     const getDisplayStatusBadge = (order: Order) => {
         const paymentStatus = mapPaymentStatus(order.status ?? 0)
         if (paymentStatus === 'failed' || paymentStatus === 'pending') {
@@ -359,7 +398,6 @@ export default function StaffDashboard() {
         return getStatusBadge(order.status ?? 0)
     }
 
-    // Hàm format ngày (giống như trong orders/index.tsx)
     const formatDateOnly = (dateString: string) => {
         return new Date(dateString).toLocaleDateString('vi-VN', {
             day: '2-digit',
@@ -367,7 +405,6 @@ export default function StaffDashboard() {
             year: 'numeric',
         })
     }
-
 
     if (isLoading) {
         return (
@@ -382,7 +419,6 @@ export default function StaffDashboard() {
     return (
         <StaffLayout>
             <div className="px-4 sm:px-6 lg:px-8">
-                { }
                 <div className="mb-8">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                         <div>
@@ -391,7 +427,7 @@ export default function StaffDashboard() {
                                 Dashboard - Tổng quan
                             </h1>
                             <p className="mt-2 text-gray-600">
-                                Theo dõi hoạt động kinh doanh và hiệu suất làm việc
+                                Theo dõi hoạt động kinh doanh và công việc thực địa
                             </p>
                         </div>
                         <div className="mt-4 sm:mt-0 flex gap-3">
@@ -418,7 +454,7 @@ export default function StaffDashboard() {
                     )}
                 </div>
 
-                { }
+                {/* Metrics Cards */}
                 <div className="grid gap-6 mb-8 md:grid-cols-2 lg:grid-cols-4">
                     <MetricCard
                         title="Tổng đơn hàng"
@@ -430,64 +466,60 @@ export default function StaffDashboard() {
                         onClick={() => navigate('/staff/orders')}
                     />
                     <MetricCard
-                        title={`Doanh thu (${timeRange === 'week' ? 'tuần' : 'tháng'})`}
-                        value={`${stats.totalRevenue.toLocaleString('vi-VN')} đ`}
-                        change={stats.recentOrders > 0 ? `Từ ${stats.recentOrders} đơn` : 'Chưa có đơn'}
-                        changeType={stats.recentOrders > 0 ? 'increase' : 'decrease'}
-                        icon={DollarSign}
-                        color="green"
-                        description={`Tổng thu ${timeRange === 'week' ? '7 ngày' : '30 ngày'} qua`}
+                        title="Đơn hàng cần xử lý"
+                        value={stats.pendingOrders}
+                        change={stats.deliveringOrders > 0 ? `${stats.deliveringOrders} đang giao` : 'Tất cả đã xử lý'}
+                        changeType={stats.pendingOrders > 0 ? 'decrease' : 'increase'}
+                        icon={AlertCircle}
+                        color="orange"
+                        description="Đơn hàng chưa thanh toán hoặc đang xử lý"
+                        onClick={() => navigate('/staff/orders')}
+                    />
+                    <MetricCard
+                        title="Sản phẩm"
+                        value={stats.activeProducts}
+                        change={`${stats.totalProducts} tổng sản phẩm`}
+                        icon={Package}
+                        color="blue"
+                        description="Sản phẩm đang hoạt động"
+                        onClick={() => navigate('/staff/products')}
                     />
                     <MetricCard
                         title="Đánh giá trung bình"
                         value={`${stats.avgRating} ⭐`}
                         change={`${stats.totalFeedbacks} đánh giá`}
                         icon={Star}
-                        color="orange"
+                        color="green"
                         description="Mức độ hài lòng khách hàng"
                         onClick={() => navigate('/staff/feedbacks')}
                     />
-                    <MetricCard
-                        title="Sản phẩm"
-                        value="Quản lý"
-                        change="Xem chi tiết"
-                        icon={Package}
-                        color="blue"
-                        description="Kiểm tra kho & sản phẩm"
-                        onClick={() => navigate('/staff/products')}
-                    />
                 </div>
 
-                { }
+                {/* Charts Section */}
                 <div className="grid gap-8 lg:grid-cols-2 mb-8">
-                    { }
                     <Card className="border-0 shadow-lg">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
                                 <TrendingUp className="h-5 w-5 text-purple-600" />
-                                Doanh thu {timeRange === 'week' ? 'theo ngày' : 'theo tuần'}
+                                Số lượng đơn hàng {timeRange === 'week' ? 'theo ngày' : 'theo tuần'}
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
                             <ResponsiveContainer width="100%" height={300}>
-                                <BarChart data={revenueData}>
+                                <BarChart data={orderCountData}>
                                     <CartesianGrid strokeDasharray="3 3" />
                                     <XAxis dataKey="name" />
                                     <YAxis />
                                     <Tooltip
-                                        formatter={(value: number, name: string) => [
-                                            name === 'revenue' ? `${value.toLocaleString('vi-VN')} đ` : value,
-                                            name === 'revenue' ? 'Doanh thu' : 'Đơn hàng',
-                                        ]}
+                                        formatter={(value: number) => [`${value} đơn`, 'Số lượng đơn hàng']}
                                     />
                                     <Legend />
-                                    <Bar dataKey="revenue" fill="#8B5CF6" name="Doanh thu" />
+                                    <Bar dataKey="orders" fill="#8B5CF6" name="Số lượng đơn hàng" />
                                 </BarChart>
                             </ResponsiveContainer>
                         </CardContent>
                     </Card>
 
-                    { }
                     <Card className="border-0 shadow-lg">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
@@ -534,9 +566,9 @@ export default function StaffDashboard() {
                     </Card>
                 </div>
 
-                { }
-                <div className="grid gap-8 lg:grid-cols-2 mb-8">
-                    { }
+                {/* Main Content Grid - Row 1 */}
+                <div className="grid gap-8 lg:grid-cols-3 mb-8">
+                    {/* Column 1 - Phân bố đánh giá */}
                     <Card className="border-0 shadow-lg">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
@@ -557,7 +589,7 @@ export default function StaffDashboard() {
                         </CardContent>
                     </Card>
 
-                    { }
+                    {/* Column 2 - Đơn hàng gần đây */}
                     <Card className="border-0 shadow-lg">
                         <CardHeader className="border-b border-gray-100">
                             <div className="flex items-center justify-between">
@@ -595,9 +627,6 @@ export default function StaffDashboard() {
                                                 </p>
                                             </div>
                                             <div className="flex items-center gap-3">
-                                                <span className="text-sm font-semibold text-gray-900">
-                                                    {(order.totalPrice ?? 0).toLocaleString('vi-VN')} đ
-                                                </span>
                                                 {getDisplayStatusBadge(order)}
                                             </div>
                                         </div>
@@ -611,75 +640,258 @@ export default function StaffDashboard() {
                             </div>
                         </CardContent>
                     </Card>
+
+                    {/* Column 3 - Đánh giá gần đây */}
+                    <Card className="border-0 shadow-lg">
+                        <CardHeader className="border-b border-gray-100">
+                            <div className="flex items-center justify-between">
+                                <CardTitle className="flex items-center gap-2">
+                                    <Star className="h-5 w-5 text-orange-500" />
+                                    Đánh giá gần đây
+                                </CardTitle>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => navigate('/staff/feedbacks')}
+                                    className="border-purple-200 text-purple-700 hover:bg-purple-50"
+                                >
+                                    Xem tất cả
+                                </Button>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="p-0">
+                            <div className="space-y-1 max-h-80 overflow-y-auto">
+                                {feedbacks.slice(0, 5).map((feedback) => (
+                                    <div
+                                        key={feedback.feedbackId}
+                                        className="p-4 hover:bg-gray-50 transition-colors"
+                                    >
+                                        <div className="flex items-start justify-between">
+                                            <div className="flex-1">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <span className="text-sm font-medium text-gray-900">
+                                                        {feedback.fullName}
+                                                    </span>
+                                                    <div className="flex items-center">
+                                                        {Array.from({ length: 5 }).map((_, i) => (
+                                                            <Star
+                                                                key={i}
+                                                                className={`h-3 w-3 ${i < feedback.rating
+                                                                    ? 'text-orange-500 fill-orange-500'
+                                                                    : 'text-gray-300'
+                                                                    }`}
+                                                            />
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                                <p className="text-sm text-gray-600 mb-1">
+                                                    {feedback.comment || 'Không có bình luận'}
+                                                </p>
+                                                <p className="text-xs text-gray-500">
+                                                    Sản phẩm: {feedback.orderDetail?.productName || 'N/A'}
+                                                </p>
+                                            </div>
+                                            <span className="text-xs text-gray-400">
+                                                {feedback.createdAt
+                                                    ? new Date(feedback.createdAt).toLocaleDateString('vi-VN')
+                                                    : 'Không xác định'}
+                                            </span>
+                                        </div>
+                                    </div>
+                                ))}
+                                {feedbacks.length === 0 && (
+                                    <div className="text-center py-8 text-gray-500">
+                                        <Star className="h-12 w-12 mx-auto mb-2 text-gray-400" />
+                                        <p>Chưa có đánh giá nào</p>
+                                    </div>
+                                )}
+                            </div>
+                        </CardContent>
+                    </Card>
                 </div>
 
-                { }
-                <Card className="border-0 shadow-lg mb-8">
-                    <CardHeader className="border-b border-gray-100">
-                        <div className="flex items-center justify-between">
-                            <CardTitle className="flex items-center gap-2">
-                                <Star className="h-5 w-5 text-orange-500" />
-                                Đánh giá gần đây
-                            </CardTitle>
-                            <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => navigate('/staff/feedbacks')}
-                                className="border-purple-200 text-purple-700 hover:bg-purple-50"
-                            >
-                                Xem tất cả
-                            </Button>
-                        </div>
-                    </CardHeader>
-                    <CardContent className="p-0">
-                        <div className="space-y-1">
-                            {feedbacks.slice(0, 5).map((feedback) => (
-                                <div
-                                    key={feedback.feedbackId}
-                                    className="p-4 hover:bg-gray-50 transition-colors"
+                {/* Main Content Grid - Row 2: Sản phẩm */}
+                <div className="grid gap-8 lg:grid-cols-3 mb-8">
+                    <Card className="lg:col-span-2 border-0 shadow-lg">
+                        <CardHeader className="border-b border-gray-100">
+                            <div className="flex items-center justify-between">
+                                <CardTitle className="flex items-center gap-2">
+                                    <Package className="h-5 w-5 text-blue-600" />
+                                    Sản phẩm
+                                </CardTitle>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => navigate('/staff/products')}
+                                    className="border-blue-200 text-blue-700 hover:bg-blue-50"
                                 >
-                                    <div className="flex items-start justify-between">
-                                        <div className="flex-1">
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <span className="text-sm font-medium text-gray-900">
-                                                    {feedback.fullName}
-                                                </span>
-                                                <div className="flex items-center">
-                                                    {Array.from({ length: 5 }).map((_, i) => (
-                                                        <Star
-                                                            key={i}
-                                                            className={`h-3 w-3 ${i < feedback.rating
-                                                                ? 'text-orange-500 fill-orange-500'
-                                                                : 'text-gray-300'
-                                                                }`}
+                                    Xem tất cả
+                                </Button>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="p-6">
+                            {products.length > 0 ? (
+                                <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+                                    {products.slice(0, 10).map((product) => (
+                                        <motion.div
+                                            key={product.productId}
+                                            whileHover={{ scale: 1.05, y: -4 }}
+                                            transition={{ duration: 0.2 }}
+                                            className="flex-shrink-0 w-48 cursor-pointer"
+                                            onClick={() => navigate('/staff/products')}
+                                        >
+                                            <div className="bg-white rounded-lg border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow">
+                                                <div className="relative h-40 bg-gray-100">
+                                                    {product.imageUrl ? (
+                                                        <img
+                                                            src={product.imageUrl}
+                                                            alt={product.productName}
+                                                            className="w-full h-full object-cover"
+                                                            onError={(e) => {
+                                                                const target = e.target as HTMLImageElement
+                                                                target.src = 'https://via.placeholder.com/200x200?text=No+Image'
+                                                            }}
                                                         />
-                                                    ))}
+                                                    ) : (
+                                                        <div className="w-full h-full flex items-center justify-center bg-gray-100">
+                                                            <Package className="h-12 w-12 text-gray-400" />
+                                                        </div>
+                                                    )}
+                                                    {product.status === 'Active' ? (
+                                                        <Badge className="absolute top-2 right-2 bg-green-500">
+                                                            Hoạt động
+                                                        </Badge>
+                                                    ) : (
+                                                        <Badge variant="secondary" className="absolute top-2 right-2">
+                                                            Ngừng
+                                                        </Badge>
+                                                    )}
+                                                </div>
+                                                <div className="p-4">
+                                                    <h3 className="font-semibold text-sm text-gray-900 mb-1 line-clamp-2">
+                                                        {product.productName}
+                                                    </h3>
+                                                    <p className="text-xs text-gray-500 mb-2 line-clamp-1">
+                                                        {product.productDescription || 'Không có mô tả'}
+                                                    </p>
+                                                    <div className="flex items-center justify-between">
+                                                        <span className="text-lg font-bold text-blue-600">
+                                                            {new Intl.NumberFormat('vi-VN', {
+                                                                style: 'currency',
+                                                                currency: 'VND',
+                                                            }).format(product.price)}
+                                                        </span>
+                                                        <span className="text-xs text-gray-500">
+                                                            SL: {product.quantity}
+                                                        </span>
+                                                    </div>
                                                 </div>
                                             </div>
-                                            <p className="text-sm text-gray-600 mb-1">{feedback.comment || 'Không có bình luận'}</p>
-                                            <p className="text-xs text-gray-500">
-                                                Sản phẩm: {feedback.orderDetail?.productName || 'N/A'}
-                                            </p>
-                                        </div>
-                                        <span className="text-xs text-gray-400">
-                                            {feedback.createdAt
-                                                ? new Date(feedback.createdAt).toLocaleDateString('vi-VN')
-                                                : 'Không xác định'}
-                                        </span>
-                                    </div>
+                                        </motion.div>
+                                    ))}
                                 </div>
-                            ))}
-                            {feedbacks.length === 0 && (
-                                <div className="text-center py-8 text-gray-500">
-                                    <Star className="h-12 w-12 mx-auto mb-2 text-gray-400" />
-                                    <p>Chưa có đánh giá nào</p>
+                            ) : (
+                                <div className="text-center py-12 text-gray-500">
+                                    <Package className="h-16 w-16 mx-auto mb-4 text-gray-400" />
+                                    <p className="text-lg font-medium mb-2">Chưa có sản phẩm nào</p>
+                                    <Button
+                                        variant="outline"
+                                        onClick={() => navigate('/staff/products')}
+                                        className="mt-4 border-blue-200 text-blue-700 hover:bg-blue-50"
+                                    >
+                                        Thêm sản phẩm mới
+                                    </Button>
                                 </div>
                             )}
-                        </div>
-                    </CardContent>
-                </Card>
+                        </CardContent>
+                    </Card>
 
-                { }
+                    {/* Column 3 - Thống kê sản phẩm theo danh mục */}
+                    <Card className="border-0 shadow-lg">
+                        <CardHeader className="border-b border-gray-100">
+                            <div className="flex items-center justify-between">
+                                <CardTitle className="flex items-center gap-2">
+                                    <BarChart3 className="h-5 w-5 text-green-600" />
+                                    Sản phẩm theo danh mục
+                                </CardTitle>
+                            </div>
+                        </CardHeader>
+                        <CardContent className="p-6">
+                            {categoryStats.length > 0 ? (
+                                <div className="space-y-4">
+                                    {categoryStats.slice(0, 5).map((stat, index) => {
+                                        const percentage = products.length > 0
+                                            ? Math.round((stat.count / products.length) * 100)
+                                            : 0
+                                        const colors = [
+                                            'bg-blue-500',
+                                            'bg-green-500',
+                                            'bg-purple-500',
+                                            'bg-orange-500',
+                                            'bg-pink-500',
+                                        ]
+                                        const color = colors[index % colors.length]
+
+                                        return (
+                                            <div key={index} className="space-y-2">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-sm font-medium text-gray-900 truncate">
+                                                            {stat.name}
+                                                        </p>
+                                                        <div className="flex items-center gap-2 mt-1">
+                                                            <span className="text-xs text-gray-500">
+                                                                {stat.count} sản phẩm
+                                                            </span>
+                                                            {stat.activeCount > 0 && (
+                                                                <Badge variant="outline" className="text-xs">
+                                                                    {stat.activeCount} hoạt động
+                                                                </Badge>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                    <div className="ml-4 text-right">
+                                                        <span className="text-lg font-bold text-gray-900">
+                                                            {stat.count}
+                                                        </span>
+                                                        <p className="text-xs text-gray-500">{percentage}%</p>
+                                                    </div>
+                                                </div>
+                                                <div className="w-full bg-gray-200 rounded-full h-2">
+                                                    <div
+                                                        className={`${color} h-2 rounded-full transition-all duration-500`}
+                                                        style={{ width: `${percentage}%` }}
+                                                    />
+                                                </div>
+                                            </div>
+                                        )
+                                    })}
+                                    {categoryStats.length > 5 && (
+                                        <div className="pt-2 border-t border-gray-100">
+                                            <p className="text-xs text-gray-500 text-center">
+                                                Và {categoryStats.length - 5} danh mục khác
+                                            </p>
+                                        </div>
+                                    )}
+                                    <Button
+                                        variant="outline"
+                                        className="w-full mt-4 border-green-200 text-green-700 hover:bg-green-50"
+                                        onClick={() => navigate('/staff/products')}
+                                    >
+                                        Xem chi tiết
+                                    </Button>
+                                </div>
+                            ) : (
+                                <div className="text-center py-8 text-gray-500">
+                                    <BarChart3 className="h-12 w-12 mx-auto mb-2 text-gray-400" />
+                                    <p>Chưa có dữ liệu danh mục</p>
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                </div>
+
+                {/* Quick Actions */}
                 <Card className="border-0 shadow-lg">
                     <CardHeader>
                         <CardTitle>Thao tác nhanh</CardTitle>
@@ -743,4 +955,3 @@ export default function StaffDashboard() {
         </StaffLayout>
     )
 }
-

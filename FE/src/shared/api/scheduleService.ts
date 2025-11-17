@@ -8,11 +8,11 @@ export interface ScheduleListItem {
   farmActivitiesId?: number
   startDate: string
   endDate: string
+  plantingDate?: string
+  harvestDate?: string
   quantity: number
   status: number | ScheduleStatusString
   pesticideUsed: boolean
-  plantingDate?: string
-  harvestDate?: string
   diseaseStatus?: number
   createdAt: string
   updatedAt?: string
@@ -70,6 +70,8 @@ export interface CreateScheduleRequest {
   staffId: number
   startDate: string
   endDate: string
+  plantingDate: string
+  harvestDate: string
   quantity: number
   status: number
   pesticideUsed: boolean

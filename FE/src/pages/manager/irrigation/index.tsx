@@ -20,7 +20,7 @@ export default function IrrigationPage() {
                 <h1 className="text-3xl font-bold text-gray-900">Quản lý tưới nước</h1>
                 <p>Quản lý và lập lịch tưới nước</p>
               </div>
-              <Button size="sm" onClick={() => setShowCreate(v => !v)}>Tạo lịch mới</Button>
+              <Button size="sm" onClick={() => setShowCreate(true)}>Tạo lịch mới</Button>
             </div>
           </div>
 

@@ -20,6 +20,40 @@ interface BackendScheduleListProps {
     onShowCreateChange?: (v: boolean) => void
 }
 
+const BULK_PAGE_SIZE = 50
+
+interface ActivityOption {
+    id: number
+    name: string
+    startDate?: string
+    endDate?: string
+}
+
+const toDateOnly = (value?: string) => {
+    if (!value) return null
+    const dt = new Date(`${value}T00:00:00`)
+    return Number.isNaN(dt.getTime()) ? null : dt
+}
+
+const rangesOverlap = (startA: Date, endA: Date, startB: Date, endB: Date) => {
+    return startA <= endB && startB <= endA
+}
+
+const buildEmptyScheduleForm = (): CreateScheduleRequest => ({
+    farmId: 0,
+    cropId: 0,
+    staffId: 0,
+    startDate: '',
+    endDate: '',
+    plantingDate: '',
+    harvestDate: '',
+    quantity: 0,
+    status: 0,
+    pesticideUsed: false,
+    diseaseStatus: 0,
+    farmActivitiesId: 0,
+})
+
 export function BackendScheduleList({ showCreate: externalShowCreate, onShowCreateChange }: BackendScheduleListProps) {
     const { toast } = useToast()
     const [pageIndex, setPageIndex] = useState(1)
@@ -30,25 +64,17 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
 
     const showCreate = externalShowCreate ?? internalShowCreate
     const setShowCreate = onShowCreateChange ?? setInternalShowCreate
-    const [form, setForm] = useState<CreateScheduleRequest>({
-        farmId: 0,
-        cropId: 0,
-        staffId: 0,
-        startDate: '',
-        endDate: '',
-        quantity: 0,
-        status: 0,
-        pesticideUsed: false,
-        diseaseStatus: 0,
-        farmActivitiesId: 0,
-    })
+    const [form, setForm] = useState<CreateScheduleRequest>(buildEmptyScheduleForm)
 
     // metadata for selects
     const [farms, setFarms] = useState<{ id: number; name: string }[]>([])
     const [crops, setCrops] = useState<{ id: number; name: string }[]>([])
     const [staffs, setStaffs] = useState<{ id: number; name: string }[]>([])
-    const [activities, setActivities] = useState<{ id: number; name: string }[]>([])
+    const [activities, setActivities] = useState<ActivityOption[]>([])
     const [metaLoading, setMetaLoading] = useState(false)
+    const [allSchedules, setAllSchedules] = useState<ScheduleListItem[]>([])
+    const [allSchedulesLoading, setAllSchedulesLoading] = useState(false)
+    const [filteredItems, setFilteredItems] = useState<ScheduleListItem[] | null>(null)
 
     // New state for additional functionality
     const [showDetail, setShowDetail] = useState(false)
@@ -56,22 +82,16 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
     const [showAssignStaff, setShowAssignStaff] = useState(false)
     const [selectedSchedule, setSelectedSchedule] = useState<ScheduleListItem | null>(null)
     const [scheduleDetail, setScheduleDetail] = useState<ScheduleDetail | null>(null)
-    const [editForm, setEditForm] = useState<CreateScheduleRequest>({
-        farmId: 0,
-        cropId: 0,
-        staffId: 0,
-        startDate: '',
-        endDate: '',
-        quantity: 0,
-        status: 0,
-        pesticideUsed: false,
-        diseaseStatus: 0,
-        farmActivitiesId: 0,
-    })
+    const [editForm, setEditForm] = useState<CreateScheduleRequest>(buildEmptyScheduleForm)
     const [assignStaffId, setAssignStaffId] = useState<number>(0)
     const [actionLoading, setActionLoading] = useState<{ [key: string]: boolean }>({})
     const [staffFilter, setStaffFilter] = useState<number | null>(null)
     const [showStaffFilter, setShowStaffFilter] = useState(false)
+    const todayString = useMemo(() => new Date().toISOString().split('T')[0], [])
+    const activityMap = useMemo(() => new Map(activities.map(a => [a.id, a])), [activities])
+    const displayItems = filteredItems ?? data?.data.items ?? []
+    const displayTotal = filteredItems ? filteredItems.length : data?.data.totalItemCount ?? 0
+    const isFiltered = filteredItems !== null
 
     const translateActivityType = useCallback((type: string) => {
         switch (type) {
@@ -145,6 +165,7 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
         try {
             const res = await scheduleService.getScheduleList(pageIndex, pageSize)
             setData(res)
+            setFilteredItems(null)
         } catch (e) {
             handleFetchError(e, toast, 'lịch tưới')
         } finally {
@@ -152,95 +173,236 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
         }
     }, [pageIndex, pageSize, toast])
 
+    const loadAllSchedules = useCallback(async (): Promise<ScheduleListItem[]> => {
+        setAllSchedulesLoading(true)
+        try {
+            const first = await scheduleService.getScheduleList(1, BULK_PAGE_SIZE)
+            let items = [...first.data.items]
+            const totalPages = first.data.totalPagesCount
+            if (totalPages > 1) {
+                const requests: Promise<PaginatedSchedules>[] = []
+                for (let page = 2; page <= totalPages; page++) {
+                    requests.push(scheduleService.getScheduleList(page, BULK_PAGE_SIZE))
+                }
+                const results = await Promise.all(requests)
+                results.forEach(res => {
+                    items = items.concat(res.data.items)
+                })
+            }
+            setAllSchedules(items)
+            return items
+        } catch (e) {
+            handleFetchError(e, toast, 'lịch tưới (toàn bộ)')
+            return []
+        } finally {
+            setAllSchedulesLoading(false)
+        }
+    }, [toast])
+
+    const validateSchedulePayload = useCallback((payload: CreateScheduleRequest, currentScheduleId?: number) => {
+        const errors: string[] = []
+        const start = toDateOnly(payload.startDate)
+        const end = toDateOnly(payload.endDate)
+        const planting = toDateOnly(payload.plantingDate)
+        const harvest = toDateOnly(payload.harvestDate)
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+
+        if (!payload.farmId) errors.push('Vui lòng chọn nông trại.')
+        if (!payload.cropId) errors.push('Vui lòng chọn mùa vụ.')
+        if (!payload.staffId) errors.push('Vui lòng chọn nhân viên.')
+        if (!payload.quantity || payload.quantity <= 0) errors.push('Số lượng phải lớn hơn 0.')
+        if (!start) errors.push('Ngày bắt đầu không hợp lệ.')
+        if (!end) errors.push('Ngày kết thúc không hợp lệ.')
+        if (!planting) errors.push('Ngày gieo trồng không hợp lệ.')
+        if (!harvest) errors.push('Ngày thu hoạch không hợp lệ.')
+
+        const ensureFuture = (date: Date | null, label: string) => {
+            if (date && date < today) {
+                errors.push(`${label} không được nằm trong quá khứ.`)
+            }
+        }
+
+        ensureFuture(start, 'Ngày bắt đầu')
+        ensureFuture(end, 'Ngày kết thúc')
+        ensureFuture(planting, 'Ngày gieo trồng')
+        ensureFuture(harvest, 'Ngày thu hoạch')
+
+        if (start && end && start >= end) {
+            errors.push('Ngày bắt đầu phải trước ngày kết thúc và không trùng nhau.')
+        }
+
+        if (planting && harvest && planting >= harvest) {
+            errors.push('Ngày gieo trồng phải trước ngày thu hoạch.')
+        }
+
+        if (start && planting && planting < start) {
+            errors.push('Ngày gieo trồng phải nằm trong khoảng của lịch.')
+        }
+
+        if (end && planting && planting > end) {
+            errors.push('Ngày gieo trồng phải nằm trong khoảng của lịch.')
+        }
+
+        if (start && harvest && harvest < start) {
+            errors.push('Ngày thu hoạch phải nằm sau ngày bắt đầu.')
+        }
+
+        if (end && harvest && harvest > end) {
+            errors.push('Ngày thu hoạch phải nằm trong khoảng của lịch.')
+        }
+
+        if (payload.startDate && payload.endDate && payload.plantingDate && payload.harvestDate) {
+            const unique = new Set([
+                payload.startDate,
+                payload.endDate,
+                payload.plantingDate,
+                payload.harvestDate,
+            ])
+            if (unique.size < 4) {
+                errors.push('Các mốc thời gian không được trùng nhau.')
+            }
+        }
+
+        if (payload.farmActivitiesId) {
+            const activity = activityMap.get(payload.farmActivitiesId)
+            if (activity) {
+                const activityStart = toDateOnly(activity.startDate)
+                const activityEnd = toDateOnly(activity.endDate)
+                if (!activityStart || !activityEnd) {
+                    errors.push('Hoạt động nông trại chưa có ngày bắt đầu/kết thúc hợp lệ.')
+                } else {
+                    if (start && activityStart < start) {
+                        errors.push('Hoạt động phải bắt đầu sau hoặc bằng ngày bắt đầu lịch.')
+                    }
+                    if (end && activityEnd > end) {
+                        errors.push('Hoạt động phải kết thúc trước hoặc bằng ngày kết thúc lịch.')
+                    }
+                }
+            }
+        }
+
+        if (start && end && payload.farmId && payload.cropId && allSchedules.length) {
+            const hasOverlap = allSchedules.some(s => {
+                if (!s.startDate || !s.endDate) return false
+                if (currentScheduleId && s.scheduleId === currentScheduleId) return false
+                if (s.farmId !== payload.farmId || s.cropId !== payload.cropId) return false
+                const existingStart = toDateOnly(s.startDate)
+                const existingEnd = toDateOnly(s.endDate)
+                if (!existingStart || !existingEnd) return false
+                return rangesOverlap(existingStart, existingEnd, start, end)
+            })
+            if (hasOverlap) {
+                errors.push('Khoảng thời gian bị trùng với lịch khác của cùng nông trại/cây trồng.')
+            }
+        }
+
+        return {
+            valid: errors.length === 0,
+            errors,
+        }
+    }, [activityMap, allSchedules])
+
+    const ensureScheduleValidity = useCallback((payload: CreateScheduleRequest, currentScheduleId?: number) => {
+        const result = validateSchedulePayload(payload, currentScheduleId)
+        if (!result.valid) {
+            toast({
+                title: 'Dữ liệu không hợp lệ',
+                description: result.errors.map(err => `• ${err}`).join('\n'),
+                variant: 'destructive',
+            })
+            return false
+        }
+        return true
+    }, [toast, validateSchedulePayload])
+
     useEffect(() => {
         load()
     }, [load])
 
-    // load metadata when opening create dialog
     useEffect(() => {
-        if (!showCreate) return
-        let mounted = true
+        loadAllSchedules()
+    }, [loadAllSchedules])
+
+    const loadReferenceData = useCallback(async () => {
+        const [farmRes, cropRes, staffRes, fa] = await Promise.all([
+            farmService.getAllFarms(),
+            cropService.getAllCropsActive(),
+            accountApi.getAll({ role: 'Staff', pageSize: 1000 }),
+            farmActivityService.getAllFarmActivities()
+        ])
+
+        return {
+            farmOptions: farmRes.map(f => ({ id: f.farmId, name: f.farmName })),
+            cropOptions: cropRes.map(c => ({ id: c.cropId, name: c.cropName })),
+            staffOptions: staffRes.items.map(s => ({ id: s.accountId, name: s.email })),
+            activityOptions: fa.map(a => ({
+                id: a.farmActivitiesId,
+                name: `#${a.farmActivitiesId} • ${translateActivityType(a.activityType)} (${a.startDate ?? '?'} → ${a.endDate ?? '?'})`,
+                startDate: a.startDate,
+                endDate: a.endDate,
+            })),
+        }
+    }, [translateActivityType])
+
+    // Load metadata whenever any dialog/filter that depends on it is opened
+    useEffect(() => {
+        const shouldLoadMetadata = showCreate || showEdit || showAssignStaff || showStaffFilter
+        if (!shouldLoadMetadata) return
+        let cancelled = false
             ; (async () => {
                 try {
                     setMetaLoading(true)
-                    const [farmRes, cropRes, staffRes] = await Promise.all([
-                        farmService.getAllFarms(),
-                        cropService.getAllCropsActive(),
-                        accountApi.getAll({ role: 'Staff', pageSize: 1000 }),
-                    ])
-                    if (!mounted) return
-                    setFarms(farmRes.map(f => ({ id: f.farmId, name: f.farmName })))
-                    setCrops(cropRes.map(c => ({ id: c.cropId, name: c.cropName })))
-                    setStaffs(staffRes.items.map(s => ({ id: s.accountId, name: s.email })))
-
-                    // load farm activities
-                    const fa = await farmActivityService.getAllFarmActivities()
-                    if (!mounted) return
-                    setActivities(
-                        fa.map(a => ({
-                            id: a.farmActivitiesId,
-                            name: `#${a.farmActivitiesId} • ${translateActivityType(a.activityType)}`,
-                        }))
-                    )
+                    const result = await loadReferenceData()
+                    if (cancelled) return
+                    setFarms(result.farmOptions)
+                    setCrops(result.cropOptions)
+                    setStaffs(result.staffOptions)
+                    setActivities(result.activityOptions)
                 } catch (e) {
-                    handleFetchError(e, toast, 'danh sách tham chiếu')
+                    if (!cancelled) {
+                        handleFetchError(e, toast, 'danh sách tham chiếu')
+                    }
                 } finally {
-                    if (mounted) setMetaLoading(false)
+                    if (!cancelled) setMetaLoading(false)
                 }
             })()
         return () => {
-            mounted = false
+            cancelled = true
         }
-    }, [showCreate, toast])
+    }, [showCreate, showEdit, showAssignStaff, showStaffFilter, loadReferenceData, toast])
 
-    // load metadata when opening edit dialog
-    useEffect(() => {
-        if (!showEdit && !showAssignStaff) return
-        let mounted = true
-            ; (async () => {
-                try {
-                    setMetaLoading(true)
-                    const [farmRes, cropRes, staffRes] = await Promise.all([
-                        farmService.getAllFarms(),
-                        cropService.getAllCropsActive(),
-                        accountApi.getAll({ role: 'Staff', pageSize: 1000 }),
-                    ])
-                    if (!mounted) return
-                    setFarms(farmRes.map(f => ({ id: f.farmId, name: f.farmName })))
-                    setCrops(cropRes.map(c => ({ id: c.cropId, name: c.cropName })))
-                    setStaffs(staffRes.items.map(s => ({ id: s.accountId, name: s.email })))
-
-                    // load farm activities
-                    const fa = await farmActivityService.getAllFarmActivities()
-                    if (!mounted) return
-                    setActivities(
-                        fa.map(a => ({
-                            id: a.farmActivitiesId,
-                            name: `#${a.farmActivitiesId} • ${translateActivityType(a.activityType)}`,
-                        }))
-                    )
-                } catch (e) {
-                    toast({
-                        title: 'Không thể tải danh sách tham chiếu',
-                        description: (e as Error).message,
-                        variant: 'destructive',
-                    })
-                } finally {
-                    if (mounted) setMetaLoading(false)
-                }
-            })()
-        return () => {
-            mounted = false
+    const handleCreateDialogChange = useCallback((open: boolean) => {
+        setShowCreate(open)
+        if (!open) {
+            setForm(buildEmptyScheduleForm())
         }
-    }, [showEdit, showAssignStaff, toast, translateActivityType])
+    }, [setShowCreate, setForm])
+
+    const handleEditDialogChange = useCallback((open: boolean) => {
+        setShowEdit(open)
+        if (!open) {
+            setSelectedSchedule(null)
+            setEditForm(buildEmptyScheduleForm())
+        }
+    }, [setShowEdit, setSelectedSchedule, setEditForm])
+
+    const handleAssignStaffDialogChange = useCallback((open: boolean) => {
+        setShowAssignStaff(open)
+        if (!open) {
+            setAssignStaffId(0)
+        }
+    }, [setShowAssignStaff, setAssignStaffId])
 
     const submit = async (ev: React.FormEvent) => {
         ev.preventDefault()
+        if (!ensureScheduleValidity(form)) return
         try {
             await scheduleService.createSchedule(form)
             handleApiSuccess('Tạo lịch thành công', toast)
-            setShowCreate(false)
+            handleCreateDialogChange(false)
             await load()
+            await loadAllSchedules()
         } catch (e) {
             handleCreateError(e, toast, 'lịch tưới')
         }
@@ -274,6 +436,8 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                 staffId: detail.staffId || 0,
                 startDate: detail.startDate,
                 endDate: detail.endDate,
+                plantingDate: detail.plantingDate ?? '',
+                harvestDate: detail.harvestDate ?? '',
                 quantity: detail.quantity,
                 status: typeof detail.status === 'number' ? detail.status : 0,
                 pesticideUsed: detail.pesticideUsed,
@@ -281,7 +445,7 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                 farmActivitiesId: detail.farmActivitiesId || 0,
             })
             setSelectedSchedule(schedule)
-            setShowEdit(true)
+            handleEditDialogChange(true)
         } catch (e) {
             toast({ title: 'Không thể tải thông tin lịch', description: (e as Error).message, variant: 'destructive' })
         } finally {
@@ -292,12 +456,14 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
     const handleUpdateSchedule = async (ev: React.FormEvent) => {
         ev.preventDefault()
         if (!selectedSchedule?.scheduleId) return
+        if (!ensureScheduleValidity(editForm, selectedSchedule.scheduleId)) return
         setActionLoading({ [`update-${selectedSchedule.scheduleId}`]: true })
         try {
             await scheduleService.updateSchedule(selectedSchedule.scheduleId, editForm)
             toast({ title: 'Cập nhật lịch thành công', variant: 'success' })
-            setShowEdit(false)
+            handleEditDialogChange(false)
             await load()
+            await loadAllSchedules()
         } catch (e) {
             toast({ title: 'Cập nhật lịch thất bại', description: (e as Error).message, variant: 'destructive' })
         } finally {
@@ -314,6 +480,7 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
             await scheduleService.updateScheduleStatus(schedule.scheduleId, newStatus)
             toast({ title: 'Cập nhật trạng thái thành công', variant: 'success' })
             await load()
+            await loadAllSchedules()
         } catch (e) {
             toast({ title: 'Cập nhật trạng thái thất bại', description: (e as Error).message, variant: 'destructive' })
         } finally {
@@ -327,9 +494,9 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
         try {
             await scheduleService.assignStaff(selectedSchedule.scheduleId, assignStaffId)
             toast({ title: 'Phân công nhân viên thành công', variant: 'success' })
-            setShowAssignStaff(false)
-            setAssignStaffId(0)
+            handleAssignStaffDialogChange(false)
             await load()
+            await loadAllSchedules()
         } catch (e) {
             toast({ title: 'Phân công nhân viên thất bại', description: (e as Error).message, variant: 'destructive' })
         } finally {
@@ -338,27 +505,22 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
     }
 
     const handleStaffFilter = async () => {
-        if (!staffFilter) return
-        setLoading(true)
-        try {
-            const res = await scheduleService.getSchedulesByStaff(staffFilter)
-            setData({
-                status: res.status,
-                message: res.message,
-                data: {
-                    totalItemCount: res.data.length,
-                    pageSize: res.data.length,
-                    totalPagesCount: 1,
-                    pageIndex: 1,
-                    next: false,
-                    previous: false,
-                    items: res.data
-                }
-            })
-        } catch (e) {
-            toast({ title: 'Lọc theo nhân viên thất bại', description: (e as Error).message, variant: 'destructive' })
-        } finally {
-            setLoading(false)
+        if (!staffFilter) {
+            toast({ title: 'Chọn nhân viên trước khi lọc', variant: 'destructive' })
+            return
+        }
+        let source = allSchedules
+        if (!source.length && !allSchedulesLoading) {
+            source = await loadAllSchedules()
+        }
+        if (!source.length) {
+            toast({ title: 'Không thể tải danh sách lịch để lọc', variant: 'destructive' })
+            return
+        }
+        const filtered = source.filter(it => it.staffId === staffFilter)
+        setFilteredItems(filtered)
+        if (!filtered.length) {
+            toast({ title: 'Không tìm thấy lịch', description: 'Nhân viên này chưa có lịch nào trong hệ thống.', variant: 'destructive' })
         }
     }
 
@@ -381,6 +543,7 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                             size="sm"
                             onClick={() => {
                                 setStaffFilter(null)
+                                setFilteredItems(null)
                                 load()
                             }}
                         >
@@ -405,12 +568,13 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                                 ))}
                             </SelectContent>
                         </Select>
-                        <Button onClick={handleStaffFilter} disabled={!staffFilter || loading}>
+                        <Button onClick={handleStaffFilter} disabled={!staffFilter || allSchedulesLoading}>
                             Áp dụng
                         </Button>
+                        {allSchedulesLoading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
                     </div>
                 )}
-                <Dialog open={showCreate} onOpenChange={setShowCreate}>
+                <Dialog open={showCreate} onOpenChange={handleCreateDialogChange}>
                     <DialogContent className="sm:max-w-2xl">
                         <DialogHeader>
                             <DialogTitle>Tạo lịch tưới mới</DialogTitle>
@@ -470,15 +634,50 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                             </div>
                             <div>
                                 <Label>Ngày bắt đầu</Label>
-                                <Input type="date" value={form.startDate} onChange={e => setForm({ ...form, startDate: e.target.value })} />
+                                <Input
+                                    type="date"
+                                    min={todayString}
+                                    value={form.startDate}
+                                    onChange={e => setForm({ ...form, startDate: e.target.value })}
+                                />
                             </div>
                             <div>
                                 <Label>Ngày kết thúc</Label>
-                                <Input type="date" value={form.endDate} onChange={e => setForm({ ...form, endDate: e.target.value })} />
+                                <Input
+                                    type="date"
+                                    min={form.startDate || todayString}
+                                    value={form.endDate}
+                                    onChange={e => setForm({ ...form, endDate: e.target.value })}
+                                />
+                            </div>
+                            <div>
+                                <Label>Ngày gieo trồng</Label>
+                                <Input
+                                    type="date"
+                                    min={form.startDate || todayString}
+                                    max={form.endDate || undefined}
+                                    value={form.plantingDate}
+                                    onChange={e => setForm({ ...form, plantingDate: e.target.value })}
+                                />
+                            </div>
+                            <div>
+                                <Label>Ngày thu hoạch</Label>
+                                <Input
+                                    type="date"
+                                    min={form.plantingDate || form.startDate || todayString}
+                                    max={form.endDate || undefined}
+                                    value={form.harvestDate}
+                                    onChange={e => setForm({ ...form, harvestDate: e.target.value })}
+                                />
                             </div>
                             <div>
                                 <Label>Số lượng</Label>
-                                <Input type="number" value={form.quantity} onChange={e => setForm({ ...form, quantity: Number(e.target.value) })} />
+                                <Input
+                                    type="number"
+                                    min={1}
+                                    value={form.quantity}
+                                    onChange={e => setForm({ ...form, quantity: Number(e.target.value) })}
+                                />
                             </div>
                             <div>
                                 <Label>Trạng thái</Label>
@@ -542,7 +741,7 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                                 </label>
                                 <div className="ml-auto flex gap-2">
                                     {metaLoading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
-                                    <Button type="button" variant="outline" size="sm" onClick={() => setShowCreate(false)}>Hủy</Button>
+                                    <Button type="button" variant="outline" size="sm" onClick={() => handleCreateDialogChange(false)}>Hủy</Button>
                                     <Button type="submit" size="sm" disabled={metaLoading}>Tạo</Button>
                                 </div>
                             </div>
@@ -568,7 +767,7 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                             </tr>
                         </thead>
                         <tbody>
-                            {data?.data.items.map((it, idx) => (
+                            {displayItems.map((it, idx) => (
                                 <tr key={idx} className="border-b last:border-0">
                                     <td className="py-2 pr-3">{it.startDate}</td>
                                     <td className="py-2 pr-3">{it.endDate}</td>
@@ -615,7 +814,7 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                                                 variant="ghost"
                                                 onClick={() => {
                                                     setSelectedSchedule(it)
-                                                    setShowAssignStaff(true)
+                                                    handleAssignStaffDialogChange(true)
                                                 }}
                                             >
                                                 <UserPlus className="h-3 w-3" />
@@ -638,7 +837,7 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                                     </td>
                                 </tr>
                             ))}
-                            {!loading && data && data.data.items.length === 0 && (
+                            {!loading && displayItems.length === 0 && (
                                 <tr>
                                     <td colSpan={11} className="py-6 text-center text-muted-foreground">
                                         Chưa có dữ liệu
@@ -651,13 +850,16 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
 
                 <div className="flex items-center justify-between">
                     <div className="text-sm text-muted-foreground">
-                        Tổng: {data?.data.totalItemCount ?? 0} • Trang {data?.data.pageIndex ?? pageIndex + 1}/{data?.data.totalPagesCount ?? 1}
+                        Tổng: {displayTotal}{' '}
+                        {isFiltered
+                            ? '• Đang lọc theo nhân viên'
+                            : `• Trang ${data?.data.pageIndex ?? pageIndex}/${data?.data.totalPagesCount ?? 1}`}
                     </div>
                     <div className="flex gap-2">
                         <Button
                             size="sm"
                             variant="outline"
-                            disabled={loading || !(data?.data.previous)}
+                            disabled={loading || isFiltered || !(data?.data.previous)}
                             onClick={() => setPageIndex(p => Math.max(1, p - 1))}
                         >
                             Trước
@@ -665,7 +867,7 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                         <Button
                             size="sm"
                             variant="outline"
-                            disabled={loading || !(data?.data.next)}
+                            disabled={loading || isFiltered || !(data?.data.next)}
                             onClick={() => setPageIndex(p => p + 1)}
                         >
                             Sau
@@ -682,25 +884,23 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                         </DialogHeader>
                         {scheduleDetail && (
                             <div className="grid grid-cols-2 gap-4">
-                                <div><strong>ID:</strong> {scheduleDetail.scheduleId}</div>
-                                <div><strong>Farm:</strong> {scheduleDetail.farmView?.farmName || scheduleDetail.farmId}</div>
-                                <div><strong>Crop:</strong> {scheduleDetail.cropView?.cropName || scheduleDetail.cropId}</div>
-                                <div><strong>Staff:</strong> {scheduleDetail.staff?.email || scheduleDetail.staffId}</div>
                                 <div><strong>Ngày bắt đầu:</strong> {scheduleDetail.startDate}</div>
                                 <div><strong>Ngày kết thúc:</strong> {scheduleDetail.endDate}</div>
+                                <div><strong>Ngày gieo trồng:</strong> {scheduleDetail.plantingDate ?? '-'}</div>
+                                <div><strong>Ngày thu hoạch:</strong> {scheduleDetail.harvestDate ?? '-'}</div>
                                 <div><strong>Số lượng:</strong> {scheduleDetail.quantity}</div>
                                 <div><strong>Trạng thái:</strong> {getStatusLabel(scheduleDetail.status)}</div>
                                 <div><strong>Thuốc BVTV:</strong> {scheduleDetail.pesticideUsed ? 'Có' : 'Không'}</div>
                                 <div><strong>Tình trạng bệnh:</strong> {getDiseaseLabel(scheduleDetail.diseaseStatus)}</div>
-                                <div><strong>Hoạt động:</strong> {scheduleDetail.farmActivityView?.activityType || scheduleDetail.farmActivitiesId}</div>
-                                <div><strong>Tạo lúc:</strong> {scheduleDetail.createdAt}</div>
+                                <div><strong>Hoạt động:</strong> {scheduleDetail.farmActivityView?.activityType || scheduleDetail.farmActivitiesId || '-'}</div>
+                                <div><strong>Tạo lúc:</strong> {scheduleDetail.createdAt ?? '-'}</div>
                             </div>
                         )}
                     </DialogContent>
                 </Dialog>
 
                 {/* Edit Modal */}
-                <Dialog open={showEdit} onOpenChange={setShowEdit}>
+                <Dialog open={showEdit} onOpenChange={handleEditDialogChange}>
                     <DialogContent className="sm:max-w-2xl">
                         <DialogHeader>
                             <DialogTitle>Chỉnh sửa lịch tưới</DialogTitle>
@@ -762,6 +962,7 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                                 <Label>Ngày bắt đầu</Label>
                                 <Input
                                     type="date"
+                                    min={todayString}
                                     value={editForm.startDate}
                                     onChange={e => setEditForm({ ...editForm, startDate: e.target.value })}
                                 />
@@ -770,14 +971,36 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                                 <Label>Ngày kết thúc</Label>
                                 <Input
                                     type="date"
+                                    min={editForm.startDate || todayString}
                                     value={editForm.endDate}
                                     onChange={e => setEditForm({ ...editForm, endDate: e.target.value })}
+                                />
+                            </div>
+                            <div>
+                                <Label>Ngày gieo trồng</Label>
+                                <Input
+                                    type="date"
+                                    min={editForm.startDate || todayString}
+                                    max={editForm.endDate || undefined}
+                                    value={editForm.plantingDate}
+                                    onChange={e => setEditForm({ ...editForm, plantingDate: e.target.value })}
+                                />
+                            </div>
+                            <div>
+                                <Label>Ngày thu hoạch</Label>
+                                <Input
+                                    type="date"
+                                    min={editForm.plantingDate || editForm.startDate || todayString}
+                                    max={editForm.endDate || undefined}
+                                    value={editForm.harvestDate}
+                                    onChange={e => setEditForm({ ...editForm, harvestDate: e.target.value })}
                                 />
                             </div>
                             <div>
                                 <Label>Số lượng</Label>
                                 <Input
                                     type="number"
+                                    min={1}
                                     value={editForm.quantity}
                                     onChange={e => setEditForm({ ...editForm, quantity: Number(e.target.value) })}
                                 />
@@ -842,7 +1065,7 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                             </div>
                         </form>
                         <DialogFooter>
-                            <Button type="button" variant="outline" onClick={() => setShowEdit(false)}>
+                            <Button type="button" variant="outline" onClick={() => handleEditDialogChange(false)}>
                                 Hủy
                             </Button>
                             <Button
@@ -860,7 +1083,7 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                 </Dialog>
 
                 {/* Assign Staff Modal */}
-                <Dialog open={showAssignStaff} onOpenChange={setShowAssignStaff}>
+                <Dialog open={showAssignStaff} onOpenChange={handleAssignStaffDialogChange}>
                     <DialogContent>
                         <DialogHeader>
                             <DialogTitle>Phân công nhân viên</DialogTitle>
@@ -885,7 +1108,7 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                             </div>
                         </div>
                         <DialogFooter>
-                            <Button type="button" variant="outline" onClick={() => setShowAssignStaff(false)}>
+                            <Button type="button" variant="outline" onClick={() => handleAssignStaffDialogChange(false)}>
                                 Hủy
                             </Button>
                             <Button

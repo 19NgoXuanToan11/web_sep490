@@ -1050,47 +1050,125 @@ const ManagerOrdersPage: React.FC = () => {
                 </div>
 
                 { }
-                {!loading && totalPages > 1 && (
-                  <div className="flex items-center justify-between space-x-2 py-4">
+                {!loading && totalItems > 0 && (
+                  <div className="flex items-center justify-between space-x-2 py-4 px-6 border-t">
                     <div className="text-sm text-muted-foreground">
-                      Hiển thị {(currentPage - 1) * pageSize + 1}-
-                      {Math.min(currentPage * pageSize, totalItems)} trong tổng số {totalItems} đơn
-                      hàng
+                      {totalPages > 1 ? (
+                        <>
+                          Hiển thị đơn hàng {(currentPage - 1) * pageSize + 1}-
+                          {Math.min(currentPage * pageSize, totalItems)} trên tổng số {totalItems} đơn
+                          hàng
+                        </>
+                      ) : (
+                        <>Tổng số {totalItems} đơn hàng</>
+                      )}
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => fetchOrders(currentPage - 1)}
-                        disabled={currentPage <= 1 || loading}
-                      >
-                        Trước
-                      </Button>
-                      <div className="flex items-center space-x-1">
-                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                          const page = i + 1
-                          return (
-                            <Button
-                              key={page}
-                              variant={currentPage === page ? 'default' : 'outline'}
-                              size="sm"
-                              onClick={() => fetchOrders(page)}
-                              disabled={loading}
-                            >
-                              {page}
-                            </Button>
-                          )
-                        })}
+                    {totalPages > 1 && (
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => fetchOrders(1)}
+                          disabled={currentPage <= 1 || loading}
+                        >
+                          Đầu
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => fetchOrders(currentPage - 1)}
+                          disabled={currentPage <= 1 || loading}
+                        >
+                          Trước
+                        </Button>
+                        <div className="flex items-center space-x-1">
+                          {(() => {
+                            const pages = []
+                            const maxVisiblePages = 7
+                            let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2))
+                            let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1)
+
+                            if (endPage - startPage < maxVisiblePages - 1) {
+                              startPage = Math.max(1, endPage - maxVisiblePages + 1)
+                            }
+
+                            if (startPage > 1) {
+                              pages.push(
+                                <Button
+                                  key={1}
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => fetchOrders(1)}
+                                  disabled={loading}
+                                >
+                                  1
+                                </Button>
+                              )
+                              if (startPage > 2) {
+                                pages.push(
+                                  <span key="ellipsis-start" className="px-2 text-muted-foreground">
+                                    ...
+                                  </span>
+                                )
+                              }
+                            }
+
+                            for (let i = startPage; i <= endPage; i++) {
+                              pages.push(
+                                <Button
+                                  key={i}
+                                  variant={currentPage === i ? 'default' : 'outline'}
+                                  size="sm"
+                                  onClick={() => fetchOrders(i)}
+                                  disabled={loading}
+                                >
+                                  {i}
+                                </Button>
+                              )
+                            }
+
+                            if (endPage < totalPages) {
+                              if (endPage < totalPages - 1) {
+                                pages.push(
+                                  <span key="ellipsis-end" className="px-2 text-muted-foreground">
+                                    ...
+                                  </span>
+                                )
+                              }
+                              pages.push(
+                                <Button
+                                  key={totalPages}
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => fetchOrders(totalPages)}
+                                  disabled={loading}
+                                >
+                                  {totalPages}
+                                </Button>
+                              )
+                            }
+
+                            return pages
+                          })()}
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => fetchOrders(currentPage + 1)}
+                          disabled={currentPage >= totalPages || loading}
+                        >
+                          Tiếp
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => fetchOrders(totalPages)}
+                          disabled={currentPage >= totalPages || loading}
+                        >
+                          Cuối
+                        </Button>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => fetchOrders(currentPage + 1)}
-                        disabled={currentPage >= totalPages || loading}
-                      >
-                        Tiếp
-                      </Button>
-                    </div>
+                    )}
                   </div>
                 )}
               </TabsContent>

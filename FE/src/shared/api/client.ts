@@ -9,6 +9,14 @@ export interface JsonResponse<T> {
 
 const controllers = new Set<AbortController>()
 
+const isFormData = (value: unknown): value is FormData =>
+  typeof FormData !== 'undefined' && value instanceof FormData
+
+const serializeBody = (body: unknown) => {
+  if (body === undefined) return undefined
+  return isFormData(body) ? body : JSON.stringify(body)
+}
+
 export function abortAllRequests() {
   for (const c of controllers) c.abort()
   controllers.clear()
@@ -20,7 +28,9 @@ async function request<T>(
 ): Promise<JsonResponse<T>> {
   const url = `${env.API_URL}${path}`
   const headers = new Headers(options.headers || {})
-  headers.set('Content-Type', 'application/json')
+  if (!headers.has('Content-Type') && !isFormData(options.body)) {
+    headers.set('Content-Type', 'application/json')
+  }
 
   const raw = localStorage.getItem('ifms-token')
   const token = raw ? JSON.parse(raw) : null
@@ -35,16 +45,17 @@ async function request<T>(
   const data = text ? (JSON.parse(text) as T) : (undefined as unknown as T)
   if (!res.ok) {
     // Extract meaningful error message from response
-    const message = (data as any)?.message || (data as any)?.Message || (data as any)?.error || `HTTP ${status}`
-    
+    const message =
+      (data as any)?.message || (data as any)?.Message || (data as any)?.error || `HTTP ${status}`
+
     // Create enhanced error object with status and data
-    const error = Object.assign(new Error(message), { 
-      status, 
+    const error = Object.assign(new Error(message), {
+      status,
       data,
       url: path,
-      method: options.method || 'GET'
+      method: options.method || 'GET',
     })
-    
+
     throw error
   }
   return { data, status }
@@ -56,19 +67,19 @@ export const http = {
     request<T>(path, {
       ...init,
       method: 'POST',
-      body: body !== undefined ? JSON.stringify(body) : undefined,
+      body: serializeBody(body),
     }),
   put: <T>(path: string, body?: unknown, init?: RequestInit) =>
     request<T>(path, {
       ...init,
       method: 'PUT',
-      body: body !== undefined ? JSON.stringify(body) : undefined,
+      body: serializeBody(body),
     }),
   patch: <T>(path: string, body?: unknown, init?: RequestInit) =>
     request<T>(path, {
       ...init,
       method: 'PATCH',
-      body: body !== undefined ? JSON.stringify(body) : undefined,
+      body: serializeBody(body),
     }),
   delete: <T>(path: string, init?: RequestInit) => request<T>(path, { ...init, method: 'DELETE' }),
 }

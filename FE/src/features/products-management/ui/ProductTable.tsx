@@ -24,11 +24,14 @@ import {
 import { useProductStore } from '../store/productStore'
 import type { Product } from '@/shared/api/productService'
 
+type ProductTableMode = 'manager' | 'staff'
+
 interface ProductTableProps {
   onEditProduct?: (product: Product) => void
   onViewProduct?: (product: Product) => void
   onDeleteProduct?: (product: Product) => void
   className?: string
+  mode?: ProductTableMode
 }
 
 export function ProductTable({
@@ -36,6 +39,7 @@ export function ProductTable({
   onViewProduct,
   onDeleteProduct,
   className,
+  mode = 'manager',
 }: ProductTableProps) {
   const {
     products,
@@ -52,10 +56,13 @@ export function ProductTable({
     changeProductStatus,
   } = useProductStore()
 
+  const isReadOnly = mode === 'staff'
   const { toast } = useToast()
   const [openDropdownId, setOpenDropdownId] = React.useState<number | null>(null)
 
   const handleStatusToggle = async (product: Product) => {
+    if (isReadOnly) return
+
     try {
       const newStatus = product.status === 'Active' ? 'Inactive' : 'Active'
       await changeProductStatus(product.productId, newStatus)
@@ -123,7 +130,7 @@ export function ProductTable({
 
   const startItem = (currentPage - 1) * pageSize + 1
   const endItem = Math.min(currentPage * pageSize, totalCount)
-  const hasSelection = selectedProductIds.length > 0
+  const hasSelection = !isReadOnly && selectedProductIds.length > 0
 
   if (isLoading) {
     return (
@@ -140,7 +147,7 @@ export function ProductTable({
   return (
     <div className={className}>
       { }
-      {hasSelection && (
+      {!isReadOnly && hasSelection && (
         <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between">
           <span className="text-sm text-blue-700">
             Đã chọn {selectedProductIds.length} sản phẩm
@@ -156,18 +163,20 @@ export function ProductTable({
         <Table>
           <TableHeader>
             <TableRow className="bg-gray-50">
-              <TableHead className="w-12">
-                <input
-                  type="checkbox"
-                  checked={products.length > 0 && selectedProductIds.length === products.length}
-                  onChange={() =>
-                    selectedProductIds.length === products.length
-                      ? clearSelection()
-                      : selectAllProducts()
-                  }
-                  className="rounded"
-                />
-              </TableHead>
+              {!isReadOnly && (
+                <TableHead className="w-12">
+                  <input
+                    type="checkbox"
+                    checked={products.length > 0 && selectedProductIds.length === products.length}
+                    onChange={() =>
+                      selectedProductIds.length === products.length
+                        ? clearSelection()
+                        : selectAllProducts()
+                    }
+                    className="rounded"
+                  />
+                </TableHead>
+              )}
               <TableHead className="w-16"></TableHead>
               <TableHead className="font-semibold">
                 <div className="flex items-center gap-2">
@@ -181,26 +190,31 @@ export function ProductTable({
               <TableHead className="font-semibold text-center">Số lượng</TableHead>
               <TableHead className="font-semibold text-center">Trạng thái</TableHead>
               <TableHead className="font-semibold">Cập nhật</TableHead>
-              <TableHead className="w-16"></TableHead>
+              {!isReadOnly && <TableHead className="w-16"></TableHead>}
+              {isReadOnly && (
+                <TableHead className="w-24 text-center font-semibold">Chi tiết</TableHead>
+              )}
             </TableRow>
           </TableHeader>
           <TableBody>
             {products.map(product => {
-              const isSelected = selectedProductIds.includes(product.productId)
+              const isSelected = !isReadOnly && selectedProductIds.includes(product.productId)
 
               return (
                 <TableRow
                   key={product.productId}
                   className={`hover:bg-gray-50 ${isSelected ? 'bg-blue-50' : ''}`}
                 >
-                  <TableCell>
-                    <input
-                      type="checkbox"
-                      checked={isSelected}
-                      onChange={() => toggleProductSelection(product.productId)}
-                      className="rounded"
-                    />
-                  </TableCell>
+                  {!isReadOnly && (
+                    <TableCell>
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggleProductSelection(product.productId)}
+                        className="rounded"
+                      />
+                    </TableCell>
+                  )}
 
                   <TableCell>
                     <div className="w-10 h-10 bg-gray-100 rounded-md flex items-center justify-center overflow-hidden">
@@ -242,70 +256,98 @@ export function ProductTable({
                   </TableCell>
 
                   <TableCell className="text-center">
-                    <button
-                      onClick={() => handleStatusToggle(product)}
-                      className="inline-flex items-center"
-                    >
-                      {product.status === 'Active' ? (
-                        <ToggleRight className="h-5 w-5 text-green-500" />
-                      ) : (
-                        <ToggleLeft className="h-5 w-5 text-gray-400" />
-                      )}
-                    </button>
-                    <div className="mt-1">{getStatusBadge(product.status)}</div>
+                    {isReadOnly ? (
+                      <div className="flex flex-col items-center gap-1">
+                        {product.status === 'Active' ? (
+                          <ToggleRight className="h-5 w-5 text-green-500" />
+                        ) : (
+                          <ToggleLeft className="h-5 w-5 text-gray-400" />
+                        )}
+                        {getStatusBadge(product.status)}
+                      </div>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => handleStatusToggle(product)}
+                          className="inline-flex items-center"
+                        >
+                          {product.status === 'Active' ? (
+                            <ToggleRight className="h-5 w-5 text-green-500" />
+                          ) : (
+                            <ToggleLeft className="h-5 w-5 text-gray-400" />
+                          )}
+                        </button>
+                        <div className="mt-1">{getStatusBadge(product.status)}</div>
+                      </>
+                    )}
                   </TableCell>
 
                   <TableCell className="text-sm text-gray-500">
                     {formatDate(product.updatedAt)}
                   </TableCell>
 
-                  <TableCell>
-                    <DropdownMenu
-                      open={openDropdownId === product.productId}
-                      onOpenChange={open => {
-                        setOpenDropdownId(open ? product.productId : null)
-                      }}
-                    >
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          onClick={e => {
-                            e.preventDefault()
-                            e.stopPropagation()
-                            handleView(product)
-                          }}
-                        >
-                          <Eye className="h-4 w-4 mr-2" />
-                          Xem chi tiết
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={e => {
-                            e.preventDefault()
-                            e.stopPropagation()
-                            handleEdit(product)
-                          }}
-                        >
-                          <Edit className="h-4 w-4 mr-2" />
-                          Chỉnh sửa
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={e => {
-                            e.preventDefault()
-                            e.stopPropagation()
-                            handleDelete(product)
-                          }}
-                          className="text-red-600 focus:text-red-600"
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Xóa
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
+                  {!isReadOnly && (
+                    <TableCell>
+                      <DropdownMenu
+                        open={openDropdownId === product.productId}
+                        onOpenChange={open => {
+                          setOpenDropdownId(open ? product.productId : null)
+                        }}
+                      >
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm">
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={e => {
+                              e.preventDefault()
+                              e.stopPropagation()
+                              handleView(product)
+                            }}
+                          >
+                            <Eye className="h-4 w-4 mr-2" />
+                            Xem chi tiết
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={e => {
+                              e.preventDefault()
+                              e.stopPropagation()
+                              handleEdit(product)
+                            }}
+                          >
+                            <Edit className="h-4 w-4 mr-2" />
+                            Chỉnh sửa
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={e => {
+                              e.preventDefault()
+                              e.stopPropagation()
+                              handleDelete(product)
+                            }}
+                            className="text-red-600 focus:text-red-600"
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Xóa
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  )}
+                  {isReadOnly && (
+                    <TableCell className="text-center">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleView(product)}
+                        className="text-blue-600"
+                      >
+                        <Eye className="h-4 w-4 mr-2" />
+                        Xem
+                      </Button>
+                    </TableCell>
+                  )}
                 </TableRow>
               )
             })}

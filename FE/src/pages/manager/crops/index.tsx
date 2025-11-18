@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import type { ChangeEvent } from 'react'
 import { ManagerLayout } from '@/shared/layouts/ManagerLayout'
 import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
@@ -18,7 +19,43 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Textarea } from '@/shared/ui/textarea'
 import { Plus, Edit, Trash2, Search, RefreshCw } from 'lucide-react'
 import { useToast } from '@/shared/ui/use-toast'
-import { cropService, type Crop, type CropRequest, type CropUpdate } from '@/shared/api/cropService'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs'
+import {
+  cropService,
+  type Crop,
+  type CropRequest,
+  type CropProductRequest,
+  type CreateCropWithProductRequest,
+} from '@/shared/api/cropService'
+import { categoryService, type Category } from '@/shared/api/categoryService'
+import {
+  uploadImageToCloudinary,
+  CloudinaryUploadError,
+} from '@/shared/lib/cloudinary'
+
+type CreateCropFormState = {
+  cropName: string
+  description: string
+  origin: string
+  categoryId: number | ''
+  productName: string
+  productPrice: number
+  productDescription: string
+  productImageFile: File | null
+  productImagePreview: string | null
+}
+
+const createInitialFormState = (): CreateCropFormState => ({
+  cropName: '',
+  description: '',
+  origin: '',
+  categoryId: '',
+  productName: '',
+  productPrice: 0,
+  productDescription: '',
+  productImageFile: null,
+  productImagePreview: null,
+})
 
 export default function CropsPage() {
   const [crops, setCrops] = useState<Crop[]>([])
@@ -34,13 +71,10 @@ export default function CropsPage() {
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [editingCrop, setEditingCrop] = useState<Crop | null>(null)
 
-  const [formData, setFormData] = useState<CropRequest>({
-    cropName: '',
-    description: '',
-    quantity: 0,
-    plantingDate: '',
-    harvestDate: '',
-  })
+  const [categories, setCategories] = useState<Category[]>([])
+
+  // Unified form state for both crop (request1) and product (request2)
+  const [formData, setFormData] = useState<CreateCropFormState>(() => createInitialFormState())
 
   const { toast } = useToast()
 
@@ -88,30 +122,126 @@ export default function CropsPage() {
     }
   }
 
+  const loadCategories = async () => {
+    try {
+      const data = await categoryService.getAllCategories()
+      setCategories(data)
+    } catch {
+      // ignore for now, crop creation will validate category selection
+    }
+  }
+
+  const handleImageChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0] || null
+    setFormData(prev => {
+      if (prev.productImagePreview) {
+        URL.revokeObjectURL(prev.productImagePreview)
+      }
+      return {
+        ...prev,
+        productImageFile: file,
+        productImagePreview: file ? URL.createObjectURL(file) : null,
+      }
+    })
+    event.target.value = ''
+  }
+
+  const handleRemoveImage = () => {
+    setFormData(prev => {
+      if (prev.productImagePreview) {
+        URL.revokeObjectURL(prev.productImagePreview)
+      }
+      return {
+        ...prev,
+        productImageFile: null,
+        productImagePreview: null,
+      }
+    })
+  }
+
   const handleCreateCrop = async () => {
     try {
-      if (!formData.cropName || !formData.description) {
+      if (
+        !formData.cropName ||
+        !formData.description ||
+        !formData.origin ||
+        !formData.productName ||
+        !formData.productPrice ||
+        !formData.categoryId
+      ) {
         toast({
           title: 'Lỗi',
-          description: 'Vui lòng điền đầy đủ thông tin bắt buộc',
+          description: 'Vui lòng điền đầy đủ thông tin bắt buộc cho cây trồng và sản phẩm',
           variant: 'destructive',
         })
         return
       }
 
-      await cropService.createCrop(formData)
+      // Step 1: Upload image to Cloudinary if image exists
+      let imageUrl: string | undefined
+      if (formData.productImageFile) {
+        try {
+          toast({
+            title: 'Đang tải lên hình ảnh...',
+            description: 'Vui lòng đợi trong giây lát',
+          })
+          imageUrl = await uploadImageToCloudinary({
+            file: formData.productImageFile,
+            onProgress: percent => {
+              // Optional: Could show progress in toast or UI
+              console.log(`Upload progress: ${percent}%`)
+            },
+          })
+        } catch (error) {
+          if (error instanceof CloudinaryUploadError) {
+            toast({
+              title: 'Lỗi tải lên hình ảnh',
+              description: error.message || 'Không thể tải lên hình ảnh lên Cloudinary',
+              variant: 'destructive',
+            })
+            return
+          }
+          throw error
+        }
+      }
+
+      // Step 2: Prepare JSON payload with Cloudinary URL
+      const request1: CropRequest = {
+        cropName: formData.cropName,
+        description: formData.description,
+        origin: formData.origin,
+        categoryId: Number(formData.categoryId),
+      }
+
+      const request2: CropProductRequest = {
+        productName: formData.productName,
+        price: Number(formData.productPrice),
+        description: formData.productDescription || undefined,
+        images: imageUrl, // Add Cloudinary URL to request2.images
+      }
+
+      const payload: CreateCropWithProductRequest = {
+        request1,
+        request2,
+      }
+
+      // Step 3: Send JSON payload to backend
+      await cropService.createCrop(payload)
       toast({
         title: 'Thành công',
-        description: 'Đã tạo cây trồng mới',
+        description: 'Đã tạo cây trồng và sản phẩm mới',
       })
 
       setCreateDialogOpen(false)
       resetForm()
       loadCrops()
     } catch (error) {
+      console.error('Error creating crop:', error)
+      const errorMessage =
+        error instanceof Error ? error.message : 'Không thể tạo cây trồng mới'
       toast({
         title: 'Lỗi',
-        description: 'Không thể tạo cây trồng mới',
+        description: errorMessage,
         variant: 'destructive',
       })
     }
@@ -121,11 +251,11 @@ export default function CropsPage() {
     if (!editingCrop) return
 
     try {
-      const updateData: CropUpdate = {
+      const updateData: CropRequest = {
         cropName: formData.cropName,
         description: formData.description,
-        quantity: formData.quantity,
-        plantingDate: formData.plantingDate,
+        origin: formData.origin,
+        categoryId: formData.categoryId as number,
       }
 
       await cropService.updateCrop(editingCrop.cropId, updateData)
@@ -165,24 +295,22 @@ export default function CropsPage() {
   }
 
   const resetForm = () => {
-    setFormData({
-      cropName: '',
-      description: '',
-      quantity: 0,
-      plantingDate: '',
-      harvestDate: '',
+    setFormData(prev => {
+      if (prev.productImagePreview) {
+        URL.revokeObjectURL(prev.productImagePreview)
+      }
+      return createInitialFormState()
     })
   }
 
   const handleEditClick = (crop: Crop) => {
     setEditingCrop(crop)
-    setFormData({
+    setFormData(prev => ({
+      ...prev,
       cropName: crop.cropName,
       description: crop.description,
-      quantity: crop.quantity,
-      plantingDate: crop.plantingDate,
-      harvestDate: crop.harvestDate,
-    })
+      origin: crop.origin || '',
+    }))
     setEditDialogOpen(true)
   }
 
@@ -201,6 +329,19 @@ export default function CropsPage() {
   useEffect(() => {
     loadCrops()
   }, [currentPage])
+
+  useEffect(() => {
+    loadCategories()
+  }, [])
+
+  useEffect(() => {
+    const previewUrl = formData.productImagePreview
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl)
+      }
+    }
+  }, [formData.productImagePreview])
 
   return (
     <ManagerLayout>
@@ -350,68 +491,168 @@ export default function CropsPage() {
 
       { }
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Thêm Cây Trồng Mới</DialogTitle>
-            <DialogDescription>Điền thông tin để tạo cây trồng mới</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="cropName">Tên cây trồng *</Label>
-              <Input
-                id="cropName"
-                value={formData.cropName}
-                onChange={e => setFormData({ ...formData, cropName: e.target.value })}
-                placeholder="Nhập tên cây trồng"
-              />
-            </div>
-            <div>
-              <Label htmlFor="description">Mô tả *</Label>
-              <Textarea
-                id="description"
-                value={formData.description}
-                onChange={e => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Nhập mô tả cây trồng"
-                rows={3}
-              />
-            </div>
-            <div>
-              <Label htmlFor="quantity">Số lượng</Label>
-              <Input
-                id="quantity"
-                type="number"
-                value={formData.quantity}
-                onChange={e =>
-                  setFormData({ ...formData, quantity: parseInt(e.target.value) || 0 })
-                }
-                placeholder="Nhập số lượng"
-              />
-            </div>
-            <div>
-              <Label htmlFor="plantingDate">Ngày gieo trồng</Label>
-              <Input
-                id="plantingDate"
-                type="date"
-                value={formData.plantingDate}
-                onChange={e => setFormData({ ...formData, plantingDate: e.target.value })}
-              />
-            </div>
-            <div>
-              <Label htmlFor="harvestDate">Ngày thu hoạch dự kiến</Label>
-              <Input
-                id="harvestDate"
-                type="date"
-                value={formData.harvestDate}
-                onChange={e => setFormData({ ...formData, harvestDate: e.target.value })}
-              />
-            </div>
+        <DialogContent className="max-w-3xl overflow-hidden p-0 flex flex-col max-h-[90vh]">
+          <div className="flex flex-col flex-1 min-h-0">
+            <DialogHeader className="px-6 pt-6 flex-shrink-0">
+              <DialogTitle>Thêm Cây Trồng & Sản Phẩm Mới</DialogTitle>
+              <DialogDescription>
+                Điền thông tin cây trồng và sản phẩm.
+              </DialogDescription>
+            </DialogHeader>
+            <Tabs defaultValue="crop" className="flex flex-1 flex-col min-h-0">
+              <div className="px-6 pt-4 flex-shrink-0">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="crop">Thông tin cây trồng</TabsTrigger>
+                  <TabsTrigger value="product">Thông tin sản phẩm</TabsTrigger>
+                </TabsList>
+              </div>
+              <div className="flex-1 overflow-y-auto px-6 pb-4 min-h-0">
+                <TabsContent value="crop" className="mt-4">
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="cropName">Tên cây trồng *</Label>
+                      <Input
+                        id="cropName"
+                        value={formData.cropName}
+                        onChange={e => setFormData({ ...formData, cropName: e.target.value })}
+                        placeholder="Nhập tên cây trồng"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="description">Mô tả *</Label>
+                      <Textarea
+                        id="description"
+                        value={formData.description}
+                        onChange={e => setFormData({ ...formData, description: e.target.value })}
+                        placeholder="Nhập mô tả cây trồng"
+                        rows={3}
+                      />
+                    </div>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div>
+                        <Label htmlFor="origin">Nguồn gốc *</Label>
+                        <Input
+                          id="origin"
+                          value={formData.origin}
+                          onChange={e => setFormData({ ...formData, origin: e.target.value })}
+                          placeholder="Ví dụ: Đà Lạt, Việt Nam"
+                        />
+                      </div>
+                      <div>
+                        <Label>Danh mục *</Label>
+                        <Select
+                          value={formData.categoryId ? String(formData.categoryId) : ''}
+                          onValueChange={value =>
+                            setFormData({
+                              ...formData,
+                              categoryId: value ? Number(value) : '',
+                            })
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Chọn danh mục" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {categories.map(cat => (
+                              <SelectItem key={cat.categoryId} value={String(cat.categoryId)}>
+                                {cat.categoryName}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </div>
+                </TabsContent>
+                <TabsContent value="product" className="mt-4">
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="productName">Tên sản phẩm *</Label>
+                      <Input
+                        id="productName"
+                        value={formData.productName}
+                        onChange={e => setFormData({ ...formData, productName: e.target.value })}
+                        placeholder="Nhập tên sản phẩm"
+                      />
+                    </div>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div>
+                        <Label htmlFor="productPrice">Giá bán *</Label>
+                        <Input
+                          id="productPrice"
+                          type="number"
+                          min={0}
+                          value={formData.productPrice}
+                          onChange={e =>
+                            setFormData({
+                              ...formData,
+                              productPrice: Number(e.target.value) || 0,
+                            })
+                          }
+                          placeholder="Nhập giá bán (VNĐ)"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="productImages">Hình ảnh</Label>
+                        <Input
+                          id="productImages"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageChange}
+                        />
+                        {formData.productImagePreview && (
+                          <div className="mt-2 space-y-1.5 rounded-md border border-dashed p-2">
+                            <div className="relative w-full aspect-video max-h-32 overflow-hidden rounded-md bg-gray-50">
+                              <img
+                                src={formData.productImagePreview}
+                                alt="Xem trước hình ảnh sản phẩm"
+                                className="h-full w-full object-cover"
+                              />
+                            </div>
+                            <div className="flex items-center justify-between text-xs text-gray-600 px-0.5">
+                              <span className="truncate flex-1 mr-2">
+                                {formData.productImageFile?.name}
+                                {formData.productImageFile
+                                  ? ` • ${Math.round(formData.productImageFile.size / 1024)}KB`
+                                  : ''}
+                              </span>
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="ghost"
+                                className="h-6 px-2 text-xs flex-shrink-0"
+                                onClick={handleRemoveImage}
+                              >
+                                Xoá ảnh
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div>
+                      <Label htmlFor="productDescription">Mô tả sản phẩm</Label>
+                      <Textarea
+                        id="productDescription"
+                        value={formData.productDescription}
+                        onChange={e =>
+                          setFormData({ ...formData, productDescription: e.target.value })
+                        }
+                        placeholder="Nhập mô tả sản phẩm"
+                        rows={3}
+                      />
+                    </div>
+                  </div>
+                </TabsContent>
+              </div>
+            </Tabs>
+            <DialogFooter className="border-t px-6 py-3 flex-shrink-0 bg-background">
+              <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
+                Hủy
+              </Button>
+              <Button onClick={handleCreateCrop}>Tạo cây trồng & sản phẩm</Button>
+            </DialogFooter>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
-              Hủy
-            </Button>
-            <Button onClick={handleCreateCrop}>Tạo cây trồng</Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
 
@@ -443,24 +684,12 @@ export default function CropsPage() {
               />
             </div>
             <div>
-              <Label htmlFor="editQuantity">Số lượng</Label>
+              <Label htmlFor="editOrigin">Nguồn gốc *</Label>
               <Input
-                id="editQuantity"
-                type="number"
-                value={formData.quantity}
-                onChange={e =>
-                  setFormData({ ...formData, quantity: parseInt(e.target.value) || 0 })
-                }
-                placeholder="Nhập số lượng"
-              />
-            </div>
-            <div>
-              <Label htmlFor="editPlantingDate">Ngày gieo trồng</Label>
-              <Input
-                id="editPlantingDate"
-                type="date"
-                value={formData.plantingDate}
-                onChange={e => setFormData({ ...formData, plantingDate: e.target.value })}
+                id="editOrigin"
+                value={formData.origin}
+                onChange={e => setFormData({ ...formData, origin: e.target.value })}
+                placeholder="Ví dụ: Đà Lạt, Việt Nam"
               />
             </div>
           </div>

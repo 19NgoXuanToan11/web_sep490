@@ -2,7 +2,7 @@
 import { Button } from '@/shared/ui/button'
 import { useToast } from '@/shared/ui/use-toast'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card'
-import { Plus, Trash2, RefreshCw, Package, AlertTriangle, CheckCircle } from 'lucide-react'
+import { RefreshCw, Package, AlertTriangle, CheckCircle } from 'lucide-react'
 import { StaffLayout } from '@/shared/layouts/StaffLayout'
 import { ProductTable } from '@/features/products-management/ui/ProductTable'
 import { ProductFilters } from '@/features/products-management/ui/ProductFilters'
@@ -11,16 +11,8 @@ import { useProductStore } from '@/features/products-management/store/productSto
 import type { Product } from '@/shared/api/productService'
 
 export function StaffProductsPage() {
-    const {
-        products = [],
-        filteredProducts = [],
-        selectedProductIds,
-        clearSelection,
-        fetchAllProducts,
-        deleteProduct,
-        isLoading,
-        filters,
-    } = useProductStore()
+    const { products = [], filteredProducts = [], fetchAllProducts, isLoading, filters } =
+        useProductStore()
 
     const { toast } = useToast()
 
@@ -47,16 +39,6 @@ export function StaffProductsPage() {
 
     const [modalState, setModalState] = React.useState<{
         isOpen: boolean
-        mode: 'create' | 'edit' | 'view'
-        product?: Product | null
-    }>({
-        isOpen: false,
-        mode: 'create',
-        product: null,
-    })
-
-    const [deleteConfirm, setDeleteConfirm] = React.useState<{
-        isOpen: boolean
         product?: Product | null
     }>({
         isOpen: false,
@@ -71,7 +53,7 @@ export function StaffProductsPage() {
                 variant: 'destructive',
             })
         })
-    }, [])
+    }, [fetchAllProducts, toast])
 
     const handleRefreshProducts = async () => {
         try {
@@ -89,101 +71,29 @@ export function StaffProductsPage() {
         }
     }
 
-    const handleCreateProduct = () => {
-        setModalState({
-            isOpen: true,
-            mode: 'create',
-            product: null,
-        })
-    }
-
-    const handleEditProduct = (product: Product) => {
-        setModalState({
-            isOpen: true,
-            mode: 'edit',
-            product,
-        })
-    }
-
     const handleViewProduct = (product: Product) => {
         setModalState({
             isOpen: true,
-            mode: 'view',
             product,
         })
-    }
-
-    const handleDeleteProduct = (product: Product) => {
-        setDeleteConfirm({
-            isOpen: true,
-            product,
-        })
-    }
-
-    const confirmDeleteProduct = async () => {
-        if (!deleteConfirm.product) return
-
-        try {
-            await deleteProduct(deleteConfirm.product.productId)
-            toast({
-                title: 'Xóa thành công',
-                description: `Đã xóa sản phẩm "${deleteConfirm.product.productName}"`,
-            })
-            setDeleteConfirm({ isOpen: false, product: null })
-            await fetchAllProducts()
-        } catch (error) {
-            toast({
-                title: 'Lỗi xóa sản phẩm',
-                description: 'Không thể xóa sản phẩm. Vui lòng thử lại.',
-                variant: 'destructive',
-            })
-        }
     }
 
     const handleModalClose = () => {
         setModalState({
             isOpen: false,
-            mode: 'create',
             product: null,
         })
-    }
-
-
-    const handleBulkDelete = async () => {
-        if (selectedProductIds.length === 0) {
-            toast({
-                title: 'Chưa chọn sản phẩm',
-                description: 'Vui lòng chọn ít nhất một sản phẩm để xóa.',
-                variant: 'destructive',
-            })
-            return
-        }
-
-        try {
-            await Promise.all(selectedProductIds.map(id => deleteProduct(id)))
-            toast({
-                title: 'Xóa thành công',
-                description: `Đã xóa ${selectedProductIds.length} sản phẩm`,
-            })
-            clearSelection()
-            await fetchAllProducts()
-        } catch (error) {
-            toast({
-                title: 'Lỗi xóa sản phẩm',
-                description: 'Không thể xóa một số sản phẩm. Vui lòng thử lại.',
-                variant: 'destructive',
-            })
-        }
     }
 
     return (
         <StaffLayout>
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                { }
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-900 mb-2">Quản lý sản phẩm</h1>
-                        <p className="text-gray-600">Quản lý kho sản phẩm nông nghiệp</p>
+                        <h1 className="text-3xl font-bold text-gray-900 mb-2">Sản phẩm</h1>
+                        <p className="text-gray-600">
+                            Nhân viên có thể tra cứu thông tin sản phẩm để phục vụ vận hành và dịch vụ khách hàng
+                        </p>
                     </div>
 
                     <div className="flex items-center gap-2">
@@ -191,16 +101,6 @@ export function StaffProductsPage() {
                             <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
                             Làm mới
                         </Button>
-                        <Button onClick={handleCreateProduct}>
-                            <Plus className="h-4 w-4 mr-2" />
-                            Thêm sản phẩm
-                        </Button>
-                        {selectedProductIds.length > 0 && (
-                            <Button variant="destructive" onClick={handleBulkDelete}>
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Xóa ({selectedProductIds.length})
-                            </Button>
-                        )}
                     </div>
                 </div>
 
@@ -251,7 +151,9 @@ export function StaffProductsPage() {
                 <Card>
                     <CardHeader>
                         <CardTitle>Sản phẩm</CardTitle>
-                        <CardDescription>Danh sách tất cả sản phẩm trong kho</CardDescription>
+                        <CardDescription>
+                            Danh sách sản phẩm được đồng bộ từ module Quản lý Cây trồng (Manager)
+                        </CardDescription>
                     </CardHeader>
                     <CardContent>
                         {isLoading ? (
@@ -263,72 +165,34 @@ export function StaffProductsPage() {
                             hasActiveFilters() ? (
                                 <div className="text-center py-8">
                                     <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                                    <h3 className="text-lg font-medium text-gray-900 mb-2">
-                                        Không tìm thấy sản phẩm
-                                    </h3>
+                                    <h3 className="text-lg font-medium text-gray-900 mb-2">Không tìm thấy sản phẩm</h3>
                                     <p className="text-gray-500 mb-4">
                                         Không có sản phẩm nào phù hợp với bộ lọc hiện tại. Thử thay đổi điều kiện lọc.
                                     </p>
                                 </div>
                             ) : (
-                                <div className="text-center py-8">
+                                <div className="text-center py-8 space-y-4">
                                     <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                                    <h3 className="text-lg font-medium text-gray-900 mb-2">Không có sản phẩm</h3>
-                                    <p className="text-gray-500 mb-4">Hãy thêm sản phẩm đầu tiên vào kho.</p>
-                                    <Button onClick={handleCreateProduct}>
-                                        <Plus className="h-4 w-4 mr-2" />
-                                        Thêm sản phẩm
-                                    </Button>
+                                    <h3 className="text-lg font-medium text-gray-900">Không có sản phẩm</h3>
+                                    <p className="text-gray-500">
+                                        Danh mục sản phẩm được tạo và cập nhật bởi Quản lý. Liên hệ Manager nếu cần bổ sung
+                                        dữ liệu.
+                                    </p>
                                 </div>
                             )
                         ) : (
-                            <ProductTable
-                                onEditProduct={handleEditProduct}
-                                onViewProduct={handleViewProduct}
-                                onDeleteProduct={handleDeleteProduct}
-                            />
+                            <ProductTable onViewProduct={handleViewProduct} mode="staff" />
                         )}
                     </CardContent>
                 </Card>
-
-                { }
-                <ProductModal
-                    isOpen={modalState.isOpen}
-                    onClose={handleModalClose}
-                    editingProduct={modalState.product}
-                    mode={modalState.mode}
-                />
-
-                { }
-                {deleteConfirm.isOpen && (
-                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                        <Card className="max-w-md w-full mx-4">
-                            <CardHeader>
-                                <CardTitle className="flex items-center gap-2">
-                                    <AlertTriangle className="h-5 w-5 text-red-600" />
-                                    Xác nhận xóa
-                                </CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <p className="mb-4">
-                                    Bạn có chắc chắn muốn xóa sản phẩm "{deleteConfirm.product?.productName}"?
-                                </p>
-                                <div className="flex justify-end gap-2">
-                                    <Button
-                                        variant="outline"
-                                        onClick={() => setDeleteConfirm({ isOpen: false, product: null })}
-                                    >
-                                        Hủy
-                                    </Button>
-                                    <Button variant="destructive" onClick={confirmDeleteProduct}>
-                                        Xóa
-                                    </Button>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </div>
-                )}
             </div>
+
+            <ProductModal
+                isOpen={modalState.isOpen}
+                onClose={handleModalClose}
+                editingProduct={modalState.product}
+                mode="view"
+            />
         </StaffLayout>
     )
 }

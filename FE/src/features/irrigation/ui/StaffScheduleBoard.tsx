@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { scheduleService, type ScheduleListItem, type ScheduleStatusString } from '@/shared/api/scheduleService'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
 import { Button } from '@/shared/ui/button'

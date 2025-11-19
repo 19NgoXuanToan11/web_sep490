@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react'
+﻿import { useState, useEffect, useCallback } from 'react'
 import { ManagerLayout } from '@/shared/layouts/ManagerLayout'
 import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
@@ -15,12 +15,15 @@ import {
 } from '@/shared/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
+import { Checkbox } from '@/shared/ui/checkbox'
 import {
   Plus,
   Edit,
   Trash2,
   RefreshCw,
   CheckCircle,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react'
 import { useToast } from '@/shared/ui/use-toast'
 import {
@@ -36,17 +39,24 @@ export default function FarmActivitiesPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [activityTypeFilter, setActivityTypeFilter] = useState<string>('all')
+  const [useActiveFilter, setUseActiveFilter] = useState(false)
+
+  // Pagination state
+  const [pageIndex, setPageIndex] = useState(1)
+  const [pageSize, setPageSize] = useState(10)
+  const [totalItems, setTotalItems] = useState(0)
+  const [totalPages, setTotalPages] = useState(0)
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [editingActivity, setEditingActivity] = useState<FarmActivity | null>(null)
 
   const [formData, setFormData] = useState<FarmActivityRequest>({
-    activityType: '',
     startDate: '',
     endDate: '',
-    status: 'ACTIVE',
   })
+  const [formActivityType, setFormActivityType] = useState<string>('')
+  const [formStatus, setFormStatus] = useState<string>('ACTIVE')
 
   const { toast } = useToast()
 
@@ -68,39 +78,57 @@ export default function FarmActivitiesPage() {
     { value: 'PENDING', label: 'Chờ thực hiện', color: 'bg-yellow-100 text-yellow-800' },
   ]
 
-  const loadActivities = async () => {
+  const loadActivities = useCallback(async () => {
     try {
       setLoading(true)
-      const response = await farmActivityService.getAllFarmActivities()
+      let response
 
-      const activitiesData = Array.isArray(response) ? response : []
-      setActivities(activitiesData)
-    } catch (error) {
+      if (useActiveFilter) {
+        // Use get-active endpoint when filtering for active activities
+        response = await farmActivityService.getActiveFarmActivities(0, pageIndex, pageSize)
+      } else {
+        // Use get-all with filters
+        const params: any = {
+          pageIndex,
+          pageSize,
+        }
+        if (activityTypeFilter !== 'all') {
+          params.type = activityTypeFilter
+        }
+        if (statusFilter !== 'all') {
+          params.status = statusFilter
+        }
+        response = await farmActivityService.getAllFarmActivities(params)
+      }
+
+      setActivities(response.items || [])
+      setTotalItems(response.totalItemCount || 0)
+      setTotalPages(response.totalPagesCount || 1)
+    } catch (error: any) {
       setActivities([])
       toast({
         title: 'Lỗi',
-        description: 'Không thể tải danh sách hoạt động nông trại',
+        description: error?.message || 'Không thể tải danh sách hoạt động nông trại',
         variant: 'destructive',
       })
     } finally {
       setLoading(false)
     }
-  }
+  }, [pageIndex, pageSize, statusFilter, activityTypeFilter, useActiveFilter, toast])
 
+  // Client-side filtering for search term only (since pagination is server-side)
   const filteredActivities = (Array.isArray(activities) ? activities : []).filter(activity => {
     if (!activity || typeof activity !== 'object') return false
     const matchesSearch =
-      activity.activityType &&
-      activity.activityType.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesStatus = statusFilter === 'all' || activity.status === statusFilter
-    const matchesActivityType =
-      activityTypeFilter === 'all' || activity.activityType === activityTypeFilter
-    return matchesSearch && matchesStatus && matchesActivityType
+      !searchTerm ||
+      (activity.activityType &&
+        activity.activityType.toLowerCase().includes(searchTerm.toLowerCase()))
+    return matchesSearch
   })
 
   const handleCreateActivity = async () => {
     try {
-      if (!formData.activityType || !formData.startDate || !formData.endDate) {
+      if (!formActivityType || !formData.startDate || !formData.endDate) {
         toast({
           title: 'Lỗi',
           description: 'Vui lòng điền đầy đủ thông tin bắt buộc',
@@ -118,7 +146,7 @@ export default function FarmActivitiesPage() {
         return
       }
 
-      await farmActivityService.createFarmActivity(formData)
+      await farmActivityService.createFarmActivity(formData, formActivityType)
       toast({
         title: 'Thành công',
         description: 'Đã tạo hoạt động nông trại mới',
@@ -127,11 +155,10 @@ export default function FarmActivitiesPage() {
       setCreateDialogOpen(false)
       resetForm()
       loadActivities()
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: 'Lỗi',
-        description:
-          'Không thể tạo hoạt động nông trại mới. Chức năng này sẽ có sau khi backend bổ sung API.',
+        description: error?.message || 'Không thể tạo hoạt động nông trại mới',
         variant: 'destructive',
       })
     }
@@ -141,14 +168,26 @@ export default function FarmActivitiesPage() {
     if (!editingActivity) return
 
     try {
-      const updateData: FarmActivityUpdate = {
-        activityType: formData.activityType,
-        startDate: formData.startDate,
-        endDate: formData.endDate,
-        status: formData.status,
+      if (!formActivityType || !formData.startDate || !formData.endDate) {
+        toast({
+          title: 'Lỗi',
+          description: 'Vui lòng điền đầy đủ thông tin bắt buộc',
+          variant: 'destructive',
+        })
+        return
       }
 
-      await farmActivityService.updateFarmActivity(editingActivity.farmActivitiesId, updateData)
+      const updateData: FarmActivityUpdate = {
+        startDate: formData.startDate,
+        endDate: formData.endDate,
+      }
+
+      await farmActivityService.updateFarmActivity(
+        editingActivity.farmActivitiesId,
+        updateData,
+        formActivityType,
+        formStatus
+      )
       toast({
         title: 'Thành công',
         description: 'Đã cập nhật thông tin hoạt động nông trại',
@@ -158,11 +197,10 @@ export default function FarmActivitiesPage() {
       setEditingActivity(null)
       resetForm()
       loadActivities()
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: 'Lỗi',
-        description:
-          'Không thể cập nhật hoạt động nông trại. Chức năng này sẽ có sau khi backend bổ sung API.',
+        description: error?.message || 'Không thể cập nhật hoạt động nông trại',
         variant: 'destructive',
       })
     }
@@ -176,11 +214,27 @@ export default function FarmActivitiesPage() {
         description: 'Đã thay đổi trạng thái hoạt động nông trại',
       })
       loadActivities()
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: 'Lỗi',
-        description:
-          'Không thể thay đổi trạng thái hoạt động nông trại. Chức năng này sẽ có sau khi backend bổ sung API.',
+        description: error?.message || 'Không thể thay đổi trạng thái hoạt động nông trại',
+        variant: 'destructive',
+      })
+    }
+  }
+
+  const handleCompleteActivity = async (activityId: number) => {
+    try {
+      await farmActivityService.completeFarmActivity(activityId)
+      toast({
+        title: 'Thành công',
+        description: 'Đã đánh dấu hoạt động là hoàn thành',
+      })
+      loadActivities()
+    } catch (error: any) {
+      toast({
+        title: 'Lỗi',
+        description: error?.message || 'Không thể đánh dấu hoạt động là hoàn thành',
         variant: 'destructive',
       })
     }
@@ -208,22 +262,44 @@ export default function FarmActivitiesPage() {
 
   const resetForm = () => {
     setFormData({
-      activityType: '',
       startDate: '',
       endDate: '',
-      status: 'ACTIVE',
     })
+    setFormActivityType('')
+    setFormStatus('ACTIVE')
   }
 
-  const handleEditClick = (activity: FarmActivity) => {
-    setEditingActivity(activity)
-    setFormData({
-      activityType: activity.activityType,
-      startDate: activity.startDate.split('T')[0],
-      endDate: activity.endDate.split('T')[0],
-      status: activity.status,
-    })
-    setEditDialogOpen(true)
+  const handleEditClick = async (activity: FarmActivity) => {
+    try {
+      setLoading(true)
+      // Fetch full details using get-by-id
+      const fullActivity = await farmActivityService.getFarmActivityById(activity.farmActivitiesId)
+      setEditingActivity(fullActivity)
+      setFormData({
+        startDate: fullActivity.startDate.split('T')[0],
+        endDate: fullActivity.endDate.split('T')[0],
+      })
+      setFormActivityType(fullActivity.activityType)
+      setFormStatus(fullActivity.status)
+      setEditDialogOpen(true)
+    } catch (error: any) {
+      toast({
+        title: 'Lỗi',
+        description: error?.message || 'Không thể tải thông tin chi tiết hoạt động',
+        variant: 'destructive',
+      })
+      // Fallback to using the activity from the list
+      setEditingActivity(activity)
+      setFormData({
+        startDate: activity.startDate.split('T')[0],
+        endDate: activity.endDate.split('T')[0],
+      })
+      setFormActivityType(activity.activityType)
+      setFormStatus(activity.status)
+      setEditDialogOpen(true)
+    } finally {
+      setLoading(false)
+    }
   }
 
   const formatDate = (dateString: string) => {
@@ -244,8 +320,18 @@ export default function FarmActivitiesPage() {
   }
 
   useEffect(() => {
+    setPageIndex(1) // Reset to first page when filters change
+  }, [statusFilter, activityTypeFilter, useActiveFilter])
+
+  useEffect(() => {
     loadActivities()
-  }, [])
+  }, [loadActivities])
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= totalPages) {
+      setPageIndex(newPage)
+    }
+  }
 
   return (
     <ManagerLayout>
@@ -300,6 +386,21 @@ export default function FarmActivitiesPage() {
                       ))}
                     </SelectContent>
                   </Select>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="activeFilter"
+                    checked={useActiveFilter && statusFilter === 'ACTIVE'}
+                    onCheckedChange={checked => {
+                      setUseActiveFilter(checked as boolean)
+                      if (checked) {
+                        setStatusFilter('ACTIVE')
+                      }
+                    }}
+                  />
+                  <Label htmlFor="activeFilter" className="text-sm cursor-pointer">
+                    Chỉ hiển thị hoạt động đang hoạt động
+                  </Label>
                 </div>
                 <div className="flex gap-2 items-end">
                   <Button onClick={loadActivities} variant="outline">
@@ -361,13 +462,24 @@ export default function FarmActivitiesPage() {
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
+                          {activity.status !== 'COMPLETED' && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleCompleteActivity(activity.farmActivitiesId)}
+                              title="Hoàn thành"
+                              className="text-green-600 hover:text-green-700"
+                            >
+                              <CheckCircle className="h-4 w-4" />
+                            </Button>
+                          )}
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => handleChangeStatus(activity.farmActivitiesId)}
                             title="Thay đổi trạng thái"
                           >
-                            <CheckCircle className="h-4 w-4" />
+                            <RefreshCw className="h-4 w-4" />
                           </Button>
                           <Button
                             variant="outline"
@@ -386,6 +498,78 @@ export default function FarmActivitiesPage() {
               </TableBody>
             </Table>
           </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between mt-4 px-2">
+              <div className="text-sm text-gray-600">
+                Hiển thị {((pageIndex - 1) * pageSize) + 1} - {Math.min(pageIndex * pageSize, totalItems)} trong tổng số {totalItems} hoạt động
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(pageIndex - 1)}
+                  disabled={pageIndex === 1}
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNum
+                    if (totalPages <= 5) {
+                      pageNum = i + 1
+                    } else if (pageIndex <= 3) {
+                      pageNum = i + 1
+                    } else if (pageIndex >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i
+                    } else {
+                      pageNum = pageIndex - 2 + i
+                    }
+                    return (
+                      <Button
+                        key={pageNum}
+                        variant={pageIndex === pageNum ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => handlePageChange(pageNum)}
+                        className="min-w-[40px]"
+                      >
+                        {pageNum}
+                      </Button>
+                    )
+                  })}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(pageIndex + 1)}
+                  disabled={pageIndex === totalPages}
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="flex items-center gap-2">
+                <Label className="text-sm">Số lượng mỗi trang:</Label>
+                <Select
+                  value={pageSize.toString()}
+                  onValueChange={value => {
+                    setPageSize(Number(value))
+                    setPageIndex(1)
+                  }}
+                >
+                  <SelectTrigger className="w-[80px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="20">20</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                    <SelectItem value="100">100</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -399,10 +583,7 @@ export default function FarmActivitiesPage() {
           <div className="space-y-4">
             <div>
               <Label htmlFor="activityType">Loại hoạt động *</Label>
-              <Select
-                value={formData.activityType}
-                onValueChange={value => setFormData({ ...formData, activityType: value })}
-              >
+              <Select value={formActivityType} onValueChange={setFormActivityType}>
                 <SelectTrigger>
                   <SelectValue placeholder="Chọn loại hoạt động" />
                 </SelectTrigger>
@@ -435,10 +616,7 @@ export default function FarmActivitiesPage() {
             </div>
             <div>
               <Label htmlFor="status">Trạng thái</Label>
-              <Select
-                value={formData.status}
-                onValueChange={value => setFormData({ ...formData, status: value })}
-              >
+              <Select value={formStatus} onValueChange={setFormStatus}>
                 <SelectTrigger>
                   <SelectValue placeholder="Chọn trạng thái" />
                 </SelectTrigger>
@@ -471,10 +649,7 @@ export default function FarmActivitiesPage() {
           <div className="space-y-4">
             <div>
               <Label htmlFor="editActivityType">Loại hoạt động *</Label>
-              <Select
-                value={formData.activityType}
-                onValueChange={value => setFormData({ ...formData, activityType: value })}
-              >
+              <Select value={formActivityType} onValueChange={setFormActivityType}>
                 <SelectTrigger>
                   <SelectValue placeholder="Chọn loại hoạt động" />
                 </SelectTrigger>
@@ -507,10 +682,7 @@ export default function FarmActivitiesPage() {
             </div>
             <div>
               <Label htmlFor="editStatus">Trạng thái</Label>
-              <Select
-                value={formData.status}
-                onValueChange={value => setFormData({ ...formData, status: value })}
-              >
+              <Select value={formStatus} onValueChange={setFormStatus}>
                 <SelectTrigger>
                   <SelectValue placeholder="Chọn trạng thái" />
                 </SelectTrigger>

@@ -22,10 +22,15 @@ export interface ScheduleListItem {
     farmId: number
     farmName?: string
     location?: string
+    createdAt?: string
+    updatedAt?: string
   }
   cropView?: {
     cropId: number
     cropName?: string
+    description?: string
+    status?: string
+    origin?: string
     plantingDate?: string
     harvestDate?: string
   }
@@ -38,6 +43,10 @@ export interface ScheduleListItem {
   }
   staff?: {
     accountId: number
+    fullname?: string
+    phone?: string
+    createdAt?: string
+    updatedAt?: string
     email?: string
     accountProfile?: {
       fullname?: string

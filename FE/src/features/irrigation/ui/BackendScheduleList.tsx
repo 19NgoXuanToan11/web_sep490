@@ -336,7 +336,7 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
             farmOptions: farmRes.map(f => ({ id: f.farmId, name: f.farmName })),
             cropOptions: cropRes.map(c => ({ id: c.cropId, name: c.cropName })),
             staffOptions: staffRes.items.map(s => ({ id: s.accountId, name: s.email })),
-            activityOptions: fa.map(a => ({
+            activityOptions: fa.items.map(a => ({
                 id: a.farmActivitiesId,
                 name: `#${a.farmActivitiesId} • ${translateActivityType(a.activityType)} (${a.startDate ?? '?'} → ${a.endDate ?? '?'})`,
                 startDate: a.startDate,
@@ -761,6 +761,10 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                                 <th className="py-2 pr-3">Ngày gieo trồng</th>
                                 <th className="py-2 pr-3">Ngày thu hoạch</th>
                                 <th className="py-2 pr-3">Tình trạng bệnh</th>
+                                <th className="py-2 pr-3">Nhân viên</th>
+                                <th className="py-2 pr-3">Nông trại</th>
+                                <th className="py-2 pr-3">Cây trồng</th>
+                                <th className="py-2 pr-3">Hoạt động</th>
                                 <th className="py-2 pr-3">Tạo lúc</th>
                                 <th className="py-2 pr-3">Cập nhật lúc</th>
                                 <th className="py-2 pr-3">Thao tác</th>
@@ -781,6 +785,48 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                                     <td className="py-2 pr-3">{it.plantingDate ?? '-'}</td>
                                     <td className="py-2 pr-3">{it.harvestDate ?? '-'}</td>
                                     <td className="py-2 pr-3">{getDiseaseLabel(it.diseaseStatus)}</td>
+                                    <td className="py-2 pr-3">
+                                        <div className="flex flex-col">
+                                            <span className="font-medium">{it.staff?.fullname ?? it.staffName ?? '-'}</span>
+                                            {it.staff?.phone && (
+                                                <span className="text-xs text-muted-foreground">{it.staff.phone}</span>
+                                            )}
+                                        </div>
+                                    </td>
+                                    <td className="py-2 pr-3">
+                                        <div className="flex flex-col">
+                                            <span className="font-medium">{it.farmView?.farmName ?? `#${it.farmId ?? '-'}`}</span>
+                                            {it.farmView?.location && (
+                                                <span className="text-xs text-muted-foreground">{it.farmView.location}</span>
+                                            )}
+                                        </div>
+                                    </td>
+                                    <td className="py-2 pr-3">
+                                        <div className="flex flex-col">
+                                            <span className="font-medium">{it.cropView?.cropName ?? `#${it.cropId ?? '-'}`}</span>
+                                            {it.cropView?.description && (
+                                                <span className="text-xs text-muted-foreground line-clamp-1" title={it.cropView.description}>
+                                                    {it.cropView.description}
+                                                </span>
+                                            )}
+                                        </div>
+                                    </td>
+                                    <td className="py-2 pr-3">
+                                        <div className="flex flex-col">
+                                            <span className="font-medium">
+                                                {it.farmActivityView?.activityType
+                                                    ? translateActivityType(it.farmActivityView.activityType)
+                                                    : it.farmActivitiesId
+                                                        ? `#${it.farmActivitiesId}`
+                                                        : '-'}
+                                            </span>
+                                            {it.farmActivityView?.status && (
+                                                <Badge variant={it.farmActivityView.status === 'ACTIVE' ? 'success' : 'secondary'} className="text-xs w-fit mt-1">
+                                                    {it.farmActivityView.status === 'ACTIVE' ? 'Hoạt động' : 'Vô hiệu hóa'}
+                                                </Badge>
+                                            )}
+                                        </div>
+                                    </td>
                                     <td className="py-2 pr-3">{it.createdAt}</td>
                                     <td className="py-2 pr-3">{it.updatedAt ?? '-'}</td>
                                     <td className="py-2 pr-3">
@@ -839,7 +885,7 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                             ))}
                             {!loading && displayItems.length === 0 && (
                                 <tr>
-                                    <td colSpan={11} className="py-6 text-center text-muted-foreground">
+                                    <td colSpan={15} className="py-6 text-center text-muted-foreground">
                                         Chưa có dữ liệu
                                     </td>
                                 </tr>
@@ -848,52 +894,207 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                     </table>
                 </div>
 
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between flex-wrap gap-4">
                     <div className="text-sm text-muted-foreground">
-                        Tổng: {displayTotal}{' '}
-                        {isFiltered
-                            ? '• Đang lọc theo nhân viên'
-                            : `• Trang ${data?.data.pageIndex ?? pageIndex}/${data?.data.totalPagesCount ?? 1}`}
+                        {isFiltered ? (
+                            <>
+                                Hiển thị {displayItems.length} / {displayTotal} kết quả (đang lọc theo nhân viên)
+                            </>
+                        ) : (
+                            <>
+                                Hiển thị {((data?.data.pageIndex ?? pageIndex) - 1) * (data?.data.pageSize ?? pageSize) + 1} - {Math.min(
+                                    (data?.data.pageIndex ?? pageIndex) * (data?.data.pageSize ?? pageSize),
+                                    displayTotal
+                                )} / {displayTotal} kết quả
+                                {' • '}
+                                Trang {data?.data.pageIndex ?? pageIndex} / {data?.data.totalPagesCount ?? 1}
+                            </>
+                        )}
                     </div>
-                    <div className="flex gap-2">
-                        <Button
-                            size="sm"
-                            variant="outline"
-                            disabled={loading || isFiltered || !(data?.data.previous)}
-                            onClick={() => setPageIndex(p => Math.max(1, p - 1))}
-                        >
-                            Trước
-                        </Button>
-                        <Button
-                            size="sm"
-                            variant="outline"
-                            disabled={loading || isFiltered || !(data?.data.next)}
-                            onClick={() => setPageIndex(p => p + 1)}
-                        >
-                            Sau
-                        </Button>
-                    </div>
+                    {!isFiltered && (
+                        <div className="flex items-center gap-2">
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={loading || !(data?.data.previous)}
+                                onClick={() => setPageIndex(1)}
+                            >
+                                Đầu
+                            </Button>
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={loading || !(data?.data.previous)}
+                                onClick={() => setPageIndex(p => Math.max(1, p - 1))}
+                            >
+                                Trước
+                            </Button>
+                            <div className="flex items-center gap-2">
+                                <span className="text-sm text-muted-foreground">Trang</span>
+                                <Input
+                                    type="number"
+                                    min={1}
+                                    max={data?.data.totalPagesCount ?? 1}
+                                    value={pageIndex}
+                                    onChange={(e) => {
+                                        const val = parseInt(e.target.value)
+                                        if (!isNaN(val) && val >= 1 && val <= (data?.data.totalPagesCount ?? 1)) {
+                                            setPageIndex(val)
+                                        }
+                                    }}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                            const val = parseInt(e.currentTarget.value)
+                                            if (!isNaN(val) && val >= 1 && val <= (data?.data.totalPagesCount ?? 1)) {
+                                                setPageIndex(val)
+                                            }
+                                        }
+                                    }}
+                                    className="w-16 h-8 text-center"
+                                    disabled={loading}
+                                />
+                                <span className="text-sm text-muted-foreground">/ {data?.data.totalPagesCount ?? 1}</span>
+                            </div>
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={loading || !(data?.data.next)}
+                                onClick={() => setPageIndex(p => p + 1)}
+                            >
+                                Sau
+                            </Button>
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                disabled={loading || !(data?.data.next)}
+                                onClick={() => setPageIndex(data?.data.totalPagesCount ?? 1)}
+                            >
+                                Cuối
+                            </Button>
+                        </div>
+                    )}
                 </div>
 
                 {/* Detail View Modal */}
                 <Dialog open={showDetail} onOpenChange={setShowDetail}>
-                    <DialogContent className="sm:max-w-2xl">
+                    <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
                         <DialogHeader>
                             <DialogTitle>Chi tiết lịch tưới</DialogTitle>
                             <DialogDescription>Thông tin chi tiết về lịch tưới được chọn.</DialogDescription>
                         </DialogHeader>
                         {scheduleDetail && (
-                            <div className="grid grid-cols-2 gap-4">
-                                <div><strong>Ngày bắt đầu:</strong> {scheduleDetail.startDate}</div>
-                                <div><strong>Ngày kết thúc:</strong> {scheduleDetail.endDate}</div>
-                                <div><strong>Ngày gieo trồng:</strong> {scheduleDetail.plantingDate ?? '-'}</div>
-                                <div><strong>Ngày thu hoạch:</strong> {scheduleDetail.harvestDate ?? '-'}</div>
-                                <div><strong>Số lượng:</strong> {scheduleDetail.quantity}</div>
-                                <div><strong>Trạng thái:</strong> {getStatusLabel(scheduleDetail.status)}</div>
-                                <div><strong>Thuốc BVTV:</strong> {scheduleDetail.pesticideUsed ? 'Có' : 'Không'}</div>
-                                <div><strong>Tình trạng bệnh:</strong> {getDiseaseLabel(scheduleDetail.diseaseStatus)}</div>
-                                <div><strong>Hoạt động:</strong> {scheduleDetail.farmActivityView?.activityType || scheduleDetail.farmActivitiesId || '-'}</div>
-                                <div><strong>Tạo lúc:</strong> {scheduleDetail.createdAt ?? '-'}</div>
+                            <div className="space-y-6">
+                                {/* Basic Information */}
+                                <div>
+                                    <h3 className="text-lg font-semibold mb-3">Thông tin cơ bản</h3>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div><strong>Ngày bắt đầu:</strong> {scheduleDetail.startDate}</div>
+                                        <div><strong>Ngày kết thúc:</strong> {scheduleDetail.endDate}</div>
+                                        <div><strong>Ngày gieo trồng:</strong> {scheduleDetail.plantingDate ?? '-'}</div>
+                                        <div><strong>Ngày thu hoạch:</strong> {scheduleDetail.harvestDate ?? '-'}</div>
+                                        <div><strong>Số lượng:</strong> {scheduleDetail.quantity}</div>
+                                        <div>
+                                            <strong>Trạng thái:</strong>{' '}
+                                            <Badge variant={typeof scheduleDetail.status === 'number' && scheduleDetail.status === 1 ? 'success' : 'secondary'}>
+                                                {getStatusLabel(scheduleDetail.status)}
+                                            </Badge>
+                                        </div>
+                                        <div><strong>Thuốc BVTV:</strong> {scheduleDetail.pesticideUsed ? 'Có' : 'Không'}</div>
+                                        <div><strong>Tình trạng bệnh:</strong> {getDiseaseLabel(scheduleDetail.diseaseStatus)}</div>
+                                        <div><strong>Tạo lúc:</strong> {scheduleDetail.createdAt ?? '-'}</div>
+                                        <div><strong>Cập nhật lúc:</strong> {scheduleDetail.updatedAt ?? '-'}</div>
+                                    </div>
+                                </div>
+
+                                {/* Staff Information */}
+                                {scheduleDetail.staff && (
+                                    <div>
+                                        <h3 className="text-lg font-semibold mb-3">Thông tin nhân viên</h3>
+                                        <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
+                                            <div><strong>Họ tên:</strong> {scheduleDetail.staff.fullname ?? scheduleDetail.staffName ?? '-'}</div>
+                                            <div><strong>Số điện thoại:</strong> {scheduleDetail.staff.phone ?? '-'}</div>
+                                            {scheduleDetail.staff.email && (
+                                                <div><strong>Email:</strong> {scheduleDetail.staff.email}</div>
+                                            )}
+                                            {scheduleDetail.staff.createdAt && (
+                                                <div><strong>Ngày tạo tài khoản:</strong> {scheduleDetail.staff.createdAt}</div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Farm Information */}
+                                {scheduleDetail.farmView && (
+                                    <div>
+                                        <h3 className="text-lg font-semibold mb-3">Thông tin nông trại</h3>
+                                        <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
+                                            <div><strong>Tên nông trại:</strong> {scheduleDetail.farmView.farmName ?? `#${scheduleDetail.farmView.farmId}`}</div>
+                                            <div><strong>Địa điểm:</strong> {scheduleDetail.farmView.location ?? '-'}</div>
+                                            {scheduleDetail.farmView.createdAt && (
+                                                <div><strong>Ngày tạo:</strong> {scheduleDetail.farmView.createdAt}</div>
+                                            )}
+                                            {scheduleDetail.farmView.updatedAt && (
+                                                <div><strong>Ngày cập nhật:</strong> {scheduleDetail.farmView.updatedAt}</div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Crop Information */}
+                                {scheduleDetail.cropView && (
+                                    <div>
+                                        <h3 className="text-lg font-semibold mb-3">Thông tin cây trồng</h3>
+                                        <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
+                                            <div><strong>Tên cây trồng:</strong> {scheduleDetail.cropView.cropName ?? `#${scheduleDetail.cropView.cropId}`}</div>
+                                            {scheduleDetail.cropView.origin && (
+                                                <div><strong>Nguồn gốc:</strong> {scheduleDetail.cropView.origin}</div>
+                                            )}
+                                            {scheduleDetail.cropView.status && (
+                                                <div>
+                                                    <strong>Trạng thái:</strong>{' '}
+                                                    <Badge variant={scheduleDetail.cropView.status === 'ACTIVE' ? 'success' : 'secondary'}>
+                                                        {scheduleDetail.cropView.status === 'ACTIVE' ? 'Hoạt động' : 'Vô hiệu hóa'}
+                                                    </Badge>
+                                                </div>
+                                            )}
+                                            {scheduleDetail.cropView.description && (
+                                                <div className="col-span-2">
+                                                    <strong>Mô tả:</strong>
+                                                    <p className="mt-1 text-sm text-muted-foreground">{scheduleDetail.cropView.description}</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Farm Activity Information */}
+                                {scheduleDetail.farmActivityView && (
+                                    <div>
+                                        <h3 className="text-lg font-semibold mb-3">Thông tin hoạt động nông trại</h3>
+                                        <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
+                                            <div>
+                                                <strong>Loại hoạt động:</strong>{' '}
+                                                {scheduleDetail.farmActivityView.activityType
+                                                    ? translateActivityType(scheduleDetail.farmActivityView.activityType)
+                                                    : `#${scheduleDetail.farmActivityView.farmActivitiesId}`}
+                                            </div>
+                                            {scheduleDetail.farmActivityView.status && (
+                                                <div>
+                                                    <strong>Trạng thái:</strong>{' '}
+                                                    <Badge variant={scheduleDetail.farmActivityView.status === 'ACTIVE' ? 'success' : 'secondary'}>
+                                                        {scheduleDetail.farmActivityView.status === 'ACTIVE' ? 'Hoạt động' : 'Vô hiệu hóa'}
+                                                    </Badge>
+                                                </div>
+                                            )}
+                                            {scheduleDetail.farmActivityView.startDate && (
+                                                <div><strong>Ngày bắt đầu:</strong> {scheduleDetail.farmActivityView.startDate}</div>
+                                            )}
+                                            {scheduleDetail.farmActivityView.endDate && (
+                                                <div><strong>Ngày kết thúc:</strong> {scheduleDetail.farmActivityView.endDate}</div>
+                                            )}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </DialogContent>

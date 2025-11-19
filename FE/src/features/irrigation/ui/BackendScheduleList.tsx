@@ -12,7 +12,7 @@ import { Loader2, Eye, Edit, UserPlus, ToggleLeft, ToggleRight, Filter } from 'l
 import { farmService } from '@/shared/api/farmService'
 import { cropService } from '@/shared/api/cropService'
 import { accountApi } from '@/shared/api/auth'
-import { farmActivityService } from '@/shared/api/farmActivityService'
+import { farmActivityService, type FarmActivity } from '@/shared/api/farmActivityService'
 import { handleFetchError, handleCreateError, handleApiSuccess } from '@/shared/lib/error-handler'
 
 interface BackendScheduleListProps {
@@ -329,14 +329,14 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
             farmService.getAllFarms(),
             cropService.getAllCropsActive(),
             accountApi.getAll({ role: 'Staff', pageSize: 1000 }),
-            farmActivityService.getAllFarmActivities()
+            farmActivityService.getAllFarmActivities({ pageIndex: 1, pageSize: 1000 })
         ])
 
         return {
             farmOptions: farmRes.map(f => ({ id: f.farmId, name: f.farmName })),
             cropOptions: cropRes.map(c => ({ id: c.cropId, name: c.cropName })),
             staffOptions: staffRes.items.map(s => ({ id: s.accountId, name: s.email })),
-            activityOptions: fa.items.map(a => ({
+            activityOptions: (fa.items || []).map((a: FarmActivity) => ({
                 id: a.farmActivitiesId,
                 name: `#${a.farmActivitiesId} • ${translateActivityType(a.activityType)} (${a.startDate ?? '?'} → ${a.endDate ?? '?'})`,
                 startDate: a.startDate,

@@ -11,14 +11,11 @@ import {
   RefreshCw,
   DollarSign,
   MessageSquare,
-  CheckCircle2,
   Loader2,
   BarChart3,
-  PieChart as PieChartIcon,
 } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card'
-import { Badge } from '@/shared/ui/badge'
 import { AdminLayout } from '@/shared/layouts/AdminLayout'
 import { accountApi } from '@/shared/api/auth'
 import { farmService } from '@/shared/api/farmService'
@@ -39,18 +36,7 @@ import {
   PieChart,
   Pie,
   Cell,
-  RadialBarChart,
-  RadialBar,
 } from 'recharts'
-
-const Progress: React.FC<{ value: number; className?: string }> = ({ value, className }) => (
-  <div className={`w-full bg-gray-200 rounded-full h-2 ${className}`}>
-    <div
-      className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-      style={{ width: `${Math.min(100, Math.max(0, value))}%` }}
-    />
-  </div>
-)
 
 interface SystemMetrics {
   totalUsers: number
@@ -69,14 +55,6 @@ interface SystemMetrics {
   totalFeedbacks: number
   systemHealth: number
   lastUpdated: Date | null
-}
-
-interface Alert {
-  id: string
-  type: 'warning' | 'error' | 'info' | 'success'
-  title: string
-  description: string
-  timestamp: string
 }
 
 const AdminDashboard: React.FC = () => {
@@ -99,7 +77,6 @@ const AdminDashboard: React.FC = () => {
     systemHealth: 0,
     lastUpdated: null,
   })
-  const [alerts, setAlerts] = useState<Alert[]>([])
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -140,92 +117,6 @@ const AdminDashboard: React.FC = () => {
     }
 
     return Math.max(0, Math.min(100, Math.round(healthScore)))
-  }, [])
-
-  // Generate alerts based on system metrics
-  const generateAlerts = useCallback((m: SystemMetrics): Alert[] => {
-    const newAlerts: Alert[] = []
-    const now = new Date()
-
-    // Device offline alerts
-    if (m.totalDevices > 0) {
-      const offlineDevices = m.totalDevices - m.onlineDevices
-      const offlineRatio = (offlineDevices / m.totalDevices) * 100
-      if (offlineRatio > 10) {
-        newAlerts.push({
-          id: 'device-offline',
-          type: 'error',
-          title: 'Thiết bị IoT Offline',
-          description: `${offlineDevices} thiết bị đang offline (${Math.round(offlineRatio)}% tổng số thiết bị)`,
-          timestamp: formatTimeAgo(now),
-        })
-      } else if (offlineRatio > 5) {
-        newAlerts.push({
-          id: 'device-warning',
-          type: 'warning',
-          title: 'Cảnh báo thiết bị',
-          description: `${offlineDevices} thiết bị đang offline`,
-          timestamp: formatTimeAgo(now),
-        })
-      }
-    }
-
-    // Low stock alerts
-    if (m.lowStockItems > 0) {
-      newAlerts.push({
-        id: 'low-stock',
-        type: m.lowStockItems > 10 ? 'error' : 'warning',
-        title: 'Cảnh báo tồn kho thấp',
-        description: `${m.lowStockItems} sản phẩm đang ở mức tồn kho thấp`,
-        timestamp: formatTimeAgo(now),
-      })
-    }
-
-    // Pending orders alert
-    if (m.pendingOrders > 20) {
-      newAlerts.push({
-        id: 'pending-orders',
-        type: 'warning',
-        title: 'Đơn hàng chờ xử lý',
-        description: `${m.pendingOrders} đơn hàng đang chờ xử lý`,
-        timestamp: formatTimeAgo(now),
-      })
-    }
-
-    // System health alerts
-    if (m.systemHealth < 70) {
-      newAlerts.push({
-        id: 'system-health',
-        type: 'error',
-        title: 'Sức khỏe hệ thống thấp',
-        description: `Sức khỏe hệ thống đang ở mức ${m.systemHealth}% - Cần kiểm tra ngay`,
-        timestamp: formatTimeAgo(now),
-      })
-    } else if (m.systemHealth < 85) {
-      newAlerts.push({
-        id: 'system-health-warning',
-        type: 'warning',
-        title: 'Cảnh báo sức khỏe hệ thống',
-        description: `Sức khỏe hệ thống: ${m.systemHealth}%`,
-        timestamp: formatTimeAgo(now),
-      })
-    }
-
-    // Success alerts for good metrics
-    if (m.systemHealth >= 95 && m.onlineDevices === m.totalDevices && m.lowStockItems === 0) {
-      newAlerts.push({
-        id: 'system-excellent',
-        type: 'success',
-        title: 'Hệ thống hoạt động tốt',
-        description: 'Tất cả các chỉ số đều ở mức tối ưu',
-        timestamp: formatTimeAgo(now),
-      })
-    }
-
-    return newAlerts.sort((a, b) => {
-      const priority = { error: 0, warning: 1, info: 2, success: 3 }
-      return priority[a.type] - priority[b.type]
-    })
   }, [])
 
   const formatTimeAgo = (date: Date): string => {
@@ -345,7 +236,6 @@ const AdminDashboard: React.FC = () => {
       newMetrics.systemHealth = calculateSystemHealth(newMetrics)
 
       setMetrics(newMetrics)
-      setAlerts(generateAlerts(newMetrics))
     } catch (err: any) {
       const errorMessage = err?.message || 'Không thể tải dữ liệu bảng điều khiển'
       setError(errorMessage)
@@ -358,7 +248,7 @@ const AdminDashboard: React.FC = () => {
       setIsRefreshing(false)
       setIsLoading(false)
     }
-  }, [calculateSystemHealth, generateAlerts, toast])
+  }, [calculateSystemHealth, toast])
 
   useEffect(() => {
     fetchDashboardData()
@@ -383,24 +273,6 @@ const AdminDashboard: React.FC = () => {
     })
   }
 
-  const getHealthColor = (health: number) => {
-    if (health >= 90) return 'text-green-600'
-    if (health >= 70) return 'text-yellow-600'
-    return 'text-red-600'
-  }
-
-  const getHealthBgColor = (health: number) => {
-    if (health >= 90) return 'bg-green-500'
-    if (health >= 70) return 'bg-yellow-500'
-    return 'bg-red-500'
-  }
-
-  const getHealthStatus = (health: number) => {
-    if (health >= 90) return 'Hoạt động bình thường'
-    if (health >= 70) return 'Cần chú ý'
-    return 'Cần kiểm tra ngay'
-  }
-
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('vi-VN', {
       style: 'currency',
@@ -409,38 +281,6 @@ const AdminDashboard: React.FC = () => {
   }
 
   // Chart data calculations
-  const alertDistributionData = useMemo(() => {
-    const alertCounts = alerts.reduce(
-      (acc, alert) => {
-        acc[alert.type] = (acc[alert.type] || 0) + 1
-        return acc
-      },
-      {} as Record<string, number>
-    )
-    return [
-      { name: 'Lỗi', value: alertCounts.error || 0, color: '#ef4444' },
-      { name: 'Cảnh báo', value: alertCounts.warning || 0, color: '#f59e0b' },
-      { name: 'Thông tin', value: alertCounts.info || 0, color: '#3b82f6' },
-      { name: 'Thành công', value: alertCounts.success || 0, color: '#10b981' },
-    ].filter(item => item.value > 0)
-  }, [alerts])
-
-  const alertLegendData = useMemo(() => {
-    const alertCounts = alerts.reduce(
-      (acc, alert) => {
-        acc[alert.type] = (acc[alert.type] || 0) + 1
-        return acc
-      },
-      {} as Record<string, number>
-    )
-    return [
-      { type: 'error', label: 'Lỗi', count: alertCounts.error || 0, color: '#ef4444' },
-      { type: 'warning', label: 'Cảnh báo', count: alertCounts.warning || 0, color: '#f59e0b' },
-      { type: 'info', label: 'Thông tin', count: alertCounts.info || 0, color: '#3b82f6' },
-      { type: 'success', label: 'Thành công', count: alertCounts.success || 0, color: '#10b981' },
-    ].filter(item => item.count > 0)
-  }, [alerts])
-
   const systemActivityData = useMemo(
     () => [
       {
@@ -488,28 +328,6 @@ const AdminDashboard: React.FC = () => {
       ].filter(item => item.value > 0),
     [metrics]
   )
-
-  const deviceStatusData = useMemo(
-    () => [
-      {
-        name: 'Trực tuyến',
-        value: metrics.onlineDevices,
-        color: '#10b981',
-      },
-      {
-        name: 'Offline',
-        value: metrics.totalDevices - metrics.onlineDevices,
-        color: '#ef4444',
-      },
-    ],
-    [metrics]
-  )
-
-  const systemHealthColor = useMemo(() => {
-    if (metrics.systemHealth >= 90) return '#10b981'
-    if (metrics.systemHealth >= 70) return '#f59e0b'
-    return '#ef4444'
-  }, [metrics.systemHealth])
 
   if (isLoading) {
     return (

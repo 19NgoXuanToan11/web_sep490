@@ -15,7 +15,6 @@ import {
 } from '@/shared/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
-import { Checkbox } from '@/shared/ui/checkbox'
 import {
   Plus,
   Edit,
@@ -39,7 +38,6 @@ export default function FarmActivitiesPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [activityTypeFilter, setActivityTypeFilter] = useState<string>('all')
-  const [useActiveFilter, setUseActiveFilter] = useState(false)
 
   // Pagination state
   const [pageIndex, setPageIndex] = useState(1)
@@ -60,15 +58,57 @@ export default function FarmActivitiesPage() {
 
   const { toast } = useToast()
 
+  // Mapping function to convert frontend activity type strings to backend integer values
+  // Backend enum: Sowing=0, Protection=1, Irrigation=2, Fertilization=3, Harvesting=4
+  const mapActivityTypeToBackend = (frontendType: string): number => {
+    const mapping: Record<string, number> = {
+      'SOWING': 0,           // Sowing
+      'PEST_CONTROL': 1,     // Protection
+      'WATERING': 2,         // Irrigation
+      'FERTILIZING': 3,      // Fertilization
+      'HARVESTING': 4,       // Harvesting
+      // Map unsupported types to closest equivalents
+      'PRUNING': 4,          // Map to Harvesting (closest)
+      'SOIL_PREPARATION': 0, // Map to Sowing (closest)
+      'MAINTENANCE': 3,      // Map to Fertilization (closest)
+    }
+    return mapping[frontendType] ?? 0
+  }
+
+  // Reverse mapping function to convert backend enum names to frontend string values
+  // Backend returns enum names: "Sowing", "Protection", "Irrigation", "Fertilization", "Harvesting"
+  const mapBackendToFrontend = (backendType: string): string => {
+    const mapping: Record<string, string> = {
+      'Sowing': 'SOWING',
+      'Protection': 'PEST_CONTROL',
+      'Irrigation': 'WATERING',
+      'Fertilization': 'FERTILIZING',
+      'Harvesting': 'HARVESTING',
+    }
+    // If backend returns a number as string, convert it
+    const numValue = parseInt(backendType, 10)
+    if (!isNaN(numValue)) {
+      const reverseMapping: Record<number, string> = {
+        0: 'SOWING',
+        1: 'PEST_CONTROL',
+        2: 'WATERING',
+        3: 'FERTILIZING',
+        4: 'HARVESTING',
+      }
+      return reverseMapping[numValue] ?? 'SOWING'
+    }
+    return mapping[backendType] ?? 'SOWING'
+  }
+
   const activityTypes = [
-    { value: 'SOWING', label: 'Gieo trồng' },
-    { value: 'WATERING', label: 'Tưới nước' },
-    { value: 'FERTILIZING', label: 'Bón phân' },
-    { value: 'HARVESTING', label: 'Thu hoạch' },
-    { value: 'PRUNING', label: 'Tỉa cành' },
-    { value: 'PEST_CONTROL', label: 'Phòng trừ sâu bệnh' },
-    { value: 'SOIL_PREPARATION', label: 'Chuẩn bị đất' },
-    { value: 'MAINTENANCE', label: 'Bảo trì' },
+    { value: 'SOWING', label: 'Gieo trồng', backendValue: 0 },
+    { value: 'PEST_CONTROL', label: 'Phòng trừ sâu bệnh', backendValue: 1 },
+    { value: 'WATERING', label: 'Tưới nước', backendValue: 2 },
+    { value: 'FERTILIZING', label: 'Bón phân', backendValue: 3 },
+    { value: 'HARVESTING', label: 'Thu hoạch', backendValue: 4 },
+    { value: 'PRUNING', label: 'Tỉa cành', backendValue: 4 },
+    { value: 'SOIL_PREPARATION', label: 'Chuẩn bị đất', backendValue: 0 },
+    { value: 'MAINTENANCE', label: 'Bảo trì', backendValue: 3 },
   ]
 
   const statusOptions = [
@@ -81,27 +121,28 @@ export default function FarmActivitiesPage() {
   const loadActivities = useCallback(async () => {
     try {
       setLoading(true)
-      let response
-
-      if (useActiveFilter) {
-        // Use get-active endpoint when filtering for active activities
-        response = await farmActivityService.getActiveFarmActivities(0, pageIndex, pageSize)
-      } else {
-        // Use get-all with filters
-        const params: any = {
-          pageIndex,
-          pageSize,
-        }
-        if (activityTypeFilter !== 'all') {
-          params.type = activityTypeFilter
-        }
-        if (statusFilter !== 'all') {
-          params.status = statusFilter
-        }
-        response = await farmActivityService.getAllFarmActivities(params)
+      // Use get-all with filters
+      const params: any = {
+        pageIndex,
+        pageSize,
       }
+      if (activityTypeFilter !== 'all') {
+        // Convert frontend activity type string to backend integer value
+        const backendActivityType = mapActivityTypeToBackend(activityTypeFilter)
+        params.type = backendActivityType.toString()
+      }
+      if (statusFilter !== 'all') {
+        params.status = statusFilter
+      }
+      const response = await farmActivityService.getAllFarmActivities(params)
 
-      setActivities(response.items || [])
+      const normalizedActivities = Array.isArray(response.items)
+        ? response.items.map(activity => ({
+          ...activity,
+          activityType: mapBackendToFrontend(activity.activityType),
+        }))
+        : []
+      setActivities(normalizedActivities)
       setTotalItems(response.totalItemCount || 0)
       setTotalPages(response.totalPagesCount || 1)
     } catch (error: any) {
@@ -114,16 +155,16 @@ export default function FarmActivitiesPage() {
     } finally {
       setLoading(false)
     }
-  }, [pageIndex, pageSize, statusFilter, activityTypeFilter, useActiveFilter, toast])
+  }, [pageIndex, pageSize, statusFilter, activityTypeFilter, toast])
 
   // Client-side filtering for search term only (since pagination is server-side)
   const filteredActivities = (Array.isArray(activities) ? activities : []).filter(activity => {
     if (!activity || typeof activity !== 'object') return false
-    const matchesSearch =
-      !searchTerm ||
-      (activity.activityType &&
-        activity.activityType.toLowerCase().includes(searchTerm.toLowerCase()))
-    return matchesSearch
+    const normalizedSearch = searchTerm.trim().toLowerCase()
+    if (!normalizedSearch) return true
+    const rawType = (activity.activityType || '').toLowerCase()
+    const localizedType = getActivityTypeLabel(activity.activityType).toLowerCase()
+    return rawType.includes(normalizedSearch) || localizedType.includes(normalizedSearch)
   })
 
   const handleCreateActivity = async () => {
@@ -146,7 +187,9 @@ export default function FarmActivitiesPage() {
         return
       }
 
-      await farmActivityService.createFarmActivity(formData, formActivityType)
+      // Convert frontend activity type string to backend integer value
+      const backendActivityType = mapActivityTypeToBackend(formActivityType)
+      await farmActivityService.createFarmActivity(formData, backendActivityType.toString())
       toast({
         title: 'Thành công',
         description: 'Đã tạo hoạt động nông trại mới',
@@ -182,10 +225,12 @@ export default function FarmActivitiesPage() {
         endDate: formData.endDate,
       }
 
+      // Convert frontend activity type string to backend integer value
+      const backendActivityType = mapActivityTypeToBackend(formActivityType)
       await farmActivityService.updateFarmActivity(
         editingActivity.farmActivitiesId,
         updateData,
-        formActivityType,
+        backendActivityType.toString(),
         formStatus
       )
       toast({
@@ -279,7 +324,8 @@ export default function FarmActivitiesPage() {
         startDate: fullActivity.startDate.split('T')[0],
         endDate: fullActivity.endDate.split('T')[0],
       })
-      setFormActivityType(fullActivity.activityType)
+      // Convert backend activity type (enum name or number) to frontend string value
+      setFormActivityType(mapBackendToFrontend(fullActivity.activityType))
       setFormStatus(fullActivity.status)
       setEditDialogOpen(true)
     } catch (error: any) {
@@ -294,7 +340,8 @@ export default function FarmActivitiesPage() {
         startDate: activity.startDate.split('T')[0],
         endDate: activity.endDate.split('T')[0],
       })
-      setFormActivityType(activity.activityType)
+      // Convert backend activity type (enum name or number) to frontend string value
+      setFormActivityType(mapBackendToFrontend(activity.activityType))
       setFormStatus(activity.status)
       setEditDialogOpen(true)
     } finally {
@@ -321,7 +368,7 @@ export default function FarmActivitiesPage() {
 
   useEffect(() => {
     setPageIndex(1) // Reset to first page when filters change
-  }, [statusFilter, activityTypeFilter, useActiveFilter])
+  }, [statusFilter, activityTypeFilter])
 
   useEffect(() => {
     loadActivities()
@@ -386,21 +433,6 @@ export default function FarmActivitiesPage() {
                       ))}
                     </SelectContent>
                   </Select>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    id="activeFilter"
-                    checked={useActiveFilter && statusFilter === 'ACTIVE'}
-                    onCheckedChange={checked => {
-                      setUseActiveFilter(checked as boolean)
-                      if (checked) {
-                        setStatusFilter('ACTIVE')
-                      }
-                    }}
-                  />
-                  <Label htmlFor="activeFilter" className="text-sm cursor-pointer">
-                    Chỉ hiển thị hoạt động đang hoạt động
-                  </Label>
                 </div>
                 <div className="flex gap-2 items-end">
                   <Button onClick={loadActivities} variant="outline">

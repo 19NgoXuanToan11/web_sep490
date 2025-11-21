@@ -1,14 +1,49 @@
 import * as React from 'react'
 import type { ToastActionElement, ToastProps } from './toast'
+import { localizeToastText } from '@/shared/lib/toast-localization'
+import {
+  TOAST_STATUS_FALLBACKS,
+  VARIANT_TO_STATUS,
+  STATUS_TO_VARIANT,
+  type ToastStatus,
+} from './toast-status'
 
 const TOAST_LIMIT = 1
-const TOAST_REMOVE_DELAY = 1000000
+const TOAST_REMOVE_DELAY = 1000
 
-type ToasterToast = ToastProps & {
+const TEXT_STATUS_PATTERNS: Array<{ status: ToastStatus; pattern: RegExp }> = [
+  {
+    status: 'success',
+    pattern:
+      /(thành công|success|đã\s+(?:được\s+)?(?:thêm|tạo|cập\s*nhật|xóa|xoá|lưu|kích hoạt|khôi phục|phê duyệt))/i,
+  },
+  { status: 'error', pattern: /(thất bại|lỗi|error|failed)/i },
+  { status: 'warning', pattern: /(cảnh báo|warning|chú ý)/i },
+]
+
+const inferStatusFromContent = (options: Toast): ToastStatus | undefined => {
+  const texts = [options.title, options.description]
+    .map((value) => (typeof value === 'string' ? value : undefined))
+    .filter((value): value is string => Boolean(value))
+
+  if (texts.length === 0) {
+    return undefined
+  }
+
+  const combinedText = texts.join(' ')
+  const matchedPattern = TEXT_STATUS_PATTERNS.find(({ pattern }) => pattern.test(combinedText))
+
+  return matchedPattern?.status
+}
+
+type BaseToastProps = Omit<ToastProps, 'title' | 'description'>
+
+type ToasterToast = BaseToastProps & {
   id: string
   title?: React.ReactNode
   description?: React.ReactNode
   action?: ToastActionElement
+  status?: ToastStatus
 }
 
 const actionTypes = {
@@ -29,21 +64,21 @@ type ActionType = typeof actionTypes
 
 type Action =
   | {
-      type: ActionType['ADD_TOAST']
-      toast: ToasterToast
-    }
+    type: ActionType['ADD_TOAST']
+    toast: ToasterToast
+  }
   | {
-      type: ActionType['UPDATE_TOAST']
-      toast: Partial<ToasterToast>
-    }
+    type: ActionType['UPDATE_TOAST']
+    toast: Partial<ToasterToast>
+  }
   | {
-      type: ActionType['DISMISS_TOAST']
-      toastId?: ToasterToast['id']
-    }
+    type: ActionType['DISMISS_TOAST']
+    toastId?: ToasterToast['id']
+  }
   | {
-      type: ActionType['REMOVE_TOAST']
-      toastId?: ToasterToast['id']
-    }
+    type: ActionType['REMOVE_TOAST']
+    toastId?: ToasterToast['id']
+  }
 
 interface State {
   toasts: ToasterToast[]
@@ -99,9 +134,9 @@ export const reducer = (state: State, action: Action): State => {
         toasts: state.toasts.map((t) =>
           t.id === toastId || toastId === undefined
             ? {
-                ...t,
-                open: false,
-              }
+              ...t,
+              open: false,
+            }
             : t
         ),
       }
@@ -133,21 +168,50 @@ function dispatch(action: Action) {
 
 type Toast = Omit<ToasterToast, 'id'>
 
+const resolveStatusAndVariant = (options: Toast) => {
+  const inferredStatus = inferStatusFromContent(options)
+  const status =
+    options.status ??
+    (options.variant ? VARIANT_TO_STATUS[options.variant] : undefined) ??
+    inferredStatus ??
+    'info'
+
+  const variant = options.variant ?? STATUS_TO_VARIANT[status] ?? 'info'
+
+  return { status, variant }
+}
+
+const prepareToastContent = (options: Toast & { id: string }) => {
+  const { status, variant } = resolveStatusAndVariant(options)
+  const fallback = TOAST_STATUS_FALLBACKS[status]
+
+  return {
+    ...options,
+    id: options.id,
+    status,
+    variant,
+    title: localizeToastText(options.title, fallback.title),
+    description: localizeToastText(
+      options.description,
+      options.description === undefined ? fallback.description : undefined
+    ),
+  }
+}
+
 function toast({ ...props }: Toast) {
   const id = genId()
 
-  const update = (props: ToasterToast) =>
+  const update = (newProps: Toast) =>
     dispatch({
       type: 'UPDATE_TOAST',
-      toast: { ...props, id },
+      toast: prepareToastContent({ ...newProps, id }),
     })
   const dismiss = () => dispatch({ type: 'DISMISS_TOAST', toastId: id })
 
   dispatch({
     type: 'ADD_TOAST',
     toast: {
-      ...props,
-      id,
+      ...prepareToastContent({ ...props, id }),
       open: true,
       onOpenChange: (open) => {
         if (!open) dismiss()

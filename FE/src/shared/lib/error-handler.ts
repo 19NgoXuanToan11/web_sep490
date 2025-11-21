@@ -4,11 +4,14 @@ import {
   APP_ERROR_MESSAGES,
   ENGLISH_TO_VIETNAMESE_PATTERNS,
   DEFAULT_ERROR_MESSAGE,
-  type ErrorMessage
+  type ErrorMessage,
 } from './error-messages'
+import type { ToastProps } from '@/shared/ui/toast'
+
+type ToastVariant = ToastProps['variant']
 
 interface ToastFunction {
-  (options: { title: string; description?: string; variant?: 'default' | 'destructive' }): void
+  (options: { title: string; description?: string; variant?: ToastVariant }): void
 }
 
 interface ApiError extends Error {
@@ -40,11 +43,9 @@ export const mapErrorToVietnamese = (error: unknown, context?: ErrorContext): Er
     // Check for network errors
     else if (originalMessage.toLowerCase().includes('network')) {
       errorMessage = NETWORK_ERROR_MESSAGES.NETWORK_ERROR
-    }
-    else if (originalMessage.toLowerCase().includes('timeout')) {
+    } else if (originalMessage.toLowerCase().includes('timeout')) {
       errorMessage = NETWORK_ERROR_MESSAGES.TIMEOUT_ERROR
-    }
-    else if (originalMessage.toLowerCase().includes('abort')) {
+    } else if (originalMessage.toLowerCase().includes('abort')) {
       errorMessage = NETWORK_ERROR_MESSAGES.ABORT_ERROR
     }
     // Check for application-specific errors
@@ -64,7 +65,7 @@ export const mapErrorToVietnamese = (error: unknown, context?: ErrorContext): Er
             errorMessage = {
               code: 'PATTERN_MATCHED',
               vietnamese: pattern.vietnamese,
-              context: pattern.context
+              context: pattern.context,
             }
             break
           }
@@ -81,7 +82,7 @@ export const mapErrorToVietnamese = (error: unknown, context?: ErrorContext): Er
         errorMessage = {
           code: 'PATTERN_MATCHED',
           vietnamese: pattern.vietnamese,
-          context: pattern.context
+          context: pattern.context,
         }
         break
       }
@@ -122,7 +123,7 @@ export const handleApiSuccess = (message: string, toast?: ToastFunction) => {
     toast({
       title: 'Thành công',
       description: message,
-      variant: 'default',
+      variant: 'success',
     })
   }
 }
@@ -130,7 +131,7 @@ export const handleApiSuccess = (message: string, toast?: ToastFunction) => {
 // Specific error handlers for common operations
 export const handleFetchError = (error: unknown, toast?: ToastFunction, resourceName?: string) => {
   const errorMessage = mapErrorToVietnamese(error)
-  const contextualMessage = resourceName 
+  const contextualMessage = resourceName
     ? `Không thể tải ${resourceName.toLowerCase()}. ${errorMessage.vietnamese}`
     : errorMessage.vietnamese
 
@@ -147,7 +148,7 @@ export const handleFetchError = (error: unknown, toast?: ToastFunction, resource
 
 export const handleCreateError = (error: unknown, toast?: ToastFunction, resourceName?: string) => {
   const errorMessage = mapErrorToVietnamese(error)
-  const contextualMessage = resourceName 
+  const contextualMessage = resourceName
     ? `Không thể tạo ${resourceName.toLowerCase()}. ${errorMessage.vietnamese}`
     : errorMessage.vietnamese
 
@@ -164,7 +165,7 @@ export const handleCreateError = (error: unknown, toast?: ToastFunction, resourc
 
 export const handleUpdateError = (error: unknown, toast?: ToastFunction, resourceName?: string) => {
   const errorMessage = mapErrorToVietnamese(error)
-  const contextualMessage = resourceName 
+  const contextualMessage = resourceName
     ? `Không thể cập nhật ${resourceName.toLowerCase()}. ${errorMessage.vietnamese}`
     : errorMessage.vietnamese
 
@@ -181,7 +182,7 @@ export const handleUpdateError = (error: unknown, toast?: ToastFunction, resourc
 
 export const handleDeleteError = (error: unknown, toast?: ToastFunction, resourceName?: string) => {
   const errorMessage = mapErrorToVietnamese(error)
-  const contextualMessage = resourceName 
+  const contextualMessage = resourceName
     ? `Không thể xóa ${resourceName.toLowerCase()}. ${errorMessage.vietnamese}`
     : errorMessage.vietnamese
 

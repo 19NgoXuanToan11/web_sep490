@@ -589,7 +589,7 @@ const StaffOrdersPage: React.FC = () => {
         toast({
           title: 'Thành công',
           description: `Đã cập nhật trạng thái đơn hàng thành ${getOrderStatusLabel(statusNumber)}`,
-          variant: 'default',
+          variant: 'success',
         })
 
         await fetchOrders()
@@ -613,7 +613,7 @@ const StaffOrdersPage: React.FC = () => {
       toast({
         title: 'Thành công',
         description: 'Đã cập nhật trạng thái đang giao hàng',
-        variant: 'default',
+        variant: 'success',
       })
 
       await fetchOrders()
@@ -636,7 +636,7 @@ const StaffOrdersPage: React.FC = () => {
       toast({
         title: 'Thành công',
         description: 'Đã đánh dấu đơn hàng hoàn thành',
-        variant: 'default',
+        variant: 'success',
       })
 
       await fetchOrders()
@@ -659,7 +659,7 @@ const StaffOrdersPage: React.FC = () => {
       toast({
         title: 'Thành công',
         description: 'Đã hủy đơn hàng',
-        variant: 'default',
+        variant: 'success',
       })
 
       await fetchOrders()
@@ -682,7 +682,7 @@ const StaffOrdersPage: React.FC = () => {
       toast({
         title: 'Thành công',
         description: 'Đã tạo yêu cầu thanh toán lại',
-        variant: 'default',
+        variant: 'success',
       })
 
       await fetchOrders()

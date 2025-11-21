@@ -511,7 +511,7 @@ const ManagerOrdersPage: React.FC = () => {
         toast({
           title: 'Thành công',
           description: `Đã cập nhật trạng thái đơn hàng thành ${getOrderStatusLabel(statusNumber)}`,
-          variant: 'default',
+          variant: 'success',
         })
 
         await fetchOrders()

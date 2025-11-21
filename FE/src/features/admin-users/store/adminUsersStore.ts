@@ -26,7 +26,6 @@ const initialRoles: Role[] = [
 ]
 
 interface AdminUsersState {
-
   users: User[]
   roles: Role[]
 
@@ -72,7 +71,6 @@ interface AdminUsersState {
 }
 
 export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
-
   users: [],
   roles: [],
   loadingStates: {},
@@ -97,23 +95,23 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
     get().setLoadingState(key, { isLoading: true })
 
     try {
-      const { paginationState, roleFilter, statusFilter } = get()
+      const { paginationState, statusFilter } = get()
       const response = await accountApi.getAll({
         pageSize: paginationState.pageSize,
         pageIndex: paginationState.page,
-        role: roleFilter ? (roleFilter as 'Customer' | 'Manager' | 'Staff') : undefined,
+        // Omit role filter to fetch all roles by default
+        role: undefined,
         status: statusFilter ? (statusFilter as 'Active' | 'Inactive') : undefined,
       })
 
       const users: User[] = response.items.map((a: AccountDto) => {
-
         if (!a.accountId) {
           throw new Error(`Account ${a.email} is missing accountId from API`)
         }
 
         return {
           id: String(a.accountId),
-          name: a.email,
+          name: a.accountProfile?.fullname || a.email,
           email: a.email,
           roles: [a.role.toUpperCase() as UserRole],
           status:
@@ -126,19 +124,21 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
         }
       })
 
+      const currentPaginationState = get().paginationState
+      // Keep the current page from state to ensure UI displays the correct page number
+      // The API response pageIndex should match what we sent, but we trust our state more
       set({
         users,
         roles: [...initialRoles],
         tableDensity: prefs.tableDensity,
         paginationState: {
-          page: response.pageIndex,
+          page: currentPaginationState.page,
           pageSize: response.pageSize,
           total: response.totalItemCount,
         },
       })
       get().setLoadingState(key, { isLoading: false })
     } catch (error) {
-
       set({
         users: [],
         roles: [...initialRoles],
@@ -156,10 +156,31 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
     get().setLoadingState(key, { isLoading: true })
 
     try {
+      // Map frontend role strings to backend role integers
+      const roleMap: Record<'CUSTOMER' | 'MANAGER' | 'STAFF', number> = {
+        CUSTOMER: 0, // Customer
+        MANAGER: 2, // Manager
+        STAFF: 3, // Staff
+      }
+
+      // Map frontend gender strings to backend gender integers
+      const genderMap: Record<'Male' | 'Female' | 'Other', number> = {
+        Male: 0,
+        Female: 1,
+        Other: 2,
+      }
+
+      const roleId = roleMap[data.role] ?? 3 // Default to Staff
+      const genderId = genderMap[data.gender] ?? 0 // Default to Male
+
       await accountApi.create({
         email: data.email,
-        password: 'Password@123',
-        role: (data.role || 'Staff') as any,
+        gender: genderId,
+        role: roleId,
+        phone: data.phone,
+        fullname: data.name,
+        address: data.address,
+        images: data.images || undefined,
       })
 
       await get().initializeData()
@@ -179,7 +200,6 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
     get().setLoadingState(key, { isLoading: true })
 
     try {
-
       const userId = Number(id)
       if (isNaN(userId)) {
         throw new Error(`Invalid user ID: ${id}`)
@@ -220,7 +240,6 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
     get().setLoadingState(key, { isLoading: true })
 
     try {
-
       await accountApi.updateStatus(Number(id), { status: 'Inactive' })
       await get().initializeData()
 
@@ -299,7 +318,6 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
     get().setLoadingState(key, { isLoading: true })
 
     try {
-
       const roleMap = {
         CUSTOMER: 0,
         MANAGER: 2,
@@ -332,6 +350,8 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
       searchState: { ...state.searchState, query },
       paginationState: { ...state.paginationState, page: 1 },
     }))
+    // Trigger API refresh when search changes
+    get().initializeData()
   },
 
   setSort: (sortBy: string, sortOrder: 'asc' | 'desc') => {
@@ -339,6 +359,8 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
       searchState: { ...state.searchState, sortBy, sortOrder },
       paginationState: { ...state.paginationState, page: 1 },
     }))
+    // Trigger API refresh when sort changes
+    get().initializeData()
   },
 
   setRoleFilter: (role: string) => {
@@ -346,6 +368,7 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
       roleFilter: role === '__all__' ? '' : role,
       paginationState: { ...state.paginationState, page: 1 },
     }))
+    // Note: Role filter is now client-side only since API always fetches all roles
   },
 
   setStatusFilter: (status: string) => {
@@ -353,6 +376,8 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
       statusFilter: status === '__all__' ? '' : status,
       paginationState: { ...state.paginationState, page: 1 },
     }))
+    // Trigger API refresh when status filter changes
+    get().initializeData()
   },
 
   setPagination: (page: number, pageSize?: number) => {
@@ -445,7 +470,6 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
   },
 
   getPaginatedUsers: () => {
-
     return get().getFilteredUsers()
   },
 

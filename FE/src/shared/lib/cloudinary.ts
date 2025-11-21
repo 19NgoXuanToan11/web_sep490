@@ -21,6 +21,7 @@ export class CloudinaryUploadError extends Error {
 
 export interface UploadImageOptions {
   file: File
+  folder?: string
   onProgress?: (percent: number) => void
   signal?: AbortSignal
 }
@@ -30,12 +31,12 @@ export interface UploadImageOptions {
  * Returns secure_url string.
  */
 export async function uploadImageToCloudinary(options: UploadImageOptions): Promise<string> {
-  const { file, onProgress, signal } = options
+  const { file, folder, onProgress, signal } = options
 
   const formData = new FormData()
   formData.append('file', file)
   formData.append('upload_preset', CLOUDINARY.unsignedPreset)
-  formData.append('folder', CLOUDINARY.folder)
+  formData.append('folder', folder || CLOUDINARY.folder)
 
   return new Promise<string>((resolve, reject) => {
     const xhr = new XMLHttpRequest()

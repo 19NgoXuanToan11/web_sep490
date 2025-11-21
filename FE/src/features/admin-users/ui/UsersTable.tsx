@@ -1,7 +1,6 @@
 import React from 'react'
 import {
   Users,
-  Search,
   MoreHorizontal,
   Edit,
   Trash2,
@@ -10,11 +9,11 @@ import {
   ArrowDown,
   Mail,
   Key,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react'
 import { Badge } from '@/shared/ui/badge'
 import { Button } from '@/shared/ui/button'
-import { Input } from '@/shared/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
 import {
   DropdownMenu,
@@ -41,13 +40,10 @@ export const UsersTable: React.FC<UsersTableProps> = ({
 }) => {
   const {
     searchState,
-    roleFilter,
-    statusFilter,
     loadingStates,
-    setSearch,
+    paginationState,
     setSort,
-    setRoleFilter,
-    setStatusFilter,
+    setPagination,
     getPaginatedUsers,
     getTotalCount,
   } = useAdminUsersStore()
@@ -55,6 +51,13 @@ export const UsersTable: React.FC<UsersTableProps> = ({
   const users = getPaginatedUsers()
   const totalCount = getTotalCount()
   const isLoading = loadingStates['fetch-users']?.isLoading
+
+  // Calculate pagination values
+  const currentPage = paginationState.page
+  const pageSize = paginationState.pageSize
+  const totalPages = Math.ceil(totalCount / pageSize)
+  const startItem = totalCount === 0 ? 0 : (currentPage - 1) * pageSize + 1
+  const endItem = Math.min(currentPage * pageSize, totalCount)
 
   const handleSort = (column: string) => {
     const newOrder =
@@ -94,52 +97,6 @@ export const UsersTable: React.FC<UsersTableProps> = ({
 
   return (
     <div className="space-y-4">
-      {}
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="flex-1">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Tìm theo tên, email hoặc vai trò..."
-              value={searchState.query}
-              onChange={e => setSearch(e.target.value)}
-              className="pl-9"
-            />
-          </div>
-        </div>
-
-        <div className="flex gap-2">
-          <Select value={roleFilter || '__all__'} onValueChange={setRoleFilter}>
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="Lọc theo vai trò" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="__all__">Tất cả vai trò</SelectItem>
-              {availableRoles.map(role => (
-                <SelectItem key={role.value} value={role.value}>
-                  {role.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-
-          <Select value={statusFilter || '__all__'} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-32">
-              <SelectValue placeholder="Trạng thái" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="__all__">Tất cả trạng thái</SelectItem>
-              {statusOptions.map(status => (
-                <SelectItem key={status.value} value={status.value}>
-                  {status.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      {}
       <div className="border rounded-lg overflow-hidden">
         <Table>
           <TableHeader>
@@ -223,7 +180,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({
                     <Users className="h-12 w-12" />
                     <p className="font-medium">Không có người dùng</p>
                     <p className="text-sm">
-                      {searchState.query || roleFilter || statusFilter
+                      {searchState.query
                         ? 'Hãy điều chỉnh bộ lọc hoặc tìm kiếm'
                         : 'Chưa có dữ liệu người dùng'}
                     </p>
@@ -239,9 +196,9 @@ export const UsersTable: React.FC<UsersTableProps> = ({
                       <div className="w-8 h-8 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center text-white font-medium text-sm">
                         {user.name.charAt(0).toUpperCase()}
                       </div>
-                      <div>
-                        <div className="font-medium">{user.name}</div>
-                        <div className="text-sm text-gray-500 flex items-center">
+                      <div className="flex flex-col">
+                        <div className="font-semibold text-base text-gray-900">{user.name}</div>
+                        <div className="text-sm text-gray-500 flex items-center mt-0.5">
                           <Mail className="h-3 w-3 mr-1" />
                           {user.email}
                         </div>
@@ -330,12 +287,111 @@ export const UsersTable: React.FC<UsersTableProps> = ({
         </Table>
       </div>
 
-      {}
-      <div className="flex items-center justify-between text-sm text-gray-600">
-        <span>
-          Hiển thị {users.length}/{totalCount}
-        </span>
-      </div>
+      { }
+      {/* Pagination Controls */}
+      {totalCount > 0 && (
+        <div className="flex items-center justify-between mt-6">
+          <div className="text-sm text-gray-700">
+            Hiển thị {startItem}-{endItem} trong tổng số {totalCount} người dùng
+          </div>
+
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPagination(currentPage - 1)}
+              disabled={currentPage === 1 || isLoading}
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Trước
+            </Button>
+
+            <div className="flex items-center gap-1">
+              {(() => {
+                const pages = []
+                const maxVisiblePages = 5
+                let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2))
+                let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1)
+
+                if (endPage - startPage < maxVisiblePages - 1) {
+                  startPage = Math.max(1, endPage - maxVisiblePages + 1)
+                }
+
+                if (startPage > 1) {
+                  pages.push(
+                    <Button
+                      key={1}
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPagination(1)}
+                      disabled={isLoading}
+                      className="w-10"
+                    >
+                      1
+                    </Button>
+                  )
+                  if (startPage > 2) {
+                    pages.push(
+                      <span key="ellipsis-start" className="px-2 text-gray-500">
+                        ...
+                      </span>
+                    )
+                  }
+                }
+
+                for (let i = startPage; i <= endPage; i++) {
+                  pages.push(
+                    <Button
+                      key={i}
+                      variant={currentPage === i ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setPagination(i)}
+                      disabled={isLoading}
+                      className="w-10"
+                    >
+                      {i}
+                    </Button>
+                  )
+                }
+
+                if (endPage < totalPages) {
+                  if (endPage < totalPages - 1) {
+                    pages.push(
+                      <span key="ellipsis-end" className="px-2 text-gray-500">
+                        ...
+                      </span>
+                    )
+                  }
+                  pages.push(
+                    <Button
+                      key={totalPages}
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setPagination(totalPages)}
+                      disabled={isLoading}
+                      className="w-10"
+                    >
+                      {totalPages}
+                    </Button>
+                  )
+                }
+
+                return pages
+              })()}
+            </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPagination(currentPage + 1)}
+              disabled={currentPage === totalPages || isLoading}
+            >
+              Sau
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

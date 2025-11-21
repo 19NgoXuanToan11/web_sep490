@@ -9,6 +9,16 @@ export const userFormSchema = z.object({
     invalid_type_error: 'Vai trò không hợp lệ',
   }),
   status: z.enum(['Active', 'Inactive']),
+  gender: z.enum(['Male', 'Female', 'Other'], {
+    required_error: 'Phải chọn giới tính',
+    invalid_type_error: 'Giới tính không hợp lệ',
+  }),
+  phone: z
+    .string()
+    .min(1, 'Số điện thoại là bắt buộc')
+    .regex(/^[0-9]{10,11}$/, 'Số điện thoại không hợp lệ'),
+  address: z.string().min(1, 'Địa chỉ là bắt buộc').min(5, 'Địa chỉ phải có ít nhất 5 ký tự'),
+  images: z.string().optional(),
 })
 
 export const bulkUserActionSchema = z.object({
@@ -28,6 +38,10 @@ export const defaultUserFormValues: UserFormData = {
   email: '',
   role: 'STAFF',
   status: 'Active',
+  gender: 'Male',
+  phone: '',
+  address: '',
+  images: '',
 }
 
 export const availableRoles: { value: UserRole; label: string; description: string }[] = [
@@ -55,4 +69,13 @@ export const statusOptions: {
 }[] = [
   { value: 'Active', label: 'Hoạt động', variant: 'default' },
   { value: 'Inactive', label: 'Ngưng hoạt động', variant: 'secondary' },
+]
+
+export const genderOptions: {
+  value: 'Male' | 'Female' | 'Other'
+  label: string
+}[] = [
+  { value: 'Male', label: 'Nam' },
+  { value: 'Female', label: 'Nữ' },
+  { value: 'Other', label: 'Khác' },
 ]

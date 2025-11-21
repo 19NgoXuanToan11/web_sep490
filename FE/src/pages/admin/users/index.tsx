@@ -16,6 +16,7 @@ import {
 import {
   useAdminUsersStore,
   UsersTable,
+  UserControlsPanel,
   UserFormModal,
   PasswordUpdateModal,
 } from '@/features/admin-users'
@@ -85,7 +86,7 @@ const AdminUsersPage: React.FC = () => {
     <AdminLayout>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         { }
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Quản lý người dùng</h1>
             <p className="text-gray-600">Quản lý người dùng hệ thống, vai trò và phân quyền</p>
@@ -94,7 +95,17 @@ const AdminUsersPage: React.FC = () => {
           <div className="flex items-center gap-2" />
         </div>
 
-        { }
+        {/* Controls Panel */}
+        <div className="mb-6">
+          <UserControlsPanel
+            onCreateUser={() => {
+              setSelectedUser(null)
+              setIsUserFormOpen(true)
+            }}
+          />
+        </div>
+
+        {/* Users Table */}
         <Card>
           <CardContent>
             <UsersTable

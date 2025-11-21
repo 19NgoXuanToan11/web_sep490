@@ -32,17 +32,33 @@ export const authApi = {
   },
 }
 
+export interface AccountProfileDto {
+  accountProfileId?: number
+  fullname?: string
+  phone?: string
+  address?: string
+  gender?: string
+  images?: string
+  createdAt?: string
+  updatedAt?: string
+}
+
 export interface AccountDto {
   accountId: number
   email: string
   role: 'Customer' | 'Manager' | 'Staff'
   status: 'Active' | 'Inactive' | 'ACTIVE' | number
+  accountProfile?: AccountProfileDto
 }
 
 export interface CreateAccountRequest {
   email: string
-  password: string
-  role: 'Customer' | 'Manager' | 'Staff'
+  gender: number // 0: Male, 1: Female, 2: Other
+  role: number // 0: Customer, 1: Admin, 2: Manager, 3: Staff
+  phone: string
+  fullname: string
+  address: string
+  images?: string
 }
 
 export interface UpdateAccountRequest {

@@ -231,8 +231,7 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
       const desiredStatus: UserStatus = data.status ?? existingUser.status
       const desiredName = data.name ?? currentProfile.fullname ?? existingUser.name
       const desiredEmail = data.email ?? existingUser.email
-      const desiredGender: GenderOption =
-        data.gender ?? currentProfile.gender ?? 'Male'
+      const desiredGender: GenderOption = data.gender ?? currentProfile.gender ?? 'Male'
       const desiredPhone = data.phone ?? currentProfile.phone ?? ''
       const desiredAddress = data.address ?? currentProfile.address ?? ''
       const desiredImages = data.images ?? currentProfile.images ?? ''
@@ -488,7 +487,15 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
         bValue = b[searchState.sortBy as keyof User] as string
       }
 
-      const comparison = typeof aValue === 'string' ? aValue.localeCompare(bValue) : aValue - bValue
+      let comparison: number
+
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        comparison = aValue.localeCompare(bValue)
+      } else {
+        const numericA = typeof aValue === 'number' ? aValue : Number(aValue) || 0
+        const numericB = typeof bValue === 'number' ? bValue : Number(bValue) || 0
+        comparison = numericA - numericB
+      }
 
       return searchState.sortOrder === 'asc' ? comparison : -comparison
     })

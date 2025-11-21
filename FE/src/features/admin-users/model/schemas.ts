@@ -22,7 +22,7 @@ export const userFormSchema = z.object({
 })
 
 export const bulkUserActionSchema = z.object({
-  type: z.enum(['activate', 'deactivate', 'assign-role', 'delete']),
+  type: z.enum(['activate', 'deactivate', 'assign-role']),
   userIds: z.array(z.string()).min(1, 'Phải chọn ít nhất một người dùng'),
   role: z.enum(['CUSTOMER', 'MANAGER', 'STAFF']).optional(),
 })

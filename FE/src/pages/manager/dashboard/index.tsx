@@ -195,6 +195,7 @@ export default function ManagerDashboard() {
   const [crops, setCrops] = useState<Crop[]>([])
   const [sensorData, setSensorData] = useState<SensorData | null>(null)
   const [orders, setOrders] = useState<Order[]>([])
+  const [totalOrdersCount, setTotalOrdersCount] = useState<number>(0)
   const [feedbacks, setFeedbacks] = useState<Feedback[]>([])
   const [products, setProducts] = useState<any[]>([])
   const [isLoadingDashboard, setIsLoadingDashboard] = useState(false)
@@ -233,9 +234,9 @@ export default function ManagerDashboard() {
       const [cropResult, sensorResult, orderResult, feedbackResult, productResult] = await Promise.allSettled([
         cropService.getAllCropsActive(),
         blynkService.getBlynkData(),
-        orderService.getOrderList({ pageIndex: 1, pageSize: 100 }),
-        feedbackService.getFeedbackList({ pageIndex: 1, pageSize: 100 }),
-        productService.getProductsList({ page: 1, pageSize: 100 }),
+        orderService.getOrderList({ pageIndex: 1, pageSize: 1000 }),
+        feedbackService.getFeedbackList({ pageIndex: 1, pageSize: 1000 }),
+        productService.getProductsList({ page: 1, pageSize: 1000 }),
       ])
 
       const errors: string[] = []
@@ -254,7 +255,9 @@ export default function ManagerDashboard() {
       }
 
       if (orderResult.status === 'fulfilled') {
-        setOrders(orderResult.value?.items ?? [])
+        const orderData = orderResult.value
+        setOrders(orderData?.items ?? [])
+        setTotalOrdersCount(orderData?.totalItemCount ?? 0)
       } else {
         errors.push('đơn hàng')
       }
@@ -331,7 +334,7 @@ export default function ManagerDashboard() {
     const activeProducts = products.filter(p => p.status === 'Active').length
 
     return {
-      totalOrders: orders.length,
+      totalOrders: totalOrdersCount,
       recentOrders: recentOrders.length,
       totalRevenue,
       avgRating: avgRating.toFixed(1),
@@ -339,7 +342,7 @@ export default function ManagerDashboard() {
       activeProducts,
       totalProducts: products.length,
     }
-  }, [orders, feedbacks, products, timeRange])
+  }, [orders, feedbacks, products, timeRange, totalOrdersCount])
 
   const revenueData = useMemo(() => {
     const now = new Date()

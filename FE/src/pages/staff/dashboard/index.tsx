@@ -101,6 +101,7 @@ const MetricCard = React.memo<MetricCardProps>(
 export default function StaffDashboard() {
     const navigate = useNavigate()
     const [orders, setOrders] = useState<Order[]>([])
+    const [totalOrdersCount, setTotalOrdersCount] = useState<number>(0)
     const [feedbacks, setFeedbacks] = useState<Feedback[]>([])
     const [products, setProducts] = useState<Product[]>([])
     const [categories, setCategories] = useState<Category[]>([])
@@ -114,16 +115,18 @@ export default function StaffDashboard() {
 
         try {
             const [orderResult, feedbackResult, productResult, categoryResult] = await Promise.allSettled([
-                orderService.getOrderList({ pageIndex: 1, pageSize: 100 }),
-                feedbackService.getFeedbackList({ pageIndex: 1, pageSize: 100 }),
-                productService.getProductsList({ page: 1, pageSize: 100 }),
+                orderService.getOrderList({ pageIndex: 1, pageSize: 1000 }),
+                feedbackService.getFeedbackList({ pageIndex: 1, pageSize: 1000 }),
+                productService.getProductsList({ page: 1, pageSize: 1000 }),
                 categoryService.getAllCategories(),
             ])
 
             const errors: string[] = []
 
             if (orderResult.status === 'fulfilled') {
-                setOrders(orderResult.value?.items ?? [])
+                const orderData = orderResult.value
+                setOrders(orderData?.items ?? [])
+                setTotalOrdersCount(orderData?.totalItemCount ?? 0)
             } else {
                 errors.push('đơn hàng')
             }
@@ -194,7 +197,7 @@ export default function StaffDashboard() {
         const activeProducts = products.filter(p => p.status === 'Active').length
 
         return {
-            totalOrders: orders.length,
+            totalOrders: totalOrdersCount,
             recentOrders: recentOrders.length,
             pendingOrders: pendingOrders.length,
             deliveringOrders: deliveringOrders.length,
@@ -203,7 +206,7 @@ export default function StaffDashboard() {
             activeProducts,
             totalProducts: products.length,
         }
-    }, [orders, feedbacks, products, timeRange])
+    }, [orders, feedbacks, products, timeRange, totalOrdersCount])
 
     const orderStatusData = useMemo(() => {
         const statusMap: Record<number, { label: string; color: string }> = {

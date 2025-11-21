@@ -85,6 +85,7 @@ const StaffOrdersPage: React.FC = () => {
   const [isOrderDetailOpen, setIsOrderDetailOpen] = useState(false)
   const [selectedOrderDetail, setSelectedOrderDetail] = useState<ApiOrder | null>(null)
   const [loadingOrderDetail, setLoadingOrderDetail] = useState(false)
+  const [maxOrderId, setMaxOrderId] = useState<number>(0)
 
   const transformApiOrder = (apiOrder: ApiOrder): DisplayOrder => {
     // Ưu tiên lấy email từ customer object, nếu không có thì dùng email trực tiếp
@@ -155,6 +156,13 @@ const StaffOrdersPage: React.FC = () => {
         setTotalItems(response.totalItemCount)
         setTotalPages(response.totalPageCount)
         setCurrentPage(response.pageIndex)
+
+        // Lưu lại order ID lớn nhất để check đơn hàng mới
+        // Chỉ cập nhật khi đang ở trang 1 và không có filter/search
+        if (page === 1 && transformedOrders.length > 0) {
+          const maxId = Math.max(...transformedOrders.map(o => parseInt(o.id) || 0))
+          setMaxOrderId(prevMax => Math.max(prevMax, maxId))
+        }
       } catch (error) {
         toast({
           title: 'Lỗi tải dữ liệu',
@@ -172,28 +180,52 @@ const StaffOrdersPage: React.FC = () => {
     fetchOrders()
   }, [])
 
-  // Auto-refresh orders every 5 seconds without reloading the page.
-  // It respects current page, filters, and search mode.
+  // Check for new orders periodically - chỉ refresh khi có đơn hàng mới
   useEffect(() => {
-    const intervalId = window.setInterval(() => {
-      // If user is running an advanced search, re-run the corresponding search
-      if (searchType === 'date' && selectedDate) {
-        handleDateSearch(selectedDate)
-        return
+    // Chỉ check đơn hàng mới khi không có search/filter đang active
+    if (searchType !== 'all' || searchQuery.trim() || selectedDate) {
+      return
+    }
+
+    const checkForNewOrders = async () => {
+      try {
+        // Lấy đơn hàng mới nhất (page 1, size 1) để check order ID lớn nhất
+        const response = await orderService.getOrderList({
+          pageIndex: 1,
+          pageSize: 1,
+        })
+
+        if (response.items && response.items.length > 0) {
+          const latestOrderId = parseInt(String(response.items[0].orderId || 0))
+
+          // Nếu có đơn hàng mới (order ID lớn hơn maxOrderId hiện tại)
+          if (latestOrderId > maxOrderId && maxOrderId > 0) {
+            // Refresh toàn bộ danh sách với filters hiện tại
+            const statusParam = statusFilter === 'all' ? undefined : parseInt(statusFilter)
+            await fetchOrders(currentPage, statusParam)
+
+            toast({
+              title: 'Có đơn hàng mới',
+              description: 'Danh sách đơn hàng đã được cập nhật.',
+            })
+          } else if (maxOrderId === 0 && latestOrderId > 0) {
+            // Lần đầu tiên, set maxOrderId
+            setMaxOrderId(latestOrderId)
+          }
+        }
+      } catch (error) {
+        // Silent fail - không hiển thị lỗi khi check đơn hàng mới
+        console.error('Error checking for new orders:', error)
       }
-      if (searchType !== 'all' && searchQuery.trim()) {
-        handleAdvancedSearch()
-        return
-      }
-      // Otherwise, refresh using current pagination and status filter
-      const statusParam = statusFilter === 'all' ? undefined : parseInt(statusFilter)
-      fetchOrders(currentPage, statusParam)
-    }, 10000)
+    }
+
+    // Check mỗi 30 giây
+    const intervalId = window.setInterval(checkForNewOrders, 30000)
 
     return () => {
       window.clearInterval(intervalId)
     }
-  }, [currentPage, statusFilter, searchType, searchQuery, selectedDate, fetchOrders])
+  }, [maxOrderId, currentPage, statusFilter, searchType, searchQuery, selectedDate, fetchOrders, toast])
 
   const handleStatusFilterChange = (status: string) => {
     setStatusFilter(status)

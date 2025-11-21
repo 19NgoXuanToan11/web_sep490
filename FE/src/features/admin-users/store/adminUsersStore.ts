@@ -7,6 +7,7 @@ import type {
   SearchState,
   PaginationState,
   TableDensity,
+  GenderOption,
 } from '@/shared/lib/localData'
 import { userPreferences } from '@/shared/lib/localData/storage'
 import { accountApi, type AccountDto } from '@/shared/api/auth'
@@ -25,6 +26,28 @@ const initialRoles: Role[] = [
   { id: '3', name: 'STAFF', description: 'Staff role' },
 ]
 
+const roleValueToId: Record<UserRole, number> = {
+  CUSTOMER: 0,
+  MANAGER: 2,
+  STAFF: 3,
+}
+
+const genderValueToId: Record<GenderOption, number> = {
+  Male: 0,
+  Female: 1,
+  Other: 2,
+}
+
+const normalizeGender = (gender?: string): GenderOption => {
+  if (!gender) {
+    return 'Male'
+  }
+  const normalized = gender.toLowerCase()
+  if (normalized.startsWith('f')) return 'Female'
+  if (normalized.startsWith('o')) return 'Other'
+  return 'Male'
+}
+
 interface AdminUsersState {
   users: User[]
   roles: Role[]
@@ -42,8 +65,6 @@ interface AdminUsersState {
 
   createUser: (data: UserFormData) => Promise<void>
   updateUser: (id: string, data: Partial<UserFormData>) => Promise<void>
-  deleteUser: (id: string) => Promise<void>
-  bulkDeleteUsers: (userIds: string[]) => Promise<void>
 
   bulkActivateUsers: (userIds: string[]) => Promise<void>
   bulkDeactivateUsers: (userIds: string[]) => Promise<void>
@@ -109,18 +130,27 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
           throw new Error(`Account ${a.email} is missing accountId from API`)
         }
 
+        const isActive =
+          (typeof a.status === 'number' && a.status === 1) ||
+          (typeof a.status === 'string' && (a.status === 'ACTIVE' || a.status === 'Active'))
+        const profile = a.accountProfile
+
         return {
           id: String(a.accountId),
-          name: a.accountProfile?.fullname || a.email,
+          name: profile?.fullname || a.email,
           email: a.email,
           roles: [a.role.toUpperCase() as UserRole],
-          status:
-            (a.status as any) === 1 || a.status === 'ACTIVE' || a.status === 'Active'
-              ? ('Active' as UserStatus)
-              : ('Inactive' as UserStatus),
+          status: (isActive ? 'Active' : 'Inactive') as UserStatus,
           lastLogin: null,
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString(),
+          profile: {
+            fullname: profile?.fullname || a.email,
+            phone: profile?.phone || '',
+            address: profile?.address || '',
+            gender: normalizeGender(profile?.gender),
+            images: profile?.images || '',
+          },
         }
       })
 
@@ -156,22 +186,8 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
     get().setLoadingState(key, { isLoading: true })
 
     try {
-      // Map frontend role strings to backend role integers
-      const roleMap: Record<'CUSTOMER' | 'MANAGER' | 'STAFF', number> = {
-        CUSTOMER: 0, // Customer
-        MANAGER: 2, // Manager
-        STAFF: 3, // Staff
-      }
-
-      // Map frontend gender strings to backend gender integers
-      const genderMap: Record<'Male' | 'Female' | 'Other', number> = {
-        Male: 0,
-        Female: 1,
-        Other: 2,
-      }
-
-      const roleId = roleMap[data.role] ?? 3 // Default to Staff
-      const genderId = genderMap[data.gender] ?? 0 // Default to Male
+      const roleId = roleValueToId[data.role] ?? roleValueToId.STAFF
+      const genderId = genderValueToId[data.gender] ?? genderValueToId.Male
 
       await accountApi.create({
         email: data.email,
@@ -205,62 +221,63 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
         throw new Error(`Invalid user ID: ${id}`)
       }
 
-      const roleMap = {
-        CUSTOMER: 0,
-        ADMIN: 1,
-        MANAGER: 2,
-        STAFF: 3,
-      } as const
-
-      if (data.role) {
-        const roleId = roleMap[data.role as keyof typeof roleMap]
-        if (roleId !== undefined) {
-          await accountApi.updateRole(userId, roleId)
-        } else {
-          throw new Error(`Invalid role: ${data.role}`)
-        }
-      } else {
-        throw new Error('No role specified')
+      const existingUser = get().users.find(u => u.id === id)
+      if (!existingUser) {
+        throw new Error('Không tìm thấy người dùng để cập nhật')
       }
 
-      await get().initializeData()
+      const currentProfile = existingUser.profile || {}
+      const desiredRole: UserRole = data.role ?? existingUser.roles[0] ?? 'STAFF'
+      const desiredStatus: UserStatus = data.status ?? existingUser.status
+      const desiredName = data.name ?? currentProfile.fullname ?? existingUser.name
+      const desiredEmail = data.email ?? existingUser.email
+      const desiredGender: GenderOption =
+        data.gender ?? currentProfile.gender ?? 'Male'
+      const desiredPhone = data.phone ?? currentProfile.phone ?? ''
+      const desiredAddress = data.address ?? currentProfile.address ?? ''
+      const desiredImages = data.images ?? currentProfile.images ?? ''
 
-      get().setLoadingState(key, { isLoading: false })
-    } catch (error) {
-      get().setLoadingState(key, {
-        isLoading: false,
-        error: mapErrorToVietnamese(error).vietnamese,
-      })
-      throw error
-    }
-  },
+      const updates: Promise<unknown>[] = []
 
-  deleteUser: async (id: string) => {
-    const key = `delete-user-${id}`
-    get().setLoadingState(key, { isLoading: true })
+      const roleChanged = desiredRole !== (existingUser.roles[0] || 'STAFF')
+      if (roleChanged) {
+        const roleId = roleValueToId[desiredRole]
+        updates.push(accountApi.updateRole(userId, roleId))
+      }
 
-    try {
-      await accountApi.updateStatus(Number(id), { status: 'Inactive' })
-      await get().initializeData()
+      const statusChanged = desiredStatus !== existingUser.status
+      if (statusChanged) {
+        updates.push(accountApi.updateStatus(userId))
+      }
 
-      get().setLoadingState(key, { isLoading: false })
-    } catch (error) {
-      get().setLoadingState(key, {
-        isLoading: false,
-        error: mapErrorToVietnamese(error).vietnamese,
-      })
-      throw error
-    }
-  },
+      const profileChanged =
+        desiredName !== (currentProfile.fullname || existingUser.name) ||
+        desiredEmail !== existingUser.email ||
+        desiredGender !== (currentProfile.gender || 'Male') ||
+        desiredPhone !== (currentProfile.phone || '') ||
+        desiredAddress !== (currentProfile.address || '') ||
+        desiredImages !== (currentProfile.images || '')
 
-  bulkDeleteUsers: async (userIds: string[]) => {
-    const key = 'bulk-delete-users'
-    get().setLoadingState(key, { isLoading: true })
+      if (profileChanged) {
+        updates.push(
+          accountApi.update(userId, {
+            email: desiredEmail,
+            gender: genderValueToId[desiredGender],
+            role: roleValueToId[desiredRole],
+            phone: desiredPhone,
+            fullname: desiredName,
+            address: desiredAddress,
+            images: desiredImages || undefined,
+          })
+        )
+      }
 
-    try {
-      await Promise.all(
-        userIds.map(id => accountApi.updateStatus(Number(id), { status: 'Inactive' }))
-      )
+      if (updates.length === 0) {
+        throw new Error('Không có thông tin được thay đổi')
+      }
+
+      await Promise.all(updates)
+
       await get().initializeData()
 
       get().setLoadingState(key, { isLoading: false })
@@ -278,9 +295,17 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
     get().setLoadingState(key, { isLoading: true })
 
     try {
-      await Promise.all(
-        userIds.map(id => accountApi.updateStatus(Number(id), { status: 'Active' }))
-      )
+      const targetIds = userIds.filter(id => {
+        const user = get().users.find(u => u.id === id)
+        return user && user.status !== 'Active'
+      })
+
+      if (targetIds.length === 0) {
+        get().setLoadingState(key, { isLoading: false })
+        return
+      }
+
+      await Promise.all(targetIds.map(id => accountApi.updateStatus(Number(id))))
       await get().initializeData()
 
       get().setLoadingState(key, { isLoading: false })
@@ -298,9 +323,17 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
     get().setLoadingState(key, { isLoading: true })
 
     try {
-      await Promise.all(
-        userIds.map(id => accountApi.updateStatus(Number(id), { status: 'Inactive' }))
-      )
+      const targetIds = userIds.filter(id => {
+        const user = get().users.find(u => u.id === id)
+        return user && user.status !== 'Inactive'
+      })
+
+      if (targetIds.length === 0) {
+        get().setLoadingState(key, { isLoading: false })
+        return
+      }
+
+      await Promise.all(targetIds.map(id => accountApi.updateStatus(Number(id))))
       await get().initializeData()
 
       get().setLoadingState(key, { isLoading: false })
@@ -318,16 +351,10 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
     get().setLoadingState(key, { isLoading: true })
 
     try {
-      const roleMap = {
-        CUSTOMER: 0,
-        MANAGER: 2,
-        STAFF: 3,
-      } as const
-
       await Promise.all(
         userIds.map(id => {
-          const roleId = roleMap[role as keyof typeof roleMap]
-          if (roleId) {
+          const roleId = roleValueToId[role]
+          if (roleId !== undefined) {
             return accountApi.updateRole(Number(id), roleId)
           }
           throw new Error(`Invalid role: ${role}`)
@@ -447,8 +474,8 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
     }
 
     filtered = filtered.sort((a, b) => {
-      let aValue: any
-      let bValue: any
+      let aValue: string | number
+      let bValue: string | number
 
       if (searchState.sortBy === 'lastLogin') {
         aValue = a.lastLogin ? new Date(a.lastLogin).getTime() : 0

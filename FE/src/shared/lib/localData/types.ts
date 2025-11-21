@@ -51,6 +51,16 @@ export interface PaginationState {
 export type UserRole = 'CUSTOMER' | 'MANAGER' | 'STAFF'
 export type UserStatus = 'Active' | 'Inactive'
 
+export type GenderOption = 'Male' | 'Female' | 'Other'
+
+export interface UserProfileDetails {
+  fullname?: string
+  phone?: string
+  address?: string
+  gender?: GenderOption
+  images?: string
+}
+
 export interface User {
   id: string
   name: string
@@ -60,6 +70,7 @@ export interface User {
   lastLogin: string | null
   createdAt: string
   updatedAt: string
+  profile?: UserProfileDetails
 }
 
 export interface SystemSettings {

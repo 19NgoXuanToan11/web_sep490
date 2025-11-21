@@ -51,7 +51,7 @@ export interface AccountDto {
   accountProfile?: AccountProfileDto
 }
 
-export interface CreateAccountRequest {
+export interface AccountFormRequest {
   email: string
   gender: number // 0: Male, 1: Female, 2: Other
   role: number // 0: Customer, 1: Admin, 2: Manager, 3: Staff
@@ -59,20 +59,6 @@ export interface CreateAccountRequest {
   fullname: string
   address: string
   images?: string
-}
-
-export interface UpdateAccountRequest {
-  email?: string
-  role?: 'Customer' | 'Manager' | 'Staff'
-}
-
-export interface UpdateStatusRequest {
-  status: 'Active' | 'Inactive'
-}
-
-export interface UpdateRoleRequest {
-  email: string
-  role: 'Customer' | 'Manager' | 'Staff'
 }
 
 export interface UpdatePasswordRequest {
@@ -131,16 +117,16 @@ export const accountApi = {
     )
     return data
   },
-  create: async (payload: CreateAccountRequest): Promise<BasicResponse> => {
+  create: async (payload: AccountFormRequest): Promise<BasicResponse> => {
     const { data } = await http.post<BasicResponse>('/v1/account/create', payload)
     return data
   },
-  update: async (id: number, payload: UpdateAccountRequest): Promise<BasicResponse> => {
+  update: async (id: number, payload: AccountFormRequest): Promise<BasicResponse> => {
     const { data } = await http.put<BasicResponse>(`/v1/account/update/${id}`, payload)
     return data
   },
-  updateStatus: async (id: number, payload: UpdateStatusRequest): Promise<BasicResponse> => {
-    const { data } = await http.put<BasicResponse>(`/v1/account/update-status/${id}`, payload)
+  updateStatus: async (id: number): Promise<BasicResponse> => {
+    const { data } = await http.put<BasicResponse>(`/v1/account/update-status/${id}`)
     return data
   },
   updateRole: async (accountId: number, roleId: number): Promise<BasicResponse> => {

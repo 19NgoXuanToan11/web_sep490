@@ -3,7 +3,6 @@ import {
   Users,
   MoreHorizontal,
   Edit,
-  Trash2,
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
@@ -19,7 +18,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/shared/ui/dropdown-menu'
 import { Skeleton } from '@/shared/ui/skeleton'
@@ -29,15 +27,10 @@ import type { User } from '@/shared/lib/localData'
 
 interface UsersTableProps {
   onEditUser?: (user: User) => void
-  onDeleteUser?: (user: User) => void
   onUpdatePassword?: (user: User) => void
 }
 
-export const UsersTable: React.FC<UsersTableProps> = ({
-  onEditUser,
-  onDeleteUser,
-  onUpdatePassword,
-}) => {
+export const UsersTable: React.FC<UsersTableProps> = ({ onEditUser, onUpdatePassword }) => {
   const {
     searchState,
     loadingStates,
@@ -245,8 +238,10 @@ export const UsersTable: React.FC<UsersTableProps> = ({
                           }}
                           className="cursor-pointer focus:bg-gray-100"
                         >
-                          <Edit className="h-4 w-4 mr-2" />
-                          Sửa người dùng
+                          <Edit className="h-4 w-4 mr-2 text-green-600" />
+                          <div className="flex flex-col">
+                            <span className="font-medium text-gray-900">Chỉnh sửa người dùng</span>
+                          </div>
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={e => {
@@ -261,21 +256,6 @@ export const UsersTable: React.FC<UsersTableProps> = ({
                         >
                           <Key className="h-4 w-4 mr-2" />
                           Đổi mật khẩu
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          onClick={e => {
-                            e.preventDefault()
-                            e.stopPropagation()
-
-                            setTimeout(() => {
-                              onDeleteUser?.(user)
-                            }, 0)
-                          }}
-                          className="text-red-600 cursor-pointer hover:bg-red-50 focus:bg-red-50"
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Xóa người dùng
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -311,7 +291,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({
                 const pages = []
                 const maxVisiblePages = 5
                 let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2))
-                let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1)
+                const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1)
 
                 if (endPage - startPage < maxVisiblePages - 1) {
                   startPage = Math.max(1, endPage - maxVisiblePages + 1)

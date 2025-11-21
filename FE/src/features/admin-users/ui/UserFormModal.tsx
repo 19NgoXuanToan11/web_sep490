@@ -48,6 +48,7 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
     watch,
     setValue,
     reset,
+    trigger,
     formState: { errors, isValid },
   } = useForm<UserFormData>({
     resolver: zodResolver(userFormSchema),
@@ -57,27 +58,30 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
 
   const watchedRole = watch('role')
   const watchedGender = watch('gender')
+  const watchedStatus = watch('status')
   const watchedImages = watch('images')
 
   useEffect(() => {
     if (isOpen) {
       if (user) {
-        // Safely access images field (may not exist in User type but can be present in API response)
-        const userImageUrl = (user as any).images || ''
+        const profile = user.profile
+        const userImageUrl = profile?.images || ''
         reset({
-          name: user.name,
+          name: profile?.fullname || user.name,
           email: user.email,
           role: user.roles[0] || 'STAFF',
           status: user.status,
-          gender: 'Male',
-          phone: '',
-          address: '',
+          gender: profile?.gender || 'Male',
+          phone: profile?.phone || '',
+          address: profile?.address || '',
           images: userImageUrl,
         })
         setImagePreview(userImageUrl || null)
+        trigger()
       } else {
         reset(defaultUserFormValues)
         setImagePreview(null)
+        trigger()
       }
       setUploadProgress(0)
       setIsUploading(false)
@@ -164,10 +168,6 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
 
       setValue('images', cloudinaryUrl, { shouldValidate: true })
       setImagePreview(cloudinaryUrl)
-      toast({
-        title: 'Tải ảnh lên thành công',
-        description: 'Ảnh đã được tải lên Cloudinary',
-      })
     } catch (error) {
       if (error instanceof CloudinaryUploadError) {
         if (error.message.includes('aborted')) {
@@ -232,7 +232,12 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
         })
       }
       handleClose()
-    } catch (error) {
+    } catch (error: unknown) {
+      toast({
+        title: 'Không thể lưu thay đổi',
+        description: error instanceof Error ? error.message : 'Vui lòng thử lại sau.',
+        variant: 'destructive',
+      })
     }
   }
 
@@ -402,7 +407,7 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
               onValueChange={value =>
                 setValue('status', value as 'Active' | 'Inactive', { shouldValidate: true })
               }
-              defaultValue="Active"
+              value={watchedStatus}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Chọn trạng thái" />

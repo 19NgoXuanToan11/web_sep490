@@ -163,13 +163,13 @@ const RealTimeIoTDashboard: React.FC = () => {
       if (result.success) {
         setServoAngle(angle)
         toast({
-          title: 'Servo đã điều chỉnh',
-          description: result.message || `Góc servo: ${angle[0]}°`,
+          title: 'Mái che đã điều chỉnh',
+          description: result.message || `Góc mái che: ${angle[0]}°`,
         })
       } else {
         toast({
           title: 'Lỗi điều khiển',
-          description: result.message || 'Không thể điều chỉnh servo',
+          description: result.message || 'Không thể điều chỉnh mái che',
           variant: 'destructive',
         })
       }
@@ -330,7 +330,7 @@ const RealTimeIoTDashboard: React.FC = () => {
             <CardContent className="p-6">
               <div className="mb-4">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-gray-900 font-semibold">Servo</h3>
+                  <h3 className="text-gray-900 font-semibold">Mái che</h3>
                   <span className="text-blue-600 text-xl font-bold">{servoAngle[0]}°</span>
                 </div>
                 <div
@@ -352,7 +352,7 @@ const RealTimeIoTDashboard: React.FC = () => {
               </div>
               {!manualControl && (
                 <p className="text-gray-500 text-xs mt-2 italic">
-                  Vui lòng bật chế độ thủ công để điều chỉnh servo
+                  Vui lòng bật chế độ thủ công để điều chỉnh mái che
                 </p>
               )}
             </CardContent>

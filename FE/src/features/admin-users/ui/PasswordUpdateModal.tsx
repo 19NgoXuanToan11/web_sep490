@@ -14,7 +14,6 @@ import { accountApi } from '@/shared/api/auth'
 
 const passwordUpdateSchema = z
   .object({
-    oldPassword: z.string().min(6, 'Mật khẩu cũ phải có ít nhất 6 ký tự'),
     newPassword: z.string().min(6, 'Mật khẩu phải có ít nhất 6 ký tự'),
     confirmPassword: z.string(),
   })
@@ -38,7 +37,6 @@ export const PasswordUpdateModal: React.FC<PasswordUpdateModalProps> = ({
 }) => {
   const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
-  const [showOldPassword, setShowOldPassword] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
@@ -62,11 +60,7 @@ export const PasswordUpdateModal: React.FC<PasswordUpdateModalProps> = ({
 
     setIsLoading(true)
     try {
-      await accountApi.updatePassword(Number(user.id), {
-        oldPassword: data.oldPassword,
-        newPassword: data.newPassword,
-        confirmPassword: data.confirmPassword,
-      })
+      await accountApi.updatePasswordBy(Number(user.id), data.newPassword)
 
       toast({
         title: 'Cập nhật mật khẩu thành công',
@@ -104,32 +98,6 @@ export const PasswordUpdateModal: React.FC<PasswordUpdateModalProps> = ({
         )}
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          {}
-          <div className="space-y-2">
-            <Label htmlFor="oldPassword">Mật khẩu cũ *</Label>
-            <div className="relative">
-              <Input
-                id="oldPassword"
-                type={showOldPassword ? 'text' : 'password'}
-                placeholder="Nhập mật khẩu cũ"
-                {...register('oldPassword')}
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="absolute right-2 top-1/2 -translate-y-1/2 h-6 w-6"
-                onClick={() => setShowOldPassword(!showOldPassword)}
-              >
-                {showOldPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-              </Button>
-            </div>
-            {errors.oldPassword && (
-              <p className="text-sm text-red-600">{errors.oldPassword.message}</p>
-            )}
-          </div>
-
-          {}
           <div className="space-y-2">
             <Label htmlFor="newPassword">Mật khẩu mới *</Label>
             <div className="relative">
@@ -154,7 +122,7 @@ export const PasswordUpdateModal: React.FC<PasswordUpdateModalProps> = ({
             )}
           </div>
 
-          {}
+          { }
           <div className="space-y-2">
             <Label htmlFor="confirmPassword">Xác nhận mật khẩu *</Label>
             <div className="relative">
@@ -179,7 +147,7 @@ export const PasswordUpdateModal: React.FC<PasswordUpdateModalProps> = ({
             )}
           </div>
 
-          {}
+          { }
           <div className="flex justify-end gap-3 pt-4 border-t">
             <Button type="button" variant="outline" onClick={handleClose} disabled={isLoading}>
               Hủy

@@ -142,4 +142,10 @@ export const accountApi = {
     const { data } = await http.put<BasicResponse>(`/v1/account/update-password?id=${id}`, payload)
     return data
   },
+  updatePasswordBy: async (id: number, newPassword: string): Promise<BasicResponse> => {
+    const { data } = await http.put<BasicResponse>(
+      `/v1/account/update-password-by/${id}?requestPassword=${encodeURIComponent(newPassword)}`
+    )
+    return data
+  },
 }

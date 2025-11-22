@@ -255,7 +255,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({ onEditUser, onUpdatePass
                           className="cursor-pointer focus:bg-gray-100"
                         >
                           <Key className="h-4 w-4 mr-2" />
-                          Đổi mật khẩu
+                          Đặt lại mật khẩu
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>

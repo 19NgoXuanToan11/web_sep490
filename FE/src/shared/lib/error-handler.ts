@@ -89,16 +89,6 @@ export const mapErrorToVietnamese = (error: unknown, context?: ErrorContext): Er
     }
   }
 
-  // Log error for debugging (in development)
-  if (process.env.NODE_ENV === 'development') {
-    console.group('🚨 Error Handler Debug')
-    console.log('Original Error:', error)
-    console.log('Original Message:', originalMessage)
-    console.log('Mapped Message:', errorMessage)
-    console.log('Context:', context)
-    console.groupEnd()
-  }
-
   return errorMessage
 }
 

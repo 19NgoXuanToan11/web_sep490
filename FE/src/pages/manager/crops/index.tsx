@@ -188,8 +188,6 @@ export default function CropsPage() {
           imageUrl = await uploadImageToCloudinary({
             file: formData.productImageFile,
             onProgress: percent => {
-              // Optional: Could show progress in toast or UI
-              console.log(`Upload progress: ${percent}%`)
             },
           })
         } catch (error) {

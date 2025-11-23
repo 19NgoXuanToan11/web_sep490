@@ -10,12 +10,14 @@ import {
 } from 'lucide-react'
 import { ManagerLayout } from '@/shared/layouts/ManagerLayout'
 import { Button } from '@/shared/ui/button'
-import { Card, CardContent } from '@/shared/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
 import { Switch } from '@/shared/ui/switch'
 import { Slider } from '@/shared/ui/slider'
+import { Input } from '@/shared/ui/input'
 import { blynkService, type SensorData } from '@/shared/api/blynkService'
 import Gauge from '@/components/iot-dashboard/Gauge'
 import { useToast } from '@/shared/ui/use-toast'
+import { Settings } from 'lucide-react'
 
 const RealTimeIoTDashboard: React.FC = () => {
   const { toast } = useToast()
@@ -36,9 +38,17 @@ const RealTimeIoTDashboard: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true)
   const [manualControl, setManualControl] = useState(false)
   const [pumpControl, setPumpControl] = useState(false)
+  const [lightControl, setLightControl] = useState(false)
   const [servoAngle, setServoAngle] = useState([90])
   const [timeFilter, setTimeFilter] = useState('Trực tiếp')
   const [retryCount, setRetryCount] = useState(0)
+  
+  // Threshold configuration state
+  const [soilLowThreshold, setSoilLowThreshold] = useState<number>(30)
+  const [soilHighThreshold, setSoilHighThreshold] = useState<number>(70)
+  const [ldrLowThreshold, setLdrLowThreshold] = useState<number>(200)
+  const [ldrHighThreshold, setLdrHighThreshold] = useState<number>(800)
+  const [isUpdatingThreshold, setIsUpdatingThreshold] = useState<string | null>(null)
 
   const REFRESH_INTERVAL = 5000
 
@@ -179,6 +189,89 @@ const RealTimeIoTDashboard: React.FC = () => {
         description: 'Không thể gửi lệnh điều khiển',
         variant: 'destructive',
       })
+    }
+  }
+
+  const handleLightControl = async (newState: boolean) => {
+    try {
+      // Placeholder for future backend API integration
+      // const result = await blynkService.controlLight(newState)
+      // if (result.success) {
+      setLightControl(newState)
+      toast({
+        title: newState ? 'Đèn đã bật' : 'Đèn đã tắt',
+        description: `Trạng thái đèn: ${newState ? 'Hoạt động' : 'Tắt'}`,
+      })
+      // } else {
+      //   toast({
+      //     title: 'Lỗi điều khiển',
+      //     description: result.message || 'Không thể điều khiển đèn',
+      //     variant: 'destructive',
+      //   })
+      // }
+    } catch (error) {
+      toast({
+        title: 'Lỗi kết nối',
+        description: 'Không thể gửi lệnh điều khiển',
+        variant: 'destructive',
+      })
+    }
+  }
+
+  const handleThresholdUpdate = async (
+    type: 'soil-low' | 'soil-high' | 'ldr-low' | 'ldr-high',
+    value: number
+  ) => {
+    setIsUpdatingThreshold(type)
+    try {
+      let result
+      switch (type) {
+        case 'soil-low':
+          result = await blynkService.setSoilLowThreshold(value)
+          if (result.success) {
+            setSoilLowThreshold(value)
+          }
+          break
+        case 'soil-high':
+          result = await blynkService.setSoilHighThreshold(value)
+          if (result.success) {
+            setSoilHighThreshold(value)
+          }
+          break
+        case 'ldr-low':
+          result = await blynkService.setLdrLowThreshold(value)
+          if (result.success) {
+            setLdrLowThreshold(value)
+          }
+          break
+        case 'ldr-high':
+          result = await blynkService.setLdrHighThreshold(value)
+          if (result.success) {
+            setLdrHighThreshold(value)
+          }
+          break
+      }
+
+      if (result.success) {
+        toast({
+          title: 'Cập nhật thành công',
+          description: result.message,
+        })
+      } else {
+        toast({
+          title: 'Lỗi cập nhật',
+          description: result.message || 'Không thể cập nhật ngưỡng',
+          variant: 'destructive',
+        })
+      }
+    } catch (error) {
+      toast({
+        title: 'Lỗi kết nối',
+        description: 'Không thể gửi lệnh cập nhật ngưỡng',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsUpdatingThreshold(null)
     }
   }
 
@@ -328,6 +421,23 @@ const RealTimeIoTDashboard: React.FC = () => {
           { }
           <Card className="bg-white border-gray-200 shadow-sm">
             <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-gray-900 font-semibold">Điều Khiển Đèn</h3>
+                <Switch
+                  checked={lightControl}
+                  onCheckedChange={handleLightControl}
+                  disabled={!isOnline || isLoading}
+                />
+              </div>
+              <p className="text-gray-600 text-sm">
+                {lightControl ? 'Đèn đang hoạt động' : 'Đèn đang tắt'}
+              </p>
+            </CardContent>
+          </Card>
+
+          { }
+          <Card className="bg-white border-gray-200 shadow-sm">
+            <CardContent className="p-6">
               <div className="mb-4">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-gray-900 font-semibold">Mái che</h3>
@@ -355,6 +465,186 @@ const RealTimeIoTDashboard: React.FC = () => {
                   Vui lòng bật chế độ thủ công để điều chỉnh mái che
                 </p>
               )}
+            </CardContent>
+          </Card>
+        </div>
+
+        { }
+        <div className="mb-8">
+          <Card className="bg-white border-gray-200 shadow-sm">
+            <CardHeader className="pb-4">
+              <div className="flex items-center gap-2">
+                <Settings className="h-5 w-5 text-green-600" />
+                <CardTitle className="text-xl font-semibold text-gray-900">
+                  Cấu hình Ngưỡng
+                </CardTitle>
+              </div>
+              <p className="text-sm text-gray-600 mt-1">
+                Thiết lập ngưỡng cho Độ ẩm đất và Ánh sáng để điều khiển tự động
+              </p>
+            </CardHeader>
+            <CardContent className="pt-0">
+              <div className="grid gap-6 md:grid-cols-2">
+                { }
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Sprout className="h-5 w-5 text-green-600" />
+                    <h3 className="text-lg font-semibold text-gray-900">Độ ẩm đất</h3>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Ngưỡng thấp (Bật bơm khi ≤)
+                      </label>
+                      <div className="flex gap-2">
+                        <Input
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={soilLowThreshold}
+                          onChange={(e) => {
+                            const val = parseInt(e.target.value) || 0
+                            if (val >= 0 && val <= 100) {
+                              setSoilLowThreshold(val)
+                            }
+                          }}
+                          disabled={!isOnline || isLoading || isUpdatingThreshold === 'soil-low'}
+                          className="flex-1"
+                          placeholder="0-100"
+                        />
+                        <span className="flex items-center text-sm text-gray-500">%</span>
+                        <Button
+                          onClick={() => handleThresholdUpdate('soil-low', soilLowThreshold)}
+                          disabled={!isOnline || isLoading || isUpdatingThreshold === 'soil-low'}
+                          size="sm"
+                          className="bg-green-600 hover:bg-green-700"
+                        >
+                          {isUpdatingThreshold === 'soil-low' ? 'Đang cập nhật...' : 'Cập nhật'}
+                        </Button>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Máy bơm sẽ tự động bật khi độ ẩm đất ≤ {soilLowThreshold}%
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Ngưỡng cao (Tắt bơm khi ≥)
+                      </label>
+                      <div className="flex gap-2">
+                        <Input
+                          type="number"
+                          min="0"
+                          max="100"
+                          value={soilHighThreshold}
+                          onChange={(e) => {
+                            const val = parseInt(e.target.value) || 0
+                            if (val >= 0 && val <= 100) {
+                              setSoilHighThreshold(val)
+                            }
+                          }}
+                          disabled={!isOnline || isLoading || isUpdatingThreshold === 'soil-high'}
+                          className="flex-1"
+                          placeholder="0-100"
+                        />
+                        <span className="flex items-center text-sm text-gray-500">%</span>
+                        <Button
+                          onClick={() => handleThresholdUpdate('soil-high', soilHighThreshold)}
+                          disabled={!isOnline || isLoading || isUpdatingThreshold === 'soil-high'}
+                          size="sm"
+                          className="bg-green-600 hover:bg-green-700"
+                        >
+                          {isUpdatingThreshold === 'soil-high' ? 'Đang cập nhật...' : 'Cập nhật'}
+                        </Button>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Máy bơm sẽ tự động tắt khi độ ẩm đất ≥ {soilHighThreshold}%
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                { }
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 mb-4">
+                    <Sun className="h-5 w-5 text-yellow-500" />
+                    <h3 className="text-lg font-semibold text-gray-900">Ánh sáng</h3>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Ngưỡng thấp
+                      </label>
+                      <div className="flex gap-2">
+                        <Input
+                          type="number"
+                          min="0"
+                          max="1023"
+                          value={ldrLowThreshold}
+                          onChange={(e) => {
+                            const val = parseInt(e.target.value) || 0
+                            if (val >= 0 && val <= 1023) {
+                              setLdrLowThreshold(val)
+                            }
+                          }}
+                          disabled={!isOnline || isLoading || isUpdatingThreshold === 'ldr-low'}
+                          className="flex-1"
+                          placeholder="0-1023"
+                        />
+                        <span className="flex items-center text-sm text-gray-500">lux</span>
+                        <Button
+                          onClick={() => handleThresholdUpdate('ldr-low', ldrLowThreshold)}
+                          disabled={!isOnline || isLoading || isUpdatingThreshold === 'ldr-low'}
+                          size="sm"
+                          className="bg-green-600 hover:bg-green-700"
+                        >
+                          {isUpdatingThreshold === 'ldr-low' ? 'Đang cập nhật...' : 'Cập nhật'}
+                        </Button>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Ngưỡng ánh sáng thấp: {ldrLowThreshold} lux
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Ngưỡng cao
+                      </label>
+                      <div className="flex gap-2">
+                        <Input
+                          type="number"
+                          min="0"
+                          max="1023"
+                          value={ldrHighThreshold}
+                          onChange={(e) => {
+                            const val = parseInt(e.target.value) || 0
+                            if (val >= 0 && val <= 1023) {
+                              setLdrHighThreshold(val)
+                            }
+                          }}
+                          disabled={!isOnline || isLoading || isUpdatingThreshold === 'ldr-high'}
+                          className="flex-1"
+                          placeholder="0-1023"
+                        />
+                        <span className="flex items-center text-sm text-gray-500">lux</span>
+                        <Button
+                          onClick={() => handleThresholdUpdate('ldr-high', ldrHighThreshold)}
+                          disabled={!isOnline || isLoading || isUpdatingThreshold === 'ldr-high'}
+                          size="sm"
+                          className="bg-green-600 hover:bg-green-700"
+                        >
+                          {isUpdatingThreshold === 'ldr-high' ? 'Đang cập nhật...' : 'Cập nhật'}
+                        </Button>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Ngưỡng ánh sáng cao: {ldrHighThreshold} lux
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>

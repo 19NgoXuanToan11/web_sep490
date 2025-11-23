@@ -10,7 +10,7 @@ import {
 } from 'lucide-react'
 import { ManagerLayout } from '@/shared/layouts/ManagerLayout'
 import { Button } from '@/shared/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
+import { Card, CardContent } from '@/shared/ui/card'
 import { Switch } from '@/shared/ui/switch'
 import { Slider } from '@/shared/ui/slider'
 import { Input } from '@/shared/ui/input'
@@ -18,6 +18,13 @@ import { blynkService, type SensorData } from '@/shared/api/blynkService'
 import Gauge from '@/components/iot-dashboard/Gauge'
 import { useToast } from '@/shared/ui/use-toast'
 import { Settings } from 'lucide-react'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/shared/ui/dialog'
 
 const RealTimeIoTDashboard: React.FC = () => {
   const { toast } = useToast()
@@ -42,13 +49,14 @@ const RealTimeIoTDashboard: React.FC = () => {
   const [servoAngle, setServoAngle] = useState([90])
   const [timeFilter, setTimeFilter] = useState('Trực tiếp')
   const [retryCount, setRetryCount] = useState(0)
-  
+
   // Threshold configuration state
   const [soilLowThreshold, setSoilLowThreshold] = useState<number>(30)
   const [soilHighThreshold, setSoilHighThreshold] = useState<number>(70)
   const [ldrLowThreshold, setLdrLowThreshold] = useState<number>(200)
   const [ldrHighThreshold, setLdrHighThreshold] = useState<number>(800)
   const [isUpdatingThreshold, setIsUpdatingThreshold] = useState<string | null>(null)
+  const [isThresholdModalOpen, setIsThresholdModalOpen] = useState(false)
 
   const REFRESH_INTERVAL = 5000
 
@@ -285,6 +293,13 @@ const RealTimeIoTDashboard: React.FC = () => {
           <div className="mb-6">
             <div className="flex items-center justify-between mb-2">
               <h1 className="text-2xl font-bold text-gray-900">Bảng điều khiển IoT thời gian thực</h1>
+              <Button
+                onClick={() => setIsThresholdModalOpen(true)}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                <Settings className="h-4 w-4 mr-2" />
+                Cấu hình ngưỡng thiết bị
+              </Button>
             </div>
             <p className="text-gray-600">
               Giám sát cảm biến thời gian thực và điều khiển thiết bị IoT
@@ -469,185 +484,6 @@ const RealTimeIoTDashboard: React.FC = () => {
           </Card>
         </div>
 
-        { }
-        <div className="mb-8">
-          <Card className="bg-white border-gray-200 shadow-sm">
-            <CardHeader className="pb-4">
-              <div className="flex items-center gap-2">
-                <Settings className="h-5 w-5 text-green-600" />
-                <CardTitle className="text-xl font-semibold text-gray-900">
-                  Cấu hình Ngưỡng
-                </CardTitle>
-              </div>
-              <p className="text-sm text-gray-600 mt-1">
-                Thiết lập ngưỡng cho Độ ẩm đất và Ánh sáng để điều khiển tự động
-              </p>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="grid gap-6 md:grid-cols-2">
-                { }
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Sprout className="h-5 w-5 text-green-600" />
-                    <h3 className="text-lg font-semibold text-gray-900">Độ ẩm đất</h3>
-                  </div>
-                  
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Ngưỡng thấp (Bật bơm khi ≤)
-                      </label>
-                      <div className="flex gap-2">
-                        <Input
-                          type="number"
-                          min="0"
-                          max="100"
-                          value={soilLowThreshold}
-                          onChange={(e) => {
-                            const val = parseInt(e.target.value) || 0
-                            if (val >= 0 && val <= 100) {
-                              setSoilLowThreshold(val)
-                            }
-                          }}
-                          disabled={!isOnline || isLoading || isUpdatingThreshold === 'soil-low'}
-                          className="flex-1"
-                          placeholder="0-100"
-                        />
-                        <span className="flex items-center text-sm text-gray-500">%</span>
-                        <Button
-                          onClick={() => handleThresholdUpdate('soil-low', soilLowThreshold)}
-                          disabled={!isOnline || isLoading || isUpdatingThreshold === 'soil-low'}
-                          size="sm"
-                          className="bg-green-600 hover:bg-green-700"
-                        >
-                          {isUpdatingThreshold === 'soil-low' ? 'Đang cập nhật...' : 'Cập nhật'}
-                        </Button>
-                      </div>
-                      <p className="text-xs text-gray-500 mt-1">
-                        Máy bơm sẽ tự động bật khi độ ẩm đất ≤ {soilLowThreshold}%
-                      </p>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Ngưỡng cao (Tắt bơm khi ≥)
-                      </label>
-                      <div className="flex gap-2">
-                        <Input
-                          type="number"
-                          min="0"
-                          max="100"
-                          value={soilHighThreshold}
-                          onChange={(e) => {
-                            const val = parseInt(e.target.value) || 0
-                            if (val >= 0 && val <= 100) {
-                              setSoilHighThreshold(val)
-                            }
-                          }}
-                          disabled={!isOnline || isLoading || isUpdatingThreshold === 'soil-high'}
-                          className="flex-1"
-                          placeholder="0-100"
-                        />
-                        <span className="flex items-center text-sm text-gray-500">%</span>
-                        <Button
-                          onClick={() => handleThresholdUpdate('soil-high', soilHighThreshold)}
-                          disabled={!isOnline || isLoading || isUpdatingThreshold === 'soil-high'}
-                          size="sm"
-                          className="bg-green-600 hover:bg-green-700"
-                        >
-                          {isUpdatingThreshold === 'soil-high' ? 'Đang cập nhật...' : 'Cập nhật'}
-                        </Button>
-                      </div>
-                      <p className="text-xs text-gray-500 mt-1">
-                        Máy bơm sẽ tự động tắt khi độ ẩm đất ≥ {soilHighThreshold}%
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                { }
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Sun className="h-5 w-5 text-yellow-500" />
-                    <h3 className="text-lg font-semibold text-gray-900">Ánh sáng</h3>
-                  </div>
-                  
-                  <div className="space-y-3">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Ngưỡng thấp
-                      </label>
-                      <div className="flex gap-2">
-                        <Input
-                          type="number"
-                          min="0"
-                          max="1023"
-                          value={ldrLowThreshold}
-                          onChange={(e) => {
-                            const val = parseInt(e.target.value) || 0
-                            if (val >= 0 && val <= 1023) {
-                              setLdrLowThreshold(val)
-                            }
-                          }}
-                          disabled={!isOnline || isLoading || isUpdatingThreshold === 'ldr-low'}
-                          className="flex-1"
-                          placeholder="0-1023"
-                        />
-                        <span className="flex items-center text-sm text-gray-500">lux</span>
-                        <Button
-                          onClick={() => handleThresholdUpdate('ldr-low', ldrLowThreshold)}
-                          disabled={!isOnline || isLoading || isUpdatingThreshold === 'ldr-low'}
-                          size="sm"
-                          className="bg-green-600 hover:bg-green-700"
-                        >
-                          {isUpdatingThreshold === 'ldr-low' ? 'Đang cập nhật...' : 'Cập nhật'}
-                        </Button>
-                      </div>
-                      <p className="text-xs text-gray-500 mt-1">
-                        Ngưỡng ánh sáng thấp: {ldrLowThreshold} lux
-                      </p>
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Ngưỡng cao
-                      </label>
-                      <div className="flex gap-2">
-                        <Input
-                          type="number"
-                          min="0"
-                          max="1023"
-                          value={ldrHighThreshold}
-                          onChange={(e) => {
-                            const val = parseInt(e.target.value) || 0
-                            if (val >= 0 && val <= 1023) {
-                              setLdrHighThreshold(val)
-                            }
-                          }}
-                          disabled={!isOnline || isLoading || isUpdatingThreshold === 'ldr-high'}
-                          className="flex-1"
-                          placeholder="0-1023"
-                        />
-                        <span className="flex items-center text-sm text-gray-500">lux</span>
-                        <Button
-                          onClick={() => handleThresholdUpdate('ldr-high', ldrHighThreshold)}
-                          disabled={!isOnline || isLoading || isUpdatingThreshold === 'ldr-high'}
-                          size="sm"
-                          className="bg-green-600 hover:bg-green-700"
-                        >
-                          {isUpdatingThreshold === 'ldr-high' ? 'Đang cập nhật...' : 'Cập nhật'}
-                        </Button>
-                      </div>
-                      <p className="text-xs text-gray-500 mt-1">
-                        Ngưỡng ánh sáng cao: {ldrHighThreshold} lux
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
 
         { }
         {!isOnline && (
@@ -671,6 +507,184 @@ const RealTimeIoTDashboard: React.FC = () => {
             </Card>
           </motion.div>
         )}
+
+        { }
+        <Dialog open={isThresholdModalOpen} onOpenChange={setIsThresholdModalOpen}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <div className="flex items-center gap-2">
+                <Settings className="h-5 w-5 text-green-600" />
+                <DialogTitle className="text-xl font-semibold text-gray-900">
+                  Cấu hình Ngưỡng
+                </DialogTitle>
+              </div>
+              <DialogDescription className="text-sm text-gray-600 mt-1">
+                Thiết lập ngưỡng cho Độ ẩm đất và Ánh sáng để điều khiển tự động
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-6 md:grid-cols-2 mt-4">
+              { }
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <Sprout className="h-5 w-5 text-green-600" />
+                  <h3 className="text-lg font-semibold text-gray-900">Độ ẩm đất</h3>
+                </div>
+
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Ngưỡng thấp (Bật bơm khi ≤)
+                    </label>
+                    <div className="flex gap-2">
+                      <Input
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={soilLowThreshold}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value) || 0
+                          if (val >= 0 && val <= 100) {
+                            setSoilLowThreshold(val)
+                          }
+                        }}
+                        disabled={!isOnline || isLoading || isUpdatingThreshold === 'soil-low'}
+                        className="flex-1"
+                        placeholder="0-100"
+                      />
+                      <span className="flex items-center text-sm text-gray-500">%</span>
+                      <Button
+                        onClick={() => handleThresholdUpdate('soil-low', soilLowThreshold)}
+                        disabled={!isOnline || isLoading || isUpdatingThreshold === 'soil-low'}
+                        size="sm"
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        {isUpdatingThreshold === 'soil-low' ? 'Đang cập nhật...' : 'Cập nhật'}
+                      </Button>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Máy bơm sẽ tự động bật khi độ ẩm đất ≤ {soilLowThreshold}%
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Ngưỡng cao (Tắt bơm khi ≥)
+                    </label>
+                    <div className="flex gap-2">
+                      <Input
+                        type="number"
+                        min="0"
+                        max="100"
+                        value={soilHighThreshold}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value) || 0
+                          if (val >= 0 && val <= 100) {
+                            setSoilHighThreshold(val)
+                          }
+                        }}
+                        disabled={!isOnline || isLoading || isUpdatingThreshold === 'soil-high'}
+                        className="flex-1"
+                        placeholder="0-100"
+                      />
+                      <span className="flex items-center text-sm text-gray-500">%</span>
+                      <Button
+                        onClick={() => handleThresholdUpdate('soil-high', soilHighThreshold)}
+                        disabled={!isOnline || isLoading || isUpdatingThreshold === 'soil-high'}
+                        size="sm"
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        {isUpdatingThreshold === 'soil-high' ? 'Đang cập nhật...' : 'Cập nhật'}
+                      </Button>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Máy bơm sẽ tự động tắt khi độ ẩm đất ≥ {soilHighThreshold}%
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              { }
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <Sun className="h-5 w-5 text-yellow-500" />
+                  <h3 className="text-lg font-semibold text-gray-900">Ánh sáng</h3>
+                </div>
+
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Ngưỡng thấp
+                    </label>
+                    <div className="flex gap-2">
+                      <Input
+                        type="number"
+                        min="0"
+                        max="1023"
+                        value={ldrLowThreshold}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value) || 0
+                          if (val >= 0 && val <= 1023) {
+                            setLdrLowThreshold(val)
+                          }
+                        }}
+                        disabled={!isOnline || isLoading || isUpdatingThreshold === 'ldr-low'}
+                        className="flex-1"
+                        placeholder="0-1023"
+                      />
+                      <span className="flex items-center text-sm text-gray-500">lux</span>
+                      <Button
+                        onClick={() => handleThresholdUpdate('ldr-low', ldrLowThreshold)}
+                        disabled={!isOnline || isLoading || isUpdatingThreshold === 'ldr-low'}
+                        size="sm"
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        {isUpdatingThreshold === 'ldr-low' ? 'Đang cập nhật...' : 'Cập nhật'}
+                      </Button>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Ngưỡng ánh sáng thấp: {ldrLowThreshold} lux
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Ngưỡng cao
+                    </label>
+                    <div className="flex gap-2">
+                      <Input
+                        type="number"
+                        min="0"
+                        max="1023"
+                        value={ldrHighThreshold}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value) || 0
+                          if (val >= 0 && val <= 1023) {
+                            setLdrHighThreshold(val)
+                          }
+                        }}
+                        disabled={!isOnline || isLoading || isUpdatingThreshold === 'ldr-high'}
+                        className="flex-1"
+                        placeholder="0-1023"
+                      />
+                      <span className="flex items-center text-sm text-gray-500">lux</span>
+                      <Button
+                        onClick={() => handleThresholdUpdate('ldr-high', ldrHighThreshold)}
+                        disabled={!isOnline || isLoading || isUpdatingThreshold === 'ldr-high'}
+                        size="sm"
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        {isUpdatingThreshold === 'ldr-high' ? 'Đang cập nhật...' : 'Cập nhật'}
+                      </Button>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Ngưỡng ánh sáng cao: {ldrHighThreshold} lux
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </ManagerLayout>
   )

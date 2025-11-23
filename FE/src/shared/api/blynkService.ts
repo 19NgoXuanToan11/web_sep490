@@ -212,6 +212,142 @@ class BlynkService {
       }
     }
   }
+
+  async setSoilLowThreshold(value: number): Promise<{ success: boolean; message: string }> {
+    try {
+      if (value < 0 || value > 100) {
+        return {
+          success: false,
+          message: 'Ngưỡng phải từ 0-100%',
+        }
+      }
+
+      const response = await fetch(`${this.baseUrl}/threshold/soil-low?value=${value}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`)
+      }
+
+      const data = await response.json()
+      return {
+        success: data.success || true,
+        message: data.message || `Ngưỡng BẬT bơm đã đặt ≤ ${value}%`,
+      }
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error.message || 'Lỗi gửi lệnh đến thiết bị',
+      }
+    }
+  }
+
+  async setSoilHighThreshold(value: number): Promise<{ success: boolean; message: string }> {
+    try {
+      if (value < 0 || value > 100) {
+        return {
+          success: false,
+          message: 'Ngưỡng phải từ 0-100%',
+        }
+      }
+
+      const response = await fetch(`${this.baseUrl}/threshold/soil-high?value=${value}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`)
+      }
+
+      const data = await response.json()
+      return {
+        success: data.success || true,
+        message: data.message || `Ngưỡng TẮT bơm đã đặt ≥ ${value}%`,
+      }
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error.message || 'Lỗi gửi lệnh đến thiết bị',
+      }
+    }
+  }
+
+  async setLdrLowThreshold(value: number): Promise<{ success: boolean; message: string }> {
+    try {
+      if (value < 0 || value > 1023) {
+        return {
+          success: false,
+          message: 'Ngưỡng LDR phải từ 0-1023',
+        }
+      }
+
+      const response = await fetch(`${this.baseUrl}/threshold/ldr-low?value=${value}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`)
+      }
+
+      const data = await response.json()
+      return {
+        success: data.success || true,
+        message: data.message || `Ngưỡng ánh sáng THẤP đã đặt: ${value}`,
+      }
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error.message || 'Lỗi gửi lệnh đến thiết bị',
+      }
+    }
+  }
+
+  async setLdrHighThreshold(value: number): Promise<{ success: boolean; message: string }> {
+    try {
+      if (value < 0 || value > 1023) {
+        return {
+          success: false,
+          message: 'Ngưỡng LDR phải từ 0-1023',
+        }
+      }
+
+      const response = await fetch(`${this.baseUrl}/threshold/ldr-high?value=${value}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`)
+      }
+
+      const data = await response.json()
+      return {
+        success: data.success || true,
+        message: data.message || `Ngưỡng ánh sáng CAO đã đặt: ${value}`,
+      }
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error.message || 'Lỗi gửi lệnh đến thiết bị',
+      }
+    }
+  }
 }
 
 export const blynkService = new BlynkService()

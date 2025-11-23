@@ -27,7 +27,7 @@ interface ErrorContext {
 }
 
 // Enhanced error mapping function
-export const mapErrorToVietnamese = (error: unknown, context?: ErrorContext): ErrorMessage => {
+export const mapErrorToVietnamese = (error: unknown, _context?: ErrorContext): ErrorMessage => {
   let errorMessage = DEFAULT_ERROR_MESSAGE
   let originalMessage = ''
 

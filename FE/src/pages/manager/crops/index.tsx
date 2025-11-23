@@ -187,7 +187,7 @@ export default function CropsPage() {
           })
           imageUrl = await uploadImageToCloudinary({
             file: formData.productImageFile,
-            onProgress: percent => {
+            onProgress: _percent => {
             },
           })
         } catch (error) {

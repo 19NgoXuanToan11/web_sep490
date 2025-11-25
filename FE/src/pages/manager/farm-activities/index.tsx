@@ -349,11 +349,6 @@ export default function FarmActivitiesPage() {
     }
   }
 
-  const formatDate = (dateString: string) => {
-    if (!dateString) return ''
-    return new Date(dateString).toLocaleDateString('vi-VN')
-  }
-
   const getActivityTypeLabel = (type: string) => {
     const activityType = activityTypes.find(at => at.value === type)
     return activityType ? activityType.label : type

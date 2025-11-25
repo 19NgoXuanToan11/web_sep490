@@ -455,8 +455,6 @@ export default function FarmActivitiesPage() {
                 <TableRow>
                   <TableHead>ID</TableHead>
                   <TableHead>Loại hoạt động</TableHead>
-                  <TableHead>Ngày bắt đầu</TableHead>
-                  <TableHead>Ngày kết thúc</TableHead>
                   <TableHead>Trạng thái</TableHead>
                   <TableHead className="text-right">Hành động</TableHead>
                 </TableRow>
@@ -464,13 +462,13 @@ export default function FarmActivitiesPage() {
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-4">
+                    <TableCell colSpan={4} className="text-center py-4">
                       Đang tải...
                     </TableCell>
                   </TableRow>
                 ) : filteredActivities.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-4">
+                    <TableCell colSpan={4} className="text-center py-4">
                       Không có hoạt động nào
                     </TableCell>
                   </TableRow>
@@ -481,8 +479,6 @@ export default function FarmActivitiesPage() {
                         #{activity.farmActivitiesId}
                       </TableCell>
                       <TableCell>{getActivityTypeLabel(activity.activityType)}</TableCell>
-                      <TableCell>{formatDate(activity.startDate)}</TableCell>
-                      <TableCell>{formatDate(activity.endDate)}</TableCell>
                       <TableCell>{getStatusBadge(activity.status)}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">

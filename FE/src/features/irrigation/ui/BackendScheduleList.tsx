@@ -85,6 +85,8 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
     const [actionLoading, setActionLoading] = useState<{ [key: string]: boolean }>({})
     const [staffFilter, setStaffFilter] = useState<number | null>(null)
     const [showStaffFilter, setShowStaffFilter] = useState(false)
+    const [editingScheduleId, setEditingScheduleId] = useState<number | null>(null)
+    const [editLoading, setEditLoading] = useState(false)
     const todayString = useMemo(() => new Date().toISOString().split('T')[0], [])
     const displayItems = filteredItems ?? data?.data.items ?? []
     const displayTotal = filteredItems ? filteredItems.length : data?.data.totalItemCount ?? 0
@@ -361,6 +363,8 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
         if (!open) {
             setSelectedSchedule(null)
             setEditForm(buildEmptyScheduleForm())
+            setEditingScheduleId(null)
+            setEditLoading(false)
         }
     }, [setShowEdit, setSelectedSchedule, setEditForm])
 
@@ -401,34 +405,58 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
         }
     }
 
-    const handleEdit = async (schedule: ScheduleListItem) => {
+    const handleEdit = (schedule: ScheduleListItem) => {
         if (!schedule.scheduleId) return
-        setActionLoading({ [`edit-${schedule.scheduleId}`]: true })
-        try {
-            const res = await scheduleService.getScheduleById(schedule.scheduleId)
-            const detail = res.data
-            setEditForm({
-                farmId: detail.farmId || 0,
-                cropId: detail.cropId || 0,
-                staffId: detail.staffId || 0,
-                startDate: detail.startDate,
-                endDate: detail.endDate,
-                plantingDate: detail.plantingDate ?? '',
-                harvestDate: detail.harvestDate ?? '',
-                quantity: detail.quantity,
-                status: typeof detail.status === 'number' ? detail.status : 0,
-                pesticideUsed: detail.pesticideUsed,
-                diseaseStatus: detail.diseaseStatus || 0,
-                farmActivitiesId: detail.farmActivitiesId || 0,
-            })
-            setSelectedSchedule(schedule)
-            handleEditDialogChange(true)
-        } catch (e) {
-            toast({ title: 'Không thể tải thông tin lịch', description: (e as Error).message, variant: 'destructive' })
-        } finally {
-            setActionLoading({ [`edit-${schedule.scheduleId}`]: false })
-        }
+        setSelectedSchedule(schedule)
+        setEditForm(buildEmptyScheduleForm())
+        setEditingScheduleId(schedule.scheduleId)
+        handleEditDialogChange(true)
     }
+
+    useEffect(() => {
+        if (!editingScheduleId) return
+        let cancelled = false
+        setEditLoading(true)
+        setActionLoading({ [`edit-${editingScheduleId}`]: true })
+            ; (async () => {
+                try {
+                    const res = await scheduleService.getScheduleById(editingScheduleId)
+                    if (cancelled) return
+                    const detail = res.data
+                    setEditForm({
+                        farmId: detail.farmId || 0,
+                        cropId: detail.cropId || 0,
+                        staffId: detail.staffId || 0,
+                        startDate: detail.startDate,
+                        endDate: detail.endDate,
+                        plantingDate: detail.plantingDate ?? '',
+                        harvestDate: detail.harvestDate ?? '',
+                        quantity: detail.quantity,
+                        status: typeof detail.status === 'number' ? detail.status : 0,
+                        pesticideUsed: detail.pesticideUsed,
+                        diseaseStatus: detail.diseaseStatus || 0,
+                        farmActivitiesId: detail.farmActivitiesId || 0,
+                    })
+                } catch (e) {
+                    if (!cancelled) {
+                        toast({
+                            title: 'Không thể tải thông tin lịch',
+                            description: (e as Error).message,
+                            variant: 'destructive',
+                        })
+                        handleEditDialogChange(false)
+                    }
+                } finally {
+                    if (!cancelled) {
+                        setEditLoading(false)
+                        setActionLoading({ [`edit-${editingScheduleId}`]: false })
+                    }
+                }
+            })()
+        return () => {
+            cancelled = true
+        }
+    }, [editingScheduleId, toast, handleEditDialogChange])
 
     const handleUpdateSchedule = async (ev: React.FormEvent) => {
         ev.preventDefault()
@@ -563,7 +591,7 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                                 <Select
                                     value={form.farmId ? String(form.farmId) : ''}
                                     onValueChange={v => setForm({ ...form, farmId: Number(v) })}
-                                    disabled={metaLoading}
+                                    disabled={metaLoading || editLoading}
                                 >
                                     <SelectTrigger>
                                         <SelectValue placeholder={metaLoading ? 'Đang tải...' : 'Chọn nông trại'} />
@@ -580,7 +608,7 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                                 <Select
                                     value={form.cropId ? String(form.cropId) : ''}
                                     onValueChange={v => setForm({ ...form, cropId: Number(v) })}
-                                    disabled={metaLoading}
+                                    disabled={metaLoading || editLoading}
                                 >
                                     <SelectTrigger>
                                         <SelectValue placeholder={metaLoading ? 'Đang tải...' : 'Chọn mùa vụ'} />
@@ -597,7 +625,7 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                                 <Select
                                     value={form.staffId ? String(form.staffId) : ''}
                                     onValueChange={v => setForm({ ...form, staffId: Number(v) })}
-                                    disabled={metaLoading}
+                                    disabled={metaLoading || editLoading}
                                 >
                                     <SelectTrigger>
                                         <SelectValue placeholder={metaLoading ? 'Đang tải...' : 'Chọn nhân viên'} />
@@ -661,7 +689,7 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                                 <Select
                                     value={String(form.status)}
                                     onValueChange={v => setForm({ ...form, status: Number(v) })}
-                                    disabled={metaLoading}
+                                    disabled={metaLoading || editLoading}
                                 >
                                     <SelectTrigger>
                                         <SelectValue placeholder="Chọn trạng thái" />
@@ -678,7 +706,7 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                                 <Select
                                     value={String(form.diseaseStatus)}
                                     onValueChange={v => setForm({ ...form, diseaseStatus: Number(v) })}
-                                    disabled={metaLoading}
+                                    disabled={metaLoading || editLoading}
                                 >
                                     <SelectTrigger>
                                         <SelectValue placeholder="Chọn tình trạng bệnh" />
@@ -1047,163 +1075,171 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                             <DialogTitle>Chỉnh sửa lịch tưới</DialogTitle>
                             <DialogDescription>Cập nhật thông tin lịch tưới.</DialogDescription>
                         </DialogHeader>
-                        <form className="grid grid-cols-2 md:grid-cols-3 gap-3" onSubmit={handleUpdateSchedule}>
-                            <div>
-                                <Label>Farm</Label>
-                                <Select
-                                    value={editForm.farmId ? String(editForm.farmId) : ''}
-                                    onValueChange={v => setEditForm({ ...editForm, farmId: Number(v) })}
-                                    disabled={metaLoading}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Chọn nông trại" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {farms.map(f => (
-                                            <SelectItem key={f.id} value={String(f.id)}>{f.name}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div>
-                                <Label>Crop</Label>
-                                <Select
-                                    value={editForm.cropId ? String(editForm.cropId) : ''}
-                                    onValueChange={v => setEditForm({ ...editForm, cropId: Number(v) })}
-                                    disabled={metaLoading}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Chọn cây trồng" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {crops.map(c => (
-                                            <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div>
-                                <Label>Staff</Label>
-                                <Select
-                                    value={editForm.staffId ? String(editForm.staffId) : ''}
-                                    onValueChange={v => setEditForm({ ...editForm, staffId: Number(v) })}
-                                    disabled={metaLoading}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Chọn nhân viên" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {staffs.map(s => (
-                                            <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div>
-                                <Label>Ngày bắt đầu</Label>
-                                <Input
-                                    type="date"
-                                    min={todayString}
-                                    value={editForm.startDate}
-                                    onChange={e => setEditForm({ ...editForm, startDate: e.target.value })}
-                                />
-                            </div>
-                            <div>
-                                <Label>Ngày kết thúc</Label>
-                                <Input
-                                    type="date"
-                                    min={editForm.startDate || todayString}
-                                    value={editForm.endDate}
-                                    onChange={e => setEditForm({ ...editForm, endDate: e.target.value })}
-                                />
-                            </div>
-                            <div>
-                                <Label>Ngày gieo trồng</Label>
-                                <Input
-                                    type="date"
-                                    min={editForm.startDate || todayString}
-                                    max={editForm.endDate || undefined}
-                                    value={editForm.plantingDate}
-                                    onChange={e => setEditForm({ ...editForm, plantingDate: e.target.value })}
-                                />
-                            </div>
-                            <div>
-                                <Label>Ngày thu hoạch</Label>
-                                <Input
-                                    type="date"
-                                    min={editForm.plantingDate || editForm.startDate || todayString}
-                                    max={editForm.endDate || undefined}
-                                    value={editForm.harvestDate}
-                                    onChange={e => setEditForm({ ...editForm, harvestDate: e.target.value })}
-                                />
-                            </div>
-                            <div>
-                                <Label>Số lượng</Label>
-                                <Input
-                                    type="number"
-                                    min={1}
-                                    value={editForm.quantity}
-                                    onChange={e => setEditForm({ ...editForm, quantity: Number(e.target.value) })}
-                                />
-                            </div>
-                            <div>
-                                <Label>Trạng thái</Label>
-                                <Select
-                                    value={String(editForm.status)}
-                                    onValueChange={v => setEditForm({ ...editForm, status: Number(v) })}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {statusOptions.map(opt => (
-                                            <SelectItem key={opt.value} value={String(opt.value)}>{opt.label}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div>
-                                <Label>Tình trạng bệnh</Label>
-                                <Select
-                                    value={String(editForm.diseaseStatus)}
-                                    onValueChange={v => setEditForm({ ...editForm, diseaseStatus: Number(v) })}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {diseaseOptions.map(opt => (
-                                            <SelectItem key={opt.value} value={String(opt.value)}>{opt.label}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div>
-                                <Label>Hoạt động</Label>
-                                <Select
-                                    value={editForm.farmActivitiesId ? String(editForm.farmActivitiesId) : ''}
-                                    onValueChange={v => setEditForm({ ...editForm, farmActivitiesId: Number(v) })}
-                                    disabled={metaLoading}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Chọn hoạt động" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {activities.map(a => (
-                                            <SelectItem key={a.id} value={String(a.id)}>{a.name}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                                <input
-                                    type="checkbox"
-                                    id="editPesticide"
-                                    checked={editForm.pesticideUsed}
-                                    onChange={e => setEditForm({ ...editForm, pesticideUsed: e.target.checked })}
-                                />
-                                <Label htmlFor="editPesticide">Sử dụng thuốc BVTV</Label>
-                            </div>
+                        <form onSubmit={handleUpdateSchedule}>
+                            <fieldset className="grid grid-cols-2 md:grid-cols-3 gap-3" disabled={editLoading}>
+                                {editLoading && (
+                                    <div className="col-span-2 md:col-span-3 flex items-center gap-2 text-sm text-muted-foreground">
+                                        <Loader2 className="h-4 w-4 animate-spin" />
+                                        Đang tải dữ liệu lịch...
+                                    </div>
+                                )}
+                                <div>
+                                    <Label>Farm</Label>
+                                    <Select
+                                        value={editForm.farmId ? String(editForm.farmId) : ''}
+                                        onValueChange={v => setEditForm({ ...editForm, farmId: Number(v) })}
+                                        disabled={metaLoading}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Chọn nông trại" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {farms.map(f => (
+                                                <SelectItem key={f.id} value={String(f.id)}>{f.name}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div>
+                                    <Label>Crop</Label>
+                                    <Select
+                                        value={editForm.cropId ? String(editForm.cropId) : ''}
+                                        onValueChange={v => setEditForm({ ...editForm, cropId: Number(v) })}
+                                        disabled={metaLoading}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Chọn cây trồng" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {crops.map(c => (
+                                                <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div>
+                                    <Label>Staff</Label>
+                                    <Select
+                                        value={editForm.staffId ? String(editForm.staffId) : ''}
+                                        onValueChange={v => setEditForm({ ...editForm, staffId: Number(v) })}
+                                        disabled={metaLoading}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Chọn nhân viên" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {staffs.map(s => (
+                                                <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div>
+                                    <Label>Ngày bắt đầu</Label>
+                                    <Input
+                                        type="date"
+                                        min={todayString}
+                                        value={editForm.startDate}
+                                        onChange={e => setEditForm({ ...editForm, startDate: e.target.value })}
+                                    />
+                                </div>
+                                <div>
+                                    <Label>Ngày kết thúc</Label>
+                                    <Input
+                                        type="date"
+                                        min={editForm.startDate || todayString}
+                                        value={editForm.endDate}
+                                        onChange={e => setEditForm({ ...editForm, endDate: e.target.value })}
+                                    />
+                                </div>
+                                <div>
+                                    <Label>Ngày gieo trồng</Label>
+                                    <Input
+                                        type="date"
+                                        min={editForm.startDate || todayString}
+                                        max={editForm.endDate || undefined}
+                                        value={editForm.plantingDate}
+                                        onChange={e => setEditForm({ ...editForm, plantingDate: e.target.value })}
+                                    />
+                                </div>
+                                <div>
+                                    <Label>Ngày thu hoạch</Label>
+                                    <Input
+                                        type="date"
+                                        min={editForm.plantingDate || editForm.startDate || todayString}
+                                        max={editForm.endDate || undefined}
+                                        value={editForm.harvestDate}
+                                        onChange={e => setEditForm({ ...editForm, harvestDate: e.target.value })}
+                                    />
+                                </div>
+                                <div>
+                                    <Label>Số lượng</Label>
+                                    <Input
+                                        type="number"
+                                        min={1}
+                                        value={editForm.quantity}
+                                        onChange={e => setEditForm({ ...editForm, quantity: Number(e.target.value) })}
+                                    />
+                                </div>
+                                <div>
+                                    <Label>Trạng thái</Label>
+                                    <Select
+                                        value={String(editForm.status)}
+                                        onValueChange={v => setEditForm({ ...editForm, status: Number(v) })}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {statusOptions.map(opt => (
+                                                <SelectItem key={opt.value} value={String(opt.value)}>{opt.label}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div>
+                                    <Label>Tình trạng bệnh</Label>
+                                    <Select
+                                        value={String(editForm.diseaseStatus)}
+                                        onValueChange={v => setEditForm({ ...editForm, diseaseStatus: Number(v) })}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {diseaseOptions.map(opt => (
+                                                <SelectItem key={opt.value} value={String(opt.value)}>{opt.label}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div>
+                                    <Label>Hoạt động</Label>
+                                    <Select
+                                        value={editForm.farmActivitiesId ? String(editForm.farmActivitiesId) : ''}
+                                        onValueChange={v => setEditForm({ ...editForm, farmActivitiesId: Number(v) })}
+                                        disabled={metaLoading}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Chọn hoạt động" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {activities.map(a => (
+                                                <SelectItem key={a.id} value={String(a.id)}>{a.name}</SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <input
+                                        type="checkbox"
+                                        id="editPesticide"
+                                        checked={editForm.pesticideUsed}
+                                        onChange={e => setEditForm({ ...editForm, pesticideUsed: e.target.checked })}
+                                    />
+                                    <Label htmlFor="editPesticide">Sử dụng thuốc BVTV</Label>
+                                </div>
+                            </fieldset>
                         </form>
                         <DialogFooter>
                             <Button type="button" variant="outline" onClick={() => handleEditDialogChange(false)}>

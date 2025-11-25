@@ -68,7 +68,7 @@ const StaffOrdersPage: React.FC = () => {
   const [totalItems, setTotalItems] = useState(0)
   const [totalPages, setTotalPages] = useState(0)
   const [currentPage, setCurrentPage] = useState(1)
-  const pageSize = 15
+  const pageSize = 40
 
   const [searchQuery, setSearchQuery] = useState('')
   const [searchType, setSearchType] = useState<
@@ -154,7 +154,7 @@ const StaffOrdersPage: React.FC = () => {
 
         setOrders(transformedOrders)
         setTotalItems(response.totalItemCount)
-        setTotalPages(response.totalPageCount)
+        setTotalPages(Math.max(1, Math.ceil((response.totalItemCount || 0) / pageSize)))
         setCurrentPage(response.pageIndex)
 
         // Lưu lại order ID lớn nhất để check đơn hàng mới
@@ -366,8 +366,9 @@ const StaffOrdersPage: React.FC = () => {
 
       const transformedOrders = searchResult.items.map(transformApiOrder)
       setOrders(transformedOrders)
-      setTotalItems(searchResult.totalItemCount || 0)
-      setTotalPages(searchResult.totalPageCount || 1)
+      const total = searchResult.totalItemCount || 0
+      setTotalItems(total)
+      setTotalPages(Math.max(1, Math.ceil(total / pageSize)))
       setCurrentPage(1)
 
       toast({

@@ -732,18 +732,10 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                             <tr className="text-left border-b">
                                 <th className="py-2 pr-3">Ngày bắt đầu</th>
                                 <th className="py-2 pr-3">Ngày kết thúc</th>
-                                <th className="py-2 pr-3">Số lượng</th>
                                 <th className="py-2 pr-3">Trạng thái</th>
-                                <th className="py-2 pr-3">Thuốc BVTV</th>
-                                <th className="py-2 pr-3">Ngày gieo trồng</th>
-                                <th className="py-2 pr-3">Ngày thu hoạch</th>
-                                <th className="py-2 pr-3">Tình trạng bệnh</th>
                                 <th className="py-2 pr-3">Nhân viên</th>
                                 <th className="py-2 pr-3">Nông trại</th>
                                 <th className="py-2 pr-3">Cây trồng</th>
-                                <th className="py-2 pr-3">Hoạt động</th>
-                                <th className="py-2 pr-3">Tạo lúc</th>
-                                <th className="py-2 pr-3">Cập nhật lúc</th>
                                 <th className="py-2 pr-3">Thao tác</th>
                             </tr>
                         </thead>
@@ -752,16 +744,11 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                                 <tr key={idx} className="border-b last:border-0">
                                     <td className="py-2 pr-3">{it.startDate}</td>
                                     <td className="py-2 pr-3">{it.endDate}</td>
-                                    <td className="py-2 pr-3">{it.quantity}</td>
                                     <td className="py-2 pr-3">
                                         <Badge variant={typeof it.status === 'number' && it.status === 1 ? 'success' : 'secondary'}>
                                             {getStatusLabel(it.status)}
                                         </Badge>
                                     </td>
-                                    <td className="py-2 pr-3">{it.pesticideUsed ? 'Có' : 'Không'}</td>
-                                    <td className="py-2 pr-3">{it.plantingDate ?? '-'}</td>
-                                    <td className="py-2 pr-3">{it.harvestDate ?? '-'}</td>
-                                    <td className="py-2 pr-3">{getDiseaseLabel(it.diseaseStatus)}</td>
                                     <td className="py-2 pr-3">
                                         <div className="flex flex-col">
                                             <span className="font-medium">{it.staff?.fullname ?? it.staffName ?? '-'}</span>
@@ -788,24 +775,6 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                                             )}
                                         </div>
                                     </td>
-                                    <td className="py-2 pr-3">
-                                        <div className="flex flex-col">
-                                            <span className="font-medium">
-                                                {it.farmActivityView?.activityType
-                                                    ? translateActivityType(it.farmActivityView.activityType)
-                                                    : it.farmActivitiesId
-                                                        ? `#${it.farmActivitiesId}`
-                                                        : '-'}
-                                            </span>
-                                            {it.farmActivityView?.status && (
-                                                <Badge variant={it.farmActivityView.status === 'ACTIVE' ? 'success' : 'secondary'} className="text-xs w-fit mt-1">
-                                                    {it.farmActivityView.status === 'ACTIVE' ? 'Hoạt động' : 'Vô hiệu hóa'}
-                                                </Badge>
-                                            )}
-                                        </div>
-                                    </td>
-                                    <td className="py-2 pr-3">{it.createdAt}</td>
-                                    <td className="py-2 pr-3">{it.updatedAt ?? '-'}</td>
                                     <td className="py-2 pr-3">
                                         <div className="flex items-center gap-1">
                                             <Button
@@ -862,7 +831,7 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                             ))}
                             {!loading && displayItems.length === 0 && (
                                 <tr>
-                                    <td colSpan={15} className="py-6 text-center text-muted-foreground">
+                                    <td colSpan={7} className="py-6 text-center text-muted-foreground">
                                         Chưa có dữ liệu
                                     </td>
                                 </tr>

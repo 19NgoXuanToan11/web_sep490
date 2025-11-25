@@ -25,8 +25,6 @@ const BULK_PAGE_SIZE = 50
 interface ActivityOption {
     id: number
     name: string
-    startDate?: string
-    endDate?: string
 }
 
 const toDateOnly = (value?: string) => {
@@ -88,7 +86,6 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
     const [staffFilter, setStaffFilter] = useState<number | null>(null)
     const [showStaffFilter, setShowStaffFilter] = useState(false)
     const todayString = useMemo(() => new Date().toISOString().split('T')[0], [])
-    const activityMap = useMemo(() => new Map(activities.map(a => [a.id, a])), [activities])
     const displayItems = filteredItems ?? data?.data.items ?? []
     const displayTotal = filteredItems ? filteredItems.length : data?.data.totalItemCount ?? 0
     const isFiltered = filteredItems !== null
@@ -264,24 +261,6 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
             }
         }
 
-        if (payload.farmActivitiesId) {
-            const activity = activityMap.get(payload.farmActivitiesId)
-            if (activity) {
-                const activityStart = toDateOnly(activity.startDate)
-                const activityEnd = toDateOnly(activity.endDate)
-                if (!activityStart || !activityEnd) {
-                    errors.push('Hoạt động nông trại chưa có ngày bắt đầu/kết thúc hợp lệ.')
-                } else {
-                    if (start && activityStart < start) {
-                        errors.push('Hoạt động phải bắt đầu sau hoặc bằng ngày bắt đầu lịch.')
-                    }
-                    if (end && activityEnd > end) {
-                        errors.push('Hoạt động phải kết thúc trước hoặc bằng ngày kết thúc lịch.')
-                    }
-                }
-            }
-        }
-
         if (start && end && payload.farmId && payload.cropId && allSchedules.length) {
             const hasOverlap = allSchedules.some(s => {
                 if (!s.startDate || !s.endDate) return false
@@ -301,7 +280,7 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
             valid: errors.length === 0,
             errors,
         }
-    }, [activityMap, allSchedules])
+    }, [allSchedules])
 
     const ensureScheduleValidity = useCallback((payload: CreateScheduleRequest, currentScheduleId?: number) => {
         const result = validateSchedulePayload(payload, currentScheduleId)
@@ -338,9 +317,7 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
             staffOptions: staffRes.items.map(s => ({ id: s.accountId, name: s.email })),
             activityOptions: (fa.items || []).map((a: FarmActivity) => ({
                 id: a.farmActivitiesId,
-                name: `#${a.farmActivitiesId} • ${translateActivityType(a.activityType)} (${a.startDate ?? '?'} → ${a.endDate ?? '?'})`,
-                startDate: a.startDate,
-                endDate: a.endDate,
+                name: `#${a.farmActivitiesId} • ${translateActivityType(a.activityType)}`,
             })),
         }
     }, [translateActivityType])
@@ -1085,12 +1062,6 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                                                         {scheduleDetail.farmActivityView.status === 'ACTIVE' ? 'Hoạt động' : 'Vô hiệu hóa'}
                                                     </Badge>
                                                 </div>
-                                            )}
-                                            {scheduleDetail.farmActivityView.startDate && (
-                                                <div><strong>Ngày bắt đầu:</strong> {scheduleDetail.farmActivityView.startDate}</div>
-                                            )}
-                                            {scheduleDetail.farmActivityView.endDate && (
-                                                <div><strong>Ngày kết thúc:</strong> {scheduleDetail.farmActivityView.endDate}</div>
                                             )}
                                         </div>
                                     </div>

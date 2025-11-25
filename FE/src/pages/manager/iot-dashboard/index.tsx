@@ -58,7 +58,26 @@ const RealTimeIoTDashboard: React.FC = () => {
   const [isUpdatingThreshold, setIsUpdatingThreshold] = useState<string | null>(null)
   const [isThresholdModalOpen, setIsThresholdModalOpen] = useState(false)
 
+  // Validation errors state
+  const [soilValidationError, setSoilValidationError] = useState<string | null>(null)
+  const [ldrValidationError, setLdrValidationError] = useState<string | null>(null)
+
   const REFRESH_INTERVAL = 5000
+
+  // Validation functions
+  const validateSoilThresholds = (low: number, high: number): string | null => {
+    if (high <= low) {
+      return 'Ngưỡng cao phải lớn hơn ngưỡng thấp'
+    }
+    return null
+  }
+
+  const validateLdrThresholds = (low: number, high: number): string | null => {
+    if (high <= low) {
+      return 'Ngưỡng cao phải lớn hơn ngưỡng thấp'
+    }
+    return null
+  }
 
   const fetchSensorData = useCallback(async () => {
     try {
@@ -97,6 +116,20 @@ const RealTimeIoTDashboard: React.FC = () => {
 
     return () => clearInterval(interval)
   }, [fetchSensorData, manualControl])
+
+  // Validate thresholds when modal opens
+  useEffect(() => {
+    if (isThresholdModalOpen) {
+      const soilError = validateSoilThresholds(soilLowThreshold, soilHighThreshold)
+      const ldrError = validateLdrThresholds(ldrLowThreshold, ldrHighThreshold)
+      setSoilValidationError(soilError)
+      setLdrValidationError(ldrError)
+    } else {
+      // Clear validation errors when modal closes
+      setSoilValidationError(null)
+      setLdrValidationError(null)
+    }
+  }, [isThresholdModalOpen, soilLowThreshold, soilHighThreshold, ldrLowThreshold, ldrHighThreshold])
 
   // Đảm bảo máy bơm luôn bật khi ở chế độ tự động
   useEffect(() => {
@@ -230,6 +263,41 @@ const RealTimeIoTDashboard: React.FC = () => {
     type: 'soil-low' | 'soil-high' | 'ldr-low' | 'ldr-high',
     value: number
   ) => {
+    // Validate before making API call
+    let validationError: string | null = null
+
+    if (type === 'soil-low' || type === 'soil-high') {
+      const low = type === 'soil-low' ? value : soilLowThreshold
+      const high = type === 'soil-high' ? value : soilHighThreshold
+      validationError = validateSoilThresholds(low, high)
+      setSoilValidationError(validationError)
+
+      if (validationError) {
+        toast({
+          title: 'Lỗi xác thực',
+          description: validationError,
+          variant: 'destructive',
+        })
+        return
+      }
+    }
+
+    if (type === 'ldr-low' || type === 'ldr-high') {
+      const low = type === 'ldr-low' ? value : ldrLowThreshold
+      const high = type === 'ldr-high' ? value : ldrHighThreshold
+      validationError = validateLdrThresholds(low, high)
+      setLdrValidationError(validationError)
+
+      if (validationError) {
+        toast({
+          title: 'Lỗi xác thực',
+          description: validationError,
+          variant: 'destructive',
+        })
+        return
+      }
+    }
+
     setIsUpdatingThreshold(type)
     try {
       let result
@@ -238,24 +306,28 @@ const RealTimeIoTDashboard: React.FC = () => {
           result = await blynkService.setSoilLowThreshold(value)
           if (result.success) {
             setSoilLowThreshold(value)
+            setSoilValidationError(null)
           }
           break
         case 'soil-high':
           result = await blynkService.setSoilHighThreshold(value)
           if (result.success) {
             setSoilHighThreshold(value)
+            setSoilValidationError(null)
           }
           break
         case 'ldr-low':
           result = await blynkService.setLdrLowThreshold(value)
           if (result.success) {
             setLdrLowThreshold(value)
+            setLdrValidationError(null)
           }
           break
         case 'ldr-high':
           result = await blynkService.setLdrHighThreshold(value)
           if (result.success) {
             setLdrHighThreshold(value)
+            setLdrValidationError(null)
           }
           break
       }
@@ -545,25 +617,36 @@ const RealTimeIoTDashboard: React.FC = () => {
                           const val = parseInt(e.target.value) || 0
                           if (val >= 0 && val <= 100) {
                             setSoilLowThreshold(val)
+                            // Validate in real-time
+                            const error = validateSoilThresholds(val, soilHighThreshold)
+                            setSoilValidationError(error)
                           }
                         }}
                         disabled={!isOnline || isLoading || isUpdatingThreshold === 'soil-low'}
-                        className="flex-1"
+                        className={`flex-1 ${soilValidationError ? 'border-red-500' : ''}`}
                         placeholder="0-100"
                       />
                       <span className="flex items-center text-sm text-gray-500">%</span>
                       <Button
                         onClick={() => handleThresholdUpdate('soil-low', soilLowThreshold)}
-                        disabled={!isOnline || isLoading || isUpdatingThreshold === 'soil-low'}
+                        disabled={!isOnline || isLoading || isUpdatingThreshold === 'soil-low' || !!soilValidationError}
                         size="sm"
                         className="bg-green-600 hover:bg-green-700"
                       >
                         {isUpdatingThreshold === 'soil-low' ? 'Đang cập nhật...' : 'Cập nhật'}
                       </Button>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Máy bơm sẽ tự động bật khi độ ẩm đất ≤ {soilLowThreshold}%
-                    </p>
+                    {soilValidationError && (
+                      <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" />
+                        {soilValidationError}
+                      </p>
+                    )}
+                    {!soilValidationError && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        Máy bơm sẽ tự động bật khi độ ẩm đất ≤ {soilLowThreshold}%
+                      </p>
+                    )}
                   </div>
 
                   <div>
@@ -580,25 +663,36 @@ const RealTimeIoTDashboard: React.FC = () => {
                           const val = parseInt(e.target.value) || 0
                           if (val >= 0 && val <= 100) {
                             setSoilHighThreshold(val)
+                            // Validate in real-time
+                            const error = validateSoilThresholds(soilLowThreshold, val)
+                            setSoilValidationError(error)
                           }
                         }}
                         disabled={!isOnline || isLoading || isUpdatingThreshold === 'soil-high'}
-                        className="flex-1"
+                        className={`flex-1 ${soilValidationError ? 'border-red-500' : ''}`}
                         placeholder="0-100"
                       />
                       <span className="flex items-center text-sm text-gray-500">%</span>
                       <Button
                         onClick={() => handleThresholdUpdate('soil-high', soilHighThreshold)}
-                        disabled={!isOnline || isLoading || isUpdatingThreshold === 'soil-high'}
+                        disabled={!isOnline || isLoading || isUpdatingThreshold === 'soil-high' || !!soilValidationError}
                         size="sm"
                         className="bg-green-600 hover:bg-green-700"
                       >
                         {isUpdatingThreshold === 'soil-high' ? 'Đang cập nhật...' : 'Cập nhật'}
                       </Button>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Máy bơm sẽ tự động tắt khi độ ẩm đất ≥ {soilHighThreshold}%
-                    </p>
+                    {soilValidationError && (
+                      <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" />
+                        {soilValidationError}
+                      </p>
+                    )}
+                    {!soilValidationError && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        Máy bơm sẽ tự động tắt khi độ ẩm đất ≥ {soilHighThreshold}%
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -625,25 +719,36 @@ const RealTimeIoTDashboard: React.FC = () => {
                           const val = parseInt(e.target.value) || 0
                           if (val >= 0 && val <= 1023) {
                             setLdrLowThreshold(val)
+                            // Validate in real-time
+                            const error = validateLdrThresholds(val, ldrHighThreshold)
+                            setLdrValidationError(error)
                           }
                         }}
                         disabled={!isOnline || isLoading || isUpdatingThreshold === 'ldr-low'}
-                        className="flex-1"
+                        className={`flex-1 ${ldrValidationError ? 'border-red-500' : ''}`}
                         placeholder="0-1023"
                       />
                       <span className="flex items-center text-sm text-gray-500">lux</span>
                       <Button
                         onClick={() => handleThresholdUpdate('ldr-low', ldrLowThreshold)}
-                        disabled={!isOnline || isLoading || isUpdatingThreshold === 'ldr-low'}
+                        disabled={!isOnline || isLoading || isUpdatingThreshold === 'ldr-low' || !!ldrValidationError}
                         size="sm"
                         className="bg-green-600 hover:bg-green-700"
                       >
                         {isUpdatingThreshold === 'ldr-low' ? 'Đang cập nhật...' : 'Cập nhật'}
                       </Button>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Ngưỡng ánh sáng thấp: {ldrLowThreshold} lux
-                    </p>
+                    {ldrValidationError && (
+                      <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" />
+                        {ldrValidationError}
+                      </p>
+                    )}
+                    {!ldrValidationError && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        Ngưỡng ánh sáng thấp: {ldrLowThreshold} lux
+                      </p>
+                    )}
                   </div>
 
                   <div>
@@ -660,25 +765,36 @@ const RealTimeIoTDashboard: React.FC = () => {
                           const val = parseInt(e.target.value) || 0
                           if (val >= 0 && val <= 1023) {
                             setLdrHighThreshold(val)
+                            // Validate in real-time
+                            const error = validateLdrThresholds(ldrLowThreshold, val)
+                            setLdrValidationError(error)
                           }
                         }}
                         disabled={!isOnline || isLoading || isUpdatingThreshold === 'ldr-high'}
-                        className="flex-1"
+                        className={`flex-1 ${ldrValidationError ? 'border-red-500' : ''}`}
                         placeholder="0-1023"
                       />
                       <span className="flex items-center text-sm text-gray-500">lux</span>
                       <Button
                         onClick={() => handleThresholdUpdate('ldr-high', ldrHighThreshold)}
-                        disabled={!isOnline || isLoading || isUpdatingThreshold === 'ldr-high'}
+                        disabled={!isOnline || isLoading || isUpdatingThreshold === 'ldr-high' || !!ldrValidationError}
                         size="sm"
                         className="bg-green-600 hover:bg-green-700"
                       >
                         {isUpdatingThreshold === 'ldr-high' ? 'Đang cập nhật...' : 'Cập nhật'}
                       </Button>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Ngưỡng ánh sáng cao: {ldrHighThreshold} lux
-                    </p>
+                    {ldrValidationError && (
+                      <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" />
+                        {ldrValidationError}
+                      </p>
+                    )}
+                    {!ldrValidationError && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        Ngưỡng ánh sáng cao: {ldrHighThreshold} lux
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>

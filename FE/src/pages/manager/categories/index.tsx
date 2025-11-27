@@ -227,13 +227,15 @@ export default function CategoriesPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead className="w-16">STT</TableHead>
                       <TableHead>Tên</TableHead>
                       <TableHead className="text-right">Thao tác</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredCategories.map(category => (
+                    {filteredCategories.map((category, index) => (
                       <TableRow key={category.categoryId}>
+                        <TableCell className="text-center">{index + 1}</TableCell>
                         <TableCell className="font-medium">{category.categoryName}</TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">

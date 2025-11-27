@@ -406,6 +406,7 @@ export default function CropsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-16">STT</TableHead>
                   <TableHead>Tên cây trồng</TableHead>
                   <TableHead>Mô tả</TableHead>
                   <TableHead>Trạng thái</TableHead>
@@ -415,19 +416,20 @@ export default function CropsPage() {
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center py-4">
+                    <TableCell colSpan={5} className="text-center py-4">
                       Đang tải...
                     </TableCell>
                   </TableRow>
                 ) : crops.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center py-4">
+                    <TableCell colSpan={5} className="text-center py-4">
                       Không có cây trồng nào
                     </TableCell>
                   </TableRow>
                 ) : (
-                  crops.map(crop => (
+                  crops.map((crop, index) => (
                     <TableRow key={crop.cropId}>
+                      <TableCell className="text-center">{(currentPage - 1) * pageSize + index + 1}</TableCell>
                       <TableCell className="font-medium">{crop.cropName}</TableCell>
                       <TableCell className="max-w-xs truncate">{crop.description}</TableCell>
                       <TableCell>

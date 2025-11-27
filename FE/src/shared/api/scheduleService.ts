@@ -33,6 +33,7 @@ export interface ScheduleListItem {
     origin?: string
     plantingDate?: string
     harvestDate?: string
+    plantStage?: string
   }
   farmActivityView?: {
     farmActivitiesId: number

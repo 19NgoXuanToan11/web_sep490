@@ -109,6 +109,28 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
         }
     }, [])
 
+    const translatePlantStage = useCallback((stage: string | null | undefined) => {
+        if (!stage) return '-'
+        switch (stage) {
+            case 'Sowing':
+                return 'Gieo hạt'
+            case 'Germination':
+                return 'Nảy mầm'
+            case 'CotyledonLeaves':
+                return 'Ra lá mầm'
+            case 'TrueLeavesGrowth':
+                return 'Phát triển lá thật'
+            case 'VigorousGrowth':
+                return 'Tăng trưởng mạnh'
+            case 'ReadyForHarvest':
+                return 'Sẵn sàng thu hoạch'
+            case 'PostHarvest':
+                return 'Sau thu hoạch'
+            default:
+                return stage
+        }
+    }, [])
+
     // local enum options mapping to backend numeric enums
     const statusOptions = useMemo(
         () => [
@@ -172,7 +194,7 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
         }
     }, [pageIndex, pageSize, toast])
 
-    const loadAllSchedules = useCallback(async (): Promise<ScheduleListItem[]> => {
+    const loadAllSchedules = useCallback(async (silent = false): Promise<ScheduleListItem[]> => {
         setAllSchedulesLoading(true)
         try {
             const first = await scheduleService.getScheduleList(1, BULK_PAGE_SIZE)
@@ -191,7 +213,10 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
             setAllSchedules(items)
             return items
         } catch (e) {
-            handleFetchError(e, toast, 'lịch tưới (toàn bộ)')
+            // Chỉ hiển thị error khi không phải silent mode (khi user thực sự cần validate)
+            if (!silent) {
+                handleFetchError(e, toast, 'lịch tưới (toàn bộ)')
+            }
             return []
         } finally {
             setAllSchedulesLoading(false)
@@ -302,7 +327,8 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
     }, [load])
 
     useEffect(() => {
-        loadAllSchedules()
+        // Load trong background, không hiển thị error nếu fail (vì dữ liệu chính đã được load bởi load())
+        loadAllSchedules(true)
     }, [loadAllSchedules])
 
     const loadReferenceData = useCallback(async () => {
@@ -990,9 +1016,6 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                                             {scheduleDetail.staff.email && (
                                                 <div><strong>Email:</strong> {scheduleDetail.staff.email}</div>
                                             )}
-                                            {scheduleDetail.staff.createdAt && (
-                                                <div><strong>Ngày tạo tài khoản:</strong> {scheduleDetail.staff.createdAt}</div>
-                                            )}
                                         </div>
                                     </div>
                                 )}
@@ -1023,13 +1046,8 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                                             {scheduleDetail.cropView.origin && (
                                                 <div><strong>Nguồn gốc:</strong> {scheduleDetail.cropView.origin}</div>
                                             )}
-                                            {scheduleDetail.cropView.status && (
-                                                <div>
-                                                    <strong>Trạng thái:</strong>{' '}
-                                                    <Badge variant={scheduleDetail.cropView.status === 'ACTIVE' ? 'success' : 'secondary'}>
-                                                        {scheduleDetail.cropView.status === 'ACTIVE' ? 'Hoạt động' : 'Vô hiệu hóa'}
-                                                    </Badge>
-                                                </div>
+                                            {scheduleDetail.cropView.plantStage && (
+                                                <div><strong>Giai đoạn cây:</strong> {translatePlantStage(scheduleDetail.cropView.plantStage)}</div>
                                             )}
                                             {scheduleDetail.cropView.description && (
                                                 <div className="col-span-2">

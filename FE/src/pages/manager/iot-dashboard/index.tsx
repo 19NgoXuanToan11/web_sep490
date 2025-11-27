@@ -47,7 +47,6 @@ const RealTimeIoTDashboard: React.FC = () => {
   const [pumpControl, setPumpControl] = useState(false)
   const [lightControl, setLightControl] = useState(false)
   const [servoAngle, setServoAngle] = useState([90])
-  const [timeFilter, setTimeFilter] = useState('Trực tiếp')
   const [retryCount, setRetryCount] = useState(0)
 
   // Threshold configuration state
@@ -355,8 +354,6 @@ const RealTimeIoTDashboard: React.FC = () => {
     }
   }
 
-  const timeFilters = ['Trực tiếp', '1 giờ', '6 giờ', '1 ngày', '1 tuần', '1 tháng']
-
   return (
     <ManagerLayout>
       <div className="min-h-screen bg-gray-50 p-6">
@@ -376,24 +373,6 @@ const RealTimeIoTDashboard: React.FC = () => {
             <p className="text-gray-600">
               Giám sát cảm biến thời gian thực và điều khiển thiết bị IoT
             </p>
-          </div>
-
-          { }
-          <div className="flex items-center gap-2">
-            {timeFilters.map(filter => (
-              <Button
-                key={filter}
-                variant={timeFilter === filter ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setTimeFilter(filter)}
-                className={`${timeFilter === filter
-                  ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                  : 'bg-white border-gray-300 hover:bg-gray-50 text-gray-700'
-                  }`}
-              >
-                {filter}
-              </Button>
-            ))}
           </div>
         </div>
 

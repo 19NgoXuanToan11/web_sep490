@@ -1046,9 +1046,14 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                                             {scheduleDetail.cropView.origin && (
                                                 <div><strong>Nguồn gốc:</strong> {scheduleDetail.cropView.origin}</div>
                                             )}
-                                            {scheduleDetail.cropView.plantStage && (
-                                                <div><strong>Giai đoạn cây:</strong> {translatePlantStage(scheduleDetail.cropView.plantStage)}</div>
-                                            )}
+                                            {/* TODO: Replace with API data */}
+                                            <div><strong>Giai đoạn cây:</strong> {scheduleDetail.cropView.plantStage ? translatePlantStage(scheduleDetail.cropView.plantStage) : 'Giai đoạn nảy mầm'}</div>
+                                            {/* TODO: Replace with API data */}
+                                            <div><strong>Độ ẩm đất yêu cầu:</strong> 70% - 80%</div>
+                                            {/* TODO: Replace with API data */}
+                                            <div><strong>Nhiệt độ yêu cầu:</strong> 25°C - 30°C</div>
+                                            {/* TODO: Replace with API data */}
+                                            <div><strong>Phân bón:</strong> NPK 20-20-15</div>
                                             {scheduleDetail.cropView.description && (
                                                 <div className="col-span-2">
                                                     <strong>Mô tả:</strong>

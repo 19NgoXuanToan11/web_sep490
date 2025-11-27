@@ -992,7 +992,6 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                                         <div><strong>Ngày kết thúc:</strong> {scheduleDetail.endDate}</div>
                                         <div><strong>Ngày gieo trồng:</strong> {scheduleDetail.plantingDate ?? '-'}</div>
                                         <div><strong>Ngày thu hoạch:</strong> {scheduleDetail.harvestDate ?? '-'}</div>
-                                        <div><strong>Số lượng:</strong> {scheduleDetail.quantity}</div>
                                         <div>
                                             <strong>Trạng thái:</strong>{' '}
                                             <Badge variant={typeof scheduleDetail.status === 'number' && scheduleDetail.status === 1 ? 'success' : 'secondary'}>
@@ -1043,6 +1042,7 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                                         <h3 className="text-lg font-semibold mb-3">Thông tin cây trồng</h3>
                                         <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
                                             <div><strong>Tên cây trồng:</strong> {scheduleDetail.cropView.cropName ?? `#${scheduleDetail.cropView.cropId}`}</div>
+                                            <div><strong>Số lượng:</strong> {scheduleDetail.quantity}</div>
                                             {scheduleDetail.cropView.origin && (
                                                 <div><strong>Nguồn gốc:</strong> {scheduleDetail.cropView.origin}</div>
                                             )}

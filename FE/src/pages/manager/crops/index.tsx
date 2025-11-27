@@ -1,5 +1,4 @@
-import { useState, useEffect } from 'react'
-import type { ChangeEvent } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { ManagerLayout } from '@/shared/layouts/ManagerLayout'
 import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
@@ -17,78 +16,169 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
 import { Textarea } from '@/shared/ui/textarea'
-import { Plus, Edit, Trash2, Search, RefreshCw } from 'lucide-react'
+import {
+  Plus,
+  Edit,
+  Trash2,
+  Search,
+  RefreshCw,
+  BarChart2,
+  Droplets,
+  Sun,
+  Thermometer,
+  Copy,
+} from 'lucide-react'
 import { useToast } from '@/shared/ui/use-toast'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs'
 import {
-  cropService,
-  type Crop,
-  type CropRequest,
-  type CropProductRequest,
-  type CreateCropWithProductRequest,
-} from '@/shared/api/cropService'
-import { categoryService, type Category } from '@/shared/api/categoryService'
-import {
-  uploadImageToCloudinary,
-  CloudinaryUploadError,
-} from '@/shared/lib/cloudinary'
+  cropRequirementService,
+  type CropRequirementView,
+  type CropRequirementPayload,
+  type PlantStage,
+} from '@/shared/api/cropRequirementService'
 
-type CreateCropFormState = {
-  cropName: string
-  description: string
-  origin: string
-  categoryId: number | ''
-  productName: string
-  productPrice: number
-  productDescription: string
-  productImageFile: File | null
-  productImagePreview: string | null
+type RequirementFormState = {
+  cropId: number | ''
+  plantStage: PlantStage | ''
+  estimatedDate: string
+  moisture: string
+  temperature: string
+  fertilizer: string
+  lightRequirement: string
+  wateringFrequency: string
+  notes: string
 }
 
-const createInitialFormState = (): CreateCropFormState => ({
-  cropName: '',
-  description: '',
-  origin: '',
-  categoryId: '',
-  productName: '',
-  productPrice: 0,
-  productDescription: '',
-  productImageFile: null,
-  productImagePreview: null,
-})
+const PLANT_STAGE_OPTIONS: { value: PlantStage; label: string; description: string }[] = [
+  { value: 'Sowing', label: 'Gieo hạt', description: 'Chuẩn bị đất và gieo giống' },
+  { value: 'Germination', label: 'Nảy mầm', description: 'Theo dõi độ ẩm đất' },
+  { value: 'CotyledonLeaves', label: 'Ra lá mầm', description: 'Bắt đầu bổ sung dinh dưỡng' },
+  { value: 'TrueLeavesGrowth', label: 'Phát triển lá thật', description: 'Tăng cường ánh sáng' },
+  { value: 'VigorousGrowth', label: 'Tăng trưởng mạnh', description: 'Theo dõi độ ẩm/ánh sáng' },
+  { value: 'ReadyForHarvest', label: 'Sẵn sàng thu hoạch', description: 'Kiểm tra chất lượng' },
+  { value: 'PostHarvest', label: 'Sau thu hoạch', description: 'Chuẩn bị vụ mới' },
+]
+
+const INITIAL_FORM_STATE: RequirementFormState = {
+  cropId: '',
+  plantStage: '',
+  estimatedDate: '',
+  moisture: '',
+  temperature: '',
+  fertilizer: '',
+  lightRequirement: '',
+  wateringFrequency: '',
+  notes: '',
+}
+
+const formatNumber = (value?: number | null, unit?: string) => {
+  if (value === null || value === undefined) return '—'
+  return `${Number(value).toFixed(1)}${unit ? ` ${unit}` : ''}`
+}
+
+const stageLabel = (stage?: string | null) => {
+  if (!stage) return 'Chưa xác định'
+  const match = PLANT_STAGE_OPTIONS.find(option => option.value === stage)
+  return match ? match.label : stage
+}
+
+const toNullableNumber = (value: string | number | '') =>
+  value === '' ? null : Number(value)
 
 export default function CropsPage() {
-  const [crops, setCrops] = useState<Crop[]>([])
+  const [requirements, setRequirements] = useState<CropRequirementView[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all')
+  const [stageFilter, setStageFilter] = useState<'all' | PlantStage>('all')
   const [currentPage, setCurrentPage] = useState(1)
-  const [totalPages, setTotalPages] = useState(1)
-  const [, setTotalCrops] = useState(0)
-  const pageSize = 10
+  const pageSize = 8
 
-  const [createDialogOpen, setCreateDialogOpen] = useState(false)
-  const [editDialogOpen, setEditDialogOpen] = useState(false)
-  const [editingCrop, setEditingCrop] = useState<Crop | null>(null)
-
-  const [categories, setCategories] = useState<Category[]>([])
-
-  // Unified form state for both crop (request1) and product (request2)
-  const [formData, setFormData] = useState<CreateCropFormState>(() => createInitialFormState())
+  const [formDialogOpen, setFormDialogOpen] = useState(false)
+  const [formMode, setFormMode] = useState<'create' | 'edit'>('create')
+  const [formData, setFormData] = useState<RequirementFormState>(INITIAL_FORM_STATE)
+  const [selectedRequirement, setSelectedRequirement] = useState<CropRequirementView | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const { toast } = useToast()
 
-  const loadCrops = async () => {
+  const filteredRequirements = useMemo(() => {
+    return requirements.filter(item => {
+      const matchesSearch =
+        !searchTerm ||
+        item.cropName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.notes?.toLowerCase().includes(searchTerm.toLowerCase())
+
+      const matchesStatus =
+        statusFilter === 'all' || (statusFilter === 'active' ? item.isActive : !item.isActive)
+
+      const matchesStage = stageFilter === 'all' || item.plantStage === stageFilter
+
+      return matchesSearch && matchesStatus && matchesStage
+    })
+  }, [requirements, searchTerm, statusFilter, stageFilter])
+
+  const totalPages = Math.max(1, Math.ceil(filteredRequirements.length / pageSize))
+
+  const paginatedRequirements = useMemo(() => {
+    const start = (currentPage - 1) * pageSize
+    return filteredRequirements.slice(start, start + pageSize)
+  }, [filteredRequirements, currentPage])
+
+  const stats = useMemo(() => {
+    const total = requirements.length
+    const active = requirements.filter(item => item.isActive).length
+    const average = (key: keyof CropRequirementView) => {
+      const values = requirements
+        .map(item => item[key] as number | null | undefined)
+        .filter((value): value is number => typeof value === 'number')
+      if (!values.length) return null
+      return values.reduce((sum, value) => sum + value, 0) / values.length
+    }
+    const stageDistribution = PLANT_STAGE_OPTIONS.map(option => {
+      const count = requirements.filter(item => item.plantStage === option.value).length
+      return { ...option, count, percent: total ? Math.round((count / total) * 100) : 0 }
+    })
+
+    return {
+      total,
+      active,
+      inactive: total - active,
+      moisture: average('moisture'),
+      temperature: average('temperature'),
+      light: average('lightRequirement'),
+      stageDistribution,
+    }
+  }, [requirements])
+
+  const handleResetForm = () => {
+    setFormData(INITIAL_FORM_STATE)
+    setSelectedRequirement(null)
+  }
+
+  const populateForm = (requirement: CropRequirementView) => {
+    setFormData({
+      cropId: requirement.cropId,
+      plantStage: (requirement.plantStage as PlantStage) || '',
+      estimatedDate: requirement.estimatedDate?.toString() ?? '',
+      moisture: requirement.moisture?.toString() ?? '',
+      temperature: requirement.temperature?.toString() ?? '',
+      fertilizer: requirement.fertilizer ?? '',
+      lightRequirement: requirement.lightRequirement?.toString() ?? '',
+      wateringFrequency: requirement.wateringFrequency ?? '',
+      notes: requirement.notes ?? '',
+    })
+  }
+
+  const loadRequirements = async () => {
     try {
       setLoading(true)
-      const response = await cropService.getAllCrops(currentPage, pageSize)
-      setCrops(response.items)
-      setTotalCrops(response.totalItemCount)
-      setTotalPages(Math.ceil(response.totalItemCount / pageSize))
+      const response = await cropRequirementService.getAll()
+      const data = Array.isArray(response.data) ? response.data : []
+      setRequirements(data)
     } catch (error) {
       toast({
         title: 'Lỗi',
-        description: 'Không thể tải danh sách cây trồng',
+        description: 'Không thể tải dữ liệu yêu cầu cây trồng',
         variant: 'destructive',
       })
     } finally {
@@ -96,608 +186,528 @@ export default function CropsPage() {
     }
   }
 
-  const searchCrops = async () => {
-    try {
-      setLoading(true)
-      const response = await cropService.searchCrop(
-        searchTerm || undefined,
-        statusFilter && statusFilter !== 'all' ? statusFilter : undefined,
-        currentPage,
-        pageSize
-      )
+  const openCreateDialog = () => {
+    handleResetForm()
+    setFormMode('create')
+    setFormDialogOpen(true)
+  }
 
-      if (response.data && response.data.items) {
-        setCrops(response.data.items)
-        setTotalCrops(response.data.totalItemCount)
-        setTotalPages(Math.ceil(response.data.totalItemCount / pageSize))
+  const openEditDialog = (requirement: CropRequirementView) => {
+    setSelectedRequirement(requirement)
+    populateForm(requirement)
+    setFormMode('edit')
+    setFormDialogOpen(true)
+  }
+
+  const mapFormToPayload = (): CropRequirementPayload => ({
+    estimatedDate: toNullableNumber(formData.estimatedDate),
+    moisture: toNullableNumber(formData.moisture),
+    temperature: toNullableNumber(formData.temperature),
+    fertilizer: formData.fertilizer || null,
+    lightRequirement: toNullableNumber(formData.lightRequirement),
+    wateringFrequency: formData.wateringFrequency || null,
+    notes: formData.notes || null,
+  })
+
+  const handleSubmitForm = async () => {
+    if (!formData.cropId || !formData.plantStage) {
+      toast({
+        title: 'Thiếu thông tin',
+        description: 'Vui lòng chọn cây trồng và giai đoạn phát triển',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    try {
+      setIsSubmitting(true)
+      const payload = mapFormToPayload()
+      if (formMode === 'create') {
+        await cropRequirementService.create(formData.cropId, payload, formData.plantStage)
+        toast({ title: 'Thành công', description: 'Đã thêm yêu cầu cây trồng mới' })
+      } else if (selectedRequirement) {
+        await cropRequirementService.update(
+          selectedRequirement.cropRequirementId,
+          payload,
+          formData.plantStage
+        )
+        toast({ title: 'Thành công', description: 'Đã cập nhật yêu cầu cây trồng' })
       }
+      setFormDialogOpen(false)
+      handleResetForm()
+      loadRequirements()
     } catch (error) {
       toast({
         title: 'Lỗi',
-        description: 'Không thể tìm kiếm cây trồng',
+        description: 'Không thể lưu yêu cầu cây trồng',
         variant: 'destructive',
       })
     } finally {
-      setLoading(false)
+      setIsSubmitting(false)
     }
   }
 
-  const loadCategories = async () => {
+  const handleToggleStatus = async (requirementId: number) => {
     try {
-      const data = await categoryService.getAllCategories()
-      setCategories(data)
-    } catch {
-      // ignore for now, crop creation will validate category selection
-    }
-  }
-
-  const handleImageChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0] || null
-    setFormData(prev => {
-      if (prev.productImagePreview) {
-        URL.revokeObjectURL(prev.productImagePreview)
-      }
-      return {
-        ...prev,
-        productImageFile: file,
-        productImagePreview: file ? URL.createObjectURL(file) : null,
-      }
-    })
-    event.target.value = ''
-  }
-
-  const handleRemoveImage = () => {
-    setFormData(prev => {
-      if (prev.productImagePreview) {
-        URL.revokeObjectURL(prev.productImagePreview)
-      }
-      return {
-        ...prev,
-        productImageFile: null,
-        productImagePreview: null,
-      }
-    })
-  }
-
-  const handleCreateCrop = async () => {
-    try {
-      if (
-        !formData.cropName ||
-        !formData.description ||
-        !formData.origin ||
-        !formData.productName ||
-        !formData.productPrice ||
-        !formData.categoryId
-      ) {
-        toast({
-          title: 'Lỗi',
-          description: 'Vui lòng điền đầy đủ thông tin bắt buộc cho cây trồng và sản phẩm',
-          variant: 'destructive',
-        })
-        return
-      }
-
-      // Step 1: Upload image to Cloudinary if image exists
-      let imageUrl: string | undefined
-      if (formData.productImageFile) {
-        try {
-          toast({
-            title: 'Đang tải lên hình ảnh...',
-            description: 'Vui lòng đợi trong giây lát',
-          })
-          imageUrl = await uploadImageToCloudinary({
-            file: formData.productImageFile,
-            onProgress: _percent => {
-            },
-          })
-        } catch (error) {
-          if (error instanceof CloudinaryUploadError) {
-            toast({
-              title: 'Lỗi tải lên hình ảnh',
-              description: error.message || 'Không thể tải lên hình ảnh lên Cloudinary',
-              variant: 'destructive',
-            })
-            return
-          }
-          throw error
-        }
-      }
-
-      // Step 2: Prepare JSON payload with Cloudinary URL
-      const request1: CropRequest = {
-        cropName: formData.cropName,
-        description: formData.description,
-        origin: formData.origin,
-        categoryId: Number(formData.categoryId),
-      }
-
-      const request2: CropProductRequest = {
-        productName: formData.productName,
-        price: Number(formData.productPrice),
-        description: formData.productDescription || undefined,
-        images: imageUrl, // Add Cloudinary URL to request2.images
-      }
-
-      const payload: CreateCropWithProductRequest = {
-        request1,
-        request2,
-      }
-
-      // Step 3: Send JSON payload to backend
-      await cropService.createCrop(payload)
-      toast({
-        title: 'Thành công',
-        description: 'Đã tạo cây trồng và sản phẩm mới',
-      })
-
-      setCreateDialogOpen(false)
-      resetForm()
-      loadCrops()
+      await cropRequirementService.updateStatus(requirementId)
+      toast({ title: 'Đã cập nhật', description: 'Trạng thái cây trồng đã được thay đổi' })
+      loadRequirements()
     } catch (error) {
-      console.error('Error creating crop:', error)
-      const errorMessage =
-        error instanceof Error ? error.message : 'Không thể tạo cây trồng mới'
       toast({
         title: 'Lỗi',
-        description: errorMessage,
+        description: 'Không thể thay đổi trạng thái',
         variant: 'destructive',
       })
     }
   }
 
-  const handleUpdateCrop = async () => {
-    if (!editingCrop) return
-
+  const handleDeleteRequirement = async (requirementId: number) => {
+    const confirmDelete = window.confirm('Bạn có chắc muốn xoá yêu cầu này?')
+    if (!confirmDelete) return
     try {
-      const updateData: CropRequest = {
-        cropName: formData.cropName,
-        description: formData.description,
-        origin: formData.origin,
-        categoryId: formData.categoryId as number,
-      }
-
-      await cropService.updateCrop(editingCrop.cropId, updateData)
-      toast({
-        title: 'Thành công',
-        description: 'Đã cập nhật thông tin cây trồng',
-      })
-
-      setEditDialogOpen(false)
-      setEditingCrop(null)
-      resetForm()
-      loadCrops()
+      await cropRequirementService.remove(requirementId)
+      toast({ title: 'Đã xoá', description: 'Yêu cầu cây trồng đã bị xoá' })
+      loadRequirements()
     } catch (error) {
       toast({
         title: 'Lỗi',
-        description: 'Không thể cập nhật cây trồng',
+        description: 'Không thể xoá yêu cầu cây trồng',
         variant: 'destructive',
       })
     }
   }
 
-  const handleChangeStatus = async (cropId: number) => {
+  const handleDuplicateRequirement = async (requirement: CropRequirementView) => {
     try {
-      await cropService.changeStatus(cropId)
-      toast({
-        title: 'Thành công',
-        description: 'Đã thay đổi trạng thái cây trồng',
-      })
-      loadCrops()
+      const stage = (requirement.plantStage as PlantStage) || 'Sowing'
+      await cropRequirementService.duplicate(requirement.cropRequirementId, requirement.cropId, stage)
+      toast({ title: 'Đã nhân bản', description: 'Đã tạo bản sao yêu cầu cây trồng' })
+      loadRequirements()
     } catch (error) {
       toast({
         title: 'Lỗi',
-        description: 'Không thể thay đổi trạng thái cây trồng',
+        description: 'Không thể nhân bản yêu cầu cây trồng',
         variant: 'destructive',
       })
-    }
-  }
-
-  const resetForm = () => {
-    setFormData(prev => {
-      if (prev.productImagePreview) {
-        URL.revokeObjectURL(prev.productImagePreview)
-      }
-      return createInitialFormState()
-    })
-  }
-
-  const handleEditClick = (crop: Crop) => {
-    setEditingCrop(crop)
-    setFormData(prev => ({
-      ...prev,
-      cropName: crop.cropName,
-      description: crop.description,
-      origin: crop.origin || '',
-    }))
-    setEditDialogOpen(true)
-  }
-
-  const getStatusVariant = (status: string | undefined) => {
-    if (!status) return 'outline'
-    switch (status.toLowerCase()) {
-      case 'active':
-        return 'default'
-      case 'inactive':
-        return 'secondary'
-      default:
-        return 'outline'
     }
   }
 
   useEffect(() => {
-    loadCrops()
-  }, [currentPage])
-
-  useEffect(() => {
-    loadCategories()
+    loadRequirements()
   }, [])
 
   useEffect(() => {
-    const previewUrl = formData.productImagePreview
-    return () => {
-      if (previewUrl) {
-        URL.revokeObjectURL(previewUrl)
-      }
-    }
-  }, [formData.productImagePreview])
+    setCurrentPage(1)
+  }, [searchTerm, statusFilter, stageFilter])
 
   return (
     <ManagerLayout>
-      <div className="p-6">
-        <div className="space-y-8">
-          { }
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Quản Lý Cây Trồng</h1>
-            <p className="text-gray-600 mt-2">
-              Quản lý thông tin cây trồng, lên kế hoạch gieo trồng và theo dõi chu kỳ phát triển.
-            </p>
-          </div>
+      <div className="p-6 space-y-8">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">Quản Lý Yêu Cầu Cây Trồng</h1>
+          <p className="text-gray-600 mt-2">
+            Lập kế hoạch gieo trồng, theo dõi chỉ số môi trường và giai đoạn phát triển cho từng vụ mùa.
+          </p>
+        </div>
 
-          { }
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>
             <CardContent className="p-4">
-              <div className="flex flex-col md:flex-row gap-4 items-end">
-                <div className="flex-1">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                    <Input
-                      placeholder="Nhập tên cây trồng..."
-                      value={searchTerm}
-                      onChange={e => setSearchTerm(e.target.value)}
-                      className="pl-9"
-                    />
-                  </div>
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-500">Tổng kế hoạch</p>
+                  <p className="text-2xl font-semibold mt-1">{stats.total}</p>
                 </div>
-                <div className="w-full md:w-48">
-                  <Select
-                    value={statusFilter || undefined}
-                    onValueChange={value => setStatusFilter(value || '')}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Tất cả trạng thái" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Tất cả trạng thái</SelectItem>
-                      <SelectItem value="ACTIVE">Hoạt động</SelectItem>
-                      <SelectItem value="INACTIVE">Tạm dừng</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex gap-2 w-full md:w-auto">
-                  <Button onClick={searchCrops} variant="outline" className="flex-1 md:flex-none">
-                    <Search className="h-4 w-4 mr-2" />
-                    Tìm kiếm
-                  </Button>
-                  <Button onClick={loadCrops} variant="outline" className="flex-1 md:flex-none">
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    Làm mới
-                  </Button>
-                  <Button onClick={() => setCreateDialogOpen(true)} className="flex-1 md:flex-none bg-green-600 hover:bg-green-700">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Thêm cây trồng
-                  </Button>
+                <div className="rounded-full bg-green-100 p-3 text-green-600">
+                  <BarChart2 className="h-5 w-5" />
                 </div>
               </div>
+              <p className="text-sm text-gray-500 mt-2">
+                {stats.active} đang hoạt động • {stats.inactive} tạm dừng
+              </p>
             </CardContent>
           </Card>
 
-          { }
-          <div className="border rounded-lg bg-white">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-16">STT</TableHead>
-                  <TableHead>Tên cây trồng</TableHead>
-                  <TableHead>Mô tả</TableHead>
-                  <TableHead>Trạng thái</TableHead>
-                  <TableHead className="text-right">Hành động</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loading ? (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center py-4">
-                      Đang tải...
-                    </TableCell>
-                  </TableRow>
-                ) : crops.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center py-4">
-                      Không có cây trồng nào
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  crops.map((crop, index) => (
-                    <TableRow key={crop.cropId}>
-                      <TableCell className="text-center">{(currentPage - 1) * pageSize + index + 1}</TableCell>
-                      <TableCell className="font-medium">{crop.cropName}</TableCell>
-                      <TableCell className="max-w-xs truncate">{crop.description}</TableCell>
-                      <TableCell>
-                        <Badge variant={getStatusVariant(crop.status)}>
-                          {crop.status === 'ACTIVE' ? 'Hoạt động' : crop.status === 'INACTIVE' ? 'Tạm dừng' : 'Không xác định'}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleEditClick(crop)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleChangeStatus(crop.cropId)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-500">Độ ẩm trung bình</p>
+                  <p className="text-2xl font-semibold mt-1">{formatNumber(stats.moisture, '%')}</p>
+                </div>
+                <div className="rounded-full bg-blue-100 p-3 text-blue-600">
+                  <Droplets className="h-5 w-5" />
+                </div>
+              </div>
+              <p className="text-sm text-gray-500 mt-2">Theo dõi độ ẩm để đảm bảo nảy mầm đều</p>
+            </CardContent>
+          </Card>
 
-          { }
-          {totalPages > 1 && (
-            <div className="flex justify-center items-center space-x-2 mt-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                disabled={currentPage === 1}
-              >
-                Trước
-              </Button>
-              <span className="text-sm text-gray-600">
-                Trang {currentPage} / {totalPages}
-              </span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                disabled={currentPage === totalPages}
-              >
-                Sau
-              </Button>
-            </div>
-          )}
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-500">Ánh sáng trung bình</p>
+                  <p className="text-2xl font-semibold mt-1">{formatNumber(stats.light, 'lux')}</p>
+                </div>
+                <div className="rounded-full bg-yellow-100 p-3 text-yellow-600">
+                  <Sun className="h-5 w-5" />
+                </div>
+              </div>
+              <p className="text-sm text-gray-500 mt-2">Giữ ánh sáng ổn định cho các giai đoạn tăng trưởng</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-500">Nhiệt độ trung bình</p>
+                  <p className="text-2xl font-semibold mt-1">{formatNumber(stats.temperature, '°C')}</p>
+                </div>
+                <div className="rounded-full bg-orange-100 p-3 text-orange-600">
+                  <Thermometer className="h-5 w-5" />
+                </div>
+              </div>
+              <p className="text-sm text-gray-500 mt-2">Cảnh báo sớm khi nhiệt độ vượt ngưỡng</p>
+            </CardContent>
+          </Card>
         </div>
+
+        <Card>
+          <CardContent className="p-4">
+            <div className="flex flex-col gap-4 md:flex-row md:items-end">
+              <div className="flex-1">
+                <Label className="text-sm font-medium text-gray-600">Tìm kiếm</Label>
+                <div className="relative mt-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    placeholder="Nhập tên cây trồng hoặc ghi chú..."
+                    value={searchTerm}
+                    onChange={e => setSearchTerm(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+              </div>
+              <div className="w-full md:w-48">
+                <Label className="text-sm font-medium text-gray-600">Trạng thái</Label>
+                <Select value={statusFilter} onValueChange={value => setStatusFilter(value as typeof statusFilter)}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Tất cả trạng thái" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tất cả trạng thái</SelectItem>
+                    <SelectItem value="active">Hoạt động</SelectItem>
+                    <SelectItem value="inactive">Tạm dừng</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="w-full md:w-56">
+                <Label className="text-sm font-medium text-gray-600">Giai đoạn</Label>
+                <Select value={stageFilter} onValueChange={value => setStageFilter(value as typeof stageFilter)}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Tất cả giai đoạn" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tất cả giai đoạn</SelectItem>
+                    {PLANT_STAGE_OPTIONS.map(stage => (
+                      <SelectItem key={stage.value} value={stage.value}>
+                        {stage.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex gap-2 w-full md:w-auto">
+                <Button variant="outline" onClick={loadRequirements}>
+                  <RefreshCw className="h-4 w-4 mr-2" />
+                  Làm mới
+                </Button>
+                <Button onClick={openCreateDialog} className="bg-green-600 hover:bg-green-700">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Thêm kế hoạch
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="p-4">
+            <h3 className="text-lg font-semibold mb-4">Theo dõi giai đoạn</h3>
+            <div className="space-y-3">
+              {stats.stageDistribution.map(stage => (
+                <div key={stage.value}>
+                  <div className="flex justify-between text-sm">
+                    <span className="font-medium">{stage.label}</span>
+                    <span className="text-gray-500">{stage.count} ({stage.percent}%)</span>
+                  </div>
+                  <div className="h-2 rounded-full bg-gray-100 mt-1 overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-green-500 transition-all"
+                      style={{ width: `${stage.percent}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <div className="border rounded-lg bg-white">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-16">STT</TableHead>
+                <TableHead>Cây trồng & giai đoạn</TableHead>
+                <TableHead>Thời gian dự kiến</TableHead>
+                <TableHead>Chỉ số môi trường</TableHead>
+                <TableHead>Ghi chú</TableHead>
+                <TableHead className="text-right">Hành động</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-6">
+                    Đang tải dữ liệu...
+                  </TableCell>
+                </TableRow>
+              ) : paginatedRequirements.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-6">
+                    Không tìm thấy yêu cầu nào phù hợp
+                  </TableCell>
+                </TableRow>
+              ) : (
+                paginatedRequirements.map((requirement, index) => (
+                  <TableRow key={requirement.cropRequirementId}>
+                    <TableCell className="text-center">
+                      {(currentPage - 1) * pageSize + index + 1}
+                    </TableCell>
+                    <TableCell>
+                      <p className="font-semibold">{requirement.cropName ?? 'Không xác định'}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge variant={requirement.isActive ? 'default' : 'secondary'}>
+                          {requirement.isActive ? 'Hoạt động' : 'Tạm dừng'}
+                        </Badge>
+                        <Badge variant="outline">{stageLabel(requirement.plantStage)}</Badge>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <p className="font-medium">
+                        {requirement.estimatedDate ? `${requirement.estimatedDate} ngày` : 'Chưa đặt'}
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Cập nhật {requirement.updatedDate || requirement.createdDate}
+                      </p>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm space-y-1">
+                        <div>Độ ẩm: {formatNumber(requirement.moisture, '%')}</div>
+                        <div>Ánh sáng: {formatNumber(requirement.lightRequirement, 'lux')}</div>
+                        <div>Nhiệt độ: {formatNumber(requirement.temperature, '°C')}</div>
+                        <div>Tưới: {requirement.wateringFrequency || 'Chưa đặt'}</div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="max-w-xs">
+                      <p className="text-sm text-gray-700 line-clamp-3">
+                        {requirement.notes || '—'}
+                      </p>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button variant="outline" size="sm" onClick={() => openEditDialog(requirement)}>
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleToggleStatus(requirement.cropRequirementId)}
+                        >
+                          <RefreshCw className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDuplicateRequirement(requirement)}
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDeleteRequirement(requirement.cropRequirementId)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+            >
+              Trước
+            </Button>
+            <span className="text-sm text-gray-600">
+              Trang {currentPage} / {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              disabled={currentPage === totalPages}
+            >
+              Sau
+            </Button>
+          </div>
+        )}
       </div>
 
-      { }
-      <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-        <DialogContent className="max-w-3xl overflow-hidden p-0 flex flex-col max-h-[90vh]">
-          <div className="flex flex-col flex-1 min-h-0">
-            <DialogHeader className="px-6 pt-6 flex-shrink-0">
-              <DialogTitle>Thêm Cây Trồng & Sản Phẩm Mới</DialogTitle>
-              <DialogDescription>
-                Điền thông tin cây trồng và sản phẩm.
-              </DialogDescription>
-            </DialogHeader>
-            <Tabs defaultValue="crop" className="flex flex-1 flex-col min-h-0">
-              <div className="px-6 pt-4 flex-shrink-0">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="crop">Thông tin cây trồng</TabsTrigger>
-                  <TabsTrigger value="product">Thông tin sản phẩm</TabsTrigger>
-                </TabsList>
-              </div>
-              <div className="flex-1 overflow-y-auto px-6 pb-4 min-h-0">
-                <TabsContent value="crop" className="mt-4">
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="cropName">Tên cây trồng *</Label>
-                      <Input
-                        id="cropName"
-                        value={formData.cropName}
-                        onChange={e => setFormData({ ...formData, cropName: e.target.value })}
-                        placeholder="Nhập tên cây trồng"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="description">Mô tả *</Label>
-                      <Textarea
-                        id="description"
-                        value={formData.description}
-                        onChange={e => setFormData({ ...formData, description: e.target.value })}
-                        placeholder="Nhập mô tả cây trồng"
-                        rows={3}
-                      />
-                    </div>
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <div>
-                        <Label htmlFor="origin">Nguồn gốc *</Label>
-                        <Input
-                          id="origin"
-                          value={formData.origin}
-                          onChange={e => setFormData({ ...formData, origin: e.target.value })}
-                          placeholder="Ví dụ: Đà Lạt, Việt Nam"
-                        />
-                      </div>
-                      <div>
-                        <Label>Danh mục *</Label>
-                        <Select
-                          value={formData.categoryId ? String(formData.categoryId) : ''}
-                          onValueChange={value =>
-                            setFormData({
-                              ...formData,
-                              categoryId: value ? Number(value) : '',
-                            })
-                          }
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Chọn danh mục" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {categories.map(cat => (
-                              <SelectItem key={cat.categoryId} value={String(cat.categoryId)}>
-                                {cat.categoryName}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                  </div>
-                </TabsContent>
-                <TabsContent value="product" className="mt-4">
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="productName">Tên sản phẩm *</Label>
-                      <Input
-                        id="productName"
-                        value={formData.productName}
-                        onChange={e => setFormData({ ...formData, productName: e.target.value })}
-                        placeholder="Nhập tên sản phẩm"
-                      />
-                    </div>
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <div>
-                        <Label htmlFor="productPrice">Giá bán *</Label>
-                        <Input
-                          id="productPrice"
-                          type="number"
-                          min={0}
-                          value={formData.productPrice}
-                          onChange={e =>
-                            setFormData({
-                              ...formData,
-                              productPrice: Number(e.target.value) || 0,
-                            })
-                          }
-                          placeholder="Nhập giá bán (VNĐ)"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="productImages">Hình ảnh</Label>
-                        <Input
-                          id="productImages"
-                          type="file"
-                          accept="image/*"
-                          onChange={handleImageChange}
-                        />
-                        {formData.productImagePreview && (
-                          <div className="mt-2 space-y-1.5 rounded-md border border-dashed p-2">
-                            <div className="relative w-full aspect-video max-h-32 overflow-hidden rounded-md bg-gray-50">
-                              <img
-                                src={formData.productImagePreview}
-                                alt="Xem trước hình ảnh sản phẩm"
-                                className="h-full w-full object-cover"
-                              />
-                            </div>
-                            <div className="flex items-center justify-between text-xs text-gray-600 px-0.5">
-                              <span className="truncate flex-1 mr-2">
-                                {formData.productImageFile?.name}
-                                {formData.productImageFile
-                                  ? ` • ${Math.round(formData.productImageFile.size / 1024)}KB`
-                                  : ''}
-                              </span>
-                              <Button
-                                type="button"
-                                size="sm"
-                                variant="ghost"
-                                className="h-6 px-2 text-xs flex-shrink-0"
-                                onClick={handleRemoveImage}
-                              >
-                                Xoá ảnh
-                              </Button>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <div>
-                      <Label htmlFor="productDescription">Mô tả sản phẩm</Label>
-                      <Textarea
-                        id="productDescription"
-                        value={formData.productDescription}
-                        onChange={e =>
-                          setFormData({ ...formData, productDescription: e.target.value })
-                        }
-                        placeholder="Nhập mô tả sản phẩm"
-                        rows={3}
-                      />
-                    </div>
-                  </div>
-                </TabsContent>
-              </div>
-            </Tabs>
-            <DialogFooter className="border-t px-6 py-3 flex-shrink-0 bg-background">
-              <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
-                Hủy
-              </Button>
-              <Button onClick={handleCreateCrop}>Tạo cây trồng & sản phẩm</Button>
-            </DialogFooter>
-          </div>
-        </DialogContent>
-      </Dialog>
-
-      { }
-      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-        <DialogContent className="max-w-md">
+      <Dialog open={formDialogOpen} onOpenChange={open => {
+        setFormDialogOpen(open)
+        if (!open) handleResetForm()
+      }}>
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Chỉnh Sửa Cây Trồng</DialogTitle>
-            <DialogDescription>Cập nhật thông tin cây trồng</DialogDescription>
+            <DialogTitle>
+              {formMode === 'create' ? 'Thêm yêu cầu cây trồng' : 'Cập nhật yêu cầu cây trồng'}
+            </DialogTitle>
+            <DialogDescription>
+              Thiết lập chỉ số môi trường, thời gian dự kiến và ghi chú cho từng giai đoạn.
+            </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="editCropName">Tên cây trồng *</Label>
-              <Input
-                id="editCropName"
-                value={formData.cropName}
-                onChange={e => setFormData({ ...formData, cropName: e.target.value })}
-                placeholder="Nhập tên cây trồng"
-              />
+
+          <div className="grid gap-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <Label>ID cây trồng *</Label>
+                <Input
+                  type="number"
+                  min={1}
+                  value={formData.cropId || ''}
+                  onChange={e =>
+                    setFormData(prev => ({
+                      ...prev,
+                      cropId: e.target.value ? Number(e.target.value) : '',
+                    }))
+                  }
+                  placeholder="Nhập ID cây trồng (theo hệ thống)"
+                  disabled={formMode === 'edit'}
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Sử dụng ID cây trồng từ hệ thống quản lý hiện tại.
+                </p>
+              </div>
+              <div>
+                <Label>Giai đoạn *</Label>
+                <Select
+                  value={formData.plantStage || ''}
+                  onValueChange={value =>
+                    setFormData(prev => ({ ...prev, plantStage: value as PlantStage }))
+                  }
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Chọn giai đoạn" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PLANT_STAGE_OPTIONS.map(stage => (
+                      <SelectItem key={stage.value} value={stage.value}>
+                        {stage.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <Label>Thời gian ước tính (ngày)</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={formData.estimatedDate}
+                  onChange={e => setFormData(prev => ({ ...prev, estimatedDate: e.target.value }))}
+                />
+              </div>
+              <div>
+                <Label>Độ ẩm (%)</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={formData.moisture}
+                  onChange={e => setFormData(prev => ({ ...prev, moisture: e.target.value }))}
+                />
+              </div>
+              <div>
+                <Label>Nhiệt độ (°C)</Label>
+                <Input
+                  type="number"
+                  value={formData.temperature}
+                  onChange={e => setFormData(prev => ({ ...prev, temperature: e.target.value }))}
+                />
+              </div>
+              <div>
+                <Label>Cường độ ánh sáng (lux)</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={formData.lightRequirement}
+                  onChange={e => setFormData(prev => ({ ...prev, lightRequirement: e.target.value }))}
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div>
+                <Label>Phân bón</Label>
+                <Input
+                  value={formData.fertilizer}
+                  onChange={e => setFormData(prev => ({ ...prev, fertilizer: e.target.value }))}
+                />
+              </div>
+              <div>
+                <Label>Tần suất tưới</Label>
+                <Input
+                  placeholder="Ví dụ: 2 lần / ngày"
+                  value={formData.wateringFrequency}
+                  onChange={e =>
+                    setFormData(prev => ({ ...prev, wateringFrequency: e.target.value }))
+                  }
+                />
+              </div>
+            </div>
+
             <div>
-              <Label htmlFor="editDescription">Mô tả *</Label>
+              <Label>Ghi chú</Label>
               <Textarea
-                id="editDescription"
-                value={formData.description}
-                onChange={e => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Nhập mô tả cây trồng"
-                rows={3}
-              />
-            </div>
-            <div>
-              <Label htmlFor="editOrigin">Nguồn gốc *</Label>
-              <Input
-                id="editOrigin"
-                value={formData.origin}
-                onChange={e => setFormData({ ...formData, origin: e.target.value })}
-                placeholder="Ví dụ: Đà Lạt, Việt Nam"
+                rows={4}
+                value={formData.notes}
+                onChange={e => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+                placeholder="Các lưu ý chăm sóc, cảnh báo sâu bệnh..."
               />
             </div>
           </div>
+
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
-              Hủy
+            <Button variant="outline" onClick={() => setFormDialogOpen(false)}>
+              Huỷ
             </Button>
-            <Button onClick={handleUpdateCrop}>Cập nhật</Button>
+            <Button onClick={handleSubmitForm} disabled={isSubmitting}>
+              {isSubmitting ? 'Đang lưu...' : 'Lưu thông tin'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

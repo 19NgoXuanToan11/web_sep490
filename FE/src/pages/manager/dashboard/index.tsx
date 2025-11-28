@@ -32,6 +32,7 @@ import { blynkService, type SensorData } from '@/shared/api/blynkService'
 import { orderService, getOrderStatusLabel, getOrderStatusVariant, type Order } from '@/shared/api/orderService'
 import { feedbackService, type Feedback } from '@/shared/api/feedbackService'
 import { productService } from '@/shared/api/productService'
+import { calculateRevenue, normalizeDateStartOfDay, parseOrderDate } from '@/shared/lib/revenue'
 import { useNavigate } from 'react-router-dom'
 import {
   BarChart,
@@ -319,45 +320,8 @@ export default function ManagerDashboard() {
     }
   }, [crops])
 
-  // Utility function to safely parse dates and handle timezone issues
-  const parseDate = useCallback((dateString: string | undefined | null): Date | null => {
-    if (!dateString) return null
-    try {
-      const date = new Date(dateString)
-      if (Number.isNaN(date.getTime())) return null
-      return date
-    } catch {
-      return null
-    }
-  }, [])
-
-  // Utility function to normalize date to start of day for comparison
-  const normalizeDate = useCallback((date: Date): Date => {
-    const normalized = new Date(date)
-    normalized.setHours(0, 0, 0, 0)
-    return normalized
-  }, [])
-
-  // Utility function to safely extract price from order
-  const extractPrice = useCallback((order: Order): number => {
-    if (order.totalPrice !== null && order.totalPrice !== undefined) {
-      const price = typeof order.totalPrice === 'string'
-        ? parseFloat(order.totalPrice)
-        : Number(order.totalPrice)
-      return isNaN(price) ? 0 : price
-    }
-    // Fallback: calculate from orderDetails if available
-    if (order.orderDetails && order.orderDetails.length > 0) {
-      return order.orderDetails.reduce((sum, detail) => {
-        const unitPrice = typeof detail.unitPrice === 'string'
-          ? parseFloat(detail.unitPrice)
-          : Number(detail.unitPrice ?? 0)
-        const quantity = Number(detail.quantity ?? 1)
-        return sum + (isNaN(unitPrice) ? 0 : unitPrice) * (isNaN(quantity) ? 1 : quantity)
-      }, 0)
-    }
-    return 0
-  }, [])
+  const parseDate = useCallback(parseOrderDate, [])
+  const normalizeDate = useCallback(normalizeDateStartOfDay, [])
 
   const businessStats = useMemo(() => {
     const now = new Date()
@@ -365,6 +329,7 @@ export default function ManagerDashboard() {
     const weekAgo = new Date(normalizedNow.getTime() - 7 * 24 * 60 * 60 * 1000)
     const monthAgo = new Date(normalizedNow.getTime() - 30 * 24 * 60 * 60 * 1000)
     const cutoffDate = normalizeDate(timeRange === 'week' ? weekAgo : monthAgo)
+    const periodEnd = new Date(normalizedNow.getTime() + 24 * 60 * 60 * 1000 - 1)
 
     const recentOrders = orders.filter(order => {
       const orderDate = parseDate(order.createdAt)
@@ -373,9 +338,7 @@ export default function ManagerDashboard() {
       return normalizedOrderDate >= cutoffDate
     })
 
-    const totalRevenue = recentOrders.reduce((sum, order) => {
-      return sum + extractPrice(order)
-    }, 0)
+    const totalRevenue = calculateRevenue(orders, { startDate: cutoffDate, endDate: periodEnd })
 
     const validFeedbacks = feedbacks.filter(fb => fb.rating >= 1 && fb.rating <= 5)
     const avgRating =
@@ -415,7 +378,7 @@ export default function ManagerDashboard() {
 
         data.push({
           name: date.toLocaleDateString('vi-VN', { weekday: 'short' }),
-          revenue: dayOrders.reduce((sum, order) => sum + extractPrice(order), 0),
+          revenue: calculateRevenue(dayOrders, { startDate: dayStart, endDate: dayEnd }),
           orders: dayOrders.length,
         })
       }
@@ -434,14 +397,14 @@ export default function ManagerDashboard() {
 
         data.push({
           name: `Tuần ${4 - i}`,
-          revenue: weekOrders.reduce((sum, order) => sum + extractPrice(order), 0),
+          revenue: calculateRevenue(weekOrders, { startDate: weekStart, endDate: weekEndFull }),
           orders: weekOrders.length,
         })
       }
     }
 
     return data
-  }, [orders, timeRange, parseDate, normalizeDate, extractPrice])
+  }, [orders, timeRange, parseDate, normalizeDate])
 
   const orderStatusData = useMemo(() => {
     const statusMap: Record<number, { label: string; color: string }> = {

@@ -24,6 +24,7 @@ import { orderService } from '@/shared/api/orderService'
 import { productService } from '@/shared/api/productService'
 import { feedbackService } from '@/shared/api/feedbackService'
 import { useToast } from '@/shared/ui/use-toast'
+import { calculateRevenue } from '@/shared/lib/revenue'
 import {
   BarChart,
   Bar,
@@ -191,9 +192,7 @@ const AdminDashboard: React.FC = () => {
         totalOrders = orders.length
         pendingOrders = orders.filter(o => o.status === 0 || o.status === 2 || o.status === 3).length
         completedOrders = orders.filter(o => o.status === 5 || o.status === 6).length
-        totalRevenue = orders
-          .filter(o => o.status === 5 || o.status === 6)
-          .reduce((sum, o) => sum + (o.totalPrice || 0), 0)
+        totalRevenue = calculateRevenue(orders)
       }
 
       // Process products

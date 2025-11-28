@@ -41,6 +41,7 @@ export const ROUTES = {
   HOME: '/',
   LOGIN: '/login',
   ADMIN: {
+    DASHBOARD: '/admin/dashboard',
     USERS: '/admin/users',
   },
   MANAGER: {

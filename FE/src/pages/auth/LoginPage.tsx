@@ -8,6 +8,13 @@ import { Mail, Lock, ArrowRight, Home } from 'lucide-react'
 import { authApi } from '@/shared/api/auth'
 import { useAuthStore } from '@/shared/store/authStore'
 import { handleAuthError } from '@/shared/lib/error-handler'
+import { APP_CONFIG, ROUTES } from '@/shared/constants/app'
+
+const ROLE_REDIRECTS: Record<string, string> = {
+  [APP_CONFIG.ROLES.ADMIN]: ROUTES.ADMIN.DASHBOARD,
+  [APP_CONFIG.ROLES.MANAGER]: ROUTES.MANAGER.DASHBOARD,
+  [APP_CONFIG.ROLES.STAFF]: ROUTES.STAFF.DASHBOARD,
+}
 
 export const LoginPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -27,10 +34,8 @@ export const LoginPage: React.FC = () => {
         setToken(token)
 
         const role = useAuthStore.getState().role
-        if (role === 'Admin') navigate('/admin/users')
-        else if (role === 'Manager') navigate('/manager/dashboard')
-        else if (role === 'Staff') navigate('/staff/dashboard')
-        else navigate('/')
+        const redirectPath = role ? ROLE_REDIRECTS[role] : undefined
+        navigate(redirectPath ?? ROUTES.HOME)
       }
     } catch (err) {
       handleAuthError(err, toast)

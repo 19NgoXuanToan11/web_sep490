@@ -1,6 +1,6 @@
 import React from 'react'
 import { motion } from 'framer-motion'
-import { BarChart3, CheckCircle2, PauseCircle, Clock, AlertCircle } from 'lucide-react'
+import { BarChart3, CheckCircle2, Clock, AlertCircle } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
 import { Badge } from '@/shared/ui/badge'
 import type { CropRequirementView } from '@/shared/api/cropRequirementService'
@@ -127,10 +127,10 @@ export const CropPlanningStatusWidget: React.FC<CropPlanningStatusWidgetProps> =
                         <div className="h-3 rounded-full bg-gray-100 overflow-hidden">
                             <motion.div
                                 className={`h-full rounded-full ${planningStats.completionRate >= 80
-                                        ? 'bg-green-500'
-                                        : planningStats.completionRate >= 50
-                                            ? 'bg-yellow-500'
-                                            : 'bg-red-500'
+                                    ? 'bg-green-500'
+                                    : planningStats.completionRate >= 50
+                                        ? 'bg-yellow-500'
+                                        : 'bg-red-500'
                                     }`}
                                 initial={{ width: 0 }}
                                 animate={{ width: `${planningStats.completionRate}%` }}

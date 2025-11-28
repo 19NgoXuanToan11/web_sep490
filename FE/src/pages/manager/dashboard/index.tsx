@@ -6,7 +6,6 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Cpu,
-  Gauge,
   Cloud,
   CloudRain,
   ShoppingCart,
@@ -28,6 +27,7 @@ import { ManagerLayout } from '@/shared/layouts/ManagerLayout'
 import { iotDeviceService } from '@/shared/api/iotDeviceService'
 import { weatherService, type WeatherResponse } from '@/shared/api/weatherService'
 import { cropService, type Crop } from '@/shared/api/cropService'
+import { cropRequirementService, type CropRequirementView } from '@/shared/api/cropRequirementService'
 import { blynkService, type SensorData } from '@/shared/api/blynkService'
 import { orderService, getOrderStatusLabel, getOrderStatusVariant, type Order } from '@/shared/api/orderService'
 import { feedbackService, type Feedback } from '@/shared/api/feedbackService'
@@ -46,6 +46,11 @@ import {
   Pie,
   Cell,
 } from 'recharts'
+import {
+  CropGrowthStagesWidget,
+  EnvironmentalMetricsWidget,
+  CropPlanningStatusWidget,
+} from '@/shared/components/manager'
 
 const WEATHER_DESCRIPTION_MAP: Record<string, string> = {
   'clear sky': 'Trời quang mây',
@@ -166,20 +171,6 @@ const MetricCard = React.memo<MetricCardProps>(
   }
 )
 
-interface OverviewBadge {
-  label: string
-  variant: 'default' | 'outline'
-  className?: string
-}
-
-interface GrowthOverviewItem {
-  icon: React.ComponentType<{ className?: string }>
-  gradient: string
-  title: string
-  value: string
-  description: string
-  badges?: OverviewBadge[]
-}
 
 export default function ManagerDashboard() {
   const navigate = useNavigate()
@@ -193,6 +184,7 @@ export default function ManagerDashboard() {
   const [weather, setWeather] = useState<WeatherResponse | null>(null)
   const [isLoadingWeather, setIsLoadingWeather] = useState(false)
   const [crops, setCrops] = useState<Crop[]>([])
+  const [cropRequirements, setCropRequirements] = useState<CropRequirementView[]>([])
   const [sensorData, setSensorData] = useState<SensorData | null>(null)
   const [orders, setOrders] = useState<Order[]>([])
   const [totalOrdersCount, setTotalOrdersCount] = useState<number>(0)
@@ -231,8 +223,9 @@ export default function ManagerDashboard() {
     setDashboardError(null)
 
     try {
-      const [cropResult, sensorResult, orderResult, feedbackResult, productResult] = await Promise.allSettled([
+      const [cropResult, cropRequirementResult, sensorResult, orderResult, feedbackResult, productResult] = await Promise.allSettled([
         cropService.getAllCropsActive(),
+        cropRequirementService.getAll(),
         blynkService.getBlynkData(),
         orderService.getOrderList({ pageIndex: 1, pageSize: 1000 }),
         feedbackService.getFeedbackList({ pageIndex: 1, pageSize: 1000 }),
@@ -247,6 +240,13 @@ export default function ManagerDashboard() {
         errors.push('cây trồng')
       }
 
+      if (cropRequirementResult.status === 'fulfilled') {
+        const requirementData = cropRequirementResult.value?.data
+        setCropRequirements(Array.isArray(requirementData) ? requirementData : [])
+      } else {
+        errors.push('yêu cầu cây trồng')
+      }
+
       if (sensorResult.status === 'fulfilled') {
         setSensorData(sensorResult.value)
       } else {
@@ -256,10 +256,22 @@ export default function ManagerDashboard() {
 
       if (orderResult.status === 'fulfilled') {
         const orderData = orderResult.value
-        setOrders(orderData?.items ?? [])
+        const orderItems = orderData?.items ?? []
+        // Debug: Log order data structure
+        if (orderItems.length > 0) {
+          console.log('Sample order:', {
+            orderId: orderItems[0].orderId,
+            totalPrice: orderItems[0].totalPrice,
+            createdAt: orderItems[0].createdAt,
+            hasOrderDetails: !!orderItems[0].orderDetails,
+            orderDetailsCount: orderItems[0].orderDetails?.length ?? 0,
+          })
+        }
+        setOrders(orderItems)
         setTotalOrdersCount(orderData?.totalItemCount ?? 0)
       } else {
         errors.push('đơn hàng')
+        console.error('Order fetch failed:', orderResult.reason)
       }
 
       if (feedbackResult.status === 'fulfilled') {
@@ -307,22 +319,62 @@ export default function ManagerDashboard() {
     }
   }, [crops])
 
+  // Utility function to safely parse dates and handle timezone issues
+  const parseDate = useCallback((dateString: string | undefined | null): Date | null => {
+    if (!dateString) return null
+    try {
+      const date = new Date(dateString)
+      if (Number.isNaN(date.getTime())) return null
+      return date
+    } catch {
+      return null
+    }
+  }, [])
+
+  // Utility function to normalize date to start of day for comparison
+  const normalizeDate = useCallback((date: Date): Date => {
+    const normalized = new Date(date)
+    normalized.setHours(0, 0, 0, 0)
+    return normalized
+  }, [])
+
+  // Utility function to safely extract price from order
+  const extractPrice = useCallback((order: Order): number => {
+    if (order.totalPrice !== null && order.totalPrice !== undefined) {
+      const price = typeof order.totalPrice === 'string'
+        ? parseFloat(order.totalPrice)
+        : Number(order.totalPrice)
+      return isNaN(price) ? 0 : price
+    }
+    // Fallback: calculate from orderDetails if available
+    if (order.orderDetails && order.orderDetails.length > 0) {
+      return order.orderDetails.reduce((sum, detail) => {
+        const unitPrice = typeof detail.unitPrice === 'string'
+          ? parseFloat(detail.unitPrice)
+          : Number(detail.unitPrice ?? 0)
+        const quantity = Number(detail.quantity ?? 1)
+        return sum + (isNaN(unitPrice) ? 0 : unitPrice) * (isNaN(quantity) ? 1 : quantity)
+      }, 0)
+    }
+    return 0
+  }, [])
+
   const businessStats = useMemo(() => {
     const now = new Date()
-    const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-    const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
-    const cutoffDate = timeRange === 'week' ? weekAgo : monthAgo
+    const normalizedNow = normalizeDate(now)
+    const weekAgo = new Date(normalizedNow.getTime() - 7 * 24 * 60 * 60 * 1000)
+    const monthAgo = new Date(normalizedNow.getTime() - 30 * 24 * 60 * 60 * 1000)
+    const cutoffDate = normalizeDate(timeRange === 'week' ? weekAgo : monthAgo)
 
     const recentOrders = orders.filter(order => {
-      if (!order.createdAt) return false
-      const orderDate = new Date(order.createdAt)
-      if (Number.isNaN(orderDate.getTime())) return false
-      return orderDate >= cutoffDate
+      const orderDate = parseDate(order.createdAt)
+      if (!orderDate) return false
+      const normalizedOrderDate = normalizeDate(orderDate)
+      return normalizedOrderDate >= cutoffDate
     })
 
     const totalRevenue = recentOrders.reduce((sum, order) => {
-      const price = order.totalPrice ?? 0
-      return sum + (typeof price === 'number' ? price : 0)
+      return sum + extractPrice(order)
     }, 0)
 
     const validFeedbacks = feedbacks.filter(fb => fb.rating >= 1 && fb.rating <= 5)
@@ -346,49 +398,50 @@ export default function ManagerDashboard() {
 
   const revenueData = useMemo(() => {
     const now = new Date()
+    const normalizedNow = normalizeDate(now)
     const data: { name: string; revenue: number; orders: number }[] = []
 
     if (timeRange === 'week') {
       for (let i = 6; i >= 0; i--) {
-        const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000)
+        const date = new Date(normalizedNow.getTime() - i * 24 * 60 * 60 * 1000)
+        const dayStart = normalizeDate(date)
+        const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000 - 1)
+
         const dayOrders = orders.filter(order => {
-          if (!order.createdAt) return false
-          const orderDate = new Date(order.createdAt)
-          if (Number.isNaN(orderDate.getTime())) return false
-          return orderDate.toDateString() === date.toDateString()
+          const orderDate = parseDate(order.createdAt)
+          if (!orderDate) return false
+          return orderDate >= dayStart && orderDate <= dayEnd
         })
+
         data.push({
           name: date.toLocaleDateString('vi-VN', { weekday: 'short' }),
-          revenue: dayOrders.reduce((sum, order) => {
-            const price = order.totalPrice ?? 0
-            return sum + (typeof price === 'number' ? price : 0)
-          }, 0),
+          revenue: dayOrders.reduce((sum, order) => sum + extractPrice(order), 0),
           orders: dayOrders.length,
         })
       }
     } else {
       for (let i = 3; i >= 0; i--) {
-        const weekStart = new Date(now.getTime() - (i + 1) * 7 * 24 * 60 * 60 * 1000)
-        const weekEnd = new Date(now.getTime() - i * 7 * 24 * 60 * 60 * 1000)
+        const weekStart = normalizeDate(new Date(normalizedNow.getTime() - (i + 1) * 7 * 24 * 60 * 60 * 1000))
+        const weekEnd = new Date(normalizedNow.getTime() - i * 7 * 24 * 60 * 60 * 1000)
+        const normalizedWeekEnd = normalizeDate(weekEnd)
+        const weekEndFull = new Date(normalizedWeekEnd.getTime() + 24 * 60 * 60 * 1000 - 1)
+
         const weekOrders = orders.filter(order => {
-          if (!order.createdAt) return false
-          const orderDate = new Date(order.createdAt)
-          if (Number.isNaN(orderDate.getTime())) return false
-          return orderDate >= weekStart && orderDate <= weekEnd
+          const orderDate = parseDate(order.createdAt)
+          if (!orderDate) return false
+          return orderDate >= weekStart && orderDate <= weekEndFull
         })
+
         data.push({
           name: `Tuần ${4 - i}`,
-          revenue: weekOrders.reduce((sum, order) => {
-            const price = order.totalPrice ?? 0
-            return sum + (typeof price === 'number' ? price : 0)
-          }, 0),
+          revenue: weekOrders.reduce((sum, order) => sum + extractPrice(order), 0),
           orders: weekOrders.length,
         })
       }
     }
 
     return data
-  }, [orders, timeRange])
+  }, [orders, timeRange, parseDate, normalizeDate, extractPrice])
 
   const orderStatusData = useMemo(() => {
     const statusMap: Record<number, { label: string; color: string }> = {
@@ -618,52 +671,6 @@ export default function ManagerDashboard() {
     timeRange,
   ])
 
-  const growthOverviewItems = useMemo<GrowthOverviewItem[]>(() => {
-    const items: GrowthOverviewItem[] = []
-
-    items.push({
-      icon: Sprout,
-      gradient: 'from-green-500 to-green-600',
-      title: 'Lô cây trồng',
-      value:
-        cropStats.total > 0
-          ? `${formatNumber(cropStats.active)}/${formatNumber(cropStats.total)} lô`
-          : 'Chưa có dữ liệu',
-      description:
-        cropStats.nearingHarvest > 0 ? `${cropStats.nearingHarvest} lô sắp thu hoạch` : '',
-    })
-
-    items.push({
-      icon: Gauge,
-      gradient: 'from-green-400 to-green-500',
-      title: 'Điều kiện môi trường',
-      value: sensorData ? `${sensorData.temperature.toFixed(1)}°C` : '--',
-      description: sensorData
-        ? `Độ ẩm ${sensorData.humidity.toFixed(0)}% • Độ ẩm đất ${sensorData.soilMoisture.toFixed(
-          0
-        )}%`
-        : 'Chưa có dữ liệu cảm biến môi trường',
-      badges: sensorData
-        ? [
-          {
-            label:
-              sensorData.dataQuality === 'good'
-                ? 'Chất lượng tốt'
-                : sensorData.dataQuality === 'poor'
-                  ? 'Cần kiểm tra'
-                  : 'Mất tín hiệu',
-            variant: 'default',
-            className:
-              sensorData.dataQuality === 'good'
-                ? 'bg-green-50 text-green-700 border-0'
-                : 'bg-yellow-100 text-yellow-800 border-0',
-          },
-        ]
-        : undefined,
-    })
-
-    return items
-  }, [cropStats.active, cropStats.nearingHarvest, cropStats.total, formatNumber, sensorData])
 
   if (isLoadingDashboard && orders.length === 0 && feedbacks.length === 0) {
     return (
@@ -720,156 +727,295 @@ export default function ManagerDashboard() {
           </div>
         )}
 
-        {/* Farm Management & Business Metrics */}
-        <div className="grid gap-6 mb-10 md:grid-cols-2 xl:grid-cols-4">
-          {dashboardMetrics.map(metric => (
-            <MetricCard key={metric.title} {...metric} />
-          ))}
+        {/* Section 1: Key Performance Indicators - Farm Operations */}
+        <div className="mb-8">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <Cpu className="h-5 w-5 text-green-600" />
+            Hoạt động nông trại
+          </h2>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            {dashboardMetrics.slice(0, 4).map(metric => (
+              <MetricCard key={metric.title} {...metric} />
+            ))}
+          </div>
         </div>
 
-        {/* Charts Section */}
-        <div className="grid gap-8 lg:grid-cols-2 mb-8">
-          <Card className="border-0 shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-green-600" />
-                Doanh thu {timeRange === 'week' ? 'theo ngày' : 'theo tuần'}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={revenueData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip
-                    formatter={(value: number, name: string) => [
-                      name === 'revenue' ? `${value.toLocaleString('vi-VN')} đ` : value,
-                      name === 'revenue' ? 'Doanh thu' : 'Đơn hàng',
-                    ]}
-                  />
-                  <Legend />
-                  <Bar dataKey="revenue" fill="#10B981" name="Doanh thu" />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
+        {/* Section 2: Crop Monitoring - Comprehensive Analysis */}
+        <div className="mb-8">
+          <div className="mb-6">
+            <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+              <Sprout className="h-6 w-6 text-green-600" />
+              Theo dõi cây trồng
+            </h2>
+            <p className="text-gray-600 mt-1">
+              Phân tích chi tiết về giai đoạn tăng trưởng, chỉ số môi trường và tình trạng kế hoạch
+            </p>
+          </div>
 
-          <Card className="border-0 shadow-lg">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <ShoppingCart className="h-5 w-5 text-green-600" />
-                Trạng thái đơn hàng
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {orderStatusData.length > 0 ? (
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={orderStatusData}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {orderStatusData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip
-                      formatter={(value: number, _name: string, props: any) => {
-                        const total = orderStatusData.reduce((sum, item) => sum + item.value, 0)
-                        const percent = total > 0 ? ((value / total) * 100).toFixed(1) : '0'
-                        return [`${value} đơn (${percent}%)`, props.payload.name]
-                      }}
-                    />
-                  </PieChart>
-                </ResponsiveContainer>
-              ) : (
-                <div className="flex items-center justify-center h-[300px] text-gray-500">
-                  <div className="text-center">
-                    <ShoppingCart className="h-12 w-12 mx-auto mb-2 text-gray-400" />
-                    <p>Chưa có dữ liệu đơn hàng</p>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+          {/* First Row: Growth Stages and Planning Status */}
+          <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2 mb-6">
+            <CropGrowthStagesWidget requirements={cropRequirements} />
+            <CropPlanningStatusWidget requirements={cropRequirements} />
+          </div>
+
+          {/* Second Row: Environmental Metrics - Full Width */}
+          <div className="mb-6">
+            <EnvironmentalMetricsWidget
+              requirements={cropRequirements}
+              sensorData={sensorData ? {
+                temperature: sensorData.temperature,
+                humidity: sensorData.humidity,
+                light: sensorData.light,
+              } : null}
+            />
+          </div>
         </div>
 
-        {/* Growth Overview & Business Lists */}
-        <div className="grid gap-8 xl:grid-cols-3 mb-8">
-          <div className="xl:col-span-2 space-y-8">
-            <Card className="border-0 shadow-lg bg-white">
-              <CardHeader className="border-b border-gray-100">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg font-semibold text-gray-900">
-                    Tổng quan tăng trưởng
-                  </CardTitle>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="border-green-200 text-green-700 hover:bg-green-50"
-                  >
-                    Xem chi tiết
-                  </Button>
-                </div>
+        {/* Section 3: Business Analytics */}
+        <div className="mb-8">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <DollarSign className="h-5 w-5 text-green-600" />
+            Phân tích kinh doanh
+          </h2>
+
+          {/* Business Metrics Cards */}
+          <div className="grid gap-6 md:grid-cols-3 mb-8">
+            {dashboardMetrics.slice(4).map(metric => (
+              <MetricCard key={metric.title} {...metric} />
+            ))}
+          </div>
+
+          {/* Revenue and Order Analytics */}
+          <div className="grid gap-8 lg:grid-cols-2 mb-8">
+            <Card className="border-0 shadow-lg">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-green-600" />
+                  Doanh thu {timeRange === 'week' ? 'theo ngày' : 'theo tuần'}
+                </CardTitle>
               </CardHeader>
-              <CardContent className="p-6">
-                <div className="grid gap-6 md:grid-cols-2">
-                  {growthOverviewItems.map(item => (
-                    <div key={item.title} className="flex flex-col items-center text-center">
-                      <div
-                        className={`w-16 h-16 mx-auto mb-3 bg-gradient-to-br ${item.gradient} rounded-full flex items-center justify-center shadow-lg`}
-                      >
-                        <item.icon className="w-8 h-8 text-white" />
-                      </div>
-                      <h3 className="text-lg font-semibold text-gray-900">{item.title}</h3>
-                      <p className="text-sm text-gray-800 font-semibold mt-1">{item.value}</p>
-                      {item.description && (
-                        <p className="text-sm text-gray-600 mb-2">{item.description}</p>
-                      )}
-                      {item.badges && (
-                        <div className="flex items-center gap-2 flex-wrap justify-center">
-                          {item.badges.map(badge => (
-                            <Badge
-                              key={`${item.title}-${badge.label}`}
-                              variant={badge.variant}
-                              className={badge.className}
-                            >
-                              {badge.label}
-                            </Badge>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={revenueData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip
+                      formatter={(value: number, name: string) => [
+                        name === 'revenue' ? `${value.toLocaleString('vi-VN')} đ` : value,
+                        name === 'revenue' ? 'Doanh thu' : 'Đơn hàng',
+                      ]}
+                    />
+                    <Legend />
+                    <Bar dataKey="revenue" fill="#10B981" name="Doanh thu" />
+                  </BarChart>
+                </ResponsiveContainer>
               </CardContent>
             </Card>
 
-            <div className="grid gap-8 lg:grid-cols-2">
-              <Card className="border-0 shadow-lg">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Star className="h-5 w-5 text-orange-500" />
-                    Phân bố đánh giá
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
+            <Card className="border-0 shadow-lg">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <ShoppingCart className="h-5 w-5 text-green-600" />
+                  Trạng thái đơn hàng
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {orderStatusData.length > 0 ? (
                   <ResponsiveContainer width="100%" height={300}>
-                    <BarChart data={ratingData} layout="vertical">
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis type="number" domain={[0, 5]} />
-                      <YAxis dataKey="name" type="category" />
-                      <Tooltip />
-                      <Bar dataKey="count" fill="#F59E0B" name="Số lượng" />
-                    </BarChart>
+                    <PieChart>
+                      <Pie
+                        data={orderStatusData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {orderStatusData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        formatter={(value: number, _name: string, props: any) => {
+                          const total = orderStatusData.reduce((sum, item) => sum + item.value, 0)
+                          const percent = total > 0 ? ((value / total) * 100).toFixed(1) : '0'
+                          return [`${value} đơn (${percent}%)`, props.payload.name]
+                        }}
+                      />
+                    </PieChart>
                   </ResponsiveContainer>
+                ) : (
+                  <div className="flex items-center justify-center h-[300px] text-gray-500">
+                    <div className="text-center">
+                      <ShoppingCart className="h-12 w-12 mx-auto mb-2 text-gray-400" />
+                      <p>Chưa có dữ liệu đơn hàng</p>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* Section 4: Customer Insights & Recent Activity */}
+        <div className="mb-8">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
+            <Star className="h-5 w-5 text-green-600" />
+            Thông tin khách hàng & Hoạt động gần đây
+          </h2>
+
+          <div className="grid gap-8 xl:grid-cols-3">
+            <div className="xl:col-span-2 space-y-8">
+
+              <div className="grid gap-8 lg:grid-cols-2">
+                <Card className="border-0 shadow-lg">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Star className="h-5 w-5 text-orange-500" />
+                      Phân bố đánh giá
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart data={ratingData} layout="vertical">
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis type="number" domain={[0, 5]} />
+                        <YAxis dataKey="name" type="category" />
+                        <Tooltip />
+                        <Bar dataKey="count" fill="#F59E0B" name="Số lượng" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-0 shadow-lg">
+                  <CardHeader className="border-b border-gray-100">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="flex items-center gap-2">
+                        <Clock className="h-5 w-5 text-green-600" />
+                        Đơn hàng gần đây
+                      </CardTitle>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => navigate('/manager/orders')}
+                        className="border-green-200 text-green-700 hover:bg-green-50"
+                      >
+                        Xem tất cả
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="p-0">
+                    <div className="space-y-1 max-h-80 overflow-y-auto">
+                      {recentOrdersSorted.length > 0 ? (
+                        recentOrdersSorted.map((order) => (
+                          <div
+                            key={order.orderId}
+                            className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+                            onClick={() => navigate('/manager/orders')}
+                          >
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-gray-900 truncate">
+                                Đơn hàng #{String(order.orderId ?? '').slice(0, 8)}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {order.createdAt
+                                  ? formatDateOnly(order.createdAt)
+                                  : 'Không xác định'}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <span className="text-sm font-semibold text-gray-900">
+                                {(order.totalPrice ?? 0).toLocaleString('vi-VN')} đ
+                              </span>
+                              {getDisplayStatusBadge(order)}
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="text-center py-8 text-gray-500">
+                          <ShoppingCart className="h-12 w-12 mx-auto mb-2 text-gray-400" />
+                          <p>Chưa có đơn hàng nào</p>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+
+            <div className="space-y-8">
+              <Card className="border-0 shadow-lg overflow-hidden bg-white">
+                <CardHeader className="border-b">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                      <Cloud className="h-5 w-5 text-green-600" />
+                      Thời tiết
+                    </CardTitle>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={fetchWeather}
+                      disabled={isLoadingWeather}
+                      className="hover:bg-green-100"
+                    >
+                      {isLoadingWeather ? '...' : '🔄'}
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-6">
+                  {isLoadingWeather ? (
+                    <div className="text-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
+                      <p className="text-sm text-gray-500 mt-2">Đang tải...</p>
+                    </div>
+                  ) : weather ? (
+                    <div className="space-y-4">
+                      <div className="text-center pb-4 border-b border-gray-100">
+                        <div className="flex justify-center items-center gap-3 mb-2">
+                          {weather.iconUrl && (
+                            <img
+                              src={weather.iconUrl}
+                              alt={weather.description}
+                              className="w-16 h-16"
+                            />
+                          )}
+                          <div>
+                            <div className="text-4xl font-bold text-gray-900">
+                              {Math.round(weather.temperatureC)}°C
+                            </div>
+                            <p className="text-sm text-gray-600 capitalize">{weather.description}</p>
+                          </div>
+                        </div>
+                        <p className="text-xs text-gray-500">{weather.cityName}</p>
+                      </div>
+
+                      {weather.rainVolumeMm && weather.rainVolumeMm > 0 && (
+                        <div className="pt-3 border-t border-gray-100">
+                          <div className="flex justify-between items-center text-sm">
+                            <div className="flex items-center gap-1 text-green-600">
+                              <CloudRain className="h-4 w-4" />
+                              <span>Lượng mưa</span>
+                            </div>
+                            <span className="font-semibold text-green-600">
+                              {weather.rainVolumeMm.toFixed(1)} mm
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <Cloud className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+                      <p className="text-sm text-gray-500">Không thể tải dữ liệu thời tiết</p>
+                      <Button variant="outline" size="sm" onClick={fetchWeather} className="mt-3">
+                        Thử lại
+                      </Button>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -877,188 +1023,61 @@ export default function ManagerDashboard() {
                 <CardHeader className="border-b border-gray-100">
                   <div className="flex items-center justify-between">
                     <CardTitle className="flex items-center gap-2">
-                      <Clock className="h-5 w-5 text-green-600" />
-                      Đơn hàng gần đây
+                      <Star className="h-5 w-5 text-orange-500" />
+                      Đánh giá gần đây
                     </CardTitle>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => navigate('/manager/orders')}
-                      className="border-green-200 text-green-700 hover:bg-green-50"
-                    >
-                      Xem tất cả
-                    </Button>
                   </div>
                 </CardHeader>
                 <CardContent className="p-0">
                   <div className="space-y-1 max-h-80 overflow-y-auto">
-                    {recentOrdersSorted.length > 0 ? (
-                      recentOrdersSorted.map((order) => (
-                        <div
-                          key={order.orderId}
-                          className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors cursor-pointer"
-                          onClick={() => navigate('/manager/orders')}
-                        >
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-900 truncate">
-                              Đơn hàng #{String(order.orderId ?? '').slice(0, 8)}
+                    {feedbacks.slice(0, 5).map((feedback) => (
+                      <div
+                        key={feedback.feedbackId}
+                        className="p-4 hover:bg-gray-50 transition-colors"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-sm font-medium text-gray-900">
+                                {feedback.fullName}
+                              </span>
+                              <div className="flex items-center">
+                                {Array.from({ length: 5 }).map((_, i) => (
+                                  <Star
+                                    key={i}
+                                    className={`h-3 w-3 ${i < feedback.rating
+                                      ? 'text-orange-500 fill-orange-500'
+                                      : 'text-gray-300'
+                                      }`}
+                                  />
+                                ))}
+                              </div>
+                            </div>
+                            <p className="text-sm text-gray-600 mb-1">
+                              {feedback.comment || 'Không có bình luận'}
                             </p>
                             <p className="text-xs text-gray-500">
-                              {order.createdAt
-                                ? formatDateOnly(order.createdAt)
-                                : 'Không xác định'}
+                              Sản phẩm: {feedback.orderDetail?.productName || 'N/A'}
                             </p>
                           </div>
-                          <div className="flex items-center gap-3">
-                            <span className="text-sm font-semibold text-gray-900">
-                              {(order.totalPrice ?? 0).toLocaleString('vi-VN')} đ
-                            </span>
-                            {getDisplayStatusBadge(order)}
-                          </div>
+                          <span className="text-xs text-gray-400">
+                            {feedback.createdAt
+                              ? new Date(feedback.createdAt).toLocaleDateString('vi-VN')
+                              : 'Không xác định'}
+                          </span>
                         </div>
-                      ))
-                    ) : (
+                      </div>
+                    ))}
+                    {feedbacks.length === 0 && (
                       <div className="text-center py-8 text-gray-500">
-                        <ShoppingCart className="h-12 w-12 mx-auto mb-2 text-gray-400" />
-                        <p>Chưa có đơn hàng nào</p>
+                        <Star className="h-12 w-12 mx-auto mb-2 text-gray-400" />
+                        <p>Chưa có đánh giá nào</p>
                       </div>
                     )}
                   </div>
                 </CardContent>
               </Card>
             </div>
-          </div>
-
-          <div className="space-y-8">
-            <Card className="border-0 shadow-lg overflow-hidden bg-white">
-              <CardHeader className="border-b">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                    <Cloud className="h-5 w-5 text-green-600" />
-                    Thời tiết
-                  </CardTitle>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={fetchWeather}
-                    disabled={isLoadingWeather}
-                    className="hover:bg-green-100"
-                  >
-                    {isLoadingWeather ? '...' : '🔄'}
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="p-6">
-                {isLoadingWeather ? (
-                  <div className="text-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
-                    <p className="text-sm text-gray-500 mt-2">Đang tải...</p>
-                  </div>
-                ) : weather ? (
-                  <div className="space-y-4">
-                    <div className="text-center pb-4 border-b border-gray-100">
-                      <div className="flex justify-center items-center gap-3 mb-2">
-                        {weather.iconUrl && (
-                          <img
-                            src={weather.iconUrl}
-                            alt={weather.description}
-                            className="w-16 h-16"
-                          />
-                        )}
-                        <div>
-                          <div className="text-4xl font-bold text-gray-900">
-                            {Math.round(weather.temperatureC)}°C
-                          </div>
-                          <p className="text-sm text-gray-600 capitalize">{weather.description}</p>
-                        </div>
-                      </div>
-                      <p className="text-xs text-gray-500">{weather.cityName}</p>
-                    </div>
-
-                    {weather.rainVolumeMm && weather.rainVolumeMm > 0 && (
-                      <div className="pt-3 border-t border-gray-100">
-                        <div className="flex justify-between items-center text-sm">
-                          <div className="flex items-center gap-1 text-green-600">
-                            <CloudRain className="h-4 w-4" />
-                            <span>Lượng mưa</span>
-                          </div>
-                          <span className="font-semibold text-green-600">
-                            {weather.rainVolumeMm.toFixed(1)} mm
-                          </span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <Cloud className="h-12 w-12 text-gray-400 mx-auto mb-2" />
-                    <p className="text-sm text-gray-500">Không thể tải dữ liệu thời tiết</p>
-                    <Button variant="outline" size="sm" onClick={fetchWeather} className="mt-3">
-                      Thử lại
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card className="border-0 shadow-lg">
-              <CardHeader className="border-b border-gray-100">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
-                    <Star className="h-5 w-5 text-orange-500" />
-                    Đánh giá gần đây
-                  </CardTitle>
-                </div>
-              </CardHeader>
-              <CardContent className="p-0">
-                <div className="space-y-1 max-h-80 overflow-y-auto">
-                  {feedbacks.slice(0, 5).map((feedback) => (
-                    <div
-                      key={feedback.feedbackId}
-                      className="p-4 hover:bg-gray-50 transition-colors"
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="text-sm font-medium text-gray-900">
-                              {feedback.fullName}
-                            </span>
-                            <div className="flex items-center">
-                              {Array.from({ length: 5 }).map((_, i) => (
-                                <Star
-                                  key={i}
-                                  className={`h-3 w-3 ${i < feedback.rating
-                                    ? 'text-orange-500 fill-orange-500'
-                                    : 'text-gray-300'
-                                    }`}
-                                />
-                              ))}
-                            </div>
-                          </div>
-                          <p className="text-sm text-gray-600 mb-1">
-                            {feedback.comment || 'Không có bình luận'}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            Sản phẩm: {feedback.orderDetail?.productName || 'N/A'}
-                          </p>
-                        </div>
-                        <span className="text-xs text-gray-400">
-                          {feedback.createdAt
-                            ? new Date(feedback.createdAt).toLocaleDateString('vi-VN')
-                            : 'Không xác định'}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                  {feedbacks.length === 0 && (
-                    <div className="text-center py-8 text-gray-500">
-                      <Star className="h-12 w-12 mx-auto mb-2 text-gray-400" />
-                      <p>Chưa có đánh giá nào</p>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
           </div>
         </div>
       </div>

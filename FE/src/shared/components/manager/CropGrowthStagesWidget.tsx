@@ -1,0 +1,151 @@
+import React from 'react'
+import { motion } from 'framer-motion'
+import { Sprout, TrendingUp } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
+import { Badge } from '@/shared/ui/badge'
+import type { CropRequirementView, PlantStage } from '@/shared/api/cropRequirementService'
+
+const PLANT_STAGE_CONFIG: Record<PlantStage, { label: string; color: string; description: string }> = {
+    Sowing: { label: 'Gieo hạt', color: 'bg-blue-500', description: 'Chuẩn bị đất và gieo giống' },
+    Germination: { label: 'Nảy mầm', color: 'bg-green-400', description: 'Theo dõi độ ẩm đất' },
+    CotyledonLeaves: { label: 'Ra lá mầm', color: 'bg-green-500', description: 'Bắt đầu bổ sung dinh dưỡng' },
+    TrueLeavesGrowth: { label: 'Phát triển lá thật', color: 'bg-green-600', description: 'Tăng cường ánh sáng' },
+    VigorousGrowth: { label: 'Tăng trưởng mạnh', color: 'bg-emerald-500', description: 'Theo dõi độ ẩm/ánh sáng' },
+    ReadyForHarvest: { label: 'Sẵn sàng thu hoạch', color: 'bg-yellow-500', description: 'Kiểm tra chất lượng' },
+    PostHarvest: { label: 'Sau thu hoạch', color: 'bg-gray-500', description: 'Chuẩn bị vụ mới' },
+}
+
+interface CropGrowthStagesWidgetProps {
+    requirements: CropRequirementView[]
+    className?: string
+}
+
+export const CropGrowthStagesWidget: React.FC<CropGrowthStagesWidgetProps> = ({
+    requirements,
+    className = '',
+}) => {
+    const stageDistribution = React.useMemo(() => {
+        const total = requirements.length
+        const distribution = Object.keys(PLANT_STAGE_CONFIG).map((stage) => {
+            const count = requirements.filter(
+                (req) => req.plantStage === stage && req.isActive
+            ).length
+            const percent = total > 0 ? Math.round((count / total) * 100) : 0
+            return {
+                stage: stage as PlantStage,
+                count,
+                percent,
+                config: PLANT_STAGE_CONFIG[stage as PlantStage],
+            }
+        })
+
+        return {
+            total,
+            active: requirements.filter((req) => req.isActive).length,
+            stages: distribution,
+        }
+    }, [requirements])
+
+    const topStages = React.useMemo(() => {
+        return stageDistribution.stages
+            .filter((s) => s.count > 0)
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 3)
+    }, [stageDistribution])
+
+    return (
+        <Card className={`border-0 shadow-lg bg-white ${className}`}>
+            <CardHeader className="border-b border-gray-100">
+                <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-900">
+                        <Sprout className="h-5 w-5 text-green-600" />
+                        Phân bố giai đoạn tăng trưởng
+                    </CardTitle>
+                    <Badge variant="outline" className="text-xs">
+                        {stageDistribution.active} / {stageDistribution.total} đang hoạt động
+                    </Badge>
+                </div>
+            </CardHeader>
+            <CardContent className="p-6">
+                <div className="space-y-4">
+                    {/* Stage Progress Bars */}
+                    <div className="space-y-3">
+                        {stageDistribution.stages.map((stage, index) => (
+                            <motion.div
+                                key={stage.stage}
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: index * 0.1 }}
+                            >
+                                <div className="flex items-center justify-between mb-1">
+                                    <div className="flex items-center gap-2">
+                                        <div className={`w-3 h-3 rounded-full ${stage.config.color}`} />
+                                        <span className="text-sm font-medium text-gray-700">
+                                            {stage.config.label}
+                                        </span>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-sm text-gray-600 font-medium">
+                                            {stage.count}
+                                        </span>
+                                        <span className="text-xs text-gray-500 w-12 text-right">
+                                            ({stage.percent}%)
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
+                                    <motion.div
+                                        className={`h-full ${stage.config.color} rounded-full`}
+                                        initial={{ width: 0 }}
+                                        animate={{ width: `${stage.percent}%` }}
+                                        transition={{ duration: 0.8, delay: index * 0.1 }}
+                                    />
+                                </div>
+                            </motion.div>
+                        ))}
+                    </div>
+
+                    {/* Top Stages Summary */}
+                    {topStages.length > 0 && (
+                        <div className="pt-4 border-t border-gray-100">
+                            <div className="flex items-center gap-2 mb-3">
+                                <TrendingUp className="h-4 w-4 text-green-600" />
+                                <span className="text-sm font-semibold text-gray-700">
+                                    Giai đoạn phổ biến
+                                </span>
+                            </div>
+                            <div className="grid grid-cols-3 gap-3">
+                                {topStages.map((stage, index) => (
+                                    <motion.div
+                                        key={stage.stage}
+                                        className="p-3 rounded-lg bg-gray-50 border border-gray-200"
+                                        initial={{ opacity: 0, y: 10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        transition={{ delay: 0.3 + index * 0.1 }}
+                                    >
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <div className={`w-2 h-2 rounded-full ${stage.config.color}`} />
+                                            <span className="text-xs font-medium text-gray-700 truncate">
+                                                {stage.config.label}
+                                            </span>
+                                        </div>
+                                        <div className="text-lg font-bold text-gray-900">{stage.count}</div>
+                                        <div className="text-xs text-gray-500">lô đang hoạt động</div>
+                                    </motion.div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {stageDistribution.total === 0 && (
+                        <div className="text-center py-8 text-gray-500">
+                            <Sprout className="h-12 w-12 mx-auto mb-2 text-gray-400" />
+                            <p>Chưa có dữ liệu cây trồng</p>
+                        </div>
+                    )}
+                </div>
+            </CardContent>
+        </Card>
+    )
+}
+

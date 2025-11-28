@@ -304,7 +304,7 @@ export default function CropsPage() {
     <ManagerLayout>
       <div className="p-6 space-y-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Quản Lý Yêu Cầu Cây Trồng</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Quản Lý Cây Trồng</h1>
           <p className="text-gray-600 mt-2">
             Lập kế hoạch gieo trồng, theo dõi chỉ số môi trường và giai đoạn phát triển cho từng vụ mùa.
           </p>

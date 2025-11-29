@@ -7,6 +7,10 @@
   v5: string
   v6: string
   v7: string
+  v8?: string
+  v9?: string
+  v10?: string
+  v11?: string
 }
 
 interface SensorData {
@@ -76,6 +80,26 @@ class BlynkService {
         lastUpdated: new Date(),
         connectionStrength: this.calculateConnectionStrength(data),
       }
+    } catch (error) {
+      throw error
+    }
+  }
+
+  async getRawBlynkData(): Promise<BlynkData> {
+    try {
+      const response = await fetch(`${this.baseUrl}/get-blynk-data`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const data: BlynkData = await response.json()
+      return data
     } catch (error) {
       throw error
     }

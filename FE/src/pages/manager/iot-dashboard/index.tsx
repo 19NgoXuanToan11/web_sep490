@@ -7,6 +7,7 @@ import {
   Sprout,
   Sun,
   AlertCircle,
+  Loader2,
 } from 'lucide-react'
 import { ManagerLayout } from '@/shared/layouts/ManagerLayout'
 import { Button } from '@/shared/ui/button'
@@ -50,12 +51,13 @@ const RealTimeIoTDashboard: React.FC = () => {
   const [retryCount, setRetryCount] = useState(0)
 
   // Threshold configuration state
-  const [soilLowThreshold, setSoilLowThreshold] = useState<number>(30)
-  const [soilHighThreshold, setSoilHighThreshold] = useState<number>(70)
-  const [ldrLowThreshold, setLdrLowThreshold] = useState<number>(200)
-  const [ldrHighThreshold, setLdrHighThreshold] = useState<number>(800)
+  const [soilLowThreshold, setSoilLowThreshold] = useState<number>(0)
+  const [soilHighThreshold, setSoilHighThreshold] = useState<number>(0)
+  const [ldrLowThreshold, setLdrLowThreshold] = useState<number>(0)
+  const [ldrHighThreshold, setLdrHighThreshold] = useState<number>(0)
   const [isUpdatingThreshold, setIsUpdatingThreshold] = useState<string | null>(null)
   const [isThresholdModalOpen, setIsThresholdModalOpen] = useState(false)
+  const [isLoadingThresholds, setIsLoadingThresholds] = useState(false)
 
   // Validation errors state
   const [soilValidationError, setSoilValidationError] = useState<string | null>(null)
@@ -116,19 +118,61 @@ const RealTimeIoTDashboard: React.FC = () => {
     return () => clearInterval(interval)
   }, [fetchSensorData, manualControl])
 
-  // Validate thresholds when modal opens
+  // Fetch threshold values when modal opens
   useEffect(() => {
     if (isThresholdModalOpen) {
-      const soilError = validateSoilThresholds(soilLowThreshold, soilHighThreshold)
-      const ldrError = validateLdrThresholds(ldrLowThreshold, ldrHighThreshold)
-      setSoilValidationError(soilError)
-      setLdrValidationError(ldrError)
+      const fetchThresholds = async () => {
+        setIsLoadingThresholds(true)
+        try {
+          const rawData = await blynkService.getRawBlynkData()
+
+          // Map v8, v9, v10, v11 to threshold values
+          // v8 = Soil Moisture Low, v9 = Soil Moisture High
+          // v10 = Light Intensity Low, v11 = Light Intensity High
+          if (rawData.v8 !== undefined && rawData.v8 !== null && rawData.v8 !== '') {
+            const v8 = parseInt(rawData.v8)
+            if (!isNaN(v8)) setSoilLowThreshold(v8)
+          }
+          if (rawData.v9 !== undefined && rawData.v9 !== null && rawData.v9 !== '') {
+            const v9 = parseInt(rawData.v9)
+            if (!isNaN(v9)) setSoilHighThreshold(v9)
+          }
+          if (rawData.v10 !== undefined && rawData.v10 !== null && rawData.v10 !== '') {
+            const v10 = parseInt(rawData.v10)
+            if (!isNaN(v10)) setLdrLowThreshold(v10)
+          }
+          if (rawData.v11 !== undefined && rawData.v11 !== null && rawData.v11 !== '') {
+            const v11 = parseInt(rawData.v11)
+            if (!isNaN(v11)) setLdrHighThreshold(v11)
+          }
+        } catch (error) {
+          toast({
+            title: 'Lỗi tải dữ liệu',
+            description: 'Không thể tải giá trị ngưỡng từ máy chủ',
+            variant: 'destructive',
+          })
+        } finally {
+          setIsLoadingThresholds(false)
+        }
+      }
+
+      fetchThresholds()
     } else {
       // Clear validation errors when modal closes
       setSoilValidationError(null)
       setLdrValidationError(null)
     }
-  }, [isThresholdModalOpen, soilLowThreshold, soilHighThreshold, ldrLowThreshold, ldrHighThreshold])
+  }, [isThresholdModalOpen, toast])
+
+  // Validate thresholds when values change
+  useEffect(() => {
+    if (isThresholdModalOpen && !isLoadingThresholds) {
+      const soilError = validateSoilThresholds(soilLowThreshold, soilHighThreshold)
+      const ldrError = validateLdrThresholds(ldrLowThreshold, ldrHighThreshold)
+      setSoilValidationError(soilError)
+      setLdrValidationError(ldrError)
+    }
+  }, [isThresholdModalOpen, soilLowThreshold, soilHighThreshold, ldrLowThreshold, ldrHighThreshold, isLoadingThresholds])
 
   // Đảm bảo máy bơm luôn bật khi ở chế độ tự động
   useEffect(() => {
@@ -573,7 +617,13 @@ const RealTimeIoTDashboard: React.FC = () => {
                 Thiết lập ngưỡng cho Độ ẩm đất và Ánh sáng để điều khiển tự động
               </DialogDescription>
             </DialogHeader>
-            <div className="grid gap-6 md:grid-cols-2 mt-4">
+            {isLoadingThresholds && (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-5 w-5 animate-spin text-green-600 mr-2" />
+                <span className="text-sm text-gray-600">Đang tải giá trị ngưỡng...</span>
+              </div>
+            )}
+            <div className={`grid gap-6 md:grid-cols-2 mt-4 ${isLoadingThresholds ? 'opacity-50 pointer-events-none' : ''}`}>
               { }
               <div className="space-y-4">
                 <div className="flex items-center gap-2 mb-4">
@@ -601,14 +651,14 @@ const RealTimeIoTDashboard: React.FC = () => {
                             setSoilValidationError(error)
                           }
                         }}
-                        disabled={!isOnline || isLoading || isUpdatingThreshold === 'soil-low'}
+                        disabled={!isOnline || isLoading || isUpdatingThreshold === 'soil-low' || isLoadingThresholds}
                         className={`flex-1 ${soilValidationError ? 'border-red-500' : ''}`}
-                        placeholder="0-100"
+                        placeholder={isLoadingThresholds ? 'Đang tải...' : '0-100'}
                       />
                       <span className="flex items-center text-sm text-gray-500">%</span>
                       <Button
                         onClick={() => handleThresholdUpdate('soil-low', soilLowThreshold)}
-                        disabled={!isOnline || isLoading || isUpdatingThreshold === 'soil-low' || !!soilValidationError}
+                        disabled={!isOnline || isLoading || isUpdatingThreshold === 'soil-low' || !!soilValidationError || isLoadingThresholds}
                         size="sm"
                         className="bg-green-600 hover:bg-green-700"
                       >
@@ -647,14 +697,14 @@ const RealTimeIoTDashboard: React.FC = () => {
                             setSoilValidationError(error)
                           }
                         }}
-                        disabled={!isOnline || isLoading || isUpdatingThreshold === 'soil-high'}
+                        disabled={!isOnline || isLoading || isUpdatingThreshold === 'soil-high' || isLoadingThresholds}
                         className={`flex-1 ${soilValidationError ? 'border-red-500' : ''}`}
-                        placeholder="0-100"
+                        placeholder={isLoadingThresholds ? 'Đang tải...' : '0-100'}
                       />
                       <span className="flex items-center text-sm text-gray-500">%</span>
                       <Button
                         onClick={() => handleThresholdUpdate('soil-high', soilHighThreshold)}
-                        disabled={!isOnline || isLoading || isUpdatingThreshold === 'soil-high' || !!soilValidationError}
+                        disabled={!isOnline || isLoading || isUpdatingThreshold === 'soil-high' || !!soilValidationError || isLoadingThresholds}
                         size="sm"
                         className="bg-green-600 hover:bg-green-700"
                       >
@@ -703,14 +753,14 @@ const RealTimeIoTDashboard: React.FC = () => {
                             setLdrValidationError(error)
                           }
                         }}
-                        disabled={!isOnline || isLoading || isUpdatingThreshold === 'ldr-low'}
+                        disabled={!isOnline || isLoading || isUpdatingThreshold === 'ldr-low' || isLoadingThresholds}
                         className={`flex-1 ${ldrValidationError ? 'border-red-500' : ''}`}
-                        placeholder="0-1023"
+                        placeholder={isLoadingThresholds ? 'Đang tải...' : '0-1023'}
                       />
                       <span className="flex items-center text-sm text-gray-500">lux</span>
                       <Button
                         onClick={() => handleThresholdUpdate('ldr-low', ldrLowThreshold)}
-                        disabled={!isOnline || isLoading || isUpdatingThreshold === 'ldr-low' || !!ldrValidationError}
+                        disabled={!isOnline || isLoading || isUpdatingThreshold === 'ldr-low' || !!ldrValidationError || isLoadingThresholds}
                         size="sm"
                         className="bg-green-600 hover:bg-green-700"
                       >
@@ -749,14 +799,14 @@ const RealTimeIoTDashboard: React.FC = () => {
                             setLdrValidationError(error)
                           }
                         }}
-                        disabled={!isOnline || isLoading || isUpdatingThreshold === 'ldr-high'}
+                        disabled={!isOnline || isLoading || isUpdatingThreshold === 'ldr-high' || isLoadingThresholds}
                         className={`flex-1 ${ldrValidationError ? 'border-red-500' : ''}`}
-                        placeholder="0-1023"
+                        placeholder={isLoadingThresholds ? 'Đang tải...' : '0-1023'}
                       />
                       <span className="flex items-center text-sm text-gray-500">lux</span>
                       <Button
                         onClick={() => handleThresholdUpdate('ldr-high', ldrHighThreshold)}
-                        disabled={!isOnline || isLoading || isUpdatingThreshold === 'ldr-high' || !!ldrValidationError}
+                        disabled={!isOnline || isLoading || isUpdatingThreshold === 'ldr-high' || !!ldrValidationError || isLoadingThresholds}
                         size="sm"
                         className="bg-green-600 hover:bg-green-700"
                       >

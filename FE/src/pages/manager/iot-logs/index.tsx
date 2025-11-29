@@ -14,7 +14,7 @@ import {
     SelectValue,
 } from '@/shared/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
-import { RefreshCw, History, Database, Activity, Clock } from 'lucide-react'
+import { RefreshCw, History, Database, Activity, Clock, Play, Pause } from 'lucide-react'
 
 type TimeFilter = '24h' | '7d' | '30d' | 'all'
 
@@ -55,26 +55,65 @@ const ManagerIoTLogsPage: React.FC = () => {
     const [sensorFilter, setSensorFilter] = useState<string>('all')
     const [timeFilter, setTimeFilter] = useState<TimeFilter>('24h')
     const [searchQuery, setSearchQuery] = useState('')
+    const [autoRefresh, setAutoRefresh] = useState(true)
+    const [lastRefreshTime, setLastRefreshTime] = useState<Date | null>(null)
 
-    const fetchLogs = useCallback(async () => {
+    const POLLING_INTERVAL = 30000 // 30 seconds
+
+    const fetchLogs = useCallback(async (silent = false) => {
         try {
-            setLoading(true)
+            if (!silent) {
+                setLoading(true)
+            }
             const data = await blynkService.getLogs()
             setLogs(data)
+            setLastRefreshTime(new Date())
         } catch (error) {
-            toast({
-                title: 'Không thể tải nhật ký',
-                description: 'Vui lòng thử lại sau hoặc kiểm tra kết nối.',
-                variant: 'destructive',
-            })
+            if (!silent) {
+                toast({
+                    title: 'Không thể tải nhật ký',
+                    description: 'Vui lòng thử lại sau hoặc kiểm tra kết nối.',
+                    variant: 'destructive',
+                })
+            }
         } finally {
-            setLoading(false)
+            if (!silent) {
+                setLoading(false)
+            }
         }
     }, [toast])
 
+    // Initial fetch
     useEffect(() => {
         fetchLogs()
     }, [fetchLogs])
+
+    // Auto-refresh polling mechanism
+    useEffect(() => {
+        if (!autoRefresh) return
+
+        const intervalId = setInterval(() => {
+            // Only poll if not currently syncing and page is visible
+            if (!syncing && !document.hidden) {
+                fetchLogs(true) // Silent refresh (no loading indicator)
+            }
+        }, POLLING_INTERVAL)
+
+        return () => clearInterval(intervalId)
+    }, [autoRefresh, syncing, fetchLogs])
+
+    // Pause polling when page is hidden, resume when visible
+    useEffect(() => {
+        const handleVisibilityChange = () => {
+            if (!document.hidden && autoRefresh && !syncing) {
+                // Refresh immediately when page becomes visible
+                fetchLogs(true)
+            }
+        }
+
+        document.addEventListener('visibilitychange', handleVisibilityChange)
+        return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }, [autoRefresh, syncing, fetchLogs])
 
     const handleManualSync = async () => {
         try {
@@ -163,12 +202,29 @@ const ManagerIoTLogsPage: React.FC = () => {
                     <div>
                         <h1 className="text-3xl font-bold text-gray-900">Nhật ký hệ thống IoT</h1>
                         <p className="text-gray-600 mt-2">
-                            Theo dõi lịch sử đo đạc và đồng bộ trạng thái từ nền tảng Blynk
+                            Theo dõi lịch sử đo đạc và đồng bộ trạng thái từ nền tảng Blynk. Dữ liệu tự động cập nhật mỗi {POLLING_INTERVAL / 1000} giây.
                         </p>
                     </div>
                     <div className="flex flex-col sm:flex-row gap-3">
-                        <Button variant="outline" onClick={fetchLogs} disabled={loading || syncing}>
-                            <RefreshCw className="h-4 w-4 mr-2" />
+                        <Button
+                            variant={autoRefresh ? 'default' : 'outline'}
+                            onClick={() => setAutoRefresh(!autoRefresh)}
+                            className={autoRefresh ? 'bg-green-600 hover:bg-green-700' : ''}
+                        >
+                            {autoRefresh ? (
+                                <>
+                                    <Pause className="h-4 w-4 mr-2" />
+                                    Tạm dừng tự động
+                                </>
+                            ) : (
+                                <>
+                                    <Play className="h-4 w-4 mr-2" />
+                                    Bật tự động
+                                </>
+                            )}
+                        </Button>
+                        <Button variant="outline" onClick={() => fetchLogs()} disabled={loading || syncing}>
+                            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
                             Làm mới
                         </Button>
                         <Button onClick={handleManualSync} disabled={syncing}>
@@ -225,13 +281,22 @@ const ManagerIoTLogsPage: React.FC = () => {
                             <CardTitle className="text-sm font-medium text-gray-500 uppercase tracking-wide">
                                 Trạng thái tác vụ
                             </CardTitle>
-                            <RefreshCw className={`h-4 w-4 ${syncing ? 'animate-spin text-green-600' : 'text-gray-400'}`} />
+                            <RefreshCw className={`h-4 w-4 ${syncing || (autoRefresh && !loading) ? 'animate-spin text-green-600' : 'text-gray-400'}`} />
                         </CardHeader>
                         <CardContent>
                             <div className="text-lg font-semibold text-gray-900">
-                                {syncing ? 'Đang đồng bộ...' : loading ? 'Đang tải dữ liệu...' : 'Sẵn sàng'}
+                                {syncing ? 'Đang đồng bộ...' : loading ? 'Đang tải dữ liệu...' : autoRefresh ? 'Tự động cập nhật' : 'Sẵn sàng'}
                             </div>
-                            <p className="text-xs text-gray-500 mt-1">Nút đồng bộ có thể kích hoạt bất cứ lúc nào</p>
+                            <p className="text-xs text-gray-500 mt-1">
+                                {autoRefresh
+                                    ? `Tự động làm mới mỗi ${POLLING_INTERVAL / 1000} giây`
+                                    : 'Nút đồng bộ có thể kích hoạt bất cứ lúc nào'}
+                            </p>
+                            {lastRefreshTime && (
+                                <p className="text-xs text-green-600 mt-1">
+                                    Lần cập nhật: {lastRefreshTime.toLocaleTimeString('vi-VN')}
+                                </p>
+                            )}
                         </CardContent>
                     </Card>
                 </div>

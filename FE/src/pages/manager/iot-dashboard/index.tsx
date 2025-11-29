@@ -8,6 +8,7 @@ import {
   Sun,
   AlertCircle,
   Loader2,
+  Lightbulb,
 } from 'lucide-react'
 import { ManagerLayout } from '@/shared/layouts/ManagerLayout'
 import { Button } from '@/shared/ui/button'
@@ -37,6 +38,7 @@ const RealTimeIoTDashboard: React.FC = () => {
     light: 0,
     servoAngle: 90,
     pumpState: false,
+    lightState: false,
     dataQuality: 'good',
     lastUpdated: new Date(),
     connectionStrength: 100,
@@ -55,6 +57,8 @@ const RealTimeIoTDashboard: React.FC = () => {
   const [soilHighThreshold, setSoilHighThreshold] = useState<number>(0)
   const [ldrLowThreshold, setLdrLowThreshold] = useState<number>(0)
   const [ldrHighThreshold, setLdrHighThreshold] = useState<number>(0)
+  const [lightOnThreshold, setLightOnThreshold] = useState<number>(0)
+  const [lightOffThreshold, setLightOffThreshold] = useState<number>(0)
   const [isUpdatingThreshold, setIsUpdatingThreshold] = useState<string | null>(null)
   const [isThresholdModalOpen, setIsThresholdModalOpen] = useState(false)
   const [isLoadingThresholds, setIsLoadingThresholds] = useState(false)
@@ -62,6 +66,7 @@ const RealTimeIoTDashboard: React.FC = () => {
   // Validation errors state
   const [soilValidationError, setSoilValidationError] = useState<string | null>(null)
   const [ldrValidationError, setLdrValidationError] = useState<string | null>(null)
+  const [lightValidationError, setLightValidationError] = useState<string | null>(null)
 
   const REFRESH_INTERVAL = 5000
 
@@ -80,12 +85,20 @@ const RealTimeIoTDashboard: React.FC = () => {
     return null
   }
 
+  const validateLightThresholds = (onThreshold: number, offThreshold: number): string | null => {
+    if (offThreshold <= onThreshold) {
+      return 'Ngưỡng tắt đèn phải lớn hơn ngưỡng bật đèn'
+    }
+    return null
+  }
+
   const fetchSensorData = useCallback(async () => {
     try {
       setIsLoading(true)
       const data = await blynkService.getBlynkData()
       setSensorData(data)
       setPumpControl(data.pumpState)
+      setLightControl(data.lightState ?? false)
       setServoAngle([data.servoAngle])
       setIsOnline(true)
       setRetryCount(0)
@@ -145,6 +158,16 @@ const RealTimeIoTDashboard: React.FC = () => {
             const v11 = parseInt(rawData.v11)
             if (!isNaN(v11)) setLdrHighThreshold(v11)
           }
+          // Map v13, v14 to light threshold values
+          // v13 = Light On Threshold, v14 = Light Off Threshold
+          if (rawData.v13 !== undefined && rawData.v13 !== null && rawData.v13 !== '') {
+            const v13 = parseInt(rawData.v13)
+            if (!isNaN(v13)) setLightOnThreshold(v13)
+          }
+          if (rawData.v14 !== undefined && rawData.v14 !== null && rawData.v14 !== '') {
+            const v14 = parseInt(rawData.v14)
+            if (!isNaN(v14)) setLightOffThreshold(v14)
+          }
         } catch (error) {
           toast({
             title: 'Lỗi tải dữ liệu',
@@ -161,6 +184,7 @@ const RealTimeIoTDashboard: React.FC = () => {
       // Clear validation errors when modal closes
       setSoilValidationError(null)
       setLdrValidationError(null)
+      setLightValidationError(null)
     }
   }, [isThresholdModalOpen, toast])
 
@@ -169,10 +193,12 @@ const RealTimeIoTDashboard: React.FC = () => {
     if (isThresholdModalOpen && !isLoadingThresholds) {
       const soilError = validateSoilThresholds(soilLowThreshold, soilHighThreshold)
       const ldrError = validateLdrThresholds(ldrLowThreshold, ldrHighThreshold)
+      const lightError = validateLightThresholds(lightOnThreshold, lightOffThreshold)
       setSoilValidationError(soilError)
       setLdrValidationError(ldrError)
+      setLightValidationError(lightError)
     }
-  }, [isThresholdModalOpen, soilLowThreshold, soilHighThreshold, ldrLowThreshold, ldrHighThreshold, isLoadingThresholds])
+  }, [isThresholdModalOpen, soilLowThreshold, soilHighThreshold, ldrLowThreshold, ldrHighThreshold, lightOnThreshold, lightOffThreshold, isLoadingThresholds])
 
   // Đảm bảo máy bơm luôn bật khi ở chế độ tự động
   useEffect(() => {
@@ -278,21 +304,20 @@ const RealTimeIoTDashboard: React.FC = () => {
 
   const handleLightControl = async (newState: boolean) => {
     try {
-      // Placeholder for future backend API integration
-      // const result = await blynkService.controlLight(newState)
-      // if (result.success) {
-      setLightControl(newState)
-      toast({
-        title: newState ? 'Đèn đã bật' : 'Đèn đã tắt',
-        description: `Trạng thái đèn: ${newState ? 'Hoạt động' : 'Tắt'}`,
-      })
-      // } else {
-      //   toast({
-      //     title: 'Lỗi điều khiển',
-      //     description: result.message || 'Không thể điều khiển đèn',
-      //     variant: 'destructive',
-      //   })
-      // }
+      const result = await blynkService.controlLight(newState)
+      if (result.success) {
+        setLightControl(newState)
+        toast({
+          title: newState ? 'Đèn đã bật' : 'Đèn đã tắt',
+          description: result.message || `Trạng thái đèn: ${newState ? 'Hoạt động' : 'Tắt'}`,
+        })
+      } else {
+        toast({
+          title: 'Lỗi điều khiển',
+          description: result.message || 'Không thể điều khiển đèn',
+          variant: 'destructive',
+        })
+      }
     } catch (error) {
       toast({
         title: 'Lỗi kết nối',
@@ -303,7 +328,7 @@ const RealTimeIoTDashboard: React.FC = () => {
   }
 
   const handleThresholdUpdate = async (
-    type: 'soil-low' | 'soil-high' | 'ldr-low' | 'ldr-high',
+    type: 'soil-low' | 'soil-high' | 'ldr-low' | 'ldr-high' | 'light-on' | 'light-off',
     value: number
   ) => {
     // Validate before making API call
@@ -330,6 +355,22 @@ const RealTimeIoTDashboard: React.FC = () => {
       const high = type === 'ldr-high' ? value : ldrHighThreshold
       validationError = validateLdrThresholds(low, high)
       setLdrValidationError(validationError)
+
+      if (validationError) {
+        toast({
+          title: 'Lỗi xác thực',
+          description: validationError,
+          variant: 'destructive',
+        })
+        return
+      }
+    }
+
+    if (type === 'light-on' || type === 'light-off') {
+      const onThreshold = type === 'light-on' ? value : lightOnThreshold
+      const offThreshold = type === 'light-off' ? value : lightOffThreshold
+      validationError = validateLightThresholds(onThreshold, offThreshold)
+      setLightValidationError(validationError)
 
       if (validationError) {
         toast({
@@ -371,6 +412,20 @@ const RealTimeIoTDashboard: React.FC = () => {
           if (result.success) {
             setLdrHighThreshold(value)
             setLdrValidationError(null)
+          }
+          break
+        case 'light-on':
+          result = await blynkService.setLightOnThreshold(value)
+          if (result.success) {
+            setLightOnThreshold(value)
+            setLightValidationError(null)
+          }
+          break
+        case 'light-off':
+          result = await blynkService.setLightOffThreshold(value)
+          if (result.success) {
+            setLightOffThreshold(value)
+            setLightValidationError(null)
           }
           break
       }
@@ -614,7 +669,7 @@ const RealTimeIoTDashboard: React.FC = () => {
                 </DialogTitle>
               </div>
               <DialogDescription className="text-sm text-gray-600 mt-1">
-                Thiết lập ngưỡng cho Độ ẩm đất và Ánh sáng để điều khiển tự động
+                Thiết lập ngưỡng cho Độ ẩm đất, Ánh sáng và Đèn LED để điều khiển tự động
               </DialogDescription>
             </DialogHeader>
             {isLoadingThresholds && (
@@ -623,7 +678,7 @@ const RealTimeIoTDashboard: React.FC = () => {
                 <span className="text-sm text-gray-600">Đang tải giá trị ngưỡng...</span>
               </div>
             )}
-            <div className={`grid gap-6 md:grid-cols-2 mt-4 ${isLoadingThresholds ? 'opacity-50 pointer-events-none' : ''}`}>
+            <div className={`grid gap-6 md:grid-cols-2 lg:grid-cols-3 mt-4 ${isLoadingThresholds ? 'opacity-50 pointer-events-none' : ''}`}>
               { }
               <div className="space-y-4">
                 <div className="flex items-center gap-2 mb-4">
@@ -822,6 +877,108 @@ const RealTimeIoTDashboard: React.FC = () => {
                     {!ldrValidationError && (
                       <p className="text-xs text-gray-500 mt-1">
                         Ngưỡng ánh sáng cao: {ldrHighThreshold} lux
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              { }
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 mb-4">
+                  <Lightbulb className="h-5 w-5 text-yellow-500" />
+                  <h3 className="text-lg font-semibold text-gray-900">Đèn LED</h3>
+                </div>
+
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Ngưỡng bật đèn
+                    </label>
+                    <div className="flex gap-2">
+                      <Input
+                        type="number"
+                        min="0"
+                        max="1023"
+                        value={lightOnThreshold}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value) || 0
+                          if (val >= 0 && val <= 1023) {
+                            setLightOnThreshold(val)
+                            // Validate in real-time
+                            const error = validateLightThresholds(val, lightOffThreshold)
+                            setLightValidationError(error)
+                          }
+                        }}
+                        disabled={!isOnline || isLoading || isUpdatingThreshold === 'light-on' || isLoadingThresholds}
+                        className={`flex-1 ${lightValidationError ? 'border-red-500' : ''}`}
+                        placeholder={isLoadingThresholds ? 'Đang tải...' : '0-1023'}
+                      />
+                      <span className="flex items-center text-sm text-gray-500">lux</span>
+                      <Button
+                        onClick={() => handleThresholdUpdate('light-on', lightOnThreshold)}
+                        disabled={!isOnline || isLoading || isUpdatingThreshold === 'light-on' || !!lightValidationError || isLoadingThresholds}
+                        size="sm"
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        {isUpdatingThreshold === 'light-on' ? 'Đang cập nhật...' : 'Cập nhật'}
+                      </Button>
+                    </div>
+                    {lightValidationError && (
+                      <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" />
+                        {lightValidationError}
+                      </p>
+                    )}
+                    {!lightValidationError && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        Đèn sẽ tự động bật khi ánh sáng ≤ {lightOnThreshold} lux
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Ngưỡng tắt đèn
+                    </label>
+                    <div className="flex gap-2">
+                      <Input
+                        type="number"
+                        min="0"
+                        max="1023"
+                        value={lightOffThreshold}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value) || 0
+                          if (val >= 0 && val <= 1023) {
+                            setLightOffThreshold(val)
+                            // Validate in real-time
+                            const error = validateLightThresholds(lightOnThreshold, val)
+                            setLightValidationError(error)
+                          }
+                        }}
+                        disabled={!isOnline || isLoading || isUpdatingThreshold === 'light-off' || isLoadingThresholds}
+                        className={`flex-1 ${lightValidationError ? 'border-red-500' : ''}`}
+                        placeholder={isLoadingThresholds ? 'Đang tải...' : '0-1023'}
+                      />
+                      <span className="flex items-center text-sm text-gray-500">lux</span>
+                      <Button
+                        onClick={() => handleThresholdUpdate('light-off', lightOffThreshold)}
+                        disabled={!isOnline || isLoading || isUpdatingThreshold === 'light-off' || !!lightValidationError || isLoadingThresholds}
+                        size="sm"
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        {isUpdatingThreshold === 'light-off' ? 'Đang cập nhật...' : 'Cập nhật'}
+                      </Button>
+                    </div>
+                    {lightValidationError && (
+                      <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
+                        <AlertCircle className="h-3 w-3" />
+                        {lightValidationError}
+                      </p>
+                    )}
+                    {!lightValidationError && (
+                      <p className="text-xs text-gray-500 mt-1">
+                        Đèn sẽ tự động tắt khi ánh sáng ≥ {lightOffThreshold} lux
                       </p>
                     )}
                   </div>

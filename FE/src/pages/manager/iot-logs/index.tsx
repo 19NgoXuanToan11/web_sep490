@@ -14,7 +14,7 @@ import {
     SelectValue,
 } from '@/shared/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
-import { RefreshCw, History, Database, Activity, Clock, Play, Pause, ChevronLeft, ChevronRight } from 'lucide-react'
+import { RefreshCw, History, Database, Activity, Clock, Play, Pause, ChevronLeft, ChevronRight, Download } from 'lucide-react'
 
 type TimeFilter = '24h' | '7d' | '30d' | 'all'
 
@@ -221,6 +221,56 @@ const ManagerIoTLogsPage: React.FC = () => {
         }))
     }, [filteredLogs])
 
+    const handleExportToCSV = () => {
+        if (filteredLogs.length === 0) {
+            toast({
+                title: 'Không có dữ liệu để xuất',
+                description: 'Vui lòng chọn bộ lọc khác hoặc đợi dữ liệu được tải.',
+                variant: 'destructive',
+            })
+            return
+        }
+
+        // Create CSV headers
+        const headers = ['LogIoT ID', 'Cảm biến', 'Thiết bị ID', 'Giá trị', 'Thời gian', 'Virtual Pin']
+
+        // Create CSV rows
+        const csvRows = [
+            headers.join(','),
+            ...filteredLogs.map(log => {
+                const row = [
+                    log.iotLogId?.toString() || '',
+                    `"${log.sensorName}"`,
+                    log.devicesId.toString(),
+                    formatSensorValue(Number(log.value)),
+                    `"${new Date(log.timestamp).toLocaleString('vi-VN', { hour12: false })}"`,
+                    log.variableId,
+                ]
+                return row.join(',')
+            }),
+        ]
+
+        // Create CSV content
+        const csvContent = csvRows.join('\n')
+
+        // Create blob and download
+        const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' })
+        const link = document.createElement('a')
+        const url = URL.createObjectURL(blob)
+
+        link.setAttribute('href', url)
+        link.setAttribute('download', `iot-logs-${new Date().toISOString().split('T')[0]}.csv`)
+        link.style.visibility = 'hidden'
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+
+        toast({
+            title: 'Xuất CSV thành công',
+            description: `Đã xuất ${filteredLogs.length} bản ghi ra file CSV.`,
+        })
+    }
+
     return (
         <ManagerLayout>
             <div className="p-6 space-y-8">
@@ -408,12 +458,21 @@ const ManagerIoTLogsPage: React.FC = () => {
 
                 <Card>
                     <CardHeader>
-                        <CardTitle>Nhật ký cảm biến</CardTitle>
+                        <div className="flex items-center justify-between">
+                            <CardTitle>Nhật ký cảm biến</CardTitle>
+                            {filteredLogs.length > 0 && (
+                                <Button variant="outline" onClick={handleExportToCSV} className="gap-2">
+                                    <Download className="h-4 w-4" />
+                                    Xuất CSV
+                                </Button>
+                            )}
+                        </div>
                     </CardHeader>
                     <CardContent className="overflow-x-auto">
                         <Table>
                             <TableHeader>
                                 <TableRow>
+                                    <TableHead>LogIoT ID</TableHead>
                                     <TableHead>Cảm biến</TableHead>
                                     <TableHead>Thiết bị</TableHead>
                                     <TableHead>Giá trị</TableHead>
@@ -424,7 +483,7 @@ const ManagerIoTLogsPage: React.FC = () => {
                             <TableBody>
                                 {loading ? (
                                     <TableRow>
-                                        <TableCell colSpan={5} className="py-10 text-center text-gray-500">
+                                        <TableCell colSpan={6} className="py-10 text-center text-gray-500">
                                             <div className="flex items-center justify-center gap-2">
                                                 <RefreshCw className="h-4 w-4 animate-spin" />
                                                 Đang tải dữ liệu nhật ký...
@@ -433,13 +492,18 @@ const ManagerIoTLogsPage: React.FC = () => {
                                     </TableRow>
                                 ) : filteredLogs.length === 0 ? (
                                     <TableRow>
-                                        <TableCell colSpan={5} className="py-10 text-center text-gray-500">
+                                        <TableCell colSpan={6} className="py-10 text-center text-gray-500">
                                             Không có bản ghi phù hợp với bộ lọc hiện tại.
                                         </TableCell>
                                     </TableRow>
                                 ) : (
                                     paginatedLogs.map(log => (
-                                        <TableRow key={`${log.variableId}-${log.timestamp}`}>
+                                        <TableRow key={`${log.iotLogId || log.variableId}-${log.timestamp}`}>
+                                            <TableCell>
+                                                <span className="text-sm text-gray-700 font-mono">
+                                                    {log.iotLogId ?? '--'}
+                                                </span>
+                                            </TableCell>
                                             <TableCell className="font-semibold">{log.sensorName}</TableCell>
                                             <TableCell>
                                                 <div className="flex flex-col">

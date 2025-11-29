@@ -11,6 +11,9 @@
   v9?: string
   v10?: string
   v11?: string
+  v12?: string
+  v13?: string
+  v14?: string
 }
 
 interface SensorData {
@@ -21,12 +24,14 @@ interface SensorData {
   light: number
   servoAngle: number
   pumpState: boolean
+  lightState?: boolean
   dataQuality: 'good' | 'poor' | 'error'
   lastUpdated: Date
   connectionStrength: number
 }
 
 interface BlynkLogEntry {
+  iotLogId?: number
   devicesId: number
   variableId: string
   sensorName: string
@@ -76,6 +81,7 @@ class BlynkService {
         light,
         servoAngle,
         pumpState: data.v5 === '1', // V5 = Pump control, V7 = Manual mode
+        lightState: data.v12 === '1', // V12 = LED Light status (0/1)
         dataQuality,
         lastUpdated: new Date(),
         connectionStrength: this.calculateConnectionStrength(data),
@@ -407,6 +413,100 @@ class BlynkService {
       return {
         success: data.success || true,
         message: data.message || `Ngưỡng ánh sáng CAO đã đặt: ${value}`,
+      }
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error.message || 'Lỗi gửi lệnh đến thiết bị',
+      }
+    }
+  }
+
+  async controlLight(state: boolean): Promise<{ success: boolean; message: string }> {
+    try {
+      const response = await fetch(`${this.baseUrl}/light?state=${state}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const data = await response.json()
+      return {
+        success: data.success !== false,
+        message: data.message || `Đèn LED đã được ${state ? 'bật' : 'tắt'} thành công.`,
+      }
+    } catch (error) {
+      return {
+        success: false,
+        message: 'Không thể gửi lệnh điều khiển đèn đến Blynk Cloud.',
+      }
+    }
+  }
+
+  async setLightOnThreshold(value: number): Promise<{ success: boolean; message: string }> {
+    try {
+      if (value < 0 || value > 1023) {
+        return {
+          success: false,
+          message: 'Ngưỡng phải từ 0-1023',
+        }
+      }
+
+      const response = await fetch(`${this.baseUrl}/threshold/light-on?value=${value}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`)
+      }
+
+      const data = await response.json()
+      return {
+        success: data.success !== false,
+        message: data.message || `Ngưỡng bật đèn đã đặt: ${value}`,
+      }
+    } catch (error: any) {
+      return {
+        success: false,
+        message: error.message || 'Lỗi gửi lệnh đến thiết bị',
+      }
+    }
+  }
+
+  async setLightOffThreshold(value: number): Promise<{ success: boolean; message: string }> {
+    try {
+      if (value < 0 || value > 1023) {
+        return {
+          success: false,
+          message: 'Ngưỡng phải từ 0-1023',
+        }
+      }
+
+      const response = await fetch(`${this.baseUrl}/threshold/light-off?value=${value}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`)
+      }
+
+      const data = await response.json()
+      return {
+        success: data.success !== false,
+        message: data.message || `Ngưỡng tắt đèn đã đặt: ${value}`,
       }
     } catch (error: any) {
       return {

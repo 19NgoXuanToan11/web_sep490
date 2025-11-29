@@ -16,6 +16,7 @@ const ManagerFarmActivitiesPage = React.lazy(() => import('@/pages/manager/farm-
 const ManagerIoTDevicesPage = React.lazy(() => import('@/pages/manager/iot-devices'))
 const RealTimeIoTDashboard = React.lazy(() => import('@/pages/manager/iot-dashboard'))
 const ManagerOrdersPage = React.lazy(() => import('@/pages/manager/orders'))
+const ManagerIoTLogsPage = React.lazy(() => import('@/pages/manager/iot-logs'))
 const ProductsPage = React.lazy(() => import('@/features/products-management/pages/ProductsPage').then(m => ({ default: m.ProductsPage })))
 
 const StaffDashboard = React.lazy(() => import('@/pages/staff/dashboard'))
@@ -139,6 +140,16 @@ const routerConfig = [
       <LazyWrapper>
         <RoleGuard allowed={['Manager']}>
           <RealTimeIoTDashboard />
+        </RoleGuard>
+      </LazyWrapper>
+    ),
+  },
+  {
+    path: '/manager/iot-logs',
+    element: (
+      <LazyWrapper>
+        <RoleGuard allowed={['Manager']}>
+          <ManagerIoTLogsPage />
         </RoleGuard>
       </LazyWrapper>
     ),

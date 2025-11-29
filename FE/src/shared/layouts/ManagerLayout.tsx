@@ -12,6 +12,7 @@ import {
   Activity,
   Cpu,
   Monitor,
+  History,
 } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import LogoutButton from '@/shared/ui/LogoutButton'
@@ -72,6 +73,12 @@ const navigationItems: NavItem[] = [
     href: '/manager/iot-dashboard',
     icon: Monitor,
     description: 'Giám sát cảm biến thời gian thực',
+  },
+  {
+    name: 'Nhật ký IoT',
+    href: '/manager/iot-logs',
+    icon: History,
+    description: 'Lịch sử dữ liệu cảm biến & đồng bộ',
   },
 ]
 

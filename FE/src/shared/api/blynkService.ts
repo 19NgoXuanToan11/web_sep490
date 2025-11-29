@@ -22,6 +22,14 @@ interface SensorData {
   connectionStrength: number
 }
 
+interface BlynkLogEntry {
+  devicesId: number
+  variableId: string
+  sensorName: string
+  value: number
+  timestamp: string
+}
+
 class BlynkService {
   private baseUrl = 'https://iotfarm.onrender.com/api/blynk'
 
@@ -70,6 +78,41 @@ class BlynkService {
       }
     } catch (error) {
       throw error
+    }
+  }
+
+  async getLogs(): Promise<BlynkLogEntry[]> {
+    const response = await fetch(`${this.baseUrl}/logs`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    })
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`)
+    }
+
+    const payload = await response.json()
+    return Array.isArray(payload?.data) ? payload.data : []
+  }
+
+  async triggerLogsUpdate(): Promise<{ success: boolean; message: string }> {
+    const response = await fetch(`${this.baseUrl}/logs/update`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    })
+
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}))
+      return {
+        success: false,
+        message: data?.message || `Không thể đồng bộ nhật ký (mã ${response.status})`,
+      }
+    }
+
+    const data = await response.json().catch(() => ({}))
+    return {
+      success: data?.status === 1 || true,
+      message: data?.message || 'Đã đồng bộ dữ liệu từ thiết bị IoT',
     }
   }
 
@@ -351,4 +394,4 @@ class BlynkService {
 }
 
 export const blynkService = new BlynkService()
-export type { SensorData, BlynkData }
+export type { SensorData, BlynkData, BlynkLogEntry }

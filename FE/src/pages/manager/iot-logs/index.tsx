@@ -14,7 +14,7 @@ import {
     SelectValue,
 } from '@/shared/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
-import { RefreshCw, History, Database, Activity, Clock, Play, Pause } from 'lucide-react'
+import { RefreshCw, History, Database, Activity, Clock, Play, Pause, ChevronLeft, ChevronRight } from 'lucide-react'
 
 type TimeFilter = '24h' | '7d' | '30d' | 'all'
 
@@ -57,8 +57,10 @@ const ManagerIoTLogsPage: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState('')
     const [autoRefresh, setAutoRefresh] = useState(true)
     const [lastRefreshTime, setLastRefreshTime] = useState<Date | null>(null)
+    const [currentPage, setCurrentPage] = useState(1)
 
     const POLLING_INTERVAL = 30000 // 30 seconds
+    const PAGE_SIZE = 25 // Items per page
 
     const fetchLogs = useCallback(async (silent = false) => {
         try {
@@ -164,6 +166,30 @@ const ManagerIoTLogsPage: React.FC = () => {
                     new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
             )
     }, [logs, sensorFilter, timeFilter, searchQuery])
+
+    // Calculate pagination
+    const totalPages = useMemo(() => {
+        return Math.max(1, Math.ceil(filteredLogs.length / PAGE_SIZE))
+    }, [filteredLogs.length])
+
+    // Paginated logs for current page
+    const paginatedLogs = useMemo(() => {
+        const startIndex = (currentPage - 1) * PAGE_SIZE
+        const endIndex = startIndex + PAGE_SIZE
+        return filteredLogs.slice(startIndex, endIndex)
+    }, [filteredLogs, currentPage])
+
+    // Reset to page 1 when filters change or if current page is out of bounds
+    useEffect(() => {
+        if (currentPage > totalPages && totalPages > 0) {
+            setCurrentPage(1)
+        }
+    }, [totalPages, currentPage])
+
+    // Reset to page 1 when filters change
+    useEffect(() => {
+        setCurrentPage(1)
+    }, [sensorFilter, timeFilter, searchQuery])
 
     const latestTimestamp = useMemo(() => {
         if (logs.length === 0) return null
@@ -301,6 +327,36 @@ const ManagerIoTLogsPage: React.FC = () => {
                     </Card>
                 </div>
 
+                {aggregateBySensor.length > 0 && (
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Tổng hợp giá trị gần nhất</CardTitle>
+                        </CardHeader>
+                        <CardContent className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                            {aggregateBySensor.map(sensor => (
+                                <div
+                                    key={sensor.sensorName}
+                                    className="border rounded-lg p-4 flex flex-col gap-2 bg-gray-50"
+                                >
+                                    <div className="flex items-center justify-between">
+                                        <h3 className="font-semibold text-gray-900">{sensor.sensorName}</h3>
+                                        <Badge variant="outline">{sensor.count} bản ghi</Badge>
+                                    </div>
+                                    <div className="text-3xl font-bold text-green-700">
+                                        {formatSensorValue(sensor.lastValue)}
+                                    </div>
+                                    <p className="text-xs text-gray-500">
+                                        Cập nhật lúc{' '}
+                                        {sensor.lastTimestamp
+                                            ? new Date(sensor.lastTimestamp).toLocaleString('vi-VN')
+                                            : '--'}
+                                    </p>
+                                </div>
+                            ))}
+                        </CardContent>
+                    </Card>
+                )}
+
                 <Card>
                     <CardHeader>
                         <CardTitle>Bộ lọc & tìm kiếm</CardTitle>
@@ -382,7 +438,7 @@ const ManagerIoTLogsPage: React.FC = () => {
                                         </TableCell>
                                     </TableRow>
                                 ) : (
-                                    filteredLogs.map(log => (
+                                    paginatedLogs.map(log => (
                                         <TableRow key={`${log.variableId}-${log.timestamp}`}>
                                             <TableCell className="font-semibold">{log.sensorName}</TableCell>
                                             <TableCell>
@@ -410,37 +466,116 @@ const ManagerIoTLogsPage: React.FC = () => {
                             </TableBody>
                         </Table>
                     </CardContent>
-                </Card>
-
-                {aggregateBySensor.length > 0 && (
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Tổng hợp giá trị gần nhất</CardTitle>
-                        </CardHeader>
-                        <CardContent className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                            {aggregateBySensor.map(sensor => (
-                                <div
-                                    key={sensor.sensorName}
-                                    className="border rounded-lg p-4 flex flex-col gap-2 bg-gray-50"
-                                >
-                                    <div className="flex items-center justify-between">
-                                        <h3 className="font-semibold text-gray-900">{sensor.sensorName}</h3>
-                                        <Badge variant="outline">{sensor.count} bản ghi</Badge>
-                                    </div>
-                                    <div className="text-3xl font-bold text-green-700">
-                                        {formatSensorValue(sensor.lastValue)}
-                                    </div>
-                                    <p className="text-xs text-gray-500">
-                                        Cập nhật lúc{' '}
-                                        {sensor.lastTimestamp
-                                            ? new Date(sensor.lastTimestamp).toLocaleString('vi-VN')
-                                            : '--'}
-                                    </p>
+                    {filteredLogs.length > 0 && (
+                        <div className="border-t px-6 py-4">
+                            <div className="flex items-center justify-between">
+                                <div className="text-sm text-gray-700">
+                                    Hiển thị {Math.min((currentPage - 1) * PAGE_SIZE + 1, filteredLogs.length)}-
+                                    {Math.min(currentPage * PAGE_SIZE, filteredLogs.length)} trong tổng số{' '}
+                                    {filteredLogs.length} bản ghi
                                 </div>
-                            ))}
-                        </CardContent>
-                    </Card>
-                )}
+
+                                {totalPages > 1 && (
+                                    <div className="flex items-center gap-2">
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                                            disabled={currentPage === 1 || loading}
+                                        >
+                                            <ChevronLeft className="h-4 w-4" />
+                                            Trước
+                                        </Button>
+
+                                        <div className="flex items-center gap-1">
+                                            {(() => {
+                                                const pages = []
+                                                const maxVisiblePages = 5
+                                                let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2))
+                                                const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1)
+
+                                                if (endPage - startPage < maxVisiblePages - 1) {
+                                                    startPage = Math.max(1, endPage - maxVisiblePages + 1)
+                                                }
+
+                                                if (startPage > 1) {
+                                                    pages.push(
+                                                        <Button
+                                                            key={1}
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() => setCurrentPage(1)}
+                                                            disabled={loading}
+                                                            className="w-10"
+                                                        >
+                                                            1
+                                                        </Button>
+                                                    )
+                                                    if (startPage > 2) {
+                                                        pages.push(
+                                                            <span key="ellipsis-start" className="px-2 text-gray-500">
+                                                                ...
+                                                            </span>
+                                                        )
+                                                    }
+                                                }
+
+                                                for (let i = startPage; i <= endPage; i++) {
+                                                    pages.push(
+                                                        <Button
+                                                            key={i}
+                                                            variant={currentPage === i ? 'default' : 'outline'}
+                                                            size="sm"
+                                                            onClick={() => setCurrentPage(i)}
+                                                            disabled={loading}
+                                                            className="w-10"
+                                                        >
+                                                            {i}
+                                                        </Button>
+                                                    )
+                                                }
+
+                                                if (endPage < totalPages) {
+                                                    if (endPage < totalPages - 1) {
+                                                        pages.push(
+                                                            <span key="ellipsis-end" className="px-2 text-gray-500">
+                                                                ...
+                                                            </span>
+                                                        )
+                                                    }
+                                                    pages.push(
+                                                        <Button
+                                                            key={totalPages}
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() => setCurrentPage(totalPages)}
+                                                            disabled={loading}
+                                                            className="w-10"
+                                                        >
+                                                            {totalPages}
+                                                        </Button>
+                                                    )
+                                                }
+
+                                                return pages
+                                            })()}
+                                        </div>
+
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                                            disabled={currentPage === totalPages || loading}
+                                        >
+                                            Sau
+                                            <ChevronRight className="h-4 w-4" />
+                                        </Button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </Card>
             </div>
         </ManagerLayout>
     )

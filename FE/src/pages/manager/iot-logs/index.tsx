@@ -59,7 +59,7 @@ const ManagerIoTLogsPage: React.FC = () => {
     const [lastRefreshTime, setLastRefreshTime] = useState<Date | null>(null)
     const [currentPage, setCurrentPage] = useState(1)
 
-    const POLLING_INTERVAL = 30000 // 30 seconds
+    const POLLING_INTERVAL = 15000 // 15 seconds
     const PAGE_SIZE = 25 // Items per page
 
     const fetchLogs = useCallback(async (silent = false) => {

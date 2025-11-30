@@ -282,9 +282,10 @@ const RealTimeIoTDashboard: React.FC = () => {
       const result = await blynkService.controlServo(angle[0])
       if (result.success) {
         setServoAngle(angle)
+        const isOpen = angle[0] >= 90
         toast({
           title: 'Mái che đã điều chỉnh',
-          description: result.message || `Góc mái che: ${angle[0]}°`,
+          description: result.message || `Mái che: ${isOpen ? 'Mở' : 'Đóng'}`,
         })
       } else {
         toast({
@@ -606,7 +607,9 @@ const RealTimeIoTDashboard: React.FC = () => {
               <div className="mb-4">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-gray-900 font-semibold">Mái che</h3>
-                  <span className="text-blue-600 text-xl font-bold">{servoAngle[0]}°</span>
+                  <span className={`text-sm font-medium ${servoAngle[0] >= 90 ? 'text-green-600' : 'text-gray-600'}`}>
+                    {servoAngle[0] >= 90 ? 'Mở' : 'Đóng'}
+                  </span>
                 </div>
                 <div
                   className={`${!isOnline || isLoading || !manualControl ? 'opacity-50 pointer-events-none' : ''}`}
@@ -620,10 +623,6 @@ const RealTimeIoTDashboard: React.FC = () => {
                     className="w-full"
                   />
                 </div>
-              </div>
-              <div className="flex justify-between text-xs text-gray-500">
-                <span>0°</span>
-                <span>180°</span>
               </div>
               {!manualControl && (
                 <p className="text-gray-500 text-xs mt-2 italic">

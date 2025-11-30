@@ -1,16 +1,8 @@
 ﻿import React, { useEffect, useState } from 'react'
 import {
-  Cpu,
-  Activity,
-  CheckCircle,
   RefreshCw,
   Plus,
-  Settings,
   Eye,
-  Thermometer,
-  Droplets,
-  Gauge,
-  Clock,
   Pencil,
 } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
@@ -25,12 +17,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/ui/select'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/shared/ui/dropdown-menu'
 import { ManagerLayout } from '@/shared/layouts/ManagerLayout'
 import { useToast } from '@/shared/ui/use-toast'
 import { iotDeviceService, type IoTDevice } from '@/shared/api/iotDeviceService'
@@ -95,24 +81,6 @@ const ManagerIoTDevicesPage: React.FC = () => {
     })
   }
 
-  const handleUpdateStatus = async (deviceId: number, newStatus: number) => {
-    try {
-      await iotDeviceService.updateDeviceStatus(deviceId, newStatus)
-      await fetchDevices()
-      await fetchStatistics()
-      toast({
-        title: 'Thành công',
-        description: 'Đã cập nhật trạng thái thiết bị',
-      })
-    } catch (error) {
-      toast({
-        title: 'Lỗi',
-        description: 'Không thể cập nhật trạng thái thiết bị',
-        variant: 'destructive',
-      })
-    }
-  }
-
   const handleCreateSuccess = () => {
     fetchDevices()
     fetchStatistics()
@@ -140,26 +108,6 @@ const ManagerIoTDevicesPage: React.FC = () => {
     return <Badge className="bg-gray-100 text-gray-800 border-gray-200">Không xác định</Badge>
   }
 
-  const getStatusIcon = (status: number) => {
-    if (status === 1) {
-      return <CheckCircle className="h-4 w-4 text-green-500" />
-    }
-    return <Activity className="h-4 w-4 text-gray-400" />
-  }
-
-  const getDeviceTypeIcon = (deviceType: string) => {
-    const type = deviceType?.toLowerCase() || ''
-    if (type.includes('temperature') || type.includes('nhiệt độ')) {
-      return <Thermometer className="h-4 w-4" />
-    }
-    if (type.includes('humidity') || type.includes('độ ẩm')) {
-      return <Droplets className="h-4 w-4" />
-    }
-    if (type.includes('soil') || type.includes('đất')) {
-      return <Gauge className="h-4 w-4" />
-    }
-    return <Cpu className="h-4 w-4" />
-  }
 
   const filteredDevices = devices.filter(device => {
     const matchesSearch =
@@ -257,14 +205,13 @@ const ManagerIoTDevicesPage: React.FC = () => {
                   <TableHead>Thiết bị</TableHead>
                   <TableHead>Loại</TableHead>
                   <TableHead>Trạng thái</TableHead>
-                  <TableHead>Cập nhật cuối</TableHead>
-                  <TableHead>Hành động</TableHead>
+                  <TableHead className="text-right">Hành động</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8">
+                    <TableCell colSpan={5} className="text-center py-8">
                       <div className="flex items-center justify-center">
                         <RefreshCw className="h-4 w-4 animate-spin mr-2" />
                         Đang tải...
@@ -273,7 +220,7 @@ const ManagerIoTDevicesPage: React.FC = () => {
                   </TableRow>
                 ) : filteredDevices.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8">
+                    <TableCell colSpan={5} className="text-center py-8">
                       Không tìm thấy thiết bị nào
                     </TableCell>
                   </TableRow>
@@ -282,60 +229,35 @@ const ManagerIoTDevicesPage: React.FC = () => {
                     <TableRow key={device.ioTdevicesId}>
                       <TableCell className="text-center">{index + 1}</TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-3">
-                          {getDeviceTypeIcon(device.deviceType)}
-                          <div>
-                            <div className="font-medium">{device.deviceName}</div>
-                          </div>
-                        </div>
+                        <div className="font-medium">{device.deviceName}</div>
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-2">
-                          {getDeviceTypeIcon(device.deviceType)}
-                          {device.deviceType}
-                        </div>
+                        {device.deviceType}
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-2">
-                          {getStatusIcon(Number(device.status))}
-                          {getStatusBadge(Number(device.status))}
-                        </div>
+                        {getStatusBadge(Number(device.status))}
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Clock className="h-4 w-4 text-gray-400" />
-                          {device.lastUpdate ? (
-                            new Date(device.lastUpdate).toLocaleString('vi-VN')
-                          ) : (
-                            <span className="text-gray-400">N/A</span>
-                          )}
+                        <div className="flex justify-end gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleViewDetails(device)}
+                            title="Xem chi tiết"
+                            className="hover:bg-blue-50 hover:border-blue-300"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEditDevice(device)}
+                            title="Chỉnh sửa"
+                            className="hover:bg-green-50 hover:border-green-300"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm">
-                              <Settings className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleViewDetails(device)}>
-                              <Eye className="h-4 w-4 mr-2" />
-                              Xem chi tiết
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleEditDevice(device)}>
-                              <Pencil className="h-4 w-4 mr-2" />
-                              Chỉnh sửa
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => handleUpdateStatus(Number(device.ioTdevicesId!), 1)}
-                              disabled={Number(device.status) === 1}
-                            >
-                              <CheckCircle className="h-4 w-4 mr-2" />
-                              Kích hoạt
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
                   ))

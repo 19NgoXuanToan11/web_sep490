@@ -107,8 +107,25 @@ export default function CropsPage() {
 
   const { toast } = useToast()
 
+  // Merge cropName from availableCrops into requirements based on cropId
+  const requirementsWithCropName = useMemo(() => {
+    if (!availableCrops.length) return requirements
+
+    // Create a map of cropId to cropName for quick lookup
+    const cropMap = new Map<number, string>()
+    availableCrops.forEach(crop => {
+      cropMap.set(crop.cropId, crop.cropName)
+    })
+
+    // Merge cropName into each requirement
+    return requirements.map(requirement => ({
+      ...requirement,
+      cropName: requirement.cropName || cropMap.get(requirement.cropId) || null,
+    }))
+  }, [requirements, availableCrops])
+
   const filteredRequirements = useMemo(() => {
-    return requirements.filter(item => {
+    return requirementsWithCropName.filter(item => {
       const matchesSearch =
         !searchTerm ||
         item.cropName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -121,7 +138,7 @@ export default function CropsPage() {
 
       return matchesSearch && matchesStatus && matchesStage
     })
-  }, [requirements, searchTerm, statusFilter, stageFilter])
+  }, [requirementsWithCropName, searchTerm, statusFilter, stageFilter])
 
   const totalPages = Math.max(1, Math.ceil(filteredRequirements.length / pageSize))
 
@@ -131,17 +148,17 @@ export default function CropsPage() {
   }, [filteredRequirements, currentPage])
 
   const stats = useMemo(() => {
-    const total = requirements.length
-    const active = requirements.filter(item => item.isActive).length
+    const total = requirementsWithCropName.length
+    const active = requirementsWithCropName.filter(item => item.isActive).length
     const average = (key: keyof CropRequirementView) => {
-      const values = requirements
+      const values = requirementsWithCropName
         .map(item => item[key] as number | null | undefined)
         .filter((value): value is number => typeof value === 'number')
       if (!values.length) return null
       return values.reduce((sum, value) => sum + value, 0) / values.length
     }
     const stageDistribution = PLANT_STAGE_OPTIONS.map(option => {
-      const count = requirements.filter(item => item.plantStage === option.value).length
+      const count = requirementsWithCropName.filter(item => item.plantStage === option.value).length
       return { ...option, count, percent: total ? Math.round((count / total) * 100) : 0 }
     })
 
@@ -154,7 +171,7 @@ export default function CropsPage() {
       light: average('lightRequirement'),
       stageDistribution,
     }
-  }, [requirements])
+  }, [requirementsWithCropName])
 
   const handleResetForm = () => {
     setFormData(INITIAL_FORM_STATE)
@@ -304,8 +321,13 @@ export default function CropsPage() {
     setDetailsDialogOpen(true)
   }
 
+  const handleRefresh = async () => {
+    await Promise.all([loadRequirements(), loadAvailableCrops()])
+  }
+
   useEffect(() => {
     loadRequirements()
+    loadAvailableCrops()
   }, [])
 
   useEffect(() => {
@@ -431,7 +453,7 @@ export default function CropsPage() {
                 </Select>
               </div>
               <div className="flex gap-2 w-full md:w-auto">
-                <Button variant="outline" onClick={loadRequirements}>
+                <Button variant="outline" onClick={handleRefresh}>
                   <RefreshCw className="h-4 w-4 mr-2" />
                   Làm mới
                 </Button>

@@ -152,7 +152,7 @@ export function StaffProductsPage() {
                     <CardHeader>
                         <CardTitle>Sản phẩm</CardTitle>
                         <CardDescription>
-                            Danh sách sản phẩm được đồng bộ từ module Quản lý Cây trồng (Manager)
+                            Danh sách sản phẩm được đồng bộ từ module Cây trồng (Manager)
                         </CardDescription>
                     </CardHeader>
                     <CardContent>

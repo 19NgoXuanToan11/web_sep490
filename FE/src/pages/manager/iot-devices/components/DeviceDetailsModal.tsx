@@ -79,19 +79,44 @@ export const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({
 
     const handleOpenChange = (open: boolean) => {
         if (!open) {
-            onClose()
+            // Cleanup body overflow immediately
+            document.body.style.overflow = ''
+            // Call onClose after a small delay to ensure cleanup
+            setTimeout(() => {
+                onClose()
+            }, 0)
         }
     }
 
+    // Prevent body scroll when modal is open
+    React.useEffect(() => {
+        if (isOpen) {
+            document.body.style.overflow = 'hidden'
+        } else {
+            document.body.style.overflow = ''
+        }
+        return () => {
+            // Always cleanup on unmount
+            document.body.style.overflow = ''
+        }
+    }, [isOpen])
+
+    // Cleanup on unmount
+    React.useEffect(() => {
+        return () => {
+            document.body.style.overflow = ''
+            // Remove any lingering pointer-events blocks
+            document.body.style.pointerEvents = ''
+        }
+    }, [])
+
     return (
-        <Dialog 
-            open={isOpen} 
-            onOpenChange={handleOpenChange}
-            modal={true}
-        >
-            <DialogContent 
+        <Dialog open={isOpen} onOpenChange={handleOpenChange} modal={true}>
+            <DialogContent
                 className="max-w-2xl max-h-[90vh] overflow-y-auto"
-                onEscapeKeyDown={() => {
+                onEscapeKeyDown={(e) => {
+                    // Allow Escape to close
+                    e.preventDefault()
                     onClose()
                 }}
             >
@@ -182,4 +207,5 @@ export const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({
         </Dialog>
     )
 }
+
 

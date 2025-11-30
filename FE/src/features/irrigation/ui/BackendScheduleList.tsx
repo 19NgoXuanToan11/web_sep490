@@ -48,7 +48,7 @@ const buildEmptyScheduleForm = (): CreateScheduleRequest => ({
     quantity: 0,
     status: 0,
     pesticideUsed: false,
-    diseaseStatus: 0,
+    diseaseStatus: null,
     farmActivitiesId: 0,
 })
 
@@ -141,6 +141,7 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
     )
     const diseaseOptions = useMemo(
         () => [
+            { value: -1, label: 'Không có bệnh' },
             { value: 0, label: 'Bệnh mốc sương' },
             { value: 1, label: 'Bệnh phấn trắng' },
             { value: 2, label: 'Bệnh đốm lá' },
@@ -175,11 +176,17 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
 
     const getDiseaseLabel = useCallback(
         (value: number | null | undefined) => {
-            if (value === null || value === undefined) return '-'
+            if (value === null || value === undefined || value === -1) return 'Không có bệnh'
             return diseaseOptions.find(o => o.value === value)?.label ?? String(value)
         },
         [diseaseOptions]
     )
+
+    // Helper to convert diseaseStatus to Select value (-1 for null/undefined, otherwise the number)
+    const getDiseaseSelectValue = useCallback((value: number | null | undefined): string => {
+        if (value === null || value === undefined) return '-1'
+        return String(value)
+    }, [])
 
     const load = useCallback(async () => {
         setLoading(true)
@@ -300,6 +307,19 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
             })
             if (hasOverlap) {
                 errors.push('Khoảng thời gian bị trùng với lịch khác của cùng nông trại/cây trồng.')
+            }
+        }
+
+        // Validate: Cây mới gieo trồng không thể có tình trạng bệnh
+        if (planting && payload.diseaseStatus !== null && payload.diseaseStatus !== undefined) {
+            // Tính số ngày từ ngày gieo trồng đến hôm nay
+            const daysDiff = Math.floor((planting.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+            // Nếu ngày gieo trồng là hôm nay hoặc trong tương lai, hoặc trong vòng 7 ngày gần đây
+            if (daysDiff >= 0 || (daysDiff >= -7 && daysDiff < 0)) {
+                // Kiểm tra xem có chọn bệnh không (-1 là "Không có bệnh", >= 0 là các loại bệnh)
+                if (payload.diseaseStatus >= 0) {
+                    errors.push('Cây mới gieo trồng (trong vòng 7 ngày gần đây hoặc trong tương lai) không thể có tình trạng bệnh. Vui lòng chọn "Không có bệnh".')
+                }
             }
         }
 
@@ -460,7 +480,7 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                         quantity: detail.quantity,
                         status: typeof detail.status === 'number' ? detail.status : 0,
                         pesticideUsed: detail.pesticideUsed,
-                        diseaseStatus: detail.diseaseStatus ?? 0,
+                        diseaseStatus: detail.diseaseStatus ?? null,
                         farmActivitiesId: detail.farmActivitiesId ?? 0,
                     })
                 } catch (e) {
@@ -730,8 +750,11 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                             <div>
                                 <Label>Tình trạng bệnh</Label>
                                 <Select
-                                    value={String(form.diseaseStatus)}
-                                    onValueChange={v => setForm({ ...form, diseaseStatus: Number(v) })}
+                                    value={getDiseaseSelectValue(form.diseaseStatus)}
+                                    onValueChange={v => {
+                                        const numValue = Number(v)
+                                        setForm({ ...form, diseaseStatus: numValue === -1 ? null : numValue })
+                                    }}
                                     disabled={metaLoading || editLoading}
                                 >
                                     <SelectTrigger>
@@ -1223,8 +1246,11 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                                 <div>
                                     <Label>Tình trạng bệnh</Label>
                                     <Select
-                                        value={String(editForm.diseaseStatus)}
-                                        onValueChange={v => setEditForm({ ...editForm, diseaseStatus: Number(v) })}
+                                        value={getDiseaseSelectValue(editForm.diseaseStatus)}
+                                        onValueChange={v => {
+                                            const numValue = Number(v)
+                                            setEditForm({ ...editForm, diseaseStatus: numValue === -1 ? null : numValue })
+                                        }}
                                     >
                                         <SelectTrigger>
                                             <SelectValue />

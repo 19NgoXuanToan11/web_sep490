@@ -85,7 +85,7 @@ export interface CreateScheduleRequest {
   quantity: number
   status: number
   pesticideUsed: boolean
-  diseaseStatus: number
+  diseaseStatus?: number | null
   farmActivitiesId: number
 }
 

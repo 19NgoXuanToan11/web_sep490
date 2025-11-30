@@ -55,8 +55,20 @@ export default function FarmActivitiesPage() {
   })
   const [formActivityType, setFormActivityType] = useState<string>('')
   const [formStatus, setFormStatus] = useState<string>('ACTIVE')
+  const [dateErrors, setDateErrors] = useState<{ startDate?: string; endDate?: string }>({})
 
   const { toast } = useToast()
+
+  // Get today's date in YYYY-MM-DD format for date input min attribute
+  const getTodayDateString = (): string => {
+    const today = new Date()
+    const year = today.getFullYear()
+    const month = String(today.getMonth() + 1).padStart(2, '0')
+    const day = String(today.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
+
+  const todayDateString = getTodayDateString()
 
   // Mapping function to convert frontend activity type strings to backend integer values
   // Backend enum: Sowing=0, Protection=1, Irrigation=2, Fertilization=3, Harvesting=4
@@ -169,6 +181,9 @@ export default function FarmActivitiesPage() {
 
   const handleCreateActivity = async () => {
     try {
+      // Reset errors
+      setDateErrors({})
+
       if (!formActivityType || !formData.startDate || !formData.endDate) {
         toast({
           title: 'Lỗi',
@@ -178,7 +193,36 @@ export default function FarmActivitiesPage() {
         return
       }
 
-      if (new Date(formData.startDate) > new Date(formData.endDate)) {
+      // Validate that dates are not before today
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      const startDate = new Date(formData.startDate)
+      startDate.setHours(0, 0, 0, 0)
+      const endDate = new Date(formData.endDate)
+      endDate.setHours(0, 0, 0, 0)
+
+      if (startDate < today) {
+        setDateErrors({ startDate: 'Ngày bắt đầu không thể trước ngày hiện tại' })
+        toast({
+          title: 'Lỗi',
+          description: 'Ngày bắt đầu không thể trước ngày hiện tại',
+          variant: 'destructive',
+        })
+        return
+      }
+
+      if (endDate < today) {
+        setDateErrors({ endDate: 'Ngày kết thúc không thể trước ngày hiện tại' })
+        toast({
+          title: 'Lỗi',
+          description: 'Ngày kết thúc không thể trước ngày hiện tại',
+          variant: 'destructive',
+        })
+        return
+      }
+
+      if (startDate > endDate) {
+        setDateErrors({ startDate: 'Ngày bắt đầu không thể sau ngày kết thúc' })
         toast({
           title: 'Lỗi',
           description: 'Ngày bắt đầu không thể sau ngày kết thúc',
@@ -211,10 +255,51 @@ export default function FarmActivitiesPage() {
     if (!editingActivity) return
 
     try {
+      // Reset errors
+      setDateErrors({})
+
       if (!formActivityType || !formData.startDate || !formData.endDate) {
         toast({
           title: 'Lỗi',
           description: 'Vui lòng điền đầy đủ thông tin bắt buộc',
+          variant: 'destructive',
+        })
+        return
+      }
+
+      // Validate that dates are not before today
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      const startDate = new Date(formData.startDate)
+      startDate.setHours(0, 0, 0, 0)
+      const endDate = new Date(formData.endDate)
+      endDate.setHours(0, 0, 0, 0)
+
+      if (startDate < today) {
+        setDateErrors({ startDate: 'Ngày bắt đầu không thể trước ngày hiện tại' })
+        toast({
+          title: 'Lỗi',
+          description: 'Ngày bắt đầu không thể trước ngày hiện tại',
+          variant: 'destructive',
+        })
+        return
+      }
+
+      if (endDate < today) {
+        setDateErrors({ endDate: 'Ngày kết thúc không thể trước ngày hiện tại' })
+        toast({
+          title: 'Lỗi',
+          description: 'Ngày kết thúc không thể trước ngày hiện tại',
+          variant: 'destructive',
+        })
+        return
+      }
+
+      if (startDate > endDate) {
+        setDateErrors({ startDate: 'Ngày bắt đầu không thể sau ngày kết thúc' })
+        toast({
+          title: 'Lỗi',
+          description: 'Ngày bắt đầu không thể sau ngày kết thúc',
           variant: 'destructive',
         })
         return
@@ -312,6 +397,7 @@ export default function FarmActivitiesPage() {
     })
     setFormActivityType('')
     setFormStatus('ACTIVE')
+    setDateErrors({})
   }
 
   const handleEditClick = async (activity: FarmActivity) => {
@@ -643,18 +729,40 @@ export default function FarmActivitiesPage() {
               <Input
                 id="startDate"
                 type="date"
+                min={todayDateString}
                 value={formData.startDate}
-                onChange={e => setFormData({ ...formData, startDate: e.target.value })}
+                onChange={e => {
+                  setFormData({ ...formData, startDate: e.target.value })
+                  // Clear error when user changes the date
+                  if (dateErrors.startDate) {
+                    setDateErrors({ ...dateErrors, startDate: undefined })
+                  }
+                }}
+                className={dateErrors.startDate ? 'border-red-500' : ''}
               />
+              {dateErrors.startDate && (
+                <p className="text-sm text-red-600 mt-1">{dateErrors.startDate}</p>
+              )}
             </div>
             <div>
               <Label htmlFor="endDate">Ngày kết thúc *</Label>
               <Input
                 id="endDate"
                 type="date"
+                min={todayDateString}
                 value={formData.endDate}
-                onChange={e => setFormData({ ...formData, endDate: e.target.value })}
+                onChange={e => {
+                  setFormData({ ...formData, endDate: e.target.value })
+                  // Clear error when user changes the date
+                  if (dateErrors.endDate) {
+                    setDateErrors({ ...dateErrors, endDate: undefined })
+                  }
+                }}
+                className={dateErrors.endDate ? 'border-red-500' : ''}
               />
+              {dateErrors.endDate && (
+                <p className="text-sm text-red-600 mt-1">{dateErrors.endDate}</p>
+              )}
             </div>
             <div>
               <Label htmlFor="status">Trạng thái</Label>
@@ -709,18 +817,40 @@ export default function FarmActivitiesPage() {
               <Input
                 id="editStartDate"
                 type="date"
+                min={todayDateString}
                 value={formData.startDate}
-                onChange={e => setFormData({ ...formData, startDate: e.target.value })}
+                onChange={e => {
+                  setFormData({ ...formData, startDate: e.target.value })
+                  // Clear error when user changes the date
+                  if (dateErrors.startDate) {
+                    setDateErrors({ ...dateErrors, startDate: undefined })
+                  }
+                }}
+                className={dateErrors.startDate ? 'border-red-500' : ''}
               />
+              {dateErrors.startDate && (
+                <p className="text-sm text-red-600 mt-1">{dateErrors.startDate}</p>
+              )}
             </div>
             <div>
               <Label htmlFor="editEndDate">Ngày kết thúc *</Label>
               <Input
                 id="editEndDate"
                 type="date"
+                min={todayDateString}
                 value={formData.endDate}
-                onChange={e => setFormData({ ...formData, endDate: e.target.value })}
+                onChange={e => {
+                  setFormData({ ...formData, endDate: e.target.value })
+                  // Clear error when user changes the date
+                  if (dateErrors.endDate) {
+                    setDateErrors({ ...dateErrors, endDate: undefined })
+                  }
+                }}
+                className={dateErrors.endDate ? 'border-red-500' : ''}
               />
+              {dateErrors.endDate && (
+                <p className="text-sm text-red-600 mt-1">{dateErrors.endDate}</p>
+              )}
             </div>
             <div>
               <Label htmlFor="editStatus">Trạng thái</Label>

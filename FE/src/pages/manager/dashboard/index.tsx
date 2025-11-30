@@ -264,13 +264,7 @@ export default function ManagerDashboard() {
         const orderItems = orderData?.items ?? []
         // Debug: Log order data structure
         if (orderItems.length > 0) {
-          console.log('Sample order:', {
-            orderId: orderItems[0].orderId,
-            totalPrice: orderItems[0].totalPrice,
-            createdAt: orderItems[0].createdAt,
-            hasOrderDetails: !!orderItems[0].orderDetails,
-            orderDetailsCount: orderItems[0].orderDetails?.length ?? 0,
-          })
+
         }
         setOrders(orderItems)
         setTotalOrdersCount(orderData?.totalItemCount ?? 0)

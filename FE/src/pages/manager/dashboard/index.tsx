@@ -18,6 +18,10 @@ import {
   Truck,
   XCircle,
   BarChart3,
+  Wind,
+  Gauge,
+  Droplets,
+  Minus,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
 import { Button } from '@/shared/ui/button'
@@ -938,37 +942,101 @@ export default function ManagerDashboard() {
                   ) : weather ? (
                     <div className="space-y-4">
                       <div className="text-center pb-4 border-b border-gray-100">
-                        <div className="flex justify-center items-center gap-3 mb-2">
-                          {weather.iconUrl && (
-                            <img
-                              src={weather.iconUrl}
-                              alt={weather.description}
-                              className="w-16 h-16"
-                            />
-                          )}
-                          <div>
-                            <div className="text-4xl font-bold text-gray-900">
-                              {Math.round(weather.temperatureC)}°C
-                            </div>
-                            <p className="text-sm text-gray-600 capitalize">{weather.description}</p>
+                        <div className="mb-2">
+                          <div className="text-4xl font-bold text-gray-900">
+                            {Math.round(weather.temperatureC)}°C
                           </div>
+                          <p className="text-sm text-gray-600 capitalize">{weather.description}</p>
                         </div>
                         <p className="text-xs text-gray-500">{weather.cityName}</p>
+                        {weather.timeStamp && (
+                          <p className="text-xs text-gray-400 mt-1">
+                            {new Date(weather.timeStamp).toLocaleDateString('vi-VN', {
+                              day: '2-digit',
+                              month: '2-digit',
+                              year: 'numeric',
+                            })}
+                          </p>
+                        )}
                       </div>
 
-                      {weather.rainVolumeMm && weather.rainVolumeMm > 0 && (
-                        <div className="pt-3 border-t border-gray-100">
-                          <div className="flex justify-between items-center text-sm">
-                            <div className="flex items-center gap-1 text-green-600">
-                              <CloudRain className="h-4 w-4" />
+                      {/* Temperature Details */}
+                      <div className="grid grid-cols-2 gap-3 pt-2">
+                        <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <Thermometer className="h-4 w-4 text-orange-500" />
+                            <span>Cảm giác như</span>
+                          </div>
+                          <span className="font-semibold text-gray-900">
+                            {Math.round(weather.feelsLikeC)}°C
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <Minus className="h-4 w-4 text-blue-500" />
+                            <span>Min/Max</span>
+                          </div>
+                          <span className="font-semibold text-gray-900 text-xs">
+                            {Math.round(weather.tempMinC)}°/{Math.round(weather.tempMaxC)}°
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Weather Metrics Grid */}
+                      <div className="grid grid-cols-2 gap-3 pt-2">
+                        <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <Wind className="h-4 w-4 text-blue-500" />
+                            <span>Tốc độ gió</span>
+                          </div>
+                          <span className="font-semibold text-gray-900">
+                            {weather.windSpeedMps.toFixed(1)} m/s
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <Gauge className="h-4 w-4 text-purple-500" />
+                            <span>Áp suất</span>
+                          </div>
+                          <span className="font-semibold text-gray-900">
+                            {weather.pressureHpa} hPa
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Humidity and Rain */}
+                      <div className="grid grid-cols-2 gap-3 pt-2">
+                        <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                          <div className="flex items-center gap-2 text-sm text-gray-600">
+                            <Droplets className="h-4 w-4 text-cyan-500" />
+                            <span>Độ ẩm</span>
+                          </div>
+                          <span className="font-semibold text-gray-900">
+                            {weather.humidity}%
+                          </span>
+                        </div>
+                        {weather.rainVolumeMm && weather.rainVolumeMm > 0 ? (
+                          <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                              <CloudRain className="h-4 w-4 text-green-600" />
                               <span>Lượng mưa</span>
                             </div>
                             <span className="font-semibold text-green-600">
                               {weather.rainVolumeMm.toFixed(1)} mm
                             </span>
                           </div>
-                        </div>
-                      )}
+                        ) : (
+                          <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                            <div className="flex items-center gap-2 text-sm text-gray-600">
+                              <CloudRain className="h-4 w-4 text-gray-400" />
+                              <span>Lượng mưa</span>
+                            </div>
+                            <span className="font-semibold text-gray-400 text-xs">
+                              Không mưa
+                            </span>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   ) : (
                     <div className="text-center py-8">

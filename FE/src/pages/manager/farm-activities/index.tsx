@@ -320,13 +320,18 @@ export default function FarmActivitiesPage() {
       // Fetch full details using get-by-id
       const fullActivity = await farmActivityService.getFarmActivityById(activity.farmActivitiesId)
       setEditingActivity(fullActivity)
+
+      // Safely extract dates, handling cases where they might be missing from API response
+      const startDate = formatDateForInput(fullActivity.startDate) || formatDateForInput(activity.startDate)
+      const endDate = formatDateForInput(fullActivity.endDate) || formatDateForInput(activity.endDate)
+
       setFormData({
-        startDate: fullActivity.startDate.split('T')[0],
-        endDate: fullActivity.endDate.split('T')[0],
+        startDate,
+        endDate,
       })
       // Convert backend activity type (enum name or number) to frontend string value
-      setFormActivityType(mapBackendToFrontend(fullActivity.activityType))
-      setFormStatus(fullActivity.status)
+      setFormActivityType(mapBackendToFrontend(fullActivity.activityType || activity.activityType))
+      setFormStatus(fullActivity.status || activity.status)
       setEditDialogOpen(true)
     } catch (error: any) {
       toast({
@@ -336,9 +341,14 @@ export default function FarmActivitiesPage() {
       })
       // Fallback to using the activity from the list
       setEditingActivity(activity)
+
+      // Safely extract dates from fallback activity
+      const startDate = formatDateForInput(activity.startDate)
+      const endDate = formatDateForInput(activity.endDate)
+
       setFormData({
-        startDate: activity.startDate.split('T')[0],
-        endDate: activity.endDate.split('T')[0],
+        startDate,
+        endDate,
       })
       // Convert backend activity type (enum name or number) to frontend string value
       setFormActivityType(mapBackendToFrontend(activity.activityType))
@@ -359,6 +369,17 @@ export default function FarmActivitiesPage() {
     if (!statusOption) return <Badge variant="outline">{status}</Badge>
 
     return <Badge className={statusOption.color}>{statusOption.label}</Badge>
+  }
+
+  // Helper function to safely format date for input field
+  const formatDateForInput = (dateString: string | undefined | null): string => {
+    if (!dateString) return ''
+    // If date already in YYYY-MM-DD format, return as is
+    if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) return dateString
+    // If date includes time (ISO format), extract date part
+    if (dateString.includes('T')) return dateString.split('T')[0]
+    // Otherwise return as is
+    return dateString
   }
 
   useEffect(() => {

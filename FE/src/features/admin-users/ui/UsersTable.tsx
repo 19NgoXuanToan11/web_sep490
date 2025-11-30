@@ -94,6 +94,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({ onEditUser, onUpdatePass
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead className="w-16">STT</TableHead>
               <TableHead>
                 <Button
                   variant="ghost"
@@ -139,6 +140,9 @@ export const UsersTable: React.FC<UsersTableProps> = ({ onEditUser, onUpdatePass
 
               Array.from({ length: 5 }).map((_, i) => (
                 <TableRow key={i}>
+                  <TableCell className="text-center">
+                    <Skeleton className="h-4 w-8 mx-auto" />
+                  </TableCell>
                   <TableCell>
                     <div className="flex items-center space-x-2">
                       <Skeleton className="h-8 w-8 rounded-full" />
@@ -168,7 +172,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({ onEditUser, onUpdatePass
             ) : users.length === 0 ? (
 
               <TableRow>
-                <TableCell colSpan={4} className="text-center py-12">
+                <TableCell colSpan={5} className="text-center py-12">
                   <div className="flex flex-col items-center space-y-2 text-gray-500">
                     <Users className="h-12 w-12" />
                     <p className="font-medium">Không có người dùng</p>
@@ -182,86 +186,90 @@ export const UsersTable: React.FC<UsersTableProps> = ({ onEditUser, onUpdatePass
               </TableRow>
             ) : (
 
-              users.map(user => (
-                <TableRow key={user.id} className="hover:bg-gray-50">
-                  <TableCell>
-                    <div className="flex items-center space-x-3">
-                      <div className="w-8 h-8 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center text-white font-medium text-sm">
-                        {user.name.charAt(0).toUpperCase()}
-                      </div>
-                      <div className="flex flex-col">
-                        <div className="font-semibold text-base text-gray-900">{user.name}</div>
-                        <div className="text-sm text-gray-500 flex items-center mt-0.5">
-                          <Mail className="h-3 w-3 mr-1" />
-                          {user.email}
+              users.map((user, index) => {
+                const ordinalNumber = startItem + index
+                return (
+                  <TableRow key={user.id} className="hover:bg-gray-50">
+                    <TableCell className="text-center">{ordinalNumber}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center space-x-3">
+                        <div className="w-8 h-8 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center text-white font-medium text-sm">
+                          {user.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="flex flex-col">
+                          <div className="font-semibold text-base text-gray-900">{user.name}</div>
+                          <div className="text-sm text-gray-500 flex items-center mt-0.5">
+                            <Mail className="h-3 w-3 mr-1" />
+                            {user.email}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </TableCell>
+                    </TableCell>
 
-                  <TableCell>{getRolesBadges(user.roles)}</TableCell>
+                    <TableCell>{getRolesBadges(user.roles)}</TableCell>
 
-                  <TableCell>{getStatusBadge(user.status)}</TableCell>
+                    <TableCell>{getStatusBadge(user.status)}</TableCell>
 
-                  <TableCell>
-                    <DropdownMenu
-                      modal={false}
-                      onOpenChange={open => {
+                    <TableCell>
+                      <DropdownMenu
+                        modal={false}
+                        onOpenChange={open => {
 
-                        if (!open) {
-
-                          setTimeout(() => {
-
-                          }, 0)
-                        }
-                      }}
-                    >
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0"
-                          onClick={e => e.stopPropagation()}
-                        >
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-48" sideOffset={5}>
-                        <DropdownMenuItem
-                          onClick={e => {
-                            e.preventDefault()
-                            e.stopPropagation()
+                          if (!open) {
 
                             setTimeout(() => {
-                              onEditUser?.(user)
-                            }, 0)
-                          }}
-                          className="cursor-pointer focus:bg-gray-100"
-                        >
-                          <Edit className="h-4 w-4 mr-2 text-green-600" />
-                          <div className="flex flex-col">
-                            <span className="font-medium text-gray-900">Chỉnh sửa người dùng</span>
-                          </div>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={e => {
-                            e.preventDefault()
-                            e.stopPropagation()
 
-                            setTimeout(() => {
-                              onUpdatePassword?.(user)
                             }, 0)
-                          }}
-                          className="cursor-pointer focus:bg-gray-100"
-                        >
-                          <Key className="h-4 w-4 mr-2" />
-                          Đặt lại mật khẩu
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              ))
+                          }
+                        }}
+                      >
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                            onClick={e => e.stopPropagation()}
+                          >
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-48" sideOffset={5}>
+                          <DropdownMenuItem
+                            onClick={e => {
+                              e.preventDefault()
+                              e.stopPropagation()
+
+                              setTimeout(() => {
+                                onEditUser?.(user)
+                              }, 0)
+                            }}
+                            className="cursor-pointer focus:bg-gray-100"
+                          >
+                            <Edit className="h-4 w-4 mr-2 text-green-600" />
+                            <div className="flex flex-col">
+                              <span className="font-medium text-gray-900">Chỉnh sửa người dùng</span>
+                            </div>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={e => {
+                              e.preventDefault()
+                              e.stopPropagation()
+
+                              setTimeout(() => {
+                                onUpdatePassword?.(user)
+                              }, 0)
+                            }}
+                            className="cursor-pointer focus:bg-gray-100"
+                          >
+                            <Key className="h-4 w-4 mr-2" />
+                            Đặt lại mật khẩu
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                )
+              })
             )}
           </TableBody>
         </Table>

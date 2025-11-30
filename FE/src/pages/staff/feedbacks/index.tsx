@@ -312,6 +312,7 @@ const StaffFeedbacksPage: React.FC = () => {
                                         <Table>
                                             <TableHeader>
                                                 <TableRow>
+                                                    <TableHead className="w-16">STT</TableHead>
                                                     <TableHead>Khách hàng</TableHead>
                                                     <TableHead>Sản phẩm</TableHead>
                                                     <TableHead>Đánh giá</TableHead>
@@ -322,8 +323,9 @@ const StaffFeedbacksPage: React.FC = () => {
                                                 </TableRow>
                                             </TableHeader>
                                             <TableBody>
-                                                {filteredFeedbacks.map(feedback => (
+                                                {filteredFeedbacks.map((feedback, index) => (
                                                     <TableRow key={feedback.feedbackId}>
+                                                        <TableCell className="text-center">{index + 1}</TableCell>
                                                         <TableCell>
                                                             <div>
                                                                 <p className="font-medium text-gray-900">{feedback.fullName}</p>

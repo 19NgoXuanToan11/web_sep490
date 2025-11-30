@@ -471,6 +471,7 @@ const ManagerIoTLogsPage: React.FC = () => {
                         <Table>
                             <TableHeader>
                                 <TableRow>
+                                    <TableHead className="w-16">STT</TableHead>
                                     <TableHead>Cảm biến</TableHead>
                                     <TableHead>Thiết bị</TableHead>
                                     <TableHead>Giá trị</TableHead>
@@ -481,7 +482,7 @@ const ManagerIoTLogsPage: React.FC = () => {
                             <TableBody>
                                 {loading ? (
                                     <TableRow>
-                                        <TableCell colSpan={5} className="py-10 text-center text-gray-500">
+                                        <TableCell colSpan={6} className="py-10 text-center text-gray-500">
                                             <div className="flex items-center justify-center gap-2">
                                                 <RefreshCw className="h-4 w-4 animate-spin" />
                                                 Đang tải dữ liệu nhật ký...
@@ -490,32 +491,36 @@ const ManagerIoTLogsPage: React.FC = () => {
                                     </TableRow>
                                 ) : filteredLogs.length === 0 ? (
                                     <TableRow>
-                                        <TableCell colSpan={5} className="py-10 text-center text-gray-500">
+                                        <TableCell colSpan={6} className="py-10 text-center text-gray-500">
                                             Không có bản ghi phù hợp với bộ lọc hiện tại.
                                         </TableCell>
                                     </TableRow>
                                 ) : (
-                                    paginatedLogs.map(log => (
-                                        <TableRow key={`${log.iotLogId || log.variableId}-${log.timestamp}`}>
-                                            <TableCell className="font-semibold">{log.sensorName}</TableCell>
-                                            <TableCell>
-                                                <span className="text-sm text-gray-700">Thiết bị #{log.devicesId}</span>
-                                            </TableCell>
-                                            <TableCell>
-                                                <Badge variant="secondary" className="text-base">
-                                                    {formatSensorValue(Number(log.value))}
-                                                </Badge>
-                                            </TableCell>
-                                            <TableCell>
-                                                {new Date(log.timestamp).toLocaleString('vi-VN', {
-                                                    hour12: false,
-                                                })}
-                                            </TableCell>
-                                            <TableCell>
-                                                <span className="text-sm text-gray-600 uppercase">{log.variableId}</span>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))
+                                    paginatedLogs.map((log, index) => {
+                                        const ordinalNumber = (currentPage - 1) * PAGE_SIZE + index + 1
+                                        return (
+                                            <TableRow key={`${log.iotLogId || log.variableId}-${log.timestamp}`}>
+                                                <TableCell className="text-center">{ordinalNumber}</TableCell>
+                                                <TableCell className="font-semibold">{log.sensorName}</TableCell>
+                                                <TableCell>
+                                                    <span className="text-sm text-gray-700">Thiết bị #{log.devicesId}</span>
+                                                </TableCell>
+                                                <TableCell>
+                                                    <Badge variant="secondary" className="text-base">
+                                                        {formatSensorValue(Number(log.value))}
+                                                    </Badge>
+                                                </TableCell>
+                                                <TableCell>
+                                                    {new Date(log.timestamp).toLocaleString('vi-VN', {
+                                                        hour12: false,
+                                                    })}
+                                                </TableCell>
+                                                <TableCell>
+                                                    <span className="text-sm text-gray-600 uppercase">{log.variableId}</span>
+                                                </TableCell>
+                                            </TableRow>
+                                        )
+                                    })
                                 )}
                             </TableBody>
                         </Table>

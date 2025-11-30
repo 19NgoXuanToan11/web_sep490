@@ -448,6 +448,7 @@ export default function FarmActivitiesPage() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-16">STT</TableHead>
                   <TableHead>Loại hoạt động</TableHead>
                   <TableHead>Trạng thái</TableHead>
                   <TableHead className="text-right">Hành động</TableHead>
@@ -456,19 +457,20 @@ export default function FarmActivitiesPage() {
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={3} className="text-center py-4">
+                    <TableCell colSpan={4} className="text-center py-4">
                       Đang tải...
                     </TableCell>
                   </TableRow>
                 ) : filteredActivities.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={3} className="text-center py-4">
+                    <TableCell colSpan={4} className="text-center py-4">
                       Không có hoạt động nào
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredActivities.map(activity => (
+                  filteredActivities.map((activity, index) => (
                     <TableRow key={activity.farmActivitiesId}>
+                      <TableCell className="text-center">{index + 1}</TableCell>
                       <TableCell>{getActivityTypeLabel(activity.activityType)}</TableCell>
                       <TableCell>{getStatusBadge(activity.status)}</TableCell>
                       <TableCell className="text-right">

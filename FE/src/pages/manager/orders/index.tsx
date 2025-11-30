@@ -889,6 +889,7 @@ const ManagerOrdersPage: React.FC = () => {
                   <Table>
                     <TableHeader>
                       <TableRow>
+                        <TableHead className="w-16">STT</TableHead>
                         <TableHead>Mã đơn hàng</TableHead>
                         <TableHead>Khách hàng</TableHead>
                         <TableHead>Sản phẩm & Số lượng</TableHead>
@@ -916,8 +917,9 @@ const ManagerOrdersPage: React.FC = () => {
                           </TableCell>
                         </TableRow>
                       ) : (
-                        filteredOrders.map(order => (
+                        filteredOrders.map((order, index) => (
                           <TableRow key={`order-${order.id}-${order.orderNumber}`}>
+                            <TableCell className="text-center">{index + 1}</TableCell>
                             <TableCell>
                               <div className="font-medium">{order.orderNumber || 'Chưa có mã'}</div>
                             </TableCell>

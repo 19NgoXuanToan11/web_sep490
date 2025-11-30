@@ -163,6 +163,7 @@ export function ProductTable({
         <Table>
           <TableHeader>
             <TableRow className="bg-gray-50">
+              <TableHead className="w-16">STT</TableHead>
               {!isReadOnly && (
                 <TableHead className="w-12">
                   <input
@@ -197,14 +198,16 @@ export function ProductTable({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {products.map(product => {
+            {products.map((product, index) => {
               const isSelected = !isReadOnly && selectedProductIds.includes(product.productId)
+              const ordinalNumber = (currentPage - 1) * pageSize + index + 1
 
               return (
                 <TableRow
                   key={product.productId}
                   className={`hover:bg-gray-50 ${isSelected ? 'bg-blue-50' : ''}`}
                 >
+                  <TableCell className="text-center">{ordinalNumber}</TableCell>
                   {!isReadOnly && (
                     <TableCell>
                       <input

@@ -234,6 +234,7 @@ const ManagerIoTDevicesPage: React.FC = () => {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-16">STT</TableHead>
                   <TableHead>Thiết bị</TableHead>
                   <TableHead>Loại</TableHead>
                   <TableHead>Trạng thái</TableHead>
@@ -258,8 +259,9 @@ const ManagerIoTDevicesPage: React.FC = () => {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredDevices.map(device => (
+                  filteredDevices.map((device, index) => (
                     <TableRow key={device.ioTdevicesId}>
+                      <TableCell className="text-center">{index + 1}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-3">
                           {getDeviceTypeIcon(device.deviceType)}

@@ -495,21 +495,19 @@ export default function CropsPage() {
                 <TableHead className="w-16">STT</TableHead>
                 <TableHead>Cây trồng & giai đoạn</TableHead>
                 <TableHead>Thời gian dự kiến</TableHead>
-                <TableHead>Chỉ số môi trường</TableHead>
-                <TableHead>Ghi chú</TableHead>
                 <TableHead className="text-right">Hành động</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-6">
+                  <TableCell colSpan={4} className="text-center py-6">
                     Đang tải dữ liệu...
                   </TableCell>
                 </TableRow>
               ) : paginatedRequirements.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-6">
+                  <TableCell colSpan={4} className="text-center py-6">
                     Không tìm thấy yêu cầu nào phù hợp
                   </TableCell>
                 </TableRow>
@@ -534,19 +532,6 @@ export default function CropsPage() {
                       </p>
                       <p className="text-xs text-gray-500 mt-1">
                         Cập nhật {requirement.updatedDate || requirement.createdDate}
-                      </p>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm space-y-1">
-                        <div>Độ ẩm: {formatNumber(requirement.moisture, '%')}</div>
-                        <div>Ánh sáng: {formatNumber(requirement.lightRequirement, 'lux')}</div>
-                        <div>Nhiệt độ: {formatNumber(requirement.temperature, '°C')}</div>
-                        <div>Tưới: {requirement.wateringFrequency || 'Chưa đặt'}</div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="max-w-xs">
-                      <p className="text-sm text-gray-700 line-clamp-3">
-                        {requirement.notes || '—'}
                       </p>
                     </TableCell>
                     <TableCell className="text-right">

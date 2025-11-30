@@ -26,7 +26,7 @@ import {
   Droplets,
   Sun,
   Thermometer,
-  Copy,
+  Eye,
 } from 'lucide-react'
 import { useToast } from '@/shared/ui/use-toast'
 import {
@@ -101,6 +101,9 @@ export default function CropsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [availableCrops, setAvailableCrops] = useState<Crop[]>([])
   const [loadingCrops, setLoadingCrops] = useState(false)
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false)
+  const [selectedRequirementForDetails, setSelectedRequirementForDetails] =
+    useState<CropRequirementView | null>(null)
 
   const { toast } = useToast()
 
@@ -280,20 +283,6 @@ export default function CropsPage() {
     }
   }
 
-  const handleToggleStatus = async (requirementId: number) => {
-    try {
-      await cropRequirementService.updateStatus(requirementId)
-      toast({ title: 'Đã cập nhật', description: 'Trạng thái cây trồng đã được thay đổi' })
-      loadRequirements()
-    } catch (error) {
-      toast({
-        title: 'Lỗi',
-        description: 'Không thể thay đổi trạng thái',
-        variant: 'destructive',
-      })
-    }
-  }
-
   const handleDeleteRequirement = async (requirementId: number) => {
     const confirmDelete = window.confirm('Bạn có chắc muốn xoá yêu cầu này?')
     if (!confirmDelete) return
@@ -310,19 +299,9 @@ export default function CropsPage() {
     }
   }
 
-  const handleDuplicateRequirement = async (requirement: CropRequirementView) => {
-    try {
-      const stage = (requirement.plantStage as PlantStage) || 'Sowing'
-      await cropRequirementService.duplicate(requirement.cropRequirementId, requirement.cropId, stage)
-      toast({ title: 'Đã nhân bản', description: 'Đã tạo bản sao yêu cầu cây trồng' })
-      loadRequirements()
-    } catch (error) {
-      toast({
-        title: 'Lỗi',
-        description: 'Không thể nhân bản yêu cầu cây trồng',
-        variant: 'destructive',
-      })
-    }
+  const openDetailsDialog = (requirement: CropRequirementView) => {
+    setSelectedRequirementForDetails(requirement)
+    setDetailsDialogOpen(true)
   }
 
   useEffect(() => {
@@ -550,27 +529,22 @@ export default function CropsPage() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        <Button variant="outline" size="sm" onClick={() => openEditDialog(requirement)}>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openDetailsDialog(requirement)}
+                          title="Xem chi tiết"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => openEditDialog(requirement)} title="Chỉnh sửa">
                           <Edit className="h-4 w-4" />
                         </Button>
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleToggleStatus(requirement.cropRequirementId)}
-                        >
-                          <RefreshCw className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDuplicateRequirement(requirement)}
-                        >
-                          <Copy className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
                           onClick={() => handleDeleteRequirement(requirement.cropRequirementId)}
+                          title="Xóa"
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
@@ -747,6 +721,162 @@ export default function CropsPage() {
             </Button>
             <Button onClick={handleSubmitForm} disabled={isSubmitting}>
               {isSubmitting ? 'Đang lưu...' : 'Lưu thông tin'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Chi tiết chỉ số môi trường</DialogTitle>
+            <DialogDescription>
+              Thông tin chi tiết về các chỉ số môi trường và yêu cầu chăm sóc
+            </DialogDescription>
+          </DialogHeader>
+
+          {selectedRequirementForDetails && (
+            <div className="space-y-6">
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500 mb-2">Cây trồng</h3>
+                  <p className="text-lg font-semibold text-gray-900">
+                    {selectedRequirementForDetails.cropName ?? 'Không xác định'}
+                  </p>
+                </div>
+                <div>
+                  <h3 className="text-sm font-medium text-gray-500 mb-2">Giai đoạn</h3>
+                  <Badge variant="outline" className="text-base">
+                    {stageLabel(selectedRequirementForDetails.plantStage)}
+                  </Badge>
+                </div>
+              </div>
+
+              <div className="border-t pt-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Chỉ số môi trường</h3>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="rounded-full bg-blue-100 p-2 text-blue-600">
+                            <Droplets className="h-5 w-5" />
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-500">Độ ẩm</p>
+                            <p className="text-xl font-semibold text-gray-900">
+                              {formatNumber(selectedRequirementForDetails.moisture, '%')}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="rounded-full bg-yellow-100 p-2 text-yellow-600">
+                            <Sun className="h-5 w-5" />
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-500">Ánh sáng</p>
+                            <p className="text-xl font-semibold text-gray-900">
+                              {formatNumber(selectedRequirementForDetails.lightRequirement, 'lux')}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="rounded-full bg-orange-100 p-2 text-orange-600">
+                            <Thermometer className="h-5 w-5" />
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-500">Nhiệt độ</p>
+                            <p className="text-xl font-semibold text-gray-900">
+                              {formatNumber(selectedRequirementForDetails.temperature, '°C')}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="rounded-full bg-green-100 p-2 text-green-600">
+                            <Droplets className="h-5 w-5" />
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-500">Tần suất tưới</p>
+                            <p className="text-xl font-semibold text-gray-900">
+                              {selectedRequirementForDetails.wateringFrequency || 'Chưa đặt'}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              </div>
+
+              <div className="border-t pt-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Thông tin bổ sung</h3>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-500 mb-2">Thời gian dự kiến</h4>
+                    <p className="text-gray-900">
+                      {selectedRequirementForDetails.estimatedDate
+                        ? `${selectedRequirementForDetails.estimatedDate} ngày`
+                        : 'Chưa đặt'}
+                    </p>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-500 mb-2">Phân bón</h4>
+                    <p className="text-gray-900">
+                      {selectedRequirementForDetails.fertilizer || 'Chưa đặt'}
+                    </p>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-500 mb-2">Trạng thái</h4>
+                    <Badge variant={selectedRequirementForDetails.isActive ? 'default' : 'secondary'}>
+                      {selectedRequirementForDetails.isActive ? 'Hoạt động' : 'Tạm dừng'}
+                    </Badge>
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-500 mb-2">Cập nhật lần cuối</h4>
+                    <p className="text-gray-900">
+                      {selectedRequirementForDetails.updatedDate || selectedRequirementForDetails.createdDate || 'N/A'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {selectedRequirementForDetails.notes && (
+                <div className="border-t pt-4">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Ghi chú</h3>
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <p className="text-gray-700 whitespace-pre-wrap">
+                      {selectedRequirementForDetails.notes}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDetailsDialogOpen(false)}>
+              Đóng
             </Button>
           </DialogFooter>
         </DialogContent>

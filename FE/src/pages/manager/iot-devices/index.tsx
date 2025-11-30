@@ -265,9 +265,6 @@ const ManagerIoTDevicesPage: React.FC = () => {
                           {getDeviceTypeIcon(device.deviceType)}
                           <div>
                             <div className="font-medium">{device.deviceName}</div>
-                            <div className="text-sm text-gray-500">
-                              ID: {device.ioTdevicesId}
-                            </div>
                           </div>
                         </div>
                       </TableCell>

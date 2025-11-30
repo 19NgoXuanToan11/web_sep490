@@ -232,14 +232,13 @@ const ManagerIoTLogsPage: React.FC = () => {
         }
 
         // Create CSV headers
-        const headers = ['LogIoT ID', 'Cảm biến', 'Thiết bị ID', 'Giá trị', 'Thời gian', 'Virtual Pin']
+        const headers = ['Cảm biến', 'Thiết bị ID', 'Giá trị', 'Thời gian', 'Virtual Pin']
 
         // Create CSV rows
         const csvRows = [
             headers.join(','),
             ...filteredLogs.map(log => {
                 const row = [
-                    log.iotLogId?.toString() || '',
                     `"${log.sensorName}"`,
                     log.devicesId.toString(),
                     formatSensorValue(Number(log.value)),
@@ -472,7 +471,6 @@ const ManagerIoTLogsPage: React.FC = () => {
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>LogIoT ID</TableHead>
                                     <TableHead>Cảm biến</TableHead>
                                     <TableHead>Thiết bị</TableHead>
                                     <TableHead>Giá trị</TableHead>
@@ -483,7 +481,7 @@ const ManagerIoTLogsPage: React.FC = () => {
                             <TableBody>
                                 {loading ? (
                                     <TableRow>
-                                        <TableCell colSpan={6} className="py-10 text-center text-gray-500">
+                                        <TableCell colSpan={5} className="py-10 text-center text-gray-500">
                                             <div className="flex items-center justify-center gap-2">
                                                 <RefreshCw className="h-4 w-4 animate-spin" />
                                                 Đang tải dữ liệu nhật ký...
@@ -492,24 +490,16 @@ const ManagerIoTLogsPage: React.FC = () => {
                                     </TableRow>
                                 ) : filteredLogs.length === 0 ? (
                                     <TableRow>
-                                        <TableCell colSpan={6} className="py-10 text-center text-gray-500">
+                                        <TableCell colSpan={5} className="py-10 text-center text-gray-500">
                                             Không có bản ghi phù hợp với bộ lọc hiện tại.
                                         </TableCell>
                                     </TableRow>
                                 ) : (
                                     paginatedLogs.map(log => (
                                         <TableRow key={`${log.iotLogId || log.variableId}-${log.timestamp}`}>
-                                            <TableCell>
-                                                <span className="text-sm text-gray-700 font-mono">
-                                                    {log.iotLogId ?? '--'}
-                                                </span>
-                                            </TableCell>
                                             <TableCell className="font-semibold">{log.sensorName}</TableCell>
                                             <TableCell>
-                                                <div className="flex flex-col">
-                                                    <span>ID: {log.devicesId}</span>
-                                                    <span className="text-xs text-gray-500">Thiết bị #{log.devicesId}</span>
-                                                </div>
+                                                <span className="text-sm text-gray-700">Thiết bị #{log.devicesId}</span>
                                             </TableCell>
                                             <TableCell>
                                                 <Badge variant="secondary" className="text-base">

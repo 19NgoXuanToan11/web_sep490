@@ -221,53 +221,34 @@ const ManagerIoTLogsPage: React.FC = () => {
         }))
     }, [filteredLogs])
 
-    const handleExportToCSV = () => {
-        if (filteredLogs.length === 0) {
+    const handleExportToCSV = async () => {
+        try {
+            // Call backend endpoint to export CSV
+            const blob = await blynkService.exportLogs()
+
+            // Create download link
+            const link = document.createElement('a')
+            const url = URL.createObjectURL(blob)
+
+            link.setAttribute('href', url)
+            link.setAttribute('download', `IFMS_iot_logs.csv`)
+            link.style.visibility = 'hidden'
+            document.body.appendChild(link)
+            link.click()
+            document.body.removeChild(link)
+            URL.revokeObjectURL(url)
+
             toast({
-                title: 'Không có dữ liệu để xuất',
-                description: 'Vui lòng chọn bộ lọc khác hoặc đợi dữ liệu được tải.',
+                title: 'Xuất CSV thành công',
+                description: 'Đã xuất dữ liệu nhật ký IoT ra file CSV từ máy chủ.',
+            })
+        } catch (error) {
+            toast({
+                title: 'Xuất CSV thất bại',
+                description: 'Không thể tải file CSV từ máy chủ. Vui lòng thử lại sau.',
                 variant: 'destructive',
             })
-            return
         }
-
-        // Create CSV headers
-        const headers = ['Cảm biến', 'Thiết bị ID', 'Giá trị', 'Thời gian', 'Virtual Pin']
-
-        // Create CSV rows
-        const csvRows = [
-            headers.join(','),
-            ...filteredLogs.map(log => {
-                const row = [
-                    `"${log.sensorName}"`,
-                    log.devicesId.toString(),
-                    formatSensorValue(Number(log.value)),
-                    `"${new Date(log.timestamp).toLocaleString('vi-VN', { hour12: false })}"`,
-                    log.variableId,
-                ]
-                return row.join(',')
-            }),
-        ]
-
-        // Create CSV content
-        const csvContent = csvRows.join('\n')
-
-        // Create blob and download
-        const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' })
-        const link = document.createElement('a')
-        const url = URL.createObjectURL(blob)
-
-        link.setAttribute('href', url)
-        link.setAttribute('download', `iot-logs-${new Date().toISOString().split('T')[0]}.csv`)
-        link.style.visibility = 'hidden'
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-
-        toast({
-            title: 'Xuất CSV thành công',
-            description: `Đã xuất ${filteredLogs.length} bản ghi ra file CSV.`,
-        })
     }
 
     return (

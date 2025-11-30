@@ -2,9 +2,7 @@
 import {
   Cpu,
   Activity,
-  AlertTriangle,
   CheckCircle,
-  XCircle,
   RefreshCw,
   Plus,
   Settings,
@@ -13,6 +11,7 @@ import {
   Droplets,
   Gauge,
   Clock,
+  Pencil,
 } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import { Card, CardContent } from '@/shared/ui/card'
@@ -36,6 +35,8 @@ import { ManagerLayout } from '@/shared/layouts/ManagerLayout'
 import { useToast } from '@/shared/ui/use-toast'
 import { iotDeviceService, type IoTDevice } from '@/shared/api/iotDeviceService'
 import { CreateDeviceModal } from './components/CreateDeviceModal'
+import { DeviceDetailsModal } from './components/DeviceDetailsModal'
+import { UpdateDeviceModal } from './components/UpdateDeviceModal'
 
 const ManagerIoTDevicesPage: React.FC = () => {
   const { toast } = useToast()
@@ -45,6 +46,9 @@ const ManagerIoTDevicesPage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [typeFilter, setTypeFilter] = useState<string>('all')
   const [createModalOpen, setCreateModalOpen] = useState(false)
+  const [updateModalOpen, setUpdateModalOpen] = useState(false)
+  const [detailsModalOpen, setDetailsModalOpen] = useState(false)
+  const [selectedDevice, setSelectedDevice] = useState<IoTDevice | null>(null)
   const [_statistics, setStatistics] = useState({
     total: 0,
     active: 0,
@@ -112,6 +116,21 @@ const ManagerIoTDevicesPage: React.FC = () => {
   const handleCreateSuccess = () => {
     fetchDevices()
     fetchStatistics()
+  }
+
+  const handleViewDetails = (device: IoTDevice) => {
+    setSelectedDevice(device)
+    setDetailsModalOpen(true)
+  }
+
+  const handleUpdateSuccess = () => {
+    fetchDevices()
+    fetchStatistics()
+  }
+
+  const handleEditDevice = (device: IoTDevice) => {
+    setSelectedDevice(device)
+    setUpdateModalOpen(true)
   }
 
   const getStatusBadge = (status: number) => {
@@ -300,9 +319,13 @@ const ManagerIoTDevicesPage: React.FC = () => {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleViewDetails(device)}>
                               <Eye className="h-4 w-4 mr-2" />
                               Xem chi tiết
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleEditDevice(device)}>
+                              <Pencil className="h-4 w-4 mr-2" />
+                              Chỉnh sửa
                             </DropdownMenuItem>
                             <DropdownMenuItem
                               onClick={() => handleUpdateStatus(Number(device.ioTdevicesId!), 1)}
@@ -310,20 +333,6 @@ const ManagerIoTDevicesPage: React.FC = () => {
                             >
                               <CheckCircle className="h-4 w-4 mr-2" />
                               Kích hoạt
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => handleUpdateStatus(Number(device.ioTdevicesId!), 0)}
-                              disabled={Number(device.status) === 0}
-                            >
-                              <XCircle className="h-4 w-4 mr-2" />
-                              Tạm dừng
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => handleUpdateStatus(Number(device.ioTdevicesId!), 2)}
-                              disabled={Number(device.status) === 2}
-                            >
-                              <AlertTriangle className="h-4 w-4 mr-2" />
-                              Bảo trì
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -337,11 +346,27 @@ const ManagerIoTDevicesPage: React.FC = () => {
         </div>
       </div>
 
-      { }
       <CreateDeviceModal
         isOpen={createModalOpen}
         onClose={() => setCreateModalOpen(false)}
         onSuccess={handleCreateSuccess}
+      />
+      <DeviceDetailsModal
+        isOpen={detailsModalOpen}
+        onClose={() => {
+          setDetailsModalOpen(false)
+          setSelectedDevice(null)
+        }}
+        device={selectedDevice}
+      />
+      <UpdateDeviceModal
+        isOpen={updateModalOpen}
+        onClose={() => {
+          setUpdateModalOpen(false)
+          setSelectedDevice(null)
+        }}
+        onSuccess={handleUpdateSuccess}
+        device={selectedDevice}
       />
     </ManagerLayout>
   )

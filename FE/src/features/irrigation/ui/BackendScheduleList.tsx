@@ -450,9 +450,9 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                     if (cancelled) return
                     const detail = res.data
                     setEditForm({
-                        farmId: detail.farmId || 0,
-                        cropId: detail.cropId || 0,
-                        staffId: detail.staffId || 0,
+                        farmId: detail.farmId ?? 0,
+                        cropId: detail.cropId ?? 0,
+                        staffId: detail.staffId ?? 0,
                         startDate: detail.startDate,
                         endDate: detail.endDate,
                         plantingDate: detail.plantingDate ?? '',
@@ -460,8 +460,8 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                         quantity: detail.quantity,
                         status: typeof detail.status === 'number' ? detail.status : 0,
                         pesticideUsed: detail.pesticideUsed,
-                        diseaseStatus: detail.diseaseStatus || 0,
-                        farmActivitiesId: detail.farmActivitiesId || 0,
+                        diseaseStatus: detail.diseaseStatus ?? 0,
+                        farmActivitiesId: detail.farmActivitiesId ?? 0,
                     })
                 } catch (e) {
                     if (!cancelled) {
@@ -1109,12 +1109,12 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                                 <div>
                                     <Label>Farm</Label>
                                     <Select
-                                        value={editForm.farmId ? String(editForm.farmId) : ''}
+                                        value={editForm.farmId != null && editForm.farmId > 0 ? String(editForm.farmId) : ''}
                                         onValueChange={v => setEditForm({ ...editForm, farmId: Number(v) })}
-                                        disabled={metaLoading}
+                                        disabled={metaLoading || editLoading}
                                     >
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Chọn nông trại" />
+                                            <SelectValue placeholder={metaLoading || editLoading ? 'Đang tải...' : 'Chọn nông trại'} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {farms.map(f => (
@@ -1126,12 +1126,12 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                                 <div>
                                     <Label>Crop</Label>
                                     <Select
-                                        value={editForm.cropId ? String(editForm.cropId) : ''}
+                                        value={editForm.cropId != null && editForm.cropId > 0 ? String(editForm.cropId) : ''}
                                         onValueChange={v => setEditForm({ ...editForm, cropId: Number(v) })}
-                                        disabled={metaLoading}
+                                        disabled={metaLoading || editLoading}
                                     >
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Chọn cây trồng" />
+                                            <SelectValue placeholder={metaLoading || editLoading ? 'Đang tải...' : 'Chọn cây trồng'} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {crops.map(c => (
@@ -1143,12 +1143,12 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                                 <div>
                                     <Label>Staff</Label>
                                     <Select
-                                        value={editForm.staffId ? String(editForm.staffId) : ''}
+                                        value={editForm.staffId != null && editForm.staffId > 0 ? String(editForm.staffId) : ''}
                                         onValueChange={v => setEditForm({ ...editForm, staffId: Number(v) })}
-                                        disabled={metaLoading}
+                                        disabled={metaLoading || editLoading}
                                     >
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Chọn nhân viên" />
+                                            <SelectValue placeholder={metaLoading || editLoading ? 'Đang tải...' : 'Chọn nhân viên'} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {staffs.map(s => (
@@ -1239,12 +1239,12 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                                 <div>
                                     <Label>Hoạt động</Label>
                                     <Select
-                                        value={editForm.farmActivitiesId ? String(editForm.farmActivitiesId) : ''}
+                                        value={editForm.farmActivitiesId != null && editForm.farmActivitiesId > 0 ? String(editForm.farmActivitiesId) : ''}
                                         onValueChange={v => setEditForm({ ...editForm, farmActivitiesId: Number(v) })}
-                                        disabled={metaLoading}
+                                        disabled={metaLoading || editLoading}
                                     >
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Chọn hoạt động" />
+                                            <SelectValue placeholder={metaLoading || editLoading ? 'Đang tải...' : 'Chọn hoạt động'} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {activities.map(a => (

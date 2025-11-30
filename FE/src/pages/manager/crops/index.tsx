@@ -35,6 +35,7 @@ import {
   type CropRequirementPayload,
   type PlantStage,
 } from '@/shared/api/cropRequirementService'
+import { cropService, type Crop } from '@/shared/api/cropService'
 
 type RequirementFormState = {
   cropId: number | ''
@@ -98,6 +99,8 @@ export default function CropsPage() {
   const [formData, setFormData] = useState<RequirementFormState>(INITIAL_FORM_STATE)
   const [selectedRequirement, setSelectedRequirement] = useState<CropRequirementView | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [availableCrops, setAvailableCrops] = useState<Crop[]>([])
+  const [loadingCrops, setLoadingCrops] = useState(false)
 
   const { toast } = useToast()
 
@@ -186,9 +189,26 @@ export default function CropsPage() {
     }
   }
 
+  const loadAvailableCrops = async () => {
+    try {
+      setLoadingCrops(true)
+      const crops = await cropService.getAllCropsActive()
+      setAvailableCrops(Array.isArray(crops) ? crops : [])
+    } catch (error) {
+      toast({
+        title: 'Lỗi',
+        description: 'Không thể tải danh sách cây trồng',
+        variant: 'destructive',
+      })
+    } finally {
+      setLoadingCrops(false)
+    }
+  }
+
   const openCreateDialog = () => {
     handleResetForm()
     setFormMode('create')
+    loadAvailableCrops()
     setFormDialogOpen(true)
   }
 
@@ -210,10 +230,18 @@ export default function CropsPage() {
   })
 
   const handleSubmitForm = async () => {
-    if (!formData.cropId || !formData.plantStage) {
+    if (formMode === 'create' && !formData.cropId) {
       toast({
         title: 'Thiếu thông tin',
-        description: 'Vui lòng chọn cây trồng và giai đoạn phát triển',
+        description: 'Vui lòng chọn cây trồng',
+        variant: 'destructive',
+      })
+      return
+    }
+    if (!formData.plantStage) {
+      toast({
+        title: 'Thiếu thông tin',
+        description: 'Vui lòng chọn giai đoạn phát triển',
         variant: 'destructive',
       })
       return
@@ -223,19 +251,24 @@ export default function CropsPage() {
       setIsSubmitting(true)
       const payload = mapFormToPayload()
       if (formMode === 'create') {
-        await cropRequirementService.create(formData.cropId, payload, formData.plantStage)
+        // For create mode, use the selected cropId from dropdown
+        await cropRequirementService.create(formData.cropId as number, payload, formData.plantStage)
         toast({ title: 'Thành công', description: 'Đã thêm yêu cầu cây trồng mới' })
+        setFormDialogOpen(false)
+        handleResetForm()
+        loadRequirements()
       } else if (selectedRequirement) {
+        // For edit mode, use the cropId from the selected requirement implicitly
         await cropRequirementService.update(
           selectedRequirement.cropRequirementId,
           payload,
           formData.plantStage
         )
         toast({ title: 'Thành công', description: 'Đã cập nhật yêu cầu cây trồng' })
+        setFormDialogOpen(false)
+        handleResetForm()
+        loadRequirements()
       }
-      setFormDialogOpen(false)
-      handleResetForm()
-      loadRequirements()
     } catch (error) {
       toast({
         title: 'Lỗi',
@@ -591,25 +624,32 @@ export default function CropsPage() {
 
           <div className="grid gap-4">
             <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <Label>ID cây trồng *</Label>
-                <Input
-                  type="number"
-                  min={1}
-                  value={formData.cropId || ''}
-                  onChange={e =>
-                    setFormData(prev => ({
-                      ...prev,
-                      cropId: e.target.value ? Number(e.target.value) : '',
-                    }))
-                  }
-                  placeholder="Nhập ID cây trồng (theo hệ thống)"
-                  disabled={formMode === 'edit'}
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                  Sử dụng ID cây trồng từ hệ thống quản lý hiện tại.
-                </p>
-              </div>
+              {formMode === 'create' && (
+                <div>
+                  <Label>Cây trồng *</Label>
+                  <Select
+                    value={formData.cropId ? String(formData.cropId) : ''}
+                    onValueChange={value =>
+                      setFormData(prev => ({
+                        ...prev,
+                        cropId: value ? Number(value) : '',
+                      }))
+                    }
+                    disabled={loadingCrops}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder={loadingCrops ? 'Đang tải...' : 'Chọn cây trồng'} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {availableCrops.map(crop => (
+                        <SelectItem key={crop.cropId} value={String(crop.cropId)}>
+                          {crop.cropName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
               <div>
                 <Label>Giai đoạn *</Label>
                 <Select

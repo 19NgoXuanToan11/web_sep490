@@ -107,21 +107,36 @@ export default function CropsPage() {
 
   const { toast } = useToast()
 
-  // Merge cropName from availableCrops into requirements based on cropId
+  // Helper function to check if crop is active (handles all case variations)
+  const isActiveStatus = (status: string | undefined | null): boolean => {
+    if (!status) return false
+    const normalized = status.toUpperCase()
+    return normalized === 'ACTIVE'
+  }
+
+  // Merge cropName and cropStatus from availableCrops into requirements based on cropId
   const requirementsWithCropName = useMemo(() => {
     if (!availableCrops.length) return requirements
 
-    // Create a map of cropId to cropName for quick lookup
-    const cropMap = new Map<number, string>()
+    // Create maps for quick lookup
+    const cropMap = new Map<number, { name: string; status: string }>()
     availableCrops.forEach(crop => {
-      cropMap.set(crop.cropId, crop.cropName)
+      cropMap.set(crop.cropId, { name: crop.cropName, status: crop.status || '' })
     })
 
-    // Merge cropName into each requirement
-    return requirements.map(requirement => ({
-      ...requirement,
-      cropName: requirement.cropName || cropMap.get(requirement.cropId) || null,
-    }))
+    // Merge cropName and use crop status to determine isActive
+    return requirements.map(requirement => {
+      const cropInfo = cropMap.get(requirement.cropId)
+      const cropStatus = cropInfo?.status || ''
+      // Use crop status if available, otherwise fall back to requirement.isActive
+      const effectiveIsActive = cropInfo ? isActiveStatus(cropStatus) : requirement.isActive
+
+      return {
+        ...requirement,
+        cropName: requirement.cropName || cropInfo?.name || null,
+        isActive: effectiveIsActive,
+      }
+    })
   }, [requirements, availableCrops])
 
   const filteredRequirements = useMemo(() => {
@@ -212,8 +227,9 @@ export default function CropsPage() {
   const loadAvailableCrops = async () => {
     try {
       setLoadingCrops(true)
-      const crops = await cropService.getAllCropsActive()
-      setAvailableCrops(Array.isArray(crops) ? crops : [])
+      // Load all crops (not just active) to get complete status information
+      const response = await cropService.getAllCrops(1, 1000) // Load a large page size to get all crops
+      setAvailableCrops(response.items || [])
     } catch (error) {
       toast({
         title: 'Lỗi',
@@ -338,7 +354,7 @@ export default function CropsPage() {
     <ManagerLayout>
       <div className="p-6 space-y-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Quản Lý Cây Trồng</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Cây Trồng</h1>
           <p className="text-gray-600 mt-2">
             Lập kế hoạch gieo trồng, theo dõi chỉ số môi trường và giai đoạn phát triển cho từng vụ mùa.
           </p>
@@ -530,13 +546,10 @@ export default function CropsPage() {
                       <p className="font-medium">
                         {requirement.estimatedDate ? `${requirement.estimatedDate} ngày` : 'Chưa đặt'}
                       </p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        Cập nhật {requirement.updatedDate || requirement.createdDate}
-                      </p>
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        <Button
+                        <Button 
                           variant="outline"
                           size="sm"
                           onClick={() => openDetailsDialog(requirement)}

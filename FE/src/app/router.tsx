@@ -12,6 +12,7 @@ const ManagerDashboard = React.lazy(() => import('@/pages/manager/dashboard'))
 const IrrigationPage = React.lazy(() => import('@/pages/manager/irrigation'))
 const ManagerCategoriesPage = React.lazy(() => import('@/pages/manager/categories'))
 const ManagerCropsPage = React.lazy(() => import('@/pages/manager/crops'))
+const CropManagementPage = React.lazy(() => import('@/pages/manager/crop-management'))
 const ManagerFarmActivitiesPage = React.lazy(() => import('@/pages/manager/farm-activities'))
 const ManagerIoTDevicesPage = React.lazy(() => import('@/pages/manager/iot-devices'))
 const RealTimeIoTDashboard = React.lazy(() => import('@/pages/manager/iot-dashboard'))
@@ -110,6 +111,16 @@ const routerConfig = [
       <LazyWrapper>
         <RoleGuard allowed={['Manager']}>
           <ManagerCropsPage />
+        </RoleGuard>
+      </LazyWrapper>
+    ),
+  },
+  {
+    path: '/manager/crop-management',
+    element: (
+      <LazyWrapper>
+        <RoleGuard allowed={['Manager']}>
+          <CropManagementPage />
         </RoleGuard>
       </LazyWrapper>
     ),

@@ -13,6 +13,7 @@ import {
   Cpu,
   Monitor,
   History,
+  Package,
 } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import LogoutButton from '@/shared/ui/LogoutButton'
@@ -51,10 +52,16 @@ const navigationItems: NavItem[] = [
     description: 'Quản lý danh mục sản phẩm',
   },
   {
-    name: 'Cây trồng',
+    name: 'Theo dõi cây trồng',
     href: '/manager/crops',
     icon: Trees,
     description: 'Lập kế hoạch & theo dõi',
+  },
+  {
+    name: 'Cây trồng',
+    href: '/manager/crop-management',
+    icon: Package,
+    description: 'Quản lý cây trồng',
   },
   {
     name: 'Hoạt động nông trại',

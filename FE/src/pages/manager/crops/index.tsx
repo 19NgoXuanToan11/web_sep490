@@ -596,34 +596,35 @@ export default function CropsPage() {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="grid gap-4">
-            <div className="grid gap-4 md:grid-cols-2">
-              {formMode === 'create' && (
-                <div>
-                  <Label>Cây trồng *</Label>
-                  <Select
-                    value={formData.cropId ? String(formData.cropId) : ''}
-                    onValueChange={value =>
-                      setFormData(prev => ({
-                        ...prev,
-                        cropId: value ? Number(value) : '',
-                      }))
-                    }
-                    disabled={loadingCrops}
-                  >
-                    <SelectTrigger className="mt-1">
-                      <SelectValue placeholder={loadingCrops ? 'Đang tải...' : 'Chọn cây trồng'} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableCrops.map(crop => (
-                        <SelectItem key={crop.cropId} value={String(crop.cropId)}>
-                          {crop.cropName}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
+          <div className="space-y-4">
+            {formMode === 'create' && (
+              <div>
+                <Label>Cây trồng *</Label>
+                <Select
+                  value={formData.cropId ? String(formData.cropId) : ''}
+                  onValueChange={value =>
+                    setFormData(prev => ({
+                      ...prev,
+                      cropId: value ? Number(value) : '',
+                    }))
+                  }
+                  disabled={loadingCrops}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder={loadingCrops ? 'Đang tải...' : 'Chọn cây trồng'} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableCrops.map(crop => (
+                      <SelectItem key={crop.cropId} value={String(crop.cropId)}>
+                        {crop.cropName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Giai đoạn *</Label>
                 <Select
@@ -644,18 +645,6 @@ export default function CropsPage() {
                   </SelectContent>
                 </Select>
               </div>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <Label>Thời gian ước tính (ngày)</Label>
-                <Input
-                  type="number"
-                  min={0}
-                  value={formData.estimatedDate}
-                  onChange={e => setFormData(prev => ({ ...prev, estimatedDate: e.target.value }))}
-                />
-              </div>
               <div>
                 <Label>Độ ẩm (%)</Label>
                 <Input
@@ -663,14 +652,17 @@ export default function CropsPage() {
                   min={0}
                   value={formData.moisture}
                   onChange={e => setFormData(prev => ({ ...prev, moisture: e.target.value }))}
+                  className="mt-1"
                 />
               </div>
               <div>
-                <Label>Nhiệt độ (°C)</Label>
+                <Label>Thời gian ước tính (ngày)</Label>
                 <Input
                   type="number"
-                  value={formData.temperature}
-                  onChange={e => setFormData(prev => ({ ...prev, temperature: e.target.value }))}
+                  min={0}
+                  value={formData.estimatedDate}
+                  onChange={e => setFormData(prev => ({ ...prev, estimatedDate: e.target.value }))}
+                  className="mt-1"
                 />
               </div>
               <div>
@@ -680,16 +672,16 @@ export default function CropsPage() {
                   min={0}
                   value={formData.lightRequirement}
                   onChange={e => setFormData(prev => ({ ...prev, lightRequirement: e.target.value }))}
+                  className="mt-1"
                 />
               </div>
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
               <div>
-                <Label>Phân bón</Label>
+                <Label>Nhiệt độ (°C)</Label>
                 <Input
-                  value={formData.fertilizer}
-                  onChange={e => setFormData(prev => ({ ...prev, fertilizer: e.target.value }))}
+                  type="number"
+                  value={formData.temperature}
+                  onChange={e => setFormData(prev => ({ ...prev, temperature: e.target.value }))}
+                  className="mt-1"
                 />
               </div>
               <div>
@@ -700,6 +692,15 @@ export default function CropsPage() {
                   onChange={e =>
                     setFormData(prev => ({ ...prev, wateringFrequency: e.target.value }))
                   }
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label>Phân bón</Label>
+                <Input
+                  value={formData.fertilizer}
+                  onChange={e => setFormData(prev => ({ ...prev, fertilizer: e.target.value }))}
+                  className="mt-1"
                 />
               </div>
             </div>
@@ -711,6 +712,7 @@ export default function CropsPage() {
                 value={formData.notes}
                 onChange={e => setFormData(prev => ({ ...prev, notes: e.target.value }))}
                 placeholder="Các lưu ý chăm sóc, cảnh báo sâu bệnh..."
+                className="mt-1"
               />
             </div>
           </div>

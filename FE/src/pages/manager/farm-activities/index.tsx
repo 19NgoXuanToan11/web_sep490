@@ -77,31 +77,27 @@ export default function FarmActivitiesPage() {
   // 0: Sowing, 1: Protection, 2: Irrigation, 3: Fertilization, 4: Harvesting
   // Frontend sẽ dùng trực tiếp giá trị 0–4 (string) cho dropdown "Loại hoạt động"
   const activityTypes = [
-    { value: '0', label: 'Gieo hạt' },          // Sowing
-    { value: '1', label: 'Trừ sâu bệnh' },      // Protection
-    { value: '2', label: 'Tưới tiêu' },         // Irrigation
-    { value: '3', label: 'Bón phân' },          // Fertilization
-    { value: '4', label: 'Thu hoạch' },         // Harvesting
+    { value: '0', label: 'Gieo hạt' },
+    { value: '1', label: 'Trừ sâu bệnh' },
+    { value: '2', label: 'Tưới tiêu' },
+    { value: '3', label: 'Bón phân' },
+    { value: '4', label: 'Thu hoạch' },
   ]
 
-  // Chuẩn hóa giá trị activityType backend -> giá trị enum "0"–"4" để dùng ở FE
   const normalizeBackendActivityType = (backendType: any): string => {
     if (backendType === null || backendType === undefined) return ''
 
-    // Nếu backend trả về số (0–4)
     if (typeof backendType === 'number') {
       return String(backendType)
     }
 
     const raw = String(backendType)
 
-    // Nếu là chuỗi số "0"–"4"
     const numValue = parseInt(raw, 10)
     if (!isNaN(numValue)) {
       return String(numValue)
     }
 
-    // Nếu là tên enum "Sowing", "Protection", ...
     const nameToEnum: Record<string, string> = {
       Sowing: '0',
       Protection: '1',
@@ -123,13 +119,11 @@ export default function FarmActivitiesPage() {
   const loadActivities = useCallback(async () => {
     try {
       setLoading(true)
-      // Use get-all with filters
       const params: any = {
         pageIndex,
         pageSize,
       }
       if (activityTypeFilter !== 'all') {
-        // activityTypeFilter đang là chuỗi "0"–"4", backend nhận giá trị enum số
         params.type = activityTypeFilter
       }
       if (statusFilter !== 'all') {
@@ -139,10 +133,9 @@ export default function FarmActivitiesPage() {
 
       const normalizedActivities = Array.isArray(response.items)
         ? response.items.map(activity => ({
-          ...activity,
-          // Lưu activityType dưới dạng chuỗi enum "0"–"4" để FE dùng thống nhất
-          activityType: normalizeBackendActivityType(activity.activityType),
-        }))
+            ...activity,
+            activityType: normalizeBackendActivityType(activity.activityType),
+          }))
         : []
       setActivities(normalizedActivities)
       setTotalPages(response.totalPagesCount || 1)
@@ -160,7 +153,6 @@ export default function FarmActivitiesPage() {
 
   const loadActivityStats = useCallback(async () => {
     try {
-      // Gọi 1 lần get-all (không filter) để nhận danh sách và tự tính thống kê
       const response = await farmActivityService.getAllFarmActivities({
         pageIndex: 1,
         pageSize: 1000,
@@ -192,11 +184,9 @@ export default function FarmActivitiesPage() {
         total: response.totalItemCount || stats.total,
       })
     } catch {
-      // Thống kê là phần bổ sung, không chặn trang nếu lỗi
     }
   }, [])
 
-  // Client-side filtering for search term only (since pagination is server-side)
   const filteredActivities = (Array.isArray(activities) ? activities : []).filter(activity => {
     if (!activity || typeof activity !== 'object') return false
     const normalizedSearch = searchTerm.trim().toLowerCase()
@@ -208,7 +198,6 @@ export default function FarmActivitiesPage() {
 
   const handleCreateActivity = async () => {
     try {
-      // Reset errors
       setDateErrors({})
 
       if (!formActivityType || !formData.startDate || !formData.endDate) {
@@ -220,7 +209,6 @@ export default function FarmActivitiesPage() {
         return
       }
 
-      // Validate that dates are not before today
       const today = new Date()
       today.setHours(0, 0, 0, 0)
       const startDate = new Date(formData.startDate)
@@ -258,7 +246,6 @@ export default function FarmActivitiesPage() {
         return
       }
 
-      // formActivityType hiện là chuỗi enum "0"–"4", backend nhận giá trị số tương ứng
       await farmActivityService.createFarmActivity(formData, formActivityType)
       toast({
         title: 'Thành công',
@@ -281,7 +268,6 @@ export default function FarmActivitiesPage() {
     if (!editingActivity) return
 
     try {
-      // Reset errors
       setDateErrors({})
 
       if (!formActivityType || !formData.startDate || !formData.endDate) {
@@ -293,7 +279,6 @@ export default function FarmActivitiesPage() {
         return
       }
 
-      // Validate that dates are not before today
       const today = new Date()
       today.setHours(0, 0, 0, 0)
       const startDate = new Date(formData.startDate)
@@ -339,9 +324,8 @@ export default function FarmActivitiesPage() {
       await farmActivityService.updateFarmActivity(
         editingActivity.farmActivitiesId,
         updateData,
-        // formActivityType hiện là chuỗi enum "0"–"4", backend nhận giá trị số tương ứng
         formActivityType,
-        formStatus
+        formStatus,
       )
       toast({
         title: 'Thành công',
@@ -374,20 +358,21 @@ export default function FarmActivitiesPage() {
   const handleEditClick = async (activity: FarmActivity) => {
     try {
       setLoading(true)
-      // Fetch full details using get-by-id
       const fullActivity = await farmActivityService.getFarmActivityById(activity.farmActivitiesId)
       setEditingActivity(fullActivity)
 
-      // Safely extract dates, handling cases where they might be missing from API response
-      const startDate = formatDateForInput(fullActivity.startDate) || formatDateForInput(activity.startDate)
-      const endDate = formatDateForInput(fullActivity.endDate) || formatDateForInput(activity.endDate)
+      const startDate =
+        formatDateForInput(fullActivity.startDate) || formatDateForInput(activity.startDate)
+      const endDate =
+        formatDateForInput(fullActivity.endDate) || formatDateForInput(activity.endDate)
 
       setFormData({
         startDate,
         endDate,
       })
-      // Chuẩn hóa activityType backend (enum/tên/số) -> chuỗi enum "0"–"4" dùng cho FE
-      setFormActivityType(normalizeBackendActivityType(fullActivity.activityType || activity.activityType))
+      setFormActivityType(
+        normalizeBackendActivityType(fullActivity.activityType || activity.activityType),
+      )
       setFormStatus(fullActivity.status || activity.status)
       setEditDialogOpen(true)
     } catch (error: any) {
@@ -396,10 +381,8 @@ export default function FarmActivitiesPage() {
         description: error?.message || 'Không thể tải thông tin chi tiết hoạt động',
         variant: 'destructive',
       })
-      // Fallback to using the activity from the list
       setEditingActivity(activity)
 
-      // Safely extract dates from fallback activity
       const startDate = formatDateForInput(activity.startDate)
       const endDate = formatDateForInput(activity.endDate)
 
@@ -407,7 +390,6 @@ export default function FarmActivitiesPage() {
         startDate,
         endDate,
       })
-      // Chuẩn hóa activityType fallback -> chuỗi enum "0"–"4"
       setFormActivityType(normalizeBackendActivityType(activity.activityType))
       setFormStatus(activity.status)
       setEditDialogOpen(true)
@@ -461,14 +443,10 @@ export default function FarmActivitiesPage() {
     }
   }
 
-  // Helper function to safely format date for input field
   const formatDateForInput = (dateString: string | undefined | null): string => {
     if (!dateString) return ''
-    // If date already in YYYY-MM-DD format, return as is
     if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) return dateString
-    // If date includes time (ISO format), extract date part
     if (dateString.includes('T')) return dateString.split('T')[0]
-    // Otherwise return as is
     return dateString
   }
 
@@ -478,7 +456,7 @@ export default function FarmActivitiesPage() {
   }
 
   useEffect(() => {
-    setPageIndex(1) // Reset to first page when filters change
+    setPageIndex(1)
   }, [statusFilter, activityTypeFilter])
 
   useEffect(() => {

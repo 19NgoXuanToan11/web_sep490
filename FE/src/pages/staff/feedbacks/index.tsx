@@ -167,15 +167,13 @@ const StaffFeedbacksPage: React.FC = () => {
     const getStatusBadge = (status: string) => {
         if (status === 'ACTIVE') {
             return (
-                <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
-                    <CheckCircle className="w-3 h-3 mr-1" />
+                <Badge className="bg-green-100 text-green-800 hover:bg-green-100 whitespace-nowrap inline-flex items-center">
                     Hiển thị
                 </Badge>
             )
         }
         return (
-            <Badge className="bg-gray-100 text-gray-800 hover:bg-gray-100">
-                <XCircle className="w-3 h-3 mr-1" />
+            <Badge className="bg-gray-100 text-gray-800 hover:bg-gray-100 whitespace-nowrap inline-flex items-center">
                 Ẩn
             </Badge>
         )
@@ -354,7 +352,7 @@ const StaffFeedbacksPage: React.FC = () => {
                                                                     : 'N/A'}
                                                             </p>
                                                         </TableCell>
-                                                        <TableCell>{getStatusBadge(feedback.status)}</TableCell>
+                                                        <TableCell className="whitespace-nowrap">{getStatusBadge(feedback.status)}</TableCell>
                                                         <TableCell className="text-right">
                                                             <Button
                                                                 variant="ghost"

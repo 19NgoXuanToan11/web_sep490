@@ -70,58 +70,45 @@ export default function FarmActivitiesPage() {
 
   const todayDateString = getTodayDateString()
 
-  // Mapping function to convert frontend activity type strings to backend integer values
-  // Backend enum: Sowing=0, Protection=1, Irrigation=2, Fertilization=3, Harvesting=4
-  const mapActivityTypeToBackend = (frontendType: string): number => {
-    const mapping: Record<string, number> = {
-      'SOWING': 0,           // Sowing
-      'PEST_CONTROL': 1,     // Protection
-      'WATERING': 2,         // Irrigation
-      'FERTILIZING': 3,      // Fertilization
-      'HARVESTING': 4,       // Harvesting
-      // Map unsupported types to closest equivalents
-      'PRUNING': 4,          // Map to Harvesting (closest)
-      'SOIL_PREPARATION': 0, // Map to Sowing (closest)
-      'MAINTENANCE': 3,      // Map to Fertilization (closest)
-    }
-    return mapping[frontendType] ?? 0
-  }
-
-  // Reverse mapping function to convert backend enum names to frontend string values
-  // Backend returns enum names: "Sowing", "Protection", "Irrigation", "Fertilization", "Harvesting"
-  const mapBackendToFrontend = (backendType: string): string => {
-    const mapping: Record<string, string> = {
-      'Sowing': 'SOWING',
-      'Protection': 'PEST_CONTROL',
-      'Irrigation': 'WATERING',
-      'Fertilization': 'FERTILIZING',
-      'Harvesting': 'HARVESTING',
-    }
-    // If backend returns a number as string, convert it
-    const numValue = parseInt(backendType, 10)
-    if (!isNaN(numValue)) {
-      const reverseMapping: Record<number, string> = {
-        0: 'SOWING',
-        1: 'PEST_CONTROL',
-        2: 'WATERING',
-        3: 'FERTILIZING',
-        4: 'HARVESTING',
-      }
-      return reverseMapping[numValue] ?? 'SOWING'
-    }
-    return mapping[backendType] ?? 'SOWING'
-  }
-
+  // Enum ActivityType từ backend (C#):
+  // 0: Sowing, 1: Protection, 2: Irrigation, 3: Fertilization, 4: Harvesting
+  // Frontend sẽ dùng trực tiếp giá trị 0–4 (string) cho dropdown "Loại hoạt động"
   const activityTypes = [
-    { value: 'SOWING', label: 'Gieo trồng', backendValue: 0 },
-    { value: 'PEST_CONTROL', label: 'Phòng trừ sâu bệnh', backendValue: 1 },
-    { value: 'WATERING', label: 'Tưới nước', backendValue: 2 },
-    { value: 'FERTILIZING', label: 'Bón phân', backendValue: 3 },
-    { value: 'HARVESTING', label: 'Thu hoạch', backendValue: 4 },
-    { value: 'PRUNING', label: 'Tỉa cành', backendValue: 4 },
-    { value: 'SOIL_PREPARATION', label: 'Chuẩn bị đất', backendValue: 0 },
-    { value: 'MAINTENANCE', label: 'Bảo trì', backendValue: 3 },
+    { value: '0', label: 'Gieo hạt' },          // Sowing
+    { value: '1', label: 'Trừ sâu bệnh' },      // Protection
+    { value: '2', label: 'Tưới tiêu' },         // Irrigation
+    { value: '3', label: 'Bón phân' },          // Fertilization
+    { value: '4', label: 'Thu hoạch' },         // Harvesting
   ]
+
+  // Chuẩn hóa giá trị activityType backend -> giá trị enum "0"–"4" để dùng ở FE
+  const normalizeBackendActivityType = (backendType: any): string => {
+    if (backendType === null || backendType === undefined) return ''
+
+    // Nếu backend trả về số (0–4)
+    if (typeof backendType === 'number') {
+      return String(backendType)
+    }
+
+    const raw = String(backendType)
+
+    // Nếu là chuỗi số "0"–"4"
+    const numValue = parseInt(raw, 10)
+    if (!isNaN(numValue)) {
+      return String(numValue)
+    }
+
+    // Nếu là tên enum "Sowing", "Protection", ...
+    const nameToEnum: Record<string, string> = {
+      Sowing: '0',
+      Protection: '1',
+      Irrigation: '2',
+      Fertilization: '3',
+      Harvesting: '4',
+    }
+
+    return nameToEnum[raw] ?? ''
+  }
 
   const statusOptions = [
     { value: 'ACTIVE', label: 'Hoạt động', color: 'bg-green-100 text-green-800' },
@@ -139,9 +126,8 @@ export default function FarmActivitiesPage() {
         pageSize,
       }
       if (activityTypeFilter !== 'all') {
-        // Convert frontend activity type string to backend integer value
-        const backendActivityType = mapActivityTypeToBackend(activityTypeFilter)
-        params.type = backendActivityType.toString()
+        // activityTypeFilter đang là chuỗi "0"–"4", backend nhận giá trị enum số
+        params.type = activityTypeFilter
       }
       if (statusFilter !== 'all') {
         params.status = statusFilter
@@ -151,7 +137,8 @@ export default function FarmActivitiesPage() {
       const normalizedActivities = Array.isArray(response.items)
         ? response.items.map(activity => ({
           ...activity,
-          activityType: mapBackendToFrontend(activity.activityType),
+          // Lưu activityType dưới dạng chuỗi enum "0"–"4" để FE dùng thống nhất
+          activityType: normalizeBackendActivityType(activity.activityType),
         }))
         : []
       setActivities(normalizedActivities)
@@ -231,9 +218,8 @@ export default function FarmActivitiesPage() {
         return
       }
 
-      // Convert frontend activity type string to backend integer value
-      const backendActivityType = mapActivityTypeToBackend(formActivityType)
-      await farmActivityService.createFarmActivity(formData, backendActivityType.toString())
+      // formActivityType hiện là chuỗi enum "0"–"4", backend nhận giá trị số tương ứng
+      await farmActivityService.createFarmActivity(formData, formActivityType)
       toast({
         title: 'Thành công',
         description: 'Đã tạo hoạt động nông trại mới',
@@ -310,12 +296,11 @@ export default function FarmActivitiesPage() {
         endDate: formData.endDate,
       }
 
-      // Convert frontend activity type string to backend integer value
-      const backendActivityType = mapActivityTypeToBackend(formActivityType)
       await farmActivityService.updateFarmActivity(
         editingActivity.farmActivitiesId,
         updateData,
-        backendActivityType.toString(),
+        // formActivityType hiện là chuỗi enum "0"–"4", backend nhận giá trị số tương ứng
+        formActivityType,
         formStatus
       )
       toast({
@@ -415,8 +400,8 @@ export default function FarmActivitiesPage() {
         startDate,
         endDate,
       })
-      // Convert backend activity type (enum name or number) to frontend string value
-      setFormActivityType(mapBackendToFrontend(fullActivity.activityType || activity.activityType))
+      // Chuẩn hóa activityType backend (enum/tên/số) -> chuỗi enum "0"–"4" dùng cho FE
+      setFormActivityType(normalizeBackendActivityType(fullActivity.activityType || activity.activityType))
       setFormStatus(fullActivity.status || activity.status)
       setEditDialogOpen(true)
     } catch (error: any) {
@@ -436,8 +421,8 @@ export default function FarmActivitiesPage() {
         startDate,
         endDate,
       })
-      // Convert backend activity type (enum name or number) to frontend string value
-      setFormActivityType(mapBackendToFrontend(activity.activityType))
+      // Chuẩn hóa activityType fallback -> chuỗi enum "0"–"4"
+      setFormActivityType(normalizeBackendActivityType(activity.activityType))
       setFormStatus(activity.status)
       setEditDialogOpen(true)
     } finally {
@@ -577,7 +562,9 @@ export default function FarmActivitiesPage() {
                 ) : (
                   filteredActivities.map((activity, index) => (
                     <TableRow key={activity.farmActivitiesId}>
-                      <TableCell className="text-center">{index + 1}</TableCell>
+                      <TableCell className="text-center">
+                        {(pageIndex - 1) * pageSize + index + 1}
+                      </TableCell>
                       <TableCell>{getActivityTypeLabel(activity.activityType)}</TableCell>
                       <TableCell>{getStatusBadge(activity.status)}</TableCell>
                       <TableCell className="text-right">

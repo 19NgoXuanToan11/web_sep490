@@ -999,7 +999,7 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                 </div>
 
                 {/* Detail View Modal */}
-                <Dialog open={showDetail} onOpenChange={setShowDetail}>
+                <Dialog open={  showDetail} onOpenChange={setShowDetail}>
                     <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
                         <DialogHeader>
                             <DialogTitle>Chi tiết lịch tưới</DialogTitle>
@@ -1024,7 +1024,6 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                                         <div><strong>Thuốc BVTV:</strong> {scheduleDetail.pesticideUsed ? 'Có' : 'Không'}</div>
                                         <div><strong>Tình trạng bệnh:</strong> {getDiseaseLabel(scheduleDetail.diseaseStatus)}</div>
                                         <div><strong>Tạo lúc:</strong> {scheduleDetail.createdAt ?? '-'}</div>
-                                        <div><strong>Cập nhật lúc:</strong> {scheduleDetail.updatedAt ?? '-'}</div>
                                     </div>
                                 </div>
 

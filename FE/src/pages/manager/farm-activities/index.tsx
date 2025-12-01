@@ -15,7 +15,7 @@ import {
 } from '@/shared/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
-import { Plus, Edit, Trash2, RefreshCw, ChevronLeft, ChevronRight, Eye, BarChart2, CheckCircle2, Clock3 } from 'lucide-react'
+import { Plus, Edit, RefreshCw, ChevronLeft, ChevronRight, Eye, BarChart2, Clock3 } from 'lucide-react'
 import { useToast } from '@/shared/ui/use-toast'
 import {
   farmActivityService,
@@ -358,60 +358,6 @@ export default function FarmActivitiesPage() {
       toast({
         title: 'Lỗi',
         description: error?.message || 'Không thể cập nhật hoạt động nông trại',
-        variant: 'destructive',
-      })
-    }
-  }
-
-  const handleChangeStatus = async (activityId: number) => {
-    try {
-      await farmActivityService.changeStatus(activityId)
-      toast({
-        title: 'Thành công',
-        description: 'Đã thay đổi trạng thái hoạt động nông trại',
-      })
-      loadActivities()
-    } catch (error: any) {
-      toast({
-        title: 'Lỗi',
-        description: error?.message || 'Không thể thay đổi trạng thái hoạt động nông trại',
-        variant: 'destructive',
-      })
-    }
-  }
-
-  const handleCompleteActivity = async (activityId: number) => {
-    try {
-      await farmActivityService.completeFarmActivity(activityId)
-      toast({
-        title: 'Thành công',
-        description: 'Đã đánh dấu hoạt động là hoàn thành',
-      })
-      loadActivities()
-    } catch (error: any) {
-      toast({
-        title: 'Lỗi',
-        description: error?.message || 'Không thể đánh dấu hoạt động là hoàn thành',
-        variant: 'destructive',
-      })
-    }
-  }
-
-  const handleDeleteActivity = async (activityId: number) => {
-    if (!confirm('Bạn có chắc chắn muốn xóa hoạt động này không?')) return
-
-    try {
-      await farmActivityService.deleteFarmActivity(activityId)
-      toast({
-        title: 'Thành công',
-        description: 'Đã xóa hoạt động nông trại',
-      })
-      loadActivities()
-    } catch (error) {
-      toast({
-        title: 'Lỗi',
-        description:
-          'Không thể xóa hoạt động nông trại. Chức năng này sẽ có sau khi backend bổ sung API.',
         variant: 'destructive',
       })
     }

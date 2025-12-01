@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Tabs, TabsContent } from '@/shared/ui/tabs'
 import { ManagerLayout } from '@/shared/layouts/ManagerLayout'
 import { BackendScheduleList } from '@/features/irrigation/ui/BackendScheduleList'

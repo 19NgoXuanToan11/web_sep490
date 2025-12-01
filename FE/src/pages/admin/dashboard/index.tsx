@@ -70,35 +70,29 @@ const AdminDashboard: React.FC = () => {
   const [error, setError] = useState<string | null>(null)
   const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(true)
 
-  // Calculate system health based on various metrics
   const calculateSystemHealth = useCallback((m: SystemMetrics): number => {
     let healthScore = 100
 
-    // Device health (30% weight)
     if (m.totalDevices > 0) {
       const deviceHealth = (m.onlineDevices / m.totalDevices) * 100
       healthScore -= (100 - deviceHealth) * 0.3
     }
 
-    // Order processing health (20% weight)
     if (m.totalOrders > 0) {
       const pendingRatio = (m.pendingOrders / m.totalOrders) * 100
       if (pendingRatio > 20) healthScore -= (pendingRatio - 20) * 0.2
     }
 
-    // Product inventory health (20% weight)
     if (m.totalProducts > 0) {
       const lowStockRatio = (m.lowStockItems / m.totalProducts) * 100
       if (lowStockRatio > 15) healthScore -= (lowStockRatio - 15) * 0.2
     }
 
-    // User activity health (15% weight)
     if (m.totalUsers > 0) {
       const activeUserRatio = (m.activeUsers / m.totalUsers) * 100
       if (activeUserRatio < 50) healthScore -= (50 - activeUserRatio) * 0.15
     }
 
-    // Farm activity health (15% weight)
     if (m.totalFarms > 0) {
       const activeFarmRatio = (m.activeFarms / m.totalFarms) * 100
       if (activeFarmRatio < 70) healthScore -= (70 - activeFarmRatio) * 0.15
@@ -112,7 +106,6 @@ const AdminDashboard: React.FC = () => {
       setIsRefreshing(true)
       setError(null)
 
-      // Fetch all data in parallel
       const [
         accountsResult,
         farmsResult,
@@ -129,7 +122,6 @@ const AdminDashboard: React.FC = () => {
         feedbackService.getFeedbackList({ pageIndex: 1, pageSize: 1000 }),
       ])
 
-      // Process accounts
       let totalUsers = 0
       let activeUsers = 0
       if (accountsResult.status === 'fulfilled') {
@@ -140,7 +132,6 @@ const AdminDashboard: React.FC = () => {
         ).length
       }
 
-      // Process farms
       let totalFarms = 0
       let activeFarms = 0
       if (farmsResult.status === 'fulfilled') {
@@ -149,7 +140,6 @@ const AdminDashboard: React.FC = () => {
         activeFarms = farms.length // Assuming all farms are active if they exist
       }
 
-      // Process devices
       let totalDevices = 0
       let onlineDevices = 0
       if (devicesResult.status === 'fulfilled') {
@@ -158,7 +148,6 @@ const AdminDashboard: React.FC = () => {
         onlineDevices = devices.filter(d => d.status === 1 || d.status === '1').length
       }
 
-      // Process orders
       let totalOrders = 0
       let pendingOrders = 0
       let completedOrders = 0
@@ -171,7 +160,6 @@ const AdminDashboard: React.FC = () => {
         totalRevenue = calculateRevenue(orders)
       }
 
-      // Process products
       let totalProducts = 0
       let activeProducts = 0
       let lowStockItems = 0
@@ -182,7 +170,6 @@ const AdminDashboard: React.FC = () => {
         lowStockItems = products.filter(p => (p.quantity || 0) < 10).length
       }
 
-      // Process feedbacks
       let totalFeedbacks = 0
       if (feedbacksResult.status === 'fulfilled') {
         totalFeedbacks = feedbacksResult.value.items?.length || 0
@@ -207,7 +194,6 @@ const AdminDashboard: React.FC = () => {
         lastUpdated: new Date(),
       }
 
-      // Calculate system health
       newMetrics.systemHealth = calculateSystemHealth(newMetrics)
 
       setMetrics(newMetrics)
@@ -229,13 +215,12 @@ const AdminDashboard: React.FC = () => {
     fetchDashboardData()
   }, [fetchDashboardData])
 
-  // Auto-refresh every 30 seconds
   useEffect(() => {
     if (!autoRefreshEnabled) return
 
     const interval = setInterval(() => {
       fetchDashboardData()
-    }, 30000) // 30 seconds
+    }, 30000)
 
     return () => clearInterval(interval)
   }, [autoRefreshEnabled, fetchDashboardData])
@@ -255,7 +240,6 @@ const AdminDashboard: React.FC = () => {
     }).format(amount)
   }
 
-  // Chart data calculations
   const systemActivityData = useMemo(
     () => [
       {
@@ -322,7 +306,6 @@ const AdminDashboard: React.FC = () => {
   return (
     <AdminLayout>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Bảng điều khiển</h1>
@@ -359,7 +342,6 @@ const AdminDashboard: React.FC = () => {
           </div>
         )}
 
-        {/* System Status Card */}
         <div className="mb-8">
           <Card>
             <CardContent>
@@ -385,7 +367,6 @@ const AdminDashboard: React.FC = () => {
           </Card>
         </div>
 
-        {/* KPI Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <motion.div
             initial={{ opacity: 0, y: 20 }}

@@ -248,9 +248,8 @@ export const DeviceListView: React.FC<DeviceListViewProps> = ({ onDeviceAction, 
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.2 }}
-                className={`relative bg-white border-0 rounded-xl hover:shadow-lg transition-all duration-300 ${
-                  isSelected ? 'shadow-lg ring-2 ring-blue-500 ring-opacity-50' : 'shadow-sm hover:shadow-md'
-                } ${isDeviceLoading ? 'opacity-75' : ''}`}
+                className={`relative bg-white border-0 rounded-xl hover:shadow-lg transition-all duration-300 ${isSelected ? 'shadow-lg ring-2 ring-blue-500 ring-opacity-50' : 'shadow-sm hover:shadow-md'
+                  } ${isDeviceLoading ? 'opacity-75' : ''}`}
                 onClick={e => e.stopPropagation()}
               >
                 <div className="hidden md:grid grid-cols-12 gap-6 items-center px-6 py-5">

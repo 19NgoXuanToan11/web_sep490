@@ -717,6 +717,62 @@ const StaffOrdersPage: React.FC = () => {
         </div>
 
         { }
+        <div className="grid gap-4 mb-8 md:grid-cols-2 lg:grid-cols-3">
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-500">Tổng đơn hàng</p>
+                  <p className="text-2xl font-semibold mt-1">{orderStats.total}</p>
+                </div>
+                <div className="rounded-full bg-purple-100 p-3 text-purple-600">
+                  <ShoppingCart className="h-5 w-5" />
+                </div>
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                Toàn bộ đơn hàng mà bạn có quyền xem trong hệ thống
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-500">Cần xử lý</p>
+                  <p className="text-2xl font-semibold mt-1 text-orange-600">
+                    {orderStats.pending + orderStats.confirmed + orderStats.preparing}
+                  </p>
+                </div>
+                <div className="rounded-full bg-orange-100 p-3 text-orange-600">
+                  <Clock className="h-5 w-5" />
+                </div>
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                Gồm đơn chưa thanh toán, đã xác nhận và đang chuẩn bị
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-500">Đang giao</p>
+                  <p className="text-2xl font-semibold mt-1 text-blue-600">{orderStats.shipping}</p>
+                </div>
+                <div className="rounded-full bg-blue-100 p-3 text-blue-600">
+                  <Truck className="h-5 w-5" />
+                </div>
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                Đơn hàng đã xuất kho và đang trên đường giao cho khách
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        { }
         <Tabs value={selectedTab} onValueChange={handleTabChange} className="space-y-4 mb-6">
           <TabsContent value="all" className="space-y-4 mt-4">
             { }

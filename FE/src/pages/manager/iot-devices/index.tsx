@@ -1,9 +1,12 @@
-﻿import React, { useEffect, useState } from 'react'
+﻿import React, { useEffect, useMemo, useState } from 'react'
 import {
   RefreshCw,
   Plus,
   Eye,
   Pencil,
+  Cpu,
+  Wifi,
+  AlertTriangle,
 } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import { Card, CardContent } from '@/shared/ui/card'
@@ -35,13 +38,44 @@ const ManagerIoTDevicesPage: React.FC = () => {
   const [updateModalOpen, setUpdateModalOpen] = useState(false)
   const [detailsModalOpen, setDetailsModalOpen] = useState(false)
   const [selectedDevice, setSelectedDevice] = useState<IoTDevice | null>(null)
-  const [_statistics, setStatistics] = useState({
+  const [statistics, setStatistics] = useState({
     total: 0,
     active: 0,
     inactive: 0,
     maintenance: 0,
     error: 0,
   })
+
+  const computedStats = useMemo(() => {
+    // Ưu tiên số liệu từ API thống kê, fallback sang tính toán từ danh sách thiết bị nếu cần
+    const apiTotal = statistics.total || 0
+    const apiActive = statistics.active || 0
+    const apiInactive = statistics.inactive || 0
+    const apiMaintenance = statistics.maintenance || 0
+    const apiError = statistics.error || 0
+
+    if (apiTotal > 0) {
+      return {
+        total: apiTotal,
+        active: apiActive,
+        inactive: apiInactive,
+        maintenance: apiMaintenance,
+        error: apiError,
+      }
+    }
+
+    const total = devices.length
+    const active = devices.filter(d => Number(d.status) === 1).length
+    const inactive = total - active
+
+    return {
+      total,
+      active,
+      inactive,
+      maintenance: 0,
+      error: 0,
+    }
+  }, [devices, statistics])
 
   useEffect(() => {
     fetchDevices()
@@ -142,6 +176,83 @@ const ManagerIoTDevicesPage: React.FC = () => {
             <p className="text-gray-600 mt-2">
               Giám sát và điều khiển các thiết bị IoT trong nông trại
             </p>
+          </div>
+
+          { }
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-500">Tổng thiết bị</p>
+                    <p className="text-2xl font-semibold mt-1">{computedStats.total}</p>
+                  </div>
+                  <div className="rounded-full bg-green-100 p-3 text-green-600">
+                    <Cpu className="h-5 w-5" />
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  Tổng số thiết bị IoT đã cấu hình trong hệ thống
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-500">Đang hoạt động</p>
+                    <p className="text-2xl font-semibold mt-1 text-green-600">
+                      {computedStats.active}
+                    </p>
+                  </div>
+                  <div className="rounded-full bg-blue-100 p-3 text-blue-600">
+                    <Wifi className="h-5 w-5" />
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  Thiết bị đang gửi dữ liệu hoặc online
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-500">Không hoạt động</p>
+                    <p className="text-2xl font-semibold mt-1 text-gray-700">
+                      {computedStats.inactive}
+                    </p>
+                  </div>
+                  <div className="rounded-full bg-gray-100 p-3 text-gray-600">
+                    <Cpu className="h-5 w-5" />
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  Thiết bị chưa cấu hình hoặc đang tạm dừng
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-500">Cần kiểm tra</p>
+                    <p className="text-2xl font-semibold mt-1 text-orange-600">
+                      {computedStats.maintenance + computedStats.error}
+                    </p>
+                  </div>
+                  <div className="rounded-full bg-orange-100 p-3 text-orange-600">
+                    <AlertTriangle className="h-5 w-5" />
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  Gồm {computedStats.maintenance} đang bảo trì và {computedStats.error} lỗi
+                </p>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Khu vực tìm kiếm và lọc */}

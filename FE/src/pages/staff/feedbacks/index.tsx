@@ -224,6 +224,65 @@ const StaffFeedbacksPage: React.FC = () => {
 
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                     { }
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                        <Card>
+                            <CardContent className="p-4">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-sm text-gray-500">Tổng đánh giá</p>
+                                        <p className="text-2xl font-semibold mt-1">{stats.total}</p>
+                                    </div>
+                                    <div className="rounded-full bg-purple-100 p-3 text-purple-600">
+                                        <MessageSquare className="h-5 w-5" />
+                                    </div>
+                                </div>
+                                <p className="text-xs text-gray-500 mt-2">
+                                    Tất cả đánh giá mà khách hàng đã gửi
+                                </p>
+                            </CardContent>
+                        </Card>
+
+                        <Card>
+                            <CardContent className="p-4">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-sm text-gray-500">Đang hiển thị</p>
+                                        <p className="text-2xl font-semibold mt-1 text-green-600">
+                                            {stats.active}
+                                        </p>
+                                    </div>
+                                    <div className="rounded-full bg-green-100 p-3 text-green-600">
+                                        <CheckCircle className="h-5 w-5" />
+                                    </div>
+                                </div>
+                                <p className="text-xs text-gray-500 mt-2">
+                                    Đánh giá đang được hiển thị trên giao diện khách hàng
+                                </p>
+                            </CardContent>
+                        </Card>
+
+                        <Card>
+                            <CardContent className="p-4">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <p className="text-sm text-gray-500">Điểm trung bình</p>
+                                        <p className="text-2xl font-semibold mt-1 text-yellow-500">
+                                            {stats.avgRating}{' '}
+                                            <span className="text-base align-middle">⭐</span>
+                                        </p>
+                                    </div>
+                                    <div className="rounded-full bg-yellow-100 p-3 text-yellow-500">
+                                        <Star className="h-5 w-5" />
+                                    </div>
+                                </div>
+                                <p className="text-xs text-gray-500 mt-2">
+                                    Mức độ hài lòng trung bình của khách hàng
+                                </p>
+                            </CardContent>
+                        </Card>
+                    </div>
+
+                    { }
                     <Card className="mb-6">
                         <CardHeader>
                             <CardTitle className="text-lg">Bộ lọc và tìm kiếm</CardTitle>

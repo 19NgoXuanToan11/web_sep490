@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Play,
@@ -11,7 +11,9 @@ import {
   MapPin,
   Square,
   Wrench,
+  Loader2,
 } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { Badge } from '@/shared/ui/badge'
 import { Button } from '@/shared/ui/button'
 import { Checkbox } from '@/shared/ui/checkbox'
@@ -25,77 +27,158 @@ import { deviceStatusConfig, batteryLevelConfig } from '../model/schemas'
 import type { StaffDevice } from '@/shared/lib/localData'
 import { formatTime } from '@/shared/lib/localData/storage'
 import { useStaffOperationsStore } from '../store/staffOperationsStore'
-import { Loader2 } from 'lucide-react'
+type QuickAction = {
+  key: string
+  label: string
+  icon: LucideIcon
+  color: string
+}
+
+const batteryLevelThreshold = {
+  low: 25,
+  medium: 75,
+}
+
+const getBatteryConfig = (batteryLevel?: number) => {
+  if (!batteryLevel) return null
+  if (batteryLevel <= batteryLevelThreshold.low) return batteryLevelConfig.low
+  if (batteryLevel <= batteryLevelThreshold.medium) return batteryLevelConfig.medium
+  return batteryLevelConfig.high
+}
+
+const quickActionMap: Record<StaffDevice['status'], QuickAction[]> = {
+  Idle: [
+    { key: 'start', label: 'Khởi động', icon: Play, color: 'text-green-600' },
+    { key: 'run-now', label: 'Chạy ngay', icon: Zap, color: 'text-blue-600' },
+  ],
+  Running: [
+    { key: 'pause', label: 'Tạm dừng', icon: Pause, color: 'text-yellow-600' },
+    { key: 'stop', label: 'Dừng', icon: Square, color: 'text-red-600' },
+  ],
+  Paused: [
+    { key: 'start', label: 'Tiếp tục', icon: Play, color: 'text-green-600' },
+    { key: 'stop', label: 'Dừng', icon: Square, color: 'text-red-600' },
+  ],
+  Maintenance: [
+    { key: 'start', label: 'Kết thúc bảo trì', icon: Play, color: 'text-green-600' },
+  ],
+}
+
+const getQuickActions = (status: StaffDevice['status']) => quickActionMap[status] ?? []
+
+interface DeviceActionMenuProps {
+  deviceId: string
+  status: StaffDevice['status']
+  quickActions: QuickAction[]
+  disabled?: boolean
+  onAction: (deviceId: string, action: string) => void
+  className?: string
+}
+
+const DeviceActionMenu: React.FC<DeviceActionMenuProps> = ({
+  deviceId,
+  status,
+  quickActions,
+  disabled,
+  onAction,
+  className,
+}) => {
+  const handleAction = useCallback(
+    (event: React.MouseEvent, action: string) => {
+      event.stopPropagation()
+      onAction(deviceId, action)
+    },
+    [deviceId, onAction],
+  )
+
+  return (
+    <DropdownMenu modal={false}>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant='ghost'
+          size='sm'
+          className={`h-8 w-8 p-0 hover:bg-gray-100 ${className ?? ''}`}
+          disabled={disabled}
+          onClick={event => event.stopPropagation()}
+        >
+          <MoreHorizontal className='h-4 w-4 text-gray-400' />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align='end' className='w-48' onCloseAutoFocus={event => event.preventDefault()}>
+        <DropdownMenuItem onClick={event => handleAction(event, 'view-details')}>
+          <Activity className='h-4 w-4 mr-2' />
+          Xem chi tiết
+        </DropdownMenuItem>
+        {quickActions.map(action => {
+          const IconComponent = action.icon
+          return (
+            <DropdownMenuItem key={action.key} onClick={event => handleAction(event, action.key)}>
+              <IconComponent className={`h-4 w-4 mr-2 ${action.color}`} />
+              {action.label}
+            </DropdownMenuItem>
+          )
+        })}
+        {status !== 'Maintenance' && (
+          <DropdownMenuItem onClick={event => handleAction(event, 'maintenance')}>
+            <Wrench className='h-4 w-4 mr-2 text-orange-600' />
+            Bảo trì
+          </DropdownMenuItem>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
 
 interface DeviceListViewProps {
   onDeviceAction?: (deviceId: string, action: string) => void
   onDeviceSelect?: (deviceId: string) => void
 }
 
-export const DeviceListView: React.FC<DeviceListViewProps> = ({
-  onDeviceAction,
-  onDeviceSelect,
-}) => {
+export const DeviceListView: React.FC<DeviceListViewProps> = ({ onDeviceAction, onDeviceSelect }) => {
   const { selectedDeviceIds, loadingStates, getPaginatedDevices, toggleDeviceSelection } =
     useStaffOperationsStore()
 
   const devices = getPaginatedDevices()
   const isLoading = loadingStates['refresh-all-devices']?.isLoading
+  const selectedSet = useMemo(() => new Set(selectedDeviceIds), [selectedDeviceIds])
+  const allSelected = useMemo(
+    () => devices.length > 0 && selectedDeviceIds.length === devices.length,
+    [devices.length, selectedDeviceIds.length],
+  )
+  const loadingEntries = useMemo(() => Object.entries(loadingStates), [loadingStates])
 
-  const handleDeviceAction = (deviceId: string, action: string) => {
-    onDeviceAction?.(deviceId, action)
-  }
+  const handleDeviceAction = useCallback(
+    (deviceId: string, action: string) => {
+      onDeviceAction?.(deviceId, action)
+    },
+    [onDeviceAction],
+  )
 
-  const handleDeviceSelect = (deviceId: string) => {
-    toggleDeviceSelection(deviceId)
-    onDeviceSelect?.(deviceId)
-  }
+  const handleDeviceSelect = useCallback(
+    (deviceId: string) => {
+      toggleDeviceSelection(deviceId)
+      onDeviceSelect?.(deviceId)
+    },
+    [onDeviceSelect, toggleDeviceSelection],
+  )
 
-  const getDeviceLoadingState = (deviceId: string) => {
-    return Object.keys(loadingStates).some(
-      key => key.includes(deviceId) && loadingStates[key]?.isLoading
-    )
-  }
+  const getDeviceLoadingState = useCallback(
+    (deviceId: string) => {
+      return loadingEntries.some(([key, state]) => key.includes(deviceId) && state?.isLoading)
+    },
+    [loadingEntries],
+  )
 
-  const getBatteryConfig = (batteryLevel?: number) => {
-    if (!batteryLevel) return null
-    if (batteryLevel <= 25) return batteryLevelConfig.low
-    if (batteryLevel <= 75) return batteryLevelConfig.medium
-    return batteryLevelConfig.high
-  }
-
-  const getQuickActions = (device: StaffDevice) => {
-    const actions = []
-    switch (device.status) {
-      case 'Idle':
-        actions.push(
-          { key: 'start', label: 'Khởi động', icon: Play, color: 'text-green-600' },
-          { key: 'run-now', label: 'Chạy ngay', icon: Zap, color: 'text-blue-600' }
-        )
-        break
-      case 'Running':
-        actions.push(
-          { key: 'pause', label: 'Tạm dừng', icon: Pause, color: 'text-yellow-600' },
-          { key: 'stop', label: 'Dừng', icon: Square, color: 'text-red-600' }
-        )
-        break
-      case 'Paused':
-        actions.push(
-          { key: 'start', label: 'Tiếp tục', icon: Play, color: 'text-green-600' },
-          { key: 'stop', label: 'Dừng', icon: Square, color: 'text-red-600' }
-        )
-        break
-      case 'Maintenance':
-        actions.push({
-          key: 'start',
-          label: 'Kết thúc bảo trì',
-          icon: Play,
-          color: 'text-green-600',
-        })
-        break
-    }
-    return actions
-  }
+  const handleSelectAll = useCallback(
+    (checked: boolean) => {
+      devices.forEach(device => {
+        const isSelected = selectedSet.has(device.id)
+        if (checked && !isSelected) toggleDeviceSelection(device.id)
+        if (!checked && isSelected) toggleDeviceSelection(device.id)
+      })
+    },
+    [devices, selectedSet, toggleDeviceSelection],
+  )
 
   if (isLoading && devices.length === 0) {
     return (
@@ -122,7 +205,6 @@ export const DeviceListView: React.FC<DeviceListViewProps> = ({
 
   return (
     <div className="space-y-4">
-      { }
       {isLoading && devices.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -136,28 +218,10 @@ export const DeviceListView: React.FC<DeviceListViewProps> = ({
         </motion.div>
       )}
 
-      { }
       <div className="hidden md:block px-4 py-2">
         <div className="grid grid-cols-12 gap-6 items-center text-xs font-medium text-gray-500 uppercase tracking-wide">
           <div className="col-span-1">
-            <Checkbox
-              checked={devices.length > 0 && selectedDeviceIds.length === devices.length}
-              onCheckedChange={checked => {
-                if (checked) {
-                  devices.forEach(device => {
-                    if (!selectedDeviceIds.includes(device.id)) {
-                      toggleDeviceSelection(device.id)
-                    }
-                  })
-                } else {
-                  devices.forEach(device => {
-                    if (selectedDeviceIds.includes(device.id)) {
-                      toggleDeviceSelection(device.id)
-                    }
-                  })
-                }
-              }}
-            />
+            <Checkbox checked={allSelected} onCheckedChange={checked => handleSelectAll(Boolean(checked))} />
           </div>
           <div className="col-span-4">Thiết bị</div>
           <div className="col-span-2">Trạng thái</div>
@@ -167,14 +231,13 @@ export const DeviceListView: React.FC<DeviceListViewProps> = ({
         </div>
       </div>
 
-      { }
       <div className="space-y-3">
         <AnimatePresence mode="popLayout">
           {devices.map(device => {
             const statusConfig = deviceStatusConfig[device.status]
             const batteryConfig = getBatteryConfig(device.batteryLevel)
-            const quickActions = getQuickActions(device)
-            const isSelected = selectedDeviceIds.includes(device.id)
+            const quickActions = getQuickActions(device.status)
+            const isSelected = selectedSet.has(device.id)
             const isDeviceLoading = getDeviceLoadingState(device.id)
 
             return (
@@ -185,15 +248,12 @@ export const DeviceListView: React.FC<DeviceListViewProps> = ({
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.2 }}
-                className={`relative bg-white border-0 rounded-xl hover:shadow-lg transition-all duration-300 ${isSelected
-                  ? 'shadow-lg ring-2 ring-blue-500 ring-opacity-50'
-                  : 'shadow-sm hover:shadow-md'
-                  } ${isDeviceLoading ? 'opacity-75' : ''}`}
+                className={`relative bg-white border-0 rounded-xl hover:shadow-lg transition-all duration-300 ${
+                  isSelected ? 'shadow-lg ring-2 ring-blue-500 ring-opacity-50' : 'shadow-sm hover:shadow-md'
+                } ${isDeviceLoading ? 'opacity-75' : ''}`}
                 onClick={e => e.stopPropagation()}
               >
-                { }
                 <div className="hidden md:grid grid-cols-12 gap-6 items-center px-6 py-5">
-                  { }
                   <div className="col-span-1">
                     <Checkbox
                       checked={isSelected}
@@ -201,7 +261,6 @@ export const DeviceListView: React.FC<DeviceListViewProps> = ({
                     />
                   </div>
 
-                  { }
                   <div className="col-span-4">
                     <div className="flex items-center gap-4">
                       <div className={`w-2 h-8 rounded-full ${statusConfig.bgColor}`}></div>
@@ -221,7 +280,6 @@ export const DeviceListView: React.FC<DeviceListViewProps> = ({
                     </div>
                   </div>
 
-                  { }
                   <div className="col-span-2">
                     <div className="space-y-2">
                       <Badge
@@ -246,7 +304,6 @@ export const DeviceListView: React.FC<DeviceListViewProps> = ({
                     </div>
                   </div>
 
-                  { }
                   <div className="col-span-2">
                     <div className="space-y-1 text-xs text-gray-600">
                       <div className="flex items-center gap-1">
@@ -273,7 +330,6 @@ export const DeviceListView: React.FC<DeviceListViewProps> = ({
                     </div>
                   </div>
 
-                  { }
                   <div className="col-span-2">
                     <div className="space-y-1 text-xs text-gray-600">
                       <div>
@@ -291,66 +347,17 @@ export const DeviceListView: React.FC<DeviceListViewProps> = ({
                     </div>
                   </div>
 
-                  { }
                   <div className="col-span-1 flex justify-end">
-                    <DropdownMenu modal={false}>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0 hover:bg-gray-100"
-                          disabled={isDeviceLoading}
-                          onClick={e => e.stopPropagation()}
-                        >
-                          <MoreHorizontal className="h-4 w-4 text-gray-400" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent
-                        align="end"
-                        className="w-48"
-                        onCloseAutoFocus={e => e.preventDefault()}
-                      >
-                        <DropdownMenuItem
-                          onClick={e => {
-                            e.stopPropagation()
-                            handleDeviceAction(device.id, 'view-details')
-                          }}
-                        >
-                          <Activity className="h-4 w-4 mr-2" />
-                          Xem chi tiết
-                        </DropdownMenuItem>
-                        {quickActions.map(action => {
-                          const IconComponent = action.icon
-                          return (
-                            <DropdownMenuItem
-                              key={action.key}
-                              onClick={e => {
-                                e.stopPropagation()
-                                handleDeviceAction(device.id, action.key)
-                              }}
-                            >
-                              <IconComponent className={`h-4 w-4 mr-2 ${action.color}`} />
-                              {action.label}
-                            </DropdownMenuItem>
-                          )
-                        })}
-                        {device.status !== 'Maintenance' && (
-                          <DropdownMenuItem
-                            onClick={e => {
-                              e.stopPropagation()
-                              handleDeviceAction(device.id, 'maintenance')
-                            }}
-                          >
-                            <Wrench className="h-4 w-4 mr-2 text-orange-600" />
-                            Bảo trì
-                          </DropdownMenuItem>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <DeviceActionMenu
+                      deviceId={device.id}
+                      status={device.status}
+                      quickActions={quickActions}
+                      disabled={isDeviceLoading}
+                      onAction={handleDeviceAction}
+                    />
                   </div>
                 </div>
 
-                { }
                 <div className="md:hidden px-4 py-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
@@ -373,64 +380,16 @@ export const DeviceListView: React.FC<DeviceListViewProps> = ({
                       >
                         {statusConfig.label}
                       </Badge>
-                      <DropdownMenu modal={false}>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 w-8 p-0 hover:bg-gray-100"
-                            disabled={isDeviceLoading}
-                            onClick={e => e.stopPropagation()}
-                          >
-                            <MoreHorizontal className="h-4 w-4 text-gray-400" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent
-                          align="end"
-                          className="w-48"
-                          onCloseAutoFocus={e => e.preventDefault()}
-                        >
-                          <DropdownMenuItem
-                            onClick={e => {
-                              e.stopPropagation()
-                              handleDeviceAction(device.id, 'view-details')
-                            }}
-                          >
-                            <Activity className="h-4 w-4 mr-2" />
-                            Xem chi tiết
-                          </DropdownMenuItem>
-                          {quickActions.map(action => {
-                            const IconComponent = action.icon
-                            return (
-                              <DropdownMenuItem
-                                key={action.key}
-                                onClick={e => {
-                                  e.stopPropagation()
-                                  handleDeviceAction(device.id, action.key)
-                                }}
-                              >
-                                <IconComponent className={`h-4 w-4 mr-2 ${action.color}`} />
-                                {action.label}
-                              </DropdownMenuItem>
-                            )
-                          })}
-                          {device.status !== 'Maintenance' && (
-                            <DropdownMenuItem
-                              onClick={e => {
-                                e.stopPropagation()
-                                handleDeviceAction(device.id, 'maintenance')
-                              }}
-                            >
-                              <Wrench className="h-4 w-4 mr-2 text-orange-600" />
-                              Bảo trì
-                            </DropdownMenuItem>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <DeviceActionMenu
+                        deviceId={device.id}
+                        status={device.status}
+                        quickActions={quickActions}
+                        disabled={isDeviceLoading}
+                        onAction={handleDeviceAction}
+                      />
                     </div>
                   </div>
 
-                  { }
                   <div className="flex items-center justify-between text-xs text-gray-600">
                     <div className="flex items-center gap-4">
                       <span>Hoạt động: {device.uptimePct}%</span>
@@ -451,7 +410,6 @@ export const DeviceListView: React.FC<DeviceListViewProps> = ({
                   </div>
                 </div>
 
-                { }
                 {isDeviceLoading && (
                   <div className="absolute inset-0 bg-white bg-opacity-60 flex items-center justify-center rounded-lg">
                     <div className="flex items-center gap-2">
@@ -466,7 +424,6 @@ export const DeviceListView: React.FC<DeviceListViewProps> = ({
         </AnimatePresence>
       </div>
 
-      { }
       {selectedDeviceIds.length > 0 && (
         <div className="flex items-center justify-end text-sm text-gray-600 pt-4 border-t">
           <motion.span

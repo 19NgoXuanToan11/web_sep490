@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Grid3X3, Loader2 } from 'lucide-react'
 import { DeviceCard } from './DeviceCard'
@@ -10,30 +10,34 @@ interface DeviceGridViewProps {
   onDeviceSelect?: (deviceId: string) => void
 }
 
-export const DeviceGridView: React.FC<DeviceGridViewProps> = ({
-  onDeviceAction,
-  onDeviceSelect,
-}) => {
+export const DeviceGridView: React.FC<DeviceGridViewProps> = ({ onDeviceAction, onDeviceSelect }) => {
   const { selectedDeviceIds, loadingStates, getPaginatedDevices, toggleDeviceSelection } =
     useStaffOperationsStore()
 
   const devices = getPaginatedDevices()
   const isLoading = loadingStates['refresh-all-devices']?.isLoading
+  const selectedSet = useMemo(() => new Set(selectedDeviceIds), [selectedDeviceIds])
+  const loadingEntries = useMemo(() => Object.entries(loadingStates), [loadingStates])
 
-  const handleDeviceAction = (deviceId: string, action: string) => {
-    onDeviceAction?.(deviceId, action)
-  }
+  const handleDeviceAction = useCallback(
+    (deviceId: string, action: string) => {
+      onDeviceAction?.(deviceId, action)
+    },
+    [onDeviceAction],
+  )
 
-  const handleDeviceSelect = (deviceId: string) => {
-    toggleDeviceSelection(deviceId)
-    onDeviceSelect?.(deviceId)
-  }
+  const handleDeviceSelect = useCallback(
+    (deviceId: string) => {
+      toggleDeviceSelection(deviceId)
+      onDeviceSelect?.(deviceId)
+    },
+    [onDeviceSelect, toggleDeviceSelection],
+  )
 
-  const getDeviceLoadingState = (deviceId: string) => {
-    return Object.keys(loadingStates).some(
-      key => key.includes(deviceId) && loadingStates[key]?.isLoading
-    )
-  }
+  const getDeviceLoadingState = useCallback(
+    (deviceId: string) => loadingEntries.some(([key, state]) => key.includes(deviceId) && state?.isLoading),
+    [loadingEntries],
+  )
 
   if (isLoading && devices.length === 0) {
     return (
@@ -86,7 +90,6 @@ export const DeviceGridView: React.FC<DeviceGridViewProps> = ({
 
   return (
     <div className="space-y-4">
-      { }
       {isLoading && devices.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -100,7 +103,6 @@ export const DeviceGridView: React.FC<DeviceGridViewProps> = ({
         </motion.div>
       )}
 
-      { }
       <motion.div
         layout
         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
@@ -117,7 +119,7 @@ export const DeviceGridView: React.FC<DeviceGridViewProps> = ({
             >
               <DeviceCard
                 device={device}
-                isSelected={selectedDeviceIds.includes(device.id)}
+                isSelected={selectedSet.has(device.id)}
                 onSelect={handleDeviceSelect}
                 onAction={handleDeviceAction}
                 isLoading={getDeviceLoadingState(device.id)}
@@ -127,7 +129,6 @@ export const DeviceGridView: React.FC<DeviceGridViewProps> = ({
         </AnimatePresence>
       </motion.div>
 
-      { }
       {selectedDeviceIds.length > 0 && (
         <div className="flex items-center justify-end text-sm text-gray-600 pt-4 border-t">
           <motion.span

@@ -37,7 +37,7 @@ const GaugeComponent: React.FC<GaugeProps> = ({
   dataQuality = 'good',
   lastUpdated,
   trend,
-}): JSX.Element => {
+}): React.ReactElement => {
   const [animatedValue, setAnimatedValue] = useState(min)
   const [previousValue, setPreviousValue] = useState(min)
 
@@ -184,10 +184,10 @@ const GaugeComponent: React.FC<GaugeProps> = ({
         {trendText && (
           <div
             className={`text-sm font-medium text-center ${trend === 'up'
-                ? 'text-green-600'
-                : trend === 'down'
-                  ? 'text-red-600'
-                  : 'text-gray-500'
+              ? 'text-green-600'
+              : trend === 'down'
+                ? 'text-red-600'
+                : 'text-gray-500'
               }`}
           >
             {trendText}

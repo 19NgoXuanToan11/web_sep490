@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import React, { useEffect, useMemo, useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 
 type GaugeTrend = 'up' | 'down' | 'stable'
 
@@ -17,7 +17,15 @@ interface GaugeProps {
   trend?: GaugeTrend
 }
 
-const Gauge: React.FC<GaugeProps> = ({
+const getGaugeColor = (percent: number, quality: GaugeProps['dataQuality']) => {
+  if (quality === 'error') return '#ef4444'
+  if (quality === 'poor') return '#f59e0b'
+  if (percent <= 30) return '#22c55e'
+  if (percent <= 70) return '#f59e0b'
+  return '#ef4444'
+}
+
+const GaugeComponent: React.FC<GaugeProps> = ({
   value,
   min = 0,
   max,
@@ -29,11 +37,13 @@ const Gauge: React.FC<GaugeProps> = ({
   dataQuality = 'good',
   lastUpdated,
   trend,
-}) => {
+}): JSX.Element => {
   const [animatedValue, setAnimatedValue] = useState(min)
   const [previousValue, setPreviousValue] = useState(min)
 
   useEffect(() => {
+    if (value === animatedValue) return
+
     const timer = setTimeout(() => {
       setPreviousValue(animatedValue)
       setAnimatedValue(value)
@@ -42,17 +52,22 @@ const Gauge: React.FC<GaugeProps> = ({
     return () => clearTimeout(timer)
   }, [value, animatedValue])
 
-  const percentage = ((animatedValue - min) / (max - min)) * 100
-  const clampedPercentage = Math.max(0, Math.min(100, percentage))
+  const clampedPercentage = useMemo(() => {
+    const percentage = ((animatedValue - min) / (max - min)) * 100
+    return Math.max(0, Math.min(100, percentage))
+  }, [animatedValue, max, min])
 
-  const getColor = (percent: number) => {
-    if (dataQuality === 'error') return '#ef4444'
-    if (dataQuality === 'poor') return '#f59e0b'
+  const gaugeColor = useMemo(
+    () => getGaugeColor(clampedPercentage, dataQuality),
+    [clampedPercentage, dataQuality],
+  )
 
-    if (percent <= 30) return '#22c55e'
-    if (percent <= 70) return '#f59e0b'
-    return '#ef4444'
-  }
+  const trendText = useMemo(() => {
+    if (!trend) return null
+    if (trend === 'up') return '↑ Xu hướng tăng'
+    if (trend === 'down') return '↓ Xu hướng giảm'
+    return '→ Ổn định'
+  }, [trend])
 
   const radius = 85
   const circumference = 2 * Math.PI * radius
@@ -93,7 +108,7 @@ const Gauge: React.FC<GaugeProps> = ({
             cx="100"
             cy="100"
             r={radius}
-            stroke={getColor(clampedPercentage)}
+            stroke={gaugeColor}
             strokeWidth="12"
             fill="transparent"
             strokeLinecap="round"
@@ -102,7 +117,7 @@ const Gauge: React.FC<GaugeProps> = ({
             initial={{ strokeDashoffset: circumference }}
             animate={{
               strokeDashoffset: circumference - strokeDasharray,
-              stroke: getColor(clampedPercentage),
+              stroke: gaugeColor,
             }}
             transition={{
               duration: 1.5,
@@ -111,7 +126,7 @@ const Gauge: React.FC<GaugeProps> = ({
             }}
             className="drop-shadow-lg"
             style={{
-              filter: `drop-shadow(0 0 8px ${getColor(clampedPercentage)}40)`,
+              filter: `drop-shadow(0 0 8px ${gaugeColor}40)`,
             }}
           />
         </svg>
@@ -165,7 +180,7 @@ const Gauge: React.FC<GaugeProps> = ({
             transition={{ duration: 1 }}
             className="absolute inset-0 rounded-full"
             style={{
-              backgroundColor: getColor(clampedPercentage),
+              backgroundColor: gaugeColor,
               filter: 'blur(20px)',
             }}
           />
@@ -174,7 +189,7 @@ const Gauge: React.FC<GaugeProps> = ({
 
       { }
       <div className="w-full mt-4 px-4">
-        {trend && (
+        {trendText && (
           <div
             className={`text-sm font-medium text-center ${trend === 'up'
                 ? 'text-green-600'
@@ -183,9 +198,7 @@ const Gauge: React.FC<GaugeProps> = ({
                   : 'text-gray-500'
               }`}
           >
-            {trend === 'up' && '↑ Xu hướng tăng'}
-            {trend === 'down' && '↓ Xu hướng giảm'}
-            {trend === 'stable' && '→ Ổn định'}
+            {trendText}
           </div>
         )}
         {lastUpdated && (
@@ -200,4 +213,4 @@ const Gauge: React.FC<GaugeProps> = ({
   )
 }
 
-export default Gauge
+export default React.memo(GaugeComponent)

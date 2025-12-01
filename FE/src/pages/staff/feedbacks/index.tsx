@@ -15,8 +15,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
 import { Badge } from '@/shared/ui/badge'
 import { Input } from '@/shared/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
-import { format } from 'date-fns'
-import { vi } from 'date-fns/locale'
 import { formatDate } from '@/shared/lib/date-utils'
 import {
     Dialog,

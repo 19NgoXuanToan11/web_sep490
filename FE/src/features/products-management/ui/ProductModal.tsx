@@ -7,7 +7,6 @@ import {
 } from '@/shared/ui/dialog'
 import { ProductForm } from './ProductForm'
 import type { Product } from '@/shared/api/productService'
-import { formatDate } from '@/shared/lib/date-utils'
 
 interface ProductModalProps {
   isOpen: boolean

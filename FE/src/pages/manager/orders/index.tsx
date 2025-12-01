@@ -453,10 +453,6 @@ const ManagerOrdersPage: React.FC = () => {
   }
 
   // Use centralized date formatting utilities
-  const formatDateLocal = (dateString: string) => {
-    return formatDateTime(dateString)
-  }
-
   const formatDateOnly = (dateString: string) => {
     return formatDate(dateString)
   }

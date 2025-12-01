@@ -997,7 +997,9 @@ const StaffOrdersPage: React.FC = () => {
                   ) : (
                     filteredOrders.map((order, index) => (
                       <TableRow key={`order-${order.id}-${order.orderNumber}`}>
-                        <TableCell className="text-center">{index + 1}</TableCell>
+                        <TableCell className="text-center">
+                          {(currentPage - 1) * pageSize + index + 1}
+                        </TableCell>
                         <TableCell>
                           <div className="font-medium">{order.orderNumber || 'Chưa có mã'}</div>
                         </TableCell>

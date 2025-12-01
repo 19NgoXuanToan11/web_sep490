@@ -322,7 +322,9 @@ const StaffFeedbacksPage: React.FC = () => {
                                             <TableBody>
                                                 {filteredFeedbacks.map((feedback, index) => (
                                                     <TableRow key={feedback.feedbackId}>
-                                                        <TableCell className="text-center">{index + 1}</TableCell>
+                                                        <TableCell className="text-center">
+                                                            {(currentPage - 1) * pageSize + index + 1}
+                                                        </TableCell>
                                                         <TableCell>
                                                             <div>
                                                                 <p className="font-medium text-gray-900">{feedback.fullName}</p>

@@ -77,7 +77,6 @@ const GaugeComponent: React.FC<GaugeProps> = ({
     <div
       className={`flex flex-col items-center justify-center p-6 bg-white rounded-2xl shadow-sm border border-gray-200 ${className}`}
     >
-      { }
       <div className="flex items-center justify-between w-full mb-4">
         <div className="flex items-center gap-3">
           <div className="text-gray-600 text-xl">{icon}</div>
@@ -90,9 +89,7 @@ const GaugeComponent: React.FC<GaugeProps> = ({
         </div>
       </div>
 
-      { }
       <div className="relative w-48 h-48">
-        { }
         <svg className="w-full h-full transform -rotate-90" viewBox="0 0 200 200">
           <circle
             cx="100"
@@ -103,7 +100,6 @@ const GaugeComponent: React.FC<GaugeProps> = ({
             fill="transparent"
             className="drop-shadow-sm"
           />
-          { }
           <motion.circle
             cx="100"
             cy="100"
@@ -131,7 +127,6 @@ const GaugeComponent: React.FC<GaugeProps> = ({
           />
         </svg>
 
-        { }
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <AnimatePresence mode="wait">
             <motion.div
@@ -153,7 +148,6 @@ const GaugeComponent: React.FC<GaugeProps> = ({
                 {isLoading ? '...' : animatedValue.toFixed(1)}
               </div>
               <div className="text-sm text-gray-600 font-medium">{unit}</div>
-              { }
               {!isLoading && previousValue !== animatedValue && (
                 <div
                   className={`text-xs mt-1 ${animatedValue > previousValue
@@ -171,7 +165,6 @@ const GaugeComponent: React.FC<GaugeProps> = ({
           </AnimatePresence>
         </div>
 
-        { }
         <AnimatePresence>
           <motion.div
             key={value}
@@ -187,7 +180,6 @@ const GaugeComponent: React.FC<GaugeProps> = ({
         </AnimatePresence>
       </div>
 
-      { }
       <div className="w-full mt-4 px-4">
         {trendText && (
           <div

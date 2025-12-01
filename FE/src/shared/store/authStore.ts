@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { abortAllRequests } from '@/shared/api/client'
+import { abortAllRequests } from '@/shared/api/requestTracker'
 import { decodeJwt, isJwtExpired } from '@/shared/lib/auth/jwt'
 
 type Role = 'Admin' | 'Manager' | 'Staff' | null

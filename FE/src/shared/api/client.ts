@@ -1,4 +1,6 @@
 import { env } from '@/shared/config/env'
+import { trackRequest, releaseRequest } from '@/shared/api/requestTracker'
+import { terminateSession } from '@/shared/lib/session/sessionManager'
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
 
@@ -7,19 +9,12 @@ export interface JsonResponse<T> {
   status: number
 }
 
-const controllers = new Set<AbortController>()
-
 const isFormData = (value: unknown): value is FormData =>
   typeof FormData !== 'undefined' && value instanceof FormData
 
 const serializeBody = (body: unknown) => {
   if (body === undefined) return undefined
   return isFormData(body) ? body : JSON.stringify(body)
-}
-
-export function abortAllRequests() {
-  for (const c of controllers) c.abort()
-  controllers.clear()
 }
 
 async function request<T>(
@@ -37,13 +32,16 @@ async function request<T>(
   if (token) headers.set('Authorization', `Bearer ${String(token).replace(/"/g, '')}`)
 
   const controller = new AbortController()
-  controllers.add(controller)
+  trackRequest(controller)
   const res = await fetch(url, { ...options, headers, signal: controller.signal })
-  controllers.delete(controller)
+  releaseRequest(controller)
   const status = res.status
   const text = await res.text()
   const data = text ? (JSON.parse(text) as T) : (undefined as unknown as T)
   if (!res.ok) {
+    if (status === 401) {
+      terminateSession({ reason: 'expired' })
+    }
     // Extract meaningful error message from response
     const message =
       (data as any)?.message || (data as any)?.Message || (data as any)?.error || `HTTP ${status}`

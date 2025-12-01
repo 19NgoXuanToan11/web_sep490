@@ -89,23 +89,22 @@ const StaffOrdersPage: React.FC = () => {
   const [maxOrderId, setMaxOrderId] = useState<number>(0)
 
   const transformApiOrder = (apiOrder: ApiOrder): DisplayOrder => {
-    // Ưu tiên lấy email từ customer object, nếu không có thì dùng email trực tiếp
     const email = apiOrder.customer?.email || apiOrder.email || 'N/A'
     const customerName =
       email !== 'N/A' ? email.split('@')[0].replace(/[._]/g, ' ') : 'Unknown Customer'
 
     const mapPaymentStatus = (status: number): 'pending' | 'paid' | 'failed' | 'refunded' => {
       switch (status) {
-        case 1: // PAID - Đã thanh toán
-        case 5: // COMPLETED - Hoàn thành
-        case 6: // DELIVERED - Đã giao hàng
+        case 1:
+        case 5:
+        case 6:
           return 'paid'
-        case 0: // UNPAID - Chưa thanh toán
-        case 3: // PENDING - Đang xử lý
+        case 0:
+        case 3:
           return 'pending'
-        case 2: // UNDISCHARGED - Thanh toán thất bại/Chưa thanh toán
+        case 2:
           return 'failed'
-        case 4: // CANCELLED - Đã hủy
+        case 4:
           return 'refunded'
         default:
           return 'pending'
@@ -158,8 +157,6 @@ const StaffOrdersPage: React.FC = () => {
         setTotalPages(Math.max(1, Math.ceil((response.totalItemCount || 0) / pageSize)))
         setCurrentPage(response.pageIndex)
 
-        // Lưu lại order ID lớn nhất để check đơn hàng mới
-        // Chỉ cập nhật khi đang ở trang 1 và không có filter/search
         if (page === 1 && transformedOrders.length > 0) {
           const maxId = Math.max(...transformedOrders.map(o => parseInt(o.id) || 0))
           setMaxOrderId(prevMax => Math.max(prevMax, maxId))
@@ -181,27 +178,22 @@ const StaffOrdersPage: React.FC = () => {
     fetchOrders()
   }, [])
 
-  // Check for new orders periodically - chỉ refresh khi có đơn hàng mới
   useEffect(() => {
-    // Chỉ check đơn hàng mới khi không có search/filter đang active
     if (searchType !== 'all' || searchQuery.trim() || selectedDate) {
       return
     }
 
     const checkForNewOrders = async () => {
       try {
-        // Lấy đơn hàng mới nhất (page 1, size 1) để check order ID lớn nhất
         const response = await orderService.getOrderList({
           pageIndex: 1,
           pageSize: 1,
         })
 
-        if (response.items && response.items.length > 0) {
+        if (response.items?.length) {
           const latestOrderId = parseInt(String(response.items[0].orderId || 0))
 
-          // Nếu có đơn hàng mới (order ID lớn hơn maxOrderId hiện tại)
           if (latestOrderId > maxOrderId && maxOrderId > 0) {
-            // Refresh toàn bộ danh sách với filters hiện tại
             const statusParam = statusFilter === 'all' ? undefined : parseInt(statusFilter)
             await fetchOrders(currentPage, statusParam)
 
@@ -210,17 +202,14 @@ const StaffOrdersPage: React.FC = () => {
               description: 'Danh sách đơn hàng đã được cập nhật.',
             })
           } else if (maxOrderId === 0 && latestOrderId > 0) {
-            // Lần đầu tiên, set maxOrderId
             setMaxOrderId(latestOrderId)
           }
         }
       } catch (error) {
-        // Silent fail - không hiển thị lỗi khi check đơn hàng mới
         console.error('Error checking for new orders:', error)
       }
     }
 
-    // Check mỗi 30 giây
     const intervalId = window.setInterval(checkForNewOrders, 30000)
 
     return () => {
@@ -496,7 +485,6 @@ const StaffOrdersPage: React.FC = () => {
     )
   }
 
-  // Nếu thanh toán thất bại -> hiển thị Trạng thái là "Chưa thanh toán"
   const getDisplayStatusBadge = (order: DisplayOrder) => {
     if (order.paymentStatus === 'failed' || order.paymentStatus === 'pending') {
       return (
@@ -531,7 +519,6 @@ const StaffOrdersPage: React.FC = () => {
     )
   }
 
-  // Use centralized date formatting utilities
   const formatDateOnly = (dateString: string) => {
     return formatDate(dateString)
   }

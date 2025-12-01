@@ -6,8 +6,8 @@ import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
-  Mail,
   Key,
+  Eye,
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react'
@@ -28,9 +28,14 @@ import type { User } from '@/shared/lib/localData'
 interface UsersTableProps {
   onEditUser?: (user: User) => void
   onUpdatePassword?: (user: User) => void
+  onViewDetails?: (user: User) => void
 }
 
-export const UsersTable: React.FC<UsersTableProps> = ({ onEditUser, onUpdatePassword }) => {
+export const UsersTable: React.FC<UsersTableProps> = ({
+  onEditUser,
+  onUpdatePassword,
+  onViewDetails,
+}) => {
   const {
     searchState,
     loadingStates,
@@ -192,17 +197,9 @@ export const UsersTable: React.FC<UsersTableProps> = ({ onEditUser, onUpdatePass
                   <TableRow key={user.id} className="hover:bg-gray-50">
                     <TableCell className="text-center">{ordinalNumber}</TableCell>
                     <TableCell>
-                      <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center text-white font-medium text-sm">
-                          {user.name.charAt(0).toUpperCase()}
-                        </div>
-                        <div className="flex flex-col">
-                          <div className="font-semibold text-base text-gray-900">{user.name}</div>
-                          <div className="text-sm text-gray-500 flex items-center mt-0.5">
-                            <Mail className="h-3 w-3 mr-1" />
-                            {user.email}
-                          </div>
-                        </div>
+                      <div className="flex flex-col">
+                        <div className="font-semibold text-base text-gray-900">{user.name}</div>
+                        <div className="text-sm text-gray-500 mt-0.5">{user.email}</div>
                       </div>
                     </TableCell>
 
@@ -234,6 +231,20 @@ export const UsersTable: React.FC<UsersTableProps> = ({ onEditUser, onUpdatePass
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-48" sideOffset={5}>
+                          <DropdownMenuItem
+                            onClick={e => {
+                              e.preventDefault()
+                              e.stopPropagation()
+
+                              setTimeout(() => {
+                                onViewDetails?.(user)
+                              }, 0)
+                            }}
+                            className="cursor-pointer focus:bg-gray-100"
+                          >
+                            <Eye className="h-4 w-4 mr-2 text-blue-600" />
+                            Xem chi tiết
+                          </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={e => {
                               e.preventDefault()

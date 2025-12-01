@@ -135,6 +135,9 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
           (typeof a.status === 'string' && (a.status === 'ACTIVE' || a.status === 'Active'))
         const profile = a.accountProfile
 
+        const createdAt = a.createdAt || profile?.createdAt || new Date().toISOString()
+        const updatedAt = a.updatedAt || profile?.updatedAt || new Date().toISOString()
+
         return {
           id: String(a.accountId),
           name: profile?.fullname || a.email,
@@ -142,14 +145,16 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
           roles: [a.role.toUpperCase() as UserRole],
           status: (isActive ? 'Active' : 'Inactive') as UserStatus,
           lastLogin: null,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
+          createdAt,
+          updatedAt,
           profile: {
             fullname: profile?.fullname || a.email,
             phone: profile?.phone || '',
             address: profile?.address || '',
             gender: normalizeGender(profile?.gender),
             images: profile?.images || '',
+            createdAt: profile?.createdAt,
+            updatedAt: profile?.updatedAt,
           },
         }
       })

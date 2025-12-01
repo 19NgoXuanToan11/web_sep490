@@ -48,6 +48,8 @@ export interface AccountDto {
   email: string
   role: 'Customer' | 'Manager' | 'Staff'
   status: 'Active' | 'Inactive' | 'ACTIVE' | number
+  createdAt?: string
+  updatedAt?: string
   accountProfile?: AccountProfileDto
 }
 

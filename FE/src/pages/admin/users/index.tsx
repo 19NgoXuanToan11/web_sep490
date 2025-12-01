@@ -7,9 +7,9 @@ import {
   UserControlsPanel,
   UserFormModal,
   PasswordUpdateModal,
+  UserDetailDialog,
 } from '@/features/admin-users'
 import type { User } from '@/shared/lib/localData'
-import { Users, UserCheck, UserX, ShieldCheck } from 'lucide-react'
 import { accountApi, type AccountDto } from '@/shared/api/auth'
 
 const AdminUsersPage: React.FC = () => {
@@ -19,6 +19,8 @@ const AdminUsersPage: React.FC = () => {
   const [isPasswordUpdateOpen, setIsPasswordUpdateOpen] = useState(false)
   const [selectedUser, setSelectedUser] = useState<User | null>(null)
   const [passwordUpdateUser, setPasswordUpdateUser] = useState<User | null>(null)
+  const [detailUser, setDetailUser] = useState<User | null>(null)
+  const [isUserDetailOpen, setIsUserDetailOpen] = useState(false)
   const [stats, setStats] = useState({
     total: 0,
     active: 0,
@@ -89,6 +91,11 @@ const AdminUsersPage: React.FC = () => {
     setIsPasswordUpdateOpen(true)
   }
 
+  const handleViewDetails = (user: User) => {
+    setDetailUser(user)
+    setIsUserDetailOpen(true)
+  }
+
   return (
     <AdminLayout>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -111,9 +118,6 @@ const AdminUsersPage: React.FC = () => {
                   <p className="text-sm text-gray-500">Tổng người dùng</p>
                   <p className="text-2xl font-semibold mt-1">{stats.total}</p>
                 </div>
-                <div className="rounded-full bg-blue-100 p-3 text-blue-600">
-                  <Users className="h-5 w-5" />
-                </div>
               </div>
               <p className="text-xs text-gray-500 mt-2">
                 Tổng số tài khoản đang được quản lý trong hệ thống
@@ -128,12 +132,9 @@ const AdminUsersPage: React.FC = () => {
                   <p className="text-sm text-gray-500">Đang hoạt động</p>
                   <p className="text-2xl font-semibold mt-1 text-green-600">{stats.active}</p>
                 </div>
-                <div className="rounded-full bg-green-100 p-3 text-green-600">
-                  <UserCheck className="h-5 w-5" />
-                </div>
               </div>
               <p className="text-xs text-gray-500 mt-2">
-                Tài khoản có trạng thái hoạt động (ACTIVE)
+                Tài khoản có trạng thái hoạt động
               </p>
             </CardContent>
           </Card>
@@ -144,9 +145,6 @@ const AdminUsersPage: React.FC = () => {
                 <div>
                   <p className="text-sm text-gray-500">Bị vô hiệu hóa</p>
                   <p className="text-2xl font-semibold mt-1 text-gray-700">{stats.inactive}</p>
-                </div>
-                <div className="rounded-full bg-gray-100 p-3 text-gray-600">
-                  <UserX className="h-5 w-5" />
                 </div>
               </div>
               <p className="text-xs text-gray-500 mt-2">
@@ -163,9 +161,6 @@ const AdminUsersPage: React.FC = () => {
                   <p className="text-sm mt-1 text-gray-800">
                     {stats.customers} khách hàng • {stats.managers} quản lý • {stats.staffs} nhân viên
                   </p>
-                </div>
-                <div className="rounded-full bg-indigo-100 p-3 text-indigo-600">
-                  <ShieldCheck className="h-5 w-5" />
                 </div>
               </div>
               <p className="text-xs text-gray-500 mt-2">
@@ -191,6 +186,7 @@ const AdminUsersPage: React.FC = () => {
             <UsersTable
               onEditUser={handleEditUser}
               onUpdatePassword={handleUpdatePassword}
+              onViewDetails={handleViewDetails}
             />
           </CardContent>
         </Card>
@@ -213,6 +209,15 @@ const AdminUsersPage: React.FC = () => {
             setPasswordUpdateUser(null)
           }}
           user={passwordUpdateUser}
+        />
+
+        <UserDetailDialog
+          isOpen={isUserDetailOpen}
+          user={detailUser}
+          onClose={() => {
+            setIsUserDetailOpen(false)
+            setDetailUser(null)
+          }}
         />
 
         { }

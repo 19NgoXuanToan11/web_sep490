@@ -59,6 +59,8 @@ export interface UserProfileDetails {
   address?: string
   gender?: GenderOption
   images?: string
+  createdAt?: string
+  updatedAt?: string
 }
 
 export interface User {

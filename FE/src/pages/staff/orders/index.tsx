@@ -725,9 +725,6 @@ const StaffOrdersPage: React.FC = () => {
                   <p className="text-sm text-gray-500">Tổng đơn hàng</p>
                   <p className="text-2xl font-semibold mt-1">{orderStats.total}</p>
                 </div>
-                <div className="rounded-full bg-purple-100 p-3 text-purple-600">
-                  <ShoppingCart className="h-5 w-5" />
-                </div>
               </div>
               <p className="text-xs text-gray-500 mt-2">
                 Toàn bộ đơn hàng mà bạn có quyền xem trong hệ thống
@@ -744,9 +741,6 @@ const StaffOrdersPage: React.FC = () => {
                     {orderStats.pending + orderStats.confirmed + orderStats.preparing}
                   </p>
                 </div>
-                <div className="rounded-full bg-orange-100 p-3 text-orange-600">
-                  <Clock className="h-5 w-5" />
-                </div>
               </div>
               <p className="text-xs text-gray-500 mt-2">
                 Gồm đơn chưa thanh toán, đã xác nhận và đang chuẩn bị
@@ -760,9 +754,6 @@ const StaffOrdersPage: React.FC = () => {
                 <div>
                   <p className="text-sm text-gray-500">Đang giao</p>
                   <p className="text-2xl font-semibold mt-1 text-blue-600">{orderStats.shipping}</p>
-                </div>
-                <div className="rounded-full bg-blue-100 p-3 text-blue-600">
-                  <Truck className="h-5 w-5" />
                 </div>
               </div>
               <p className="text-xs text-gray-500 mt-2">

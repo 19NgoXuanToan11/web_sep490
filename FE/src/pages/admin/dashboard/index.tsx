@@ -1,16 +1,9 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import {
-  Users,
-  Building2,
-  Cpu,
-  Package,
   ShoppingCart,
-  TrendingUp,
   Activity,
   RefreshCw,
-  DollarSign,
-  MessageSquare,
   Loader2,
   BarChart3,
 } from 'lucide-react'
@@ -352,11 +345,6 @@ const AdminDashboard: React.FC = () => {
             <h1 className="text-3xl font-bold text-gray-900 mb-2">Bảng điều khiển</h1>
             <p className="text-gray-600">
               Tổng quan hệ thống và giám sát toàn bộ hoạt động
-              {metrics.lastUpdated && (
-                <span className="ml-2 text-sm text-gray-500">
-                  (Cập nhật: {formatTimeAgo(metrics.lastUpdated)})
-                </span>
-              )}
             </p>
           </div>
 
@@ -424,7 +412,6 @@ const AdminDashboard: React.FC = () => {
             <Card className="hover:shadow-lg transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Tổng số người dùng</CardTitle>
-                <Users className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{metrics.totalUsers}</div>
@@ -450,7 +437,6 @@ const AdminDashboard: React.FC = () => {
             <Card className="hover:shadow-lg transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Trang trại</CardTitle>
-                <Building2 className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{metrics.totalFarms}</div>
@@ -472,7 +458,6 @@ const AdminDashboard: React.FC = () => {
             <Card className="hover:shadow-lg transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Thiết bị IoT</CardTitle>
-                <Cpu className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{metrics.totalDevices}</div>
@@ -505,7 +490,6 @@ const AdminDashboard: React.FC = () => {
             <Card className="hover:shadow-lg transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Đơn hàng</CardTitle>
-                <ShoppingCart className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{metrics.totalOrders}</div>
@@ -529,7 +513,6 @@ const AdminDashboard: React.FC = () => {
             <Card className="hover:shadow-lg transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Sản phẩm</CardTitle>
-                <Package className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{metrics.totalProducts}</div>
@@ -557,7 +540,6 @@ const AdminDashboard: React.FC = () => {
             <Card className="hover:shadow-lg transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Doanh thu</CardTitle>
-                <DollarSign className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{formatCurrency(metrics.totalRevenue)}</div>
@@ -577,7 +559,6 @@ const AdminDashboard: React.FC = () => {
             <Card className="hover:shadow-lg transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Đánh giá</CardTitle>
-                <MessageSquare className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">{metrics.totalFeedbacks}</div>
@@ -595,7 +576,6 @@ const AdminDashboard: React.FC = () => {
             <Card className="hover:shadow-lg transition-shadow">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">Tỷ lệ hoàn thành</CardTitle>
-                <TrendingUp className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold">

@@ -14,7 +14,7 @@ import {
     SelectValue,
 } from '@/shared/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
-import { RefreshCw, History, Database, Activity, Clock, Play, Pause, ChevronLeft, ChevronRight, Download } from 'lucide-react'
+import { RefreshCw, History, Play, Pause, ChevronLeft, ChevronRight, Download } from 'lucide-react'
 
 type TimeFilter = '24h' | '7d' | '30d' | 'all'
 
@@ -296,7 +296,6 @@ const ManagerIoTLogsPage: React.FC = () => {
                             <CardTitle className="text-sm font-medium text-gray-500 uppercase tracking-wide">
                                 Tổng số bản ghi
                             </CardTitle>
-                            <Database className="h-4 w-4 text-green-600" />
                         </CardHeader>
                         <CardContent>
                             <div className="text-3xl font-semibold">{filteredLogs.length}</div>
@@ -309,7 +308,6 @@ const ManagerIoTLogsPage: React.FC = () => {
                             <CardTitle className="text-sm font-medium text-gray-500 uppercase tracking-wide">
                                 Cảm biến theo dõi
                             </CardTitle>
-                            <Activity className="h-4 w-4 text-blue-600" />
                         </CardHeader>
                         <CardContent>
                             <div className="text-3xl font-semibold">{sensors.length}</div>
@@ -322,7 +320,6 @@ const ManagerIoTLogsPage: React.FC = () => {
                             <CardTitle className="text-sm font-medium text-gray-500 uppercase tracking-wide">
                                 Lần đồng bộ gần nhất
                             </CardTitle>
-                            <Clock className="h-4 w-4 text-amber-500" />
                         </CardHeader>
                         <CardContent>
                             <div className="text-lg font-semibold text-gray-900">
@@ -337,7 +334,6 @@ const ManagerIoTLogsPage: React.FC = () => {
                             <CardTitle className="text-sm font-medium text-gray-500 uppercase tracking-wide">
                                 Trạng thái tác vụ
                             </CardTitle>
-                            <RefreshCw className={`h-4 w-4 ${syncing || (autoRefresh && !loading) ? 'animate-spin text-green-600' : 'text-gray-400'}`} />
                         </CardHeader>
                         <CardContent>
                             <div className="text-lg font-semibold text-gray-900">

@@ -11,7 +11,6 @@ import {
     CheckCircle,
     Truck,
     XCircle,
-    AlertCircle,
     TrendingUp,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
@@ -46,14 +45,13 @@ interface MetricCardProps {
     value: string | number
     change?: string
     changeType?: 'increase' | 'decrease'
-    icon: React.ComponentType<{ className?: string }>
     description?: string
     color?: 'purple' | 'blue' | 'green' | 'orange' | 'red'
     onClick?: () => void
 }
 
 const MetricCard = React.memo<MetricCardProps>(
-    ({ title, value, change, changeType = 'increase', icon: Icon, description, color = 'purple', onClick }) => {
+    ({ title, value, change, changeType = 'increase', description, color = 'purple', onClick }) => {
         const colorClasses = {
             purple: 'from-purple-500 to-purple-600',
             blue: 'from-blue-500 to-blue-600',
@@ -76,9 +74,6 @@ const MetricCard = React.memo<MetricCardProps>(
                     <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${colorClasses[color]}`} />
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium text-gray-600">{title}</CardTitle>
-                        <div className={`p-2 rounded-lg bg-gradient-to-br ${colorClasses[color]} shadow-lg`}>
-                            <Icon className="h-4 w-4 text-white" />
-                        </div>
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold text-gray-900 mb-1">{value}</div>
@@ -461,7 +456,6 @@ export default function StaffDashboard() {
                         title="Tổng đơn hàng"
                         value={stats.totalOrders}
                         change={`${stats.recentOrders} đơn mới`}
-                        icon={ShoppingCart}
                         color="purple"
                         description={`Trong ${timeRange === 'week' ? '7 ngày' : '30 ngày'} qua`}
                         onClick={() => navigate('/staff/orders')}
@@ -471,7 +465,6 @@ export default function StaffDashboard() {
                         value={stats.pendingOrders}
                         change={stats.deliveringOrders > 0 ? `${stats.deliveringOrders} đang giao` : 'Tất cả đã xử lý'}
                         changeType={stats.pendingOrders > 0 ? 'decrease' : 'increase'}
-                        icon={AlertCircle}
                         color="orange"
                         description="Đơn hàng chưa thanh toán hoặc đang xử lý"
                         onClick={() => navigate('/staff/orders')}
@@ -480,7 +473,6 @@ export default function StaffDashboard() {
                         title="Sản phẩm"
                         value={stats.activeProducts}
                         change={`${stats.totalProducts} tổng sản phẩm`}
-                        icon={Package}
                         color="blue"
                         description="Sản phẩm đang hoạt động"
                         onClick={() => navigate('/staff/products')}
@@ -489,7 +481,6 @@ export default function StaffDashboard() {
                         title="Đánh giá trung bình"
                         value={`${stats.avgRating} ⭐`}
                         change={`${stats.totalFeedbacks} đánh giá`}
-                        icon={Star}
                         color="green"
                         description="Mức độ hài lòng khách hàng"
                         onClick={() => navigate('/staff/feedbacks')}

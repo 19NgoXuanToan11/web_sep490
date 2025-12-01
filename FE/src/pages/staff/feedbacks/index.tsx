@@ -232,9 +232,6 @@ const StaffFeedbacksPage: React.FC = () => {
                                         <p className="text-sm text-gray-500">Tổng đánh giá</p>
                                         <p className="text-2xl font-semibold mt-1">{stats.total}</p>
                                     </div>
-                                    <div className="rounded-full bg-purple-100 p-3 text-purple-600">
-                                        <MessageSquare className="h-5 w-5" />
-                                    </div>
                                 </div>
                                 <p className="text-xs text-gray-500 mt-2">
                                     Tất cả đánh giá mà khách hàng đã gửi
@@ -250,9 +247,6 @@ const StaffFeedbacksPage: React.FC = () => {
                                         <p className="text-2xl font-semibold mt-1 text-green-600">
                                             {stats.active}
                                         </p>
-                                    </div>
-                                    <div className="rounded-full bg-green-100 p-3 text-green-600">
-                                        <CheckCircle className="h-5 w-5" />
                                     </div>
                                 </div>
                                 <p className="text-xs text-gray-500 mt-2">
@@ -270,9 +264,6 @@ const StaffFeedbacksPage: React.FC = () => {
                                             {stats.avgRating}{' '}
                                             <span className="text-base align-middle">⭐</span>
                                         </p>
-                                    </div>
-                                    <div className="rounded-full bg-yellow-100 p-3 text-yellow-500">
-                                        <Star className="h-5 w-5" />
                                     </div>
                                 </div>
                                 <p className="text-xs text-gray-500 mt-2">

@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react'
 import { StaffLayout } from '@/shared/layouts/StaffLayout'
 import { StaffScheduleBoard } from '@/features/irrigation/ui/StaffScheduleBoard'
 import { Card, CardContent } from '@/shared/ui/card'
-import { Droplets, CalendarRange, Clock3, CheckCircle2 } from 'lucide-react'
 import { scheduleService, type ScheduleListItem } from '@/shared/api/scheduleService'
 import { useToast } from '@/shared/ui/use-toast'
 
@@ -69,9 +68,6 @@ const StaffOperationsPage: React.FC = () => {
                     <p className="text-sm text-gray-500">Tổng lịch trong tháng</p>
                     <p className="text-2xl font-semibold mt-1">{stats.total}</p>
                   </div>
-                  <div className="rounded-full bg-emerald-100 p-3 text-emerald-600">
-                    <Droplets className="h-5 w-5" />
-                  </div>
                 </div>
                 <p className="text-xs text-gray-500 mt-2">
                   Số lịch tưới và công việc được giao cho bạn trong tháng hiện tại
@@ -85,9 +81,6 @@ const StaffOperationsPage: React.FC = () => {
                   <div>
                     <p className="text-sm text-gray-500">Lịch hoạt động</p>
                     <p className="text-2xl font-semibold mt-1 text-green-600">{stats.active}</p>
-                  </div>
-                  <div className="rounded-full bg-green-100 p-3 text-green-600">
-                    <CheckCircle2 className="h-5 w-5" />
                   </div>
                 </div>
                 <p className="text-xs text-gray-500 mt-2">
@@ -103,9 +96,6 @@ const StaffOperationsPage: React.FC = () => {
                     <p className="text-sm text-gray-500">Sắp tới</p>
                     <p className="text-2xl font-semibold mt-1 text-blue-600">{stats.upcoming}</p>
                   </div>
-                  <div className="rounded-full bg-blue-100 p-3 text-blue-600">
-                    <CalendarRange className="h-5 w-5" />
-                  </div>
                 </div>
                 <p className="text-xs text-gray-500 mt-2">
                   Lịch có ngày bắt đầu sau hôm nay
@@ -119,9 +109,6 @@ const StaffOperationsPage: React.FC = () => {
                   <div>
                     <p className="text-sm text-gray-500">Đang diễn ra</p>
                     <p className="text-2xl font-semibold mt-1 text-orange-600">{stats.ongoing}</p>
-                  </div>
-                  <div className="rounded-full bg-orange-100 p-3 text-orange-600">
-                    <Clock3 className="h-5 w-5" />
                   </div>
                 </div>
                 <p className="text-xs text-gray-500 mt-2">

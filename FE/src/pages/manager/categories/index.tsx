@@ -13,7 +13,7 @@ import {
   DialogTitle,
 } from '@/shared/ui/dialog'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
-import { Plus, Edit, Trash2, Search, RefreshCw, Package, BarChart2 } from 'lucide-react'
+import { Plus, Edit, Trash2, Search, RefreshCw, Package } from 'lucide-react'
 import { useToast } from '@/shared/ui/use-toast'
 import { categoryService } from '@/shared/api/categoryService'
 
@@ -203,9 +203,6 @@ export default function CategoriesPage() {
                     <p className="text-sm text-gray-500">Tổng danh mục</p>
                     <p className="text-2xl font-semibold mt-1">{stats.total}</p>
                   </div>
-                  <div className="rounded-full bg-green-100 p-3 text-green-600">
-                    <BarChart2 className="h-5 w-5" />
-                  </div>
                 </div>
                 <p className="text-sm text-gray-500 mt-2">
                   Số lượng danh mục đang được quản lý trong hệ thống
@@ -220,9 +217,6 @@ export default function CategoriesPage() {
                     <p className="text-sm text-gray-500">Có sản phẩm</p>
                     <p className="text-2xl font-semibold mt-1 text-green-600">{stats.withProducts}</p>
                   </div>
-                  <div className="rounded-full bg-blue-100 p-3 text-blue-600">
-                    <Package className="h-5 w-5" />
-                  </div>
                 </div>
                 <p className="text-sm text-gray-500 mt-2">
                   Danh mục đã được gán ít nhất một sản phẩm
@@ -236,9 +230,6 @@ export default function CategoriesPage() {
                   <div>
                     <p className="text-sm text-gray-500">Chưa có sản phẩm</p>
                     <p className="text-2xl font-semibold mt-1 text-gray-700">{stats.empty}</p>
-                  </div>
-                  <div className="rounded-full bg-orange-100 p-3 text-orange-600">
-                    <Package className="h-5 w-5" />
                   </div>
                 </div>
                 <p className="text-sm text-gray-500 mt-2">

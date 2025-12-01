@@ -1,13 +1,5 @@
 ﻿import React, { useEffect, useMemo, useState } from 'react'
-import {
-  RefreshCw,
-  Plus,
-  Eye,
-  Pencil,
-  Cpu,
-  Wifi,
-  AlertTriangle,
-} from 'lucide-react'
+import { RefreshCw, Plus, Eye, Pencil } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import { Card, CardContent } from '@/shared/ui/card'
 import { Badge } from '@/shared/ui/badge'
@@ -187,9 +179,6 @@ const ManagerIoTDevicesPage: React.FC = () => {
                     <p className="text-sm text-gray-500">Tổng thiết bị</p>
                     <p className="text-2xl font-semibold mt-1">{computedStats.total}</p>
                   </div>
-                  <div className="rounded-full bg-green-100 p-3 text-green-600">
-                    <Cpu className="h-5 w-5" />
-                  </div>
                 </div>
                 <p className="text-xs text-gray-500 mt-2">
                   Tổng số thiết bị IoT đã cấu hình trong hệ thống
@@ -205,9 +194,6 @@ const ManagerIoTDevicesPage: React.FC = () => {
                     <p className="text-2xl font-semibold mt-1 text-green-600">
                       {computedStats.active}
                     </p>
-                  </div>
-                  <div className="rounded-full bg-blue-100 p-3 text-blue-600">
-                    <Wifi className="h-5 w-5" />
                   </div>
                 </div>
                 <p className="text-xs text-gray-500 mt-2">
@@ -225,9 +211,6 @@ const ManagerIoTDevicesPage: React.FC = () => {
                       {computedStats.inactive}
                     </p>
                   </div>
-                  <div className="rounded-full bg-gray-100 p-3 text-gray-600">
-                    <Cpu className="h-5 w-5" />
-                  </div>
                 </div>
                 <p className="text-xs text-gray-500 mt-2">
                   Thiết bị chưa cấu hình hoặc đang tạm dừng
@@ -243,9 +226,6 @@ const ManagerIoTDevicesPage: React.FC = () => {
                     <p className="text-2xl font-semibold mt-1 text-orange-600">
                       {computedStats.maintenance + computedStats.error}
                     </p>
-                  </div>
-                  <div className="rounded-full bg-orange-100 p-3 text-orange-600">
-                    <AlertTriangle className="h-5 w-5" />
                   </div>
                 </div>
                 <p className="text-xs text-gray-500 mt-2">

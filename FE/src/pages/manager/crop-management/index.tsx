@@ -21,9 +21,6 @@ import {
   Edit,
   Search,
   RefreshCw,
-  BarChart2,
-  Package,
-  Filter,
   Eye,
   ToggleLeft,
   ToggleRight,
@@ -460,9 +457,6 @@ export default function CropManagementPage() {
                   <p className="text-sm text-gray-500">Tổng cây trồng</p>
                   <p className="text-2xl font-semibold mt-1">{stats.total}</p>
                 </div>
-                <div className="rounded-full bg-green-100 p-3 text-green-600">
-                  <BarChart2 className="h-5 w-5" />
-                </div>
               </div>
               <p className="text-sm text-gray-500 mt-2">
                 {stats.active} đang hoạt động • {stats.inactive} tạm dừng
@@ -477,9 +471,6 @@ export default function CropManagementPage() {
                   <p className="text-sm text-gray-500">Đang hoạt động</p>
                   <p className="text-2xl font-semibold mt-1 text-green-600">{stats.active}</p>
                 </div>
-                <div className="rounded-full bg-blue-100 p-3 text-blue-600">
-                  <Package className="h-5 w-5" />
-                </div>
               </div>
               <p className="text-sm text-gray-500 mt-2">Cây trồng đang được sử dụng</p>
             </CardContent>
@@ -491,9 +482,6 @@ export default function CropManagementPage() {
                 <div>
                   <p className="text-sm text-gray-500">Tạm dừng</p>
                   <p className="text-2xl font-semibold mt-1 text-gray-600">{stats.inactive}</p>
-                </div>
-                <div className="rounded-full bg-orange-100 p-3 text-orange-600">
-                  <Filter className="h-5 w-5" />
                 </div>
               </div>
               <p className="text-sm text-gray-500 mt-2">Cây trồng đã tạm dừng</p>

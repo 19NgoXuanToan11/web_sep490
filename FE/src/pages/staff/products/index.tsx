@@ -2,7 +2,7 @@
 import { Button } from '@/shared/ui/button'
 import { useToast } from '@/shared/ui/use-toast'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card'
-import { RefreshCw, Package, AlertTriangle, CheckCircle } from 'lucide-react'
+import { RefreshCw, Package, AlertTriangle } from 'lucide-react'
 import { StaffLayout } from '@/shared/layouts/StaffLayout'
 import { ProductTable } from '@/features/products-management/ui/ProductTable'
 import { ProductFilters } from '@/features/products-management/ui/ProductFilters'
@@ -109,7 +109,6 @@ export function StaffProductsPage() {
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between pb-2">
                             <CardTitle className="text-sm font-medium text-gray-600">Tổng sản phẩm</CardTitle>
-                            <Package className="h-5 w-5 text-blue-600" />
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold text-gray-900">{stats.total}</div>
@@ -122,7 +121,6 @@ export function StaffProductsPage() {
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between pb-2">
                             <CardTitle className="text-sm font-medium text-gray-600">Đang hoạt động</CardTitle>
-                            <CheckCircle className="h-5 w-5 text-green-600" />
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold text-green-600">{stats.active}</div>
@@ -133,7 +131,6 @@ export function StaffProductsPage() {
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between pb-2">
                             <CardTitle className="text-sm font-medium text-gray-600">Hết hàng</CardTitle>
-                            <AlertTriangle className="h-5 w-5 text-red-600" />
                         </CardHeader>
                         <CardContent>
                             <div className="text-2xl font-bold text-red-600">{stats.outOfStock}</div>

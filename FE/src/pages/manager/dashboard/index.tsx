@@ -123,14 +123,13 @@ interface MetricCardProps {
   value: string | number
   change?: string
   changeType?: 'increase' | 'decrease'
-  icon: React.ComponentType<{ className?: string }>
   description?: string
   color?: 'green' | 'green-light' | 'green-medium' | 'green-dark' | 'purple' | 'blue' | 'orange'
   onClick?: () => void
 }
 
 const MetricCard = React.memo<MetricCardProps>(
-  ({ title, value, change, changeType = 'increase', icon: Icon, description, color = 'green', onClick }) => {
+  ({ title, value, change, changeType = 'increase', description, color = 'green', onClick }) => {
     const colorClasses = {
       green: 'from-green-500 to-green-600',
       'green-light': 'from-green-400 to-green-500',
@@ -154,9 +153,6 @@ const MetricCard = React.memo<MetricCardProps>(
           <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${colorClasses[color]}`} />
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-600">{title}</CardTitle>
-            <div className={`p-2 rounded-lg bg-gradient-to-br ${colorClasses[color]} shadow-lg`}>
-              <Icon className="h-4 w-4 text-white" />
-            </div>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-gray-900 mb-1">{value}</div>
@@ -540,7 +536,6 @@ export default function ManagerDashboard() {
           ? `${iotDeviceStats.error} thiết bị lỗi`
           : `${iotDeviceStats.inactive} thiết bị chưa hoạt động`,
       changeType: iotDeviceStats.error > 0 ? 'decrease' : 'increase',
-      icon: Cpu,
       color: iotDeviceStats.error > 0 ? 'green-dark' : 'green',
       description: 'Theo thống kê từ danh sách thiết bị',
     })
@@ -552,7 +547,6 @@ export default function ManagerDashboard() {
         ? `Độ ẩm ${sensorData.humidity.toFixed(0)}%`
         : 'Chưa nhận dữ liệu cảm biến',
       changeType: sensorData ? 'increase' : 'decrease',
-      icon: Thermometer,
       color: 'green-light',
       description: sensorData
         ? `Chất lượng dữ liệu: ${sensorData.dataQuality === 'good'
@@ -572,7 +566,6 @@ export default function ManagerDashboard() {
           ? `${cropStats.nearingHarvest} lô sắp thu hoạch`
           : `${cropStats.total} lô đang theo dõi`,
       changeType: 'increase',
-      icon: Sprout,
       color: 'green',
       description: 'Dựa trên danh sách cây trồng',
     })
@@ -582,7 +575,6 @@ export default function ManagerDashboard() {
       title: 'Tổng đơn hàng',
       value: businessStats.totalOrders,
       change: `${businessStats.recentOrders} đơn mới`,
-      icon: ShoppingCart,
       color: 'purple',
       description: `Trong ${timeRange === 'week' ? '7 ngày' : '30 ngày'} qua`,
     })
@@ -592,7 +584,6 @@ export default function ManagerDashboard() {
       value: `${businessStats.totalRevenue.toLocaleString('vi-VN')} đ`,
       change: businessStats.recentOrders > 0 ? `Từ ${businessStats.recentOrders} đơn` : 'Chưa có đơn',
       changeType: businessStats.recentOrders > 0 ? 'increase' : 'decrease',
-      icon: DollarSign,
       color: 'green',
       description: `Tổng thu ${timeRange === 'week' ? '7 ngày' : '30 ngày'} qua`,
     })
@@ -601,7 +592,6 @@ export default function ManagerDashboard() {
       title: 'Đánh giá trung bình',
       value: `${businessStats.avgRating} ⭐`,
       change: `${businessStats.totalFeedbacks} đánh giá`,
-      icon: Star,
       color: 'orange',
       description: 'Mức độ hài lòng khách hàng',
     })
@@ -610,7 +600,6 @@ export default function ManagerDashboard() {
       title: 'Sản phẩm',
       value: `${businessStats.activeProducts}/${businessStats.totalProducts}`,
       change: 'Đang hoạt động',
-      icon: Package,
       color: 'blue',
       description: 'Tổng số sản phẩm trong hệ thống',
     })

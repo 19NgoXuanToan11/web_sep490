@@ -22,7 +22,6 @@ import {
   Trash2,
   Search,
   RefreshCw,
-  BarChart2,
   Droplets,
   Sun,
   Thermometer,
@@ -368,9 +367,6 @@ export default function CropsPage() {
                   <p className="text-sm text-gray-500">Tổng kế hoạch</p>
                   <p className="text-2xl font-semibold mt-1">{stats.total}</p>
                 </div>
-                <div className="rounded-full bg-green-100 p-3 text-green-600">
-                  <BarChart2 className="h-5 w-5" />
-                </div>
               </div>
               <p className="text-sm text-gray-500 mt-2">
                 {stats.active} đang hoạt động • {stats.inactive} tạm dừng
@@ -385,9 +381,6 @@ export default function CropsPage() {
                   <p className="text-sm text-gray-500">Độ ẩm trung bình</p>
                   <p className="text-2xl font-semibold mt-1">{formatNumber(stats.moisture, '%')}</p>
                 </div>
-                <div className="rounded-full bg-blue-100 p-3 text-blue-600">
-                  <Droplets className="h-5 w-5" />
-                </div>
               </div>
               <p className="text-sm text-gray-500 mt-2">Theo dõi độ ẩm để đảm bảo nảy mầm đều</p>
             </CardContent>
@@ -400,9 +393,6 @@ export default function CropsPage() {
                   <p className="text-sm text-gray-500">Ánh sáng trung bình</p>
                   <p className="text-2xl font-semibold mt-1">{formatNumber(stats.light, 'lux')}</p>
                 </div>
-                <div className="rounded-full bg-yellow-100 p-3 text-yellow-600">
-                  <Sun className="h-5 w-5" />
-                </div>
               </div>
               <p className="text-sm text-gray-500 mt-2">Giữ ánh sáng ổn định cho các giai đoạn tăng trưởng</p>
             </CardContent>
@@ -414,9 +404,6 @@ export default function CropsPage() {
                 <div>
                   <p className="text-sm text-gray-500">Nhiệt độ trung bình</p>
                   <p className="text-2xl font-semibold mt-1">{formatNumber(stats.temperature, '°C')}</p>
-                </div>
-                <div className="rounded-full bg-orange-100 p-3 text-orange-600">
-                  <Thermometer className="h-5 w-5" />
                 </div>
               </div>
               <p className="text-sm text-gray-500 mt-2">Cảnh báo sớm khi nhiệt độ vượt ngưỡng</p>
@@ -549,7 +536,7 @@ export default function CropsPage() {
                     </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
-                        <Button 
+                        <Button
                           variant="outline"
                           size="sm"
                           onClick={() => openDetailsDialog(requirement)}

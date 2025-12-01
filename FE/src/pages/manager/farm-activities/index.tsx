@@ -15,7 +15,7 @@ import {
 } from '@/shared/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
-import { Plus, Edit, RefreshCw, ChevronLeft, ChevronRight, Eye, BarChart2, Clock3 } from 'lucide-react'
+import { Plus, Edit, RefreshCw, ChevronLeft, ChevronRight, Eye } from 'lucide-react'
 import { useToast } from '@/shared/ui/use-toast'
 import {
   farmActivityService,
@@ -513,9 +513,6 @@ export default function FarmActivitiesPage() {
                     <p className="text-sm text-gray-500">Tổng hoạt động</p>
                     <p className="text-2xl font-semibold mt-1">{activityStats.total}</p>
                   </div>
-                  <div className="rounded-full bg-green-100 p-3 text-green-600">
-                    <BarChart2 className="h-5 w-5" />
-                  </div>
                 </div>
                 <p className="text-xs text-gray-500 mt-2">
                   Toàn bộ hoạt động nông trại trong hệ thống (không phụ thuộc bộ lọc)
@@ -531,9 +528,6 @@ export default function FarmActivitiesPage() {
                     <p className="text-2xl font-semibold mt-1 text-green-600">
                       {activityStats.active + activityStats.pending}
                     </p>
-                  </div>
-                  <div className="rounded-full bg-blue-100 p-3 text-blue-600">
-                    <Clock3 className="h-5 w-5" />
                   </div>
                 </div>
                 <p className="text-xs text-gray-500 mt-2">

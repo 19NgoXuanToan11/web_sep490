@@ -381,6 +381,26 @@ export default function FarmActivitiesPage() {
     }
   }
 
+  const handleDeleteActivity = async (activityId: number) => {
+    if (!confirm('Bạn có chắc chắn muốn xóa hoạt động này không?')) return
+
+    try {
+      await farmActivityService.deleteFarmActivity(activityId)
+      toast({
+        title: 'Thành công',
+        description: 'Đã xóa hoạt động nông trại',
+      })
+      loadActivities()
+    } catch (error) {
+      toast({
+        title: 'Lỗi',
+        description:
+          'Không thể xóa hoạt động nông trại. Chức năng này sẽ có sau khi backend bổ sung API.',
+        variant: 'destructive',
+      })
+    }
+  }
+
   const resetForm = () => {
     setFormData({
       startDate: '',
@@ -799,17 +819,19 @@ export default function FarmActivitiesPage() {
 
           {selectedActivityForDetails && (
             <div className="space-y-4">
-              <div>
-                <Label className="text-sm text-gray-600">Loại hoạt động</Label>
-                <p className="mt-1 text-base font-semibold text-gray-900">
-                  {getActivityTypeLabel(selectedActivityForDetails.activityType)}
-                </p>
-              </div>
-              <div>
-                <Label className="text-sm text-gray-600">Giai đoạn cây trồng</Label>
-                <p className="mt-1 text-base text-gray-900">
-                  {getPlantStageLabel(selectedActivityForDetails.plantStage as any)}
-                </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm text-gray-600">Loại hoạt động</Label>
+                  <p className="mt-1 text-base font-semibold text-gray-900">
+                    {getActivityTypeLabel(selectedActivityForDetails.activityType)}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-sm text-gray-600">Giai đoạn cây trồng</Label>
+                  <p className="mt-1 text-base text-gray-900">
+                    {getPlantStageLabel(selectedActivityForDetails.plantStage as any)}
+                  </p>
+                </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>

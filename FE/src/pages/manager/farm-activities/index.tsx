@@ -15,15 +15,7 @@ import {
 } from '@/shared/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
-import {
-  Plus,
-  Edit,
-  Trash2,
-  RefreshCw,
-  CheckCircle,
-  ChevronLeft,
-  ChevronRight,
-} from 'lucide-react'
+import { Plus, Edit, Trash2, RefreshCw, ChevronLeft, ChevronRight, Eye } from 'lucide-react'
 import { useToast } from '@/shared/ui/use-toast'
 import {
   farmActivityService,
@@ -48,6 +40,10 @@ export default function FarmActivitiesPage() {
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [editingActivity, setEditingActivity] = useState<FarmActivity | null>(null)
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false)
+  const [selectedActivityForDetails, setSelectedActivityForDetails] = useState<FarmActivity | null>(
+    null
+  )
 
   const [formData, setFormData] = useState<FarmActivityRequest>({
     startDate: '',
@@ -442,6 +438,17 @@ export default function FarmActivitiesPage() {
     return <Badge className={statusOption.color}>{statusOption.label}</Badge>
   }
 
+  const formatDisplayDate = (dateString: string | undefined | null): string => {
+    if (!dateString) return 'Không có dữ liệu'
+    try {
+      const date = new Date(dateString)
+      if (isNaN(date.getTime())) return dateString
+      return date.toLocaleDateString('vi-VN')
+    } catch {
+      return dateString
+    }
+  }
+
   // Helper function to safely format date for input field
   const formatDateForInput = (dateString: string | undefined | null): string => {
     if (!dateString) return ''
@@ -451,6 +458,11 @@ export default function FarmActivitiesPage() {
     if (dateString.includes('T')) return dateString.split('T')[0]
     // Otherwise return as is
     return dateString
+  }
+
+  const handleViewDetailsClick = (activity: FarmActivity) => {
+    setSelectedActivityForDetails(activity)
+    setDetailsDialogOpen(true)
   }
 
   useEffect(() => {
@@ -572,29 +584,18 @@ export default function FarmActivitiesPage() {
                           <Button
                             variant="outline"
                             size="sm"
+                            onClick={() => handleViewDetailsClick(activity)}
+                            title="Xem chi tiết"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
                             onClick={() => handleEditClick(activity)}
                             title="Chỉnh sửa"
                           >
                             <Edit className="h-4 w-4" />
-                          </Button>
-                          {activity.status !== 'COMPLETED' && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleCompleteActivity(activity.farmActivitiesId)}
-                              title="Hoàn thành"
-                              className="text-green-600 hover:text-green-700"
-                            >
-                              <CheckCircle className="h-4 w-4" />
-                            </Button>
-                          )}
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleChangeStatus(activity.farmActivitiesId)}
-                            title="Thay đổi trạng thái"
-                          >
-                            <RefreshCw className="h-4 w-4" />
                           </Button>
                           <Button
                             variant="outline"
@@ -687,6 +688,51 @@ export default function FarmActivitiesPage() {
           )}
         </div>
       </div>
+
+      { }
+      <Dialog open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Chi Tiết Hoạt Động Nông Trại</DialogTitle>
+            <DialogDescription>Thông tin chi tiết của hoạt động nông trại đã chọn</DialogDescription>
+          </DialogHeader>
+
+          {selectedActivityForDetails && (
+            <div className="space-y-4">
+              <div>
+                <Label className="text-sm text-gray-600">Loại hoạt động</Label>
+                <p className="mt-1 text-base font-semibold text-gray-900">
+                  {getActivityTypeLabel(selectedActivityForDetails.activityType)}
+                </p>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-sm text-gray-600">Ngày bắt đầu</Label>
+                  <p className="mt-1 text-base text-gray-900">
+                    {formatDisplayDate(selectedActivityForDetails.startDate)}
+                  </p>
+                </div>
+                <div>
+                  <Label className="text-sm text-gray-600">Ngày kết thúc</Label>
+                  <p className="mt-1 text-base text-gray-900">
+                    {formatDisplayDate(selectedActivityForDetails.endDate)}
+                  </p>
+                </div>
+              </div>
+              <div>
+                <Label className="text-sm text-gray-600">Trạng thái</Label>
+                <div className="mt-1">{getStatusBadge(selectedActivityForDetails.status)}</div>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="mt-6">
+            <Button variant="outline" onClick={() => setDetailsDialogOpen(false)}>
+              Đóng
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       { }
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>

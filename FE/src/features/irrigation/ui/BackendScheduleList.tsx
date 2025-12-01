@@ -355,7 +355,7 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
     const loadReferenceData = useCallback(async () => {
         const [farmRes, cropRes, staffRes, fa] = await Promise.all([
             farmService.getAllFarms(),
-            cropService.getAllCropsActive(),
+            cropService.getAllCropsList(),
             accountApi.getAll({ role: 'Staff', pageSize: 1000 }),
             farmActivityService.getAllFarmActivities({ pageIndex: 1, pageSize: 1000 })
         ])
@@ -658,7 +658,7 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                                     disabled={metaLoading || editLoading}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder={metaLoading ? 'Đang tải...' : 'Chọn mùa vụ'} />
+                                        <SelectValue placeholder={metaLoading ? 'Đang tải...' : 'Chọn cây trồng'} />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {crops.map(c => (
@@ -1000,7 +1000,7 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                 </div>
 
                 {/* Detail View Modal */}
-                <Dialog open={  showDetail} onOpenChange={setShowDetail}>
+                <Dialog open={showDetail} onOpenChange={setShowDetail}>
                     <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
                         <DialogHeader>
                             <DialogTitle>Chi tiết lịch tưới</DialogTitle>

@@ -52,9 +52,12 @@ export const cropService = {
     return response.data
   },
 
-  getAllCropsActive: async (): Promise<Crop[]> => {
-    const response = await http.get<Crop[]>('/v1/crop/get-all-active')
-    return response.data
+  // Convenience helper used by selectors that just need a flat crop list
+  getAllCropsList: async (pageSize: number = 1000): Promise<Crop[]> => {
+    const response = await http.get<PaginatedCrops>(
+      `/v1/crop/get-all?pageIndex=1&pageSize=${pageSize}`
+    )
+    return response.data.items ?? []
   },
 
   createCrop: async (payload: CreateCropWithProductRequest): Promise<CropResponse> => {

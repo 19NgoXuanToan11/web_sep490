@@ -230,7 +230,7 @@ export default function ManagerDashboard() {
 
     try {
       const [cropResult, cropRequirementResult, sensorResult, orderResult, feedbackResult, productResult] = await Promise.allSettled([
-        cropService.getAllCropsActive(),
+        cropService.getAllCropsList(),
         cropRequirementService.getAll(),
         blynkService.getBlynkData(),
         orderService.getOrderList({ pageIndex: 1, pageSize: 1000 }),

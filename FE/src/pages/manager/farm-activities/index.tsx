@@ -162,23 +162,39 @@ export default function FarmActivitiesPage() {
 
   const loadActivityStats = useCallback(async () => {
     try {
-      const [all, active, completed, pending, cancelled] = await Promise.all([
-        farmActivityService.getAllFarmActivities({ pageIndex: 1, pageSize: 1 }),
-        farmActivityService.getAllFarmActivities({ status: 'ACTIVE', pageIndex: 1, pageSize: 1 }),
-        farmActivityService.getAllFarmActivities({ status: 'COMPLETED', pageIndex: 1, pageSize: 1 }),
-        farmActivityService.getAllFarmActivities({ status: 'PENDING', pageIndex: 1, pageSize: 1 }),
-        farmActivityService.getAllFarmActivities({ status: 'CANCELLED', pageIndex: 1, pageSize: 1 }),
-      ])
+      // Gọi 1 lần get-all (không filter) để nhận danh sách và tự tính thống kê
+      const response = await farmActivityService.getAllFarmActivities({
+        pageIndex: 1,
+        pageSize: 1000,
+      })
+
+      const items = Array.isArray(response.items) ? response.items : []
+
+      const stats = items.reduce(
+        (acc, activity) => {
+          const status = (activity.status || '').toUpperCase()
+          acc.total += 1
+          if (status === 'ACTIVE') acc.active += 1
+          else if (status === 'COMPLETED') acc.completed += 1
+          else if (status === 'CANCELLED') acc.cancelled += 1
+          else acc.pending += 1
+          return acc
+        },
+        {
+          total: 0,
+          active: 0,
+          completed: 0,
+          pending: 0,
+          cancelled: 0,
+        }
+      )
 
       setActivityStats({
-        total: all.totalItemCount || 0,
-        active: active.totalItemCount || 0,
-        completed: completed.totalItemCount || 0,
-        pending: pending.totalItemCount || 0,
-        cancelled: cancelled.totalItemCount || 0,
+        ...stats,
+        total: response.totalItemCount || stats.total,
       })
     } catch {
-      // thống kê là phần bổ sung, không chặn trang nếu lỗi
+      // Thống kê là phần bổ sung, không chặn trang nếu lỗi
     }
   }, [])
 
@@ -543,7 +559,7 @@ export default function FarmActivitiesPage() {
             </p>
           </div>
 
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
@@ -580,43 +596,7 @@ export default function FarmActivitiesPage() {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-500">Hoàn thành</p>
-                    <p className="text-2xl font-semibold mt-1 text-green-700">
-                      {activityStats.completed}
-                    </p>
-                  </div>
-                  <div className="rounded-full bg-emerald-100 p-3 text-emerald-600">
-                    <CheckCircle2 className="h-5 w-5" />
-                  </div>
-                </div>
-                <p className="text-xs text-gray-500 mt-2">
-                  Số hoạt động đã được đánh dấu hoàn thành
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-500">Đã hủy</p>
-                    <p className="text-2xl font-semibold mt-1 text-gray-700">
-                      {activityStats.cancelled}
-                    </p>
-                  </div>
-                  <div className="rounded-full bg-gray-100 p-3 text-gray-600">
-                    <Trash2 className="h-5 w-5" />
-                  </div>
-                </div>
-                <p className="text-xs text-gray-500 mt-2">
-                  Hoạt động đã bị hủy hoặc không còn hiệu lực
-                </p>
-              </CardContent>
-            </Card>
+            {/* Removed “Hoàn thành” & “Đã hủy” cards per request */}
           </div>
 
           <Card>

@@ -1,4 +1,5 @@
 import { http } from './client'
+import type { PlantStage } from './cropRequirementService'
 
 export interface FarmActivity {
   farmActivitiesId: number
@@ -6,6 +7,7 @@ export interface FarmActivity {
   startDate: string
   endDate: string
   status: string
+  plantStage?: PlantStage | null
 }
 
 export interface FarmActivityRequest {

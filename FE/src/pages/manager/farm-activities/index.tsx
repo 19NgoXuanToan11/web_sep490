@@ -15,7 +15,7 @@ import {
 } from '@/shared/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
-import { Plus, Edit, Trash2, RefreshCw, ChevronLeft, ChevronRight, Eye } from 'lucide-react'
+import { Plus, Edit, Trash2, RefreshCw, ChevronLeft, ChevronRight, Eye, BarChart2, CheckCircle2, Clock3 } from 'lucide-react'
 import { useToast } from '@/shared/ui/use-toast'
 import {
   farmActivityService,
@@ -54,6 +54,14 @@ export default function FarmActivitiesPage() {
   const [dateErrors, setDateErrors] = useState<{ startDate?: string; endDate?: string }>({})
 
   const { toast } = useToast()
+
+  const [activityStats, setActivityStats] = useState({
+    total: 0,
+    active: 0,
+    completed: 0,
+    pending: 0,
+    cancelled: 0,
+  })
 
   // Get today's date in YYYY-MM-DD format for date input min attribute
   const getTodayDateString = (): string => {
@@ -151,6 +159,28 @@ export default function FarmActivitiesPage() {
       setLoading(false)
     }
   }, [pageIndex, pageSize, statusFilter, activityTypeFilter, toast])
+
+  const loadActivityStats = useCallback(async () => {
+    try {
+      const [all, active, completed, pending, cancelled] = await Promise.all([
+        farmActivityService.getAllFarmActivities({ pageIndex: 1, pageSize: 1 }),
+        farmActivityService.getAllFarmActivities({ status: 'ACTIVE', pageIndex: 1, pageSize: 1 }),
+        farmActivityService.getAllFarmActivities({ status: 'COMPLETED', pageIndex: 1, pageSize: 1 }),
+        farmActivityService.getAllFarmActivities({ status: 'PENDING', pageIndex: 1, pageSize: 1 }),
+        farmActivityService.getAllFarmActivities({ status: 'CANCELLED', pageIndex: 1, pageSize: 1 }),
+      ])
+
+      setActivityStats({
+        total: all.totalItemCount || 0,
+        active: active.totalItemCount || 0,
+        completed: completed.totalItemCount || 0,
+        pending: pending.totalItemCount || 0,
+        cancelled: cancelled.totalItemCount || 0,
+      })
+    } catch {
+      // thống kê là phần bổ sung, không chặn trang nếu lỗi
+    }
+  }, [])
 
   // Client-side filtering for search term only (since pagination is server-side)
   const filteredActivities = (Array.isArray(activities) ? activities : []).filter(activity => {
@@ -351,26 +381,6 @@ export default function FarmActivitiesPage() {
     }
   }
 
-  const handleDeleteActivity = async (activityId: number) => {
-    if (!confirm('Bạn có chắc chắn muốn xóa hoạt động này không?')) return
-
-    try {
-      await farmActivityService.deleteFarmActivity(activityId)
-      toast({
-        title: 'Thành công',
-        description: 'Đã xóa hoạt động nông trại',
-      })
-      loadActivities()
-    } catch (error) {
-      toast({
-        title: 'Lỗi',
-        description:
-          'Không thể xóa hoạt động nông trại. Chức năng này sẽ có sau khi backend bổ sung API.',
-        variant: 'destructive',
-      })
-    }
-  }
-
   const resetForm = () => {
     setFormData({
       startDate: '',
@@ -431,6 +441,28 @@ export default function FarmActivitiesPage() {
     return activityType ? activityType.label : type
   }
 
+  const getPlantStageLabel = (stage: string | null | undefined) => {
+    if (!stage) return 'Không có dữ liệu'
+    switch (stage) {
+      case 'Sowing':
+        return 'Gieo hạt'
+      case 'Germination':
+        return 'Nảy mầm'
+      case 'CotyledonLeaves':
+        return 'Ra lá mầm'
+      case 'TrueLeavesGrowth':
+        return 'Phát triển lá thật'
+      case 'VigorousGrowth':
+        return 'Tăng trưởng mạnh'
+      case 'ReadyForHarvest':
+        return 'Sẵn sàng thu hoạch'
+      case 'PostHarvest':
+        return 'Sau thu hoạch'
+      default:
+        return stage
+    }
+  }
+
   const getStatusBadge = (status: string) => {
     const statusOption = statusOptions.find(s => s.value === status)
     if (!statusOption) return <Badge variant="outline">{status}</Badge>
@@ -471,7 +503,8 @@ export default function FarmActivitiesPage() {
 
   useEffect(() => {
     loadActivities()
-  }, [loadActivities])
+    loadActivityStats()
+  }, [loadActivities, loadActivityStats])
 
   const handlePageChange = (newPage: number) => {
     if (newPage >= 1 && newPage <= totalPages) {
@@ -483,7 +516,6 @@ export default function FarmActivitiesPage() {
     <ManagerLayout>
       <div className="p-6">
         <div className="space-y-8">
-          { }
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Quản Lý Hoạt Động Nông Trại</h1>
             <p className="text-gray-600 mt-2">
@@ -491,7 +523,82 @@ export default function FarmActivitiesPage() {
             </p>
           </div>
 
-          { }
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-500">Tổng hoạt động</p>
+                    <p className="text-2xl font-semibold mt-1">{activityStats.total}</p>
+                  </div>
+                  <div className="rounded-full bg-green-100 p-3 text-green-600">
+                    <BarChart2 className="h-5 w-5" />
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  Toàn bộ hoạt động nông trại trong hệ thống (không phụ thuộc bộ lọc)
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-500">Đang hoạt động</p>
+                    <p className="text-2xl font-semibold mt-1 text-green-600">
+                      {activityStats.active + activityStats.pending}
+                    </p>
+                  </div>
+                  <div className="rounded-full bg-blue-100 p-3 text-blue-600">
+                    <Clock3 className="h-5 w-5" />
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  Bao gồm hoạt động đang chạy và chờ thực hiện
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-500">Hoàn thành</p>
+                    <p className="text-2xl font-semibold mt-1 text-green-700">
+                      {activityStats.completed}
+                    </p>
+                  </div>
+                  <div className="rounded-full bg-emerald-100 p-3 text-emerald-600">
+                    <CheckCircle2 className="h-5 w-5" />
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  Số hoạt động đã được đánh dấu hoàn thành
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-500">Đã hủy</p>
+                    <p className="text-2xl font-semibold mt-1 text-gray-700">
+                      {activityStats.cancelled}
+                    </p>
+                  </div>
+                  <div className="rounded-full bg-gray-100 p-3 text-gray-600">
+                    <Trash2 className="h-5 w-5" />
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">
+                  Hoạt động đã bị hủy hoặc không còn hiệu lực
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
           <Card>
             <CardContent className="pt-6">
               <div className="flex flex-col md:flex-row gap-4">
@@ -554,6 +661,7 @@ export default function FarmActivitiesPage() {
                 <TableRow>
                   <TableHead className="w-16">STT</TableHead>
                   <TableHead>Loại hoạt động</TableHead>
+                  <TableHead>Giai đoạn cây trồng</TableHead>
                   <TableHead>Trạng thái</TableHead>
                   <TableHead className="text-right">Hành động</TableHead>
                 </TableRow>
@@ -561,13 +669,13 @@ export default function FarmActivitiesPage() {
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center py-4">
+                    <TableCell colSpan={5} className="text-center py-4">
                       Đang tải...
                     </TableCell>
                   </TableRow>
                 ) : filteredActivities.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center py-4">
+                    <TableCell colSpan={5} className="text-center py-4">
                       Không có hoạt động nào
                     </TableCell>
                   </TableRow>
@@ -578,6 +686,7 @@ export default function FarmActivitiesPage() {
                         {(pageIndex - 1) * pageSize + index + 1}
                       </TableCell>
                       <TableCell>{getActivityTypeLabel(activity.activityType)}</TableCell>
+                      <TableCell>{getPlantStageLabel(activity.plantStage as any)}</TableCell>
                       <TableCell>{getStatusBadge(activity.status)}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
@@ -596,15 +705,6 @@ export default function FarmActivitiesPage() {
                             title="Chỉnh sửa"
                           >
                             <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDeleteActivity(activity.farmActivitiesId)}
-                            title="Xóa"
-                            className="text-red-600 hover:text-red-700"
-                          >
-                            <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
                       </TableCell>
@@ -703,6 +803,12 @@ export default function FarmActivitiesPage() {
                 <Label className="text-sm text-gray-600">Loại hoạt động</Label>
                 <p className="mt-1 text-base font-semibold text-gray-900">
                   {getActivityTypeLabel(selectedActivityForDetails.activityType)}
+                </p>
+              </div>
+              <div>
+                <Label className="text-sm text-gray-600">Giai đoạn cây trồng</Label>
+                <p className="mt-1 text-base text-gray-900">
+                  {getPlantStageLabel(selectedActivityForDetails.plantStage as any)}
                 </p>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

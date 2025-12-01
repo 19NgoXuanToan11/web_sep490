@@ -12,7 +12,6 @@ interface GaugeProps {
   isLoading?: boolean
   dataQuality?: 'good' | 'poor' | 'error'
   lastUpdated?: Date
-  trend?: 'up' | 'down' | 'stable'
 }
 
 const Gauge: React.FC<GaugeProps> = ({
@@ -26,7 +25,6 @@ const Gauge: React.FC<GaugeProps> = ({
   isLoading = false,
   dataQuality = 'good',
   lastUpdated,
-  trend = 'stable',
 }) => {
   const [animatedValue, setAnimatedValue] = useState(min)
   const [previousValue, setPreviousValue] = useState(min)
@@ -52,18 +50,6 @@ const Gauge: React.FC<GaugeProps> = ({
     return '#ef4444'
   }
 
-  const getTrendIcon = () => {
-    if (trend === 'up') return '↗️'
-    if (trend === 'down') return '↘️'
-    return '➡️'
-  }
-
-  const getQualityColor = () => {
-    if (dataQuality === 'good') return 'bg-green-500'
-    if (dataQuality === 'poor') return 'bg-yellow-500'
-    return 'bg-red-500'
-  }
-
   const radius = 85
   const circumference = 2 * Math.PI * radius
   const strokeDasharray = (clampedPercentage / 100) * circumference
@@ -72,32 +58,22 @@ const Gauge: React.FC<GaugeProps> = ({
     <div
       className={`flex flex-col items-center justify-center p-6 bg-white rounded-2xl shadow-sm border border-gray-200 ${className}`}
     >
-      {}
+      { }
       <div className="flex items-center justify-between w-full mb-4">
         <div className="flex items-center gap-3">
           <div className="text-gray-600 text-xl">{icon}</div>
           <h3 className="text-gray-800 text-sm font-medium">{label}</h3>
         </div>
         <div className="flex items-center gap-2">
-          {}
-          <div
-            className={`w-2 h-2 rounded-full ${getQualityColor()}`}
-            title={`Chất lượng dữ liệu: ${dataQuality}`}
-          />
-          {}
-          <span className="text-xs" title={`Xu hướng: ${trend}`}>
-            {getTrendIcon()}
-          </span>
-          {}
           {isLoading && (
             <div className="w-3 h-3 border border-blue-500 border-t-transparent rounded-full animate-spin" />
           )}
         </div>
       </div>
 
-      {}
+      { }
       <div className="relative w-48 h-48">
-        {}
+        { }
         <svg className="w-full h-full transform -rotate-90" viewBox="0 0 200 200">
           <circle
             cx="100"
@@ -108,7 +84,7 @@ const Gauge: React.FC<GaugeProps> = ({
             fill="transparent"
             className="drop-shadow-sm"
           />
-          {}
+          { }
           <motion.circle
             cx="100"
             cy="100"
@@ -136,7 +112,7 @@ const Gauge: React.FC<GaugeProps> = ({
           />
         </svg>
 
-        {}
+        { }
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <AnimatePresence mode="wait">
             <motion.div
@@ -148,27 +124,25 @@ const Gauge: React.FC<GaugeProps> = ({
               className="text-center"
             >
               <div
-                className={`text-3xl font-bold mb-1 ${
-                  dataQuality === 'error'
+                className={`text-3xl font-bold mb-1 ${dataQuality === 'error'
                     ? 'text-red-600'
                     : dataQuality === 'poor'
                       ? 'text-yellow-600'
                       : 'text-gray-900'
-                }`}
+                  }`}
               >
                 {isLoading ? '...' : animatedValue.toFixed(1)}
               </div>
               <div className="text-sm text-gray-600 font-medium">{unit}</div>
-              {}
+              { }
               {!isLoading && previousValue !== animatedValue && (
                 <div
-                  className={`text-xs mt-1 ${
-                    animatedValue > previousValue
+                  className={`text-xs mt-1 ${animatedValue > previousValue
                       ? 'text-green-600'
                       : animatedValue < previousValue
                         ? 'text-red-600'
                         : 'text-gray-500'
-                  }`}
+                    }`}
                 >
                   {animatedValue > previousValue ? '+' : ''}
                   {(animatedValue - previousValue).toFixed(1)}
@@ -178,7 +152,7 @@ const Gauge: React.FC<GaugeProps> = ({
           </AnimatePresence>
         </div>
 
-        {}
+        { }
         <AnimatePresence>
           <motion.div
             key={value}
@@ -194,12 +168,8 @@ const Gauge: React.FC<GaugeProps> = ({
         </AnimatePresence>
       </div>
 
-      {}
+      { }
       <div className="w-full mt-4 px-4">
-        <div className="flex justify-between mb-2">
-          <span className="text-xs text-gray-500 font-medium">{min}</span>
-          <span className="text-xs text-gray-500 font-medium">{max}</span>
-        </div>
         {lastUpdated && (
           <div className="text-center">
             <span className="text-xs text-gray-400">

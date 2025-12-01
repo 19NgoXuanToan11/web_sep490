@@ -40,22 +40,10 @@ const navigationItems: NavItem[] = [
     description: 'Tổng quan & Phân tích',
   },
   {
-    name: 'Lịch',
-    href: '/manager/irrigation',
-    icon: Droplets,
-    description: 'Quản lý lịch tưới',
-  },
-  {
     name: 'Danh mục',
     href: '/manager/categories',
     icon: Sprout,
     description: 'Quản lý danh mục sản phẩm',
-  },
-  {
-    name: 'Theo dõi cây trồng',
-    href: '/manager/crops',
-    icon: Trees,
-    description: 'Lập kế hoạch & theo dõi',
   },
   {
     name: 'Cây trồng',
@@ -64,10 +52,22 @@ const navigationItems: NavItem[] = [
     description: 'Quản lý cây trồng',
   },
   {
+    name: 'Theo dõi cây trồng',
+    href: '/manager/crops',
+    icon: Trees,
+    description: 'Lập kế hoạch & theo dõi',
+  },
+  {
     name: 'Hoạt động nông trại',
     href: '/manager/farm-activities',
     icon: Activity,
     description: 'Lập kế hoạch & quản lý hoạt động',
+  },
+  {
+    name: 'Lịch',
+    href: '/manager/irrigation',
+    icon: Droplets,
+    description: 'Quản lý lịch tưới',
   },
   {
     name: 'Thiết bị IoT',

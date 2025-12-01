@@ -34,8 +34,71 @@ const toDateOnly = (value?: string) => {
     return Number.isNaN(dt.getTime()) ? null : dt
 }
 
-const rangesOverlap = (startA: Date, endA: Date, startB: Date, endB: Date) => {
-    return startA <= endB && startB <= endA
+const rangesOverlap = (startA: Date, endA: Date, startB: Date, endB: Date) => startA <= endB && startB <= endA
+
+const activityTypeLabels: Record<string, string> = {
+    Sowing: 'Gieo trồng',
+    Irrigation: 'Tưới tiêu',
+    Harvesting: 'Thu hoạch',
+    Fertilization: 'Bón phân',
+    Protection: 'Bảo vệ thực vật',
+}
+
+const plantStageLabels: Record<string, string> = {
+    Sowing: 'Gieo hạt',
+    Germination: 'Nảy mầm',
+    CotyledonLeaves: 'Ra lá mầm',
+    TrueLeavesGrowth: 'Phát triển lá thật',
+    VigorousGrowth: 'Tăng trưởng mạnh',
+    ReadyForHarvest: 'Sẵn sàng thu hoạch',
+    PostHarvest: 'Sau thu hoạch',
+}
+
+const statusOptions = [
+    { value: 0, label: 'Vô hiệu hóa' },
+    { value: 1, label: 'Hoạt động' },
+]
+
+const diseaseOptions = [
+    { value: -1, label: 'Không có bệnh' },
+    { value: 0, label: 'Bệnh mốc sương' },
+    { value: 1, label: 'Bệnh phấn trắng' },
+    { value: 2, label: 'Bệnh đốm lá' },
+    { value: 3, label: 'Thối nhũn do vi khuẩn' },
+    { value: 4, label: 'Héo vàng Fusarium' },
+    { value: 5, label: 'Bệnh thán thư' },
+    { value: 6, label: 'Bệnh chết cây con' },
+    { value: 7, label: 'Thối đen' },
+    { value: 8, label: 'Virus khảm' },
+    { value: 9, label: 'Rệp hại' },
+    { value: 10, label: 'Hại do bọ trĩ' },
+    { value: 11, label: 'Ruồi trắng gây hại' },
+]
+
+const translateActivityType = (type: string) => activityTypeLabels[type] ?? type
+const translatePlantStage = (stage?: string | null) => {
+    if (!stage) return '-'
+    return plantStageLabels[stage] ?? stage
+}
+
+const getStatusLabel = (value: number | string | null | undefined) => {
+    if (value === null || value === undefined) return '-'
+    if (typeof value === 'string') {
+        if (value === 'ACTIVE') return 'Hoạt động'
+        if (value === 'DEACTIVATED') return 'Vô hiệu hóa'
+        return value
+    }
+    return statusOptions.find(option => option.value === value)?.label ?? String(value)
+}
+
+const getDiseaseLabel = (value: number | null | undefined) => {
+    if (value === null || value === undefined || value === -1) return 'Không có bệnh'
+    return diseaseOptions.find(option => option.value === value)?.label ?? String(value)
+}
+
+const getDiseaseSelectValue = (value: number | null | undefined): string => {
+    if (value === null || value === undefined) return '-1'
+    return String(value)
 }
 
 const buildEmptyScheduleForm = (): CreateScheduleRequest => ({
@@ -65,7 +128,6 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
     const setShowCreate = onShowCreateChange ?? setInternalShowCreate
     const [form, setForm] = useState<CreateScheduleRequest>(buildEmptyScheduleForm)
 
-    // metadata for selects
     const [farms, setFarms] = useState<{ id: number; name: string }[]>([])
     const [crops, setCrops] = useState<{ id: number; name: string }[]>([])
     const [staffs, setStaffs] = useState<{ id: number; name: string }[]>([])
@@ -75,7 +137,6 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
     const [allSchedulesLoading, setAllSchedulesLoading] = useState(false)
     const [filteredItems, setFilteredItems] = useState<ScheduleListItem[] | null>(null)
 
-    // New state for additional functionality
     const [showDetail, setShowDetail] = useState(false)
     const [showEdit, setShowEdit] = useState(false)
     const [showAssignStaff, setShowAssignStaff] = useState(false)
@@ -91,102 +152,6 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
     const todayString = useMemo(() => new Date().toISOString().split('T')[0], [])
     const displayItems = filteredItems ?? data?.data.items ?? []
     const isFiltered = filteredItems !== null
-
-    const translateActivityType = useCallback((type: string) => {
-        switch (type) {
-            case 'Sowing':
-                return 'Gieo trồng'
-            case 'Irrigation':
-                return 'Tưới tiêu'
-            case 'Harvesting':
-                return 'Thu hoạch'
-            case 'Fertilization':
-                return 'Bón phân'
-            case 'Protection':
-                return 'Bảo vệ thực vật'
-            default:
-                return type
-        }
-    }, [])
-
-    const translatePlantStage = useCallback((stage: string | null | undefined) => {
-        if (!stage) return '-'
-        switch (stage) {
-            case 'Sowing':
-                return 'Gieo hạt'
-            case 'Germination':
-                return 'Nảy mầm'
-            case 'CotyledonLeaves':
-                return 'Ra lá mầm'
-            case 'TrueLeavesGrowth':
-                return 'Phát triển lá thật'
-            case 'VigorousGrowth':
-                return 'Tăng trưởng mạnh'
-            case 'ReadyForHarvest':
-                return 'Sẵn sàng thu hoạch'
-            case 'PostHarvest':
-                return 'Sau thu hoạch'
-            default:
-                return stage
-        }
-    }, [])
-
-    // local enum options mapping to backend numeric enums
-    const statusOptions = useMemo(
-        () => [
-            { value: 0, label: 'Vô hiệu hóa' }, // DEACTIVATED
-            { value: 1, label: 'Hoạt động' },   // ACTIVE
-        ],
-        []
-    )
-    const diseaseOptions = useMemo(
-        () => [
-            { value: -1, label: 'Không có bệnh' },
-            { value: 0, label: 'Bệnh mốc sương' },
-            { value: 1, label: 'Bệnh phấn trắng' },
-            { value: 2, label: 'Bệnh đốm lá' },
-            { value: 3, label: 'Thối nhũn do vi khuẩn' },
-            { value: 4, label: 'Héo vàng Fusarium' },
-            { value: 5, label: 'Bệnh thán thư' },
-            { value: 6, label: 'Bệnh chết cây con' },
-            { value: 7, label: 'Thối đen' },
-            { value: 8, label: 'Virus khảm' },
-            { value: 9, label: 'Rệp hại' },
-            { value: 10, label: 'Hại do bọ trĩ' },
-            { value: 11, label: 'Ruồi trắng gây hại' },
-        ],
-        []
-    )
-
-    const getStatusLabel = useCallback(
-        (value: number | string | null | undefined) => {
-            if (value === null || value === undefined) return '-'
-            if (typeof value === 'string') {
-                // Handle string status values
-                switch (value) {
-                    case 'ACTIVE': return 'Hoạt động'
-                    case 'DEACTIVATED': return 'Vô hiệu hóa'
-                    default: return value
-                }
-            }
-            return statusOptions.find(o => o.value === value)?.label ?? String(value)
-        },
-        [statusOptions]
-    )
-
-    const getDiseaseLabel = useCallback(
-        (value: number | null | undefined) => {
-            if (value === null || value === undefined || value === -1) return 'Không có bệnh'
-            return diseaseOptions.find(o => o.value === value)?.label ?? String(value)
-        },
-        [diseaseOptions]
-    )
-
-    // Helper to convert diseaseStatus to Select value (-1 for null/undefined, otherwise the number)
-    const getDiseaseSelectValue = useCallback((value: number | null | undefined): string => {
-        if (value === null || value === undefined) return '-1'
-        return String(value)
-    }, [])
 
     const load = useCallback(async () => {
         setLoading(true)

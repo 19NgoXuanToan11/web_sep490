@@ -17,6 +17,7 @@ import { Input } from '@/shared/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
 import { format } from 'date-fns'
 import { vi } from 'date-fns/locale'
+import { formatDate } from '@/shared/lib/date-utils'
 import {
     Dialog,
     DialogContent,
@@ -347,9 +348,7 @@ const StaffFeedbacksPage: React.FC = () => {
                                                         </TableCell>
                                                         <TableCell>
                                                             <p className="text-sm text-gray-500">
-                                                                {feedback.createdAt
-                                                                    ? format(new Date(feedback.createdAt), 'dd/MM/yyyy', { locale: vi })
-                                                                    : 'N/A'}
+                                                                {formatDate(feedback.createdAt)}
                                                             </p>
                                                         </TableCell>
                                                         <TableCell className="whitespace-nowrap">{getStatusBadge(feedback.status)}</TableCell>
@@ -431,11 +430,7 @@ const StaffFeedbacksPage: React.FC = () => {
                                     <div className="flex justify-between">
                                         <span className="text-sm text-gray-600">Ngày đánh giá:</span>
                                         <span className="text-sm font-medium">
-                                            {selectedFeedback.createdAt
-                                                ? format(new Date(selectedFeedback.createdAt), 'dd/MM/yyyy', {
-                                                    locale: vi,
-                                                })
-                                                : 'N/A'}
+                                            {formatDate(selectedFeedback.createdAt)}
                                         </span>
                                     </div>
                                 </div>

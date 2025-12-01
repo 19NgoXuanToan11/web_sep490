@@ -22,6 +22,7 @@ import { Input } from '@/shared/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
 import { format } from 'date-fns'
 import { vi } from 'date-fns/locale'
+import { formatDate, formatDateTime } from '@/shared/lib/date-utils'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -530,22 +531,13 @@ const StaffOrdersPage: React.FC = () => {
     )
   }
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('vi-VN', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    })
+  // Use centralized date formatting utilities
+  const formatDateLocal = (dateString: string) => {
+    return formatDateTime(dateString)
   }
 
   const formatDateOnly = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('vi-VN', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    })
+    return formatDate(dateString)
   }
 
   const fetchOrderDetail = async (orderId: string) => {
@@ -1312,7 +1304,7 @@ const StaffOrdersPage: React.FC = () => {
                     </div>
                     <div className="flex justify-between">
                       <span className="font-medium">Ngày tạo:</span>
-                      <span>{formatDate(selectedOrderDetail.createdAt)}</span>
+                      <span>{formatDateTime(selectedOrderDetail.createdAt)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="font-medium">Trạng thái:</span>

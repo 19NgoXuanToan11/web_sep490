@@ -8,6 +8,7 @@ import { useToast } from '@/shared/ui/use-toast'
 import { Label } from '@/shared/ui/label'
 import { Loader2, RefreshCw } from 'lucide-react'
 import { handleFetchError } from '@/shared/lib/error-handler'
+import { formatDate } from '@/shared/lib/date-utils'
 
 interface StaffScheduleBoardProps {
     className?: string
@@ -135,10 +136,10 @@ export function StaffScheduleBoard({ className }: StaffScheduleBoardProps) {
                                 <tr key={schedule.scheduleId ?? `${schedule.farmId}-${schedule.startDate}`} className="border-b last:border-0">
                                     <td className="py-2 pr-3">{schedule.farmView?.farmName ?? `#${schedule.farmId}`}</td>
                                     <td className="py-2 pr-3">{schedule.cropView?.cropName ?? `#${schedule.cropId}`}</td>
-                                    <td className="py-2 pr-3">{schedule.startDate}</td>
-                                    <td className="py-2 pr-3">{schedule.endDate}</td>
-                                    <td className="py-2 pr-3">{schedule.plantingDate ?? '-'}</td>
-                                    <td className="py-2 pr-3">{schedule.harvestDate ?? '-'}</td>
+                                    <td className="py-2 pr-3">{formatDate(schedule.startDate)}</td>
+                                    <td className="py-2 pr-3">{formatDate(schedule.endDate)}</td>
+                                    <td className="py-2 pr-3">{formatDate(schedule.plantingDate)}</td>
+                                    <td className="py-2 pr-3">{formatDate(schedule.harvestDate)}</td>
                                     <td className="py-2 pr-3">{schedule.farmActivityView?.activityType ?? (schedule.farmActivitiesId ? `#${schedule.farmActivitiesId}` : '-')}</td>
                                     <td className="py-2 pr-3">
                                         <Badge variant={isActiveStatus(schedule.status) ? 'success' : 'secondary'}>{getStatusLabel(schedule.status)}</Badge>

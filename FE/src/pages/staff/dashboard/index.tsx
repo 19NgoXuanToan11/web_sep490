@@ -26,6 +26,7 @@ import { feedbackService } from '@/shared/api/feedbackService'
 import type { Feedback } from '@/shared/api/feedbackService'
 import { productService, type Product } from '@/shared/api/productService'
 import { categoryService, type Category } from '@/shared/api/categoryService'
+import { formatDate } from '@/shared/lib/date-utils'
 import {
     BarChart,
     Bar,
@@ -401,12 +402,9 @@ export default function StaffDashboard() {
         return getStatusBadge(order.status ?? 0)
     }
 
+    // Use centralized date formatting utility
     const formatDateOnly = (dateString: string) => {
-        return new Date(dateString).toLocaleDateString('vi-VN', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-        })
+        return formatDate(dateString)
     }
 
     if (isLoading) {
@@ -695,9 +693,7 @@ export default function StaffDashboard() {
                                                 </p>
                                             </div>
                                             <span className="text-xs text-gray-400">
-                                                {feedback.createdAt
-                                                    ? new Date(feedback.createdAt).toLocaleDateString('vi-VN')
-                                                    : 'Không xác định'}
+                                                {formatDate(feedback.createdAt)}
                                             </span>
                                         </div>
                                     </div>

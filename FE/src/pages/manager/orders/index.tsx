@@ -23,6 +23,7 @@ import { Input } from '@/shared/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
 import { format } from 'date-fns'
 import { vi } from 'date-fns/locale'
+import { formatDate, formatDateTime } from '@/shared/lib/date-utils'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -451,22 +452,13 @@ const ManagerOrdersPage: React.FC = () => {
     )
   }
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('vi-VN', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    })
+  // Use centralized date formatting utilities
+  const formatDateLocal = (dateString: string) => {
+    return formatDateTime(dateString)
   }
 
   const formatDateOnly = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('vi-VN', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    })
+    return formatDate(dateString)
   }
 
   const fetchOrderDetail = async (orderId: string) => {
@@ -1236,13 +1228,13 @@ const ManagerOrdersPage: React.FC = () => {
                     </div>
                     <div className="flex justify-between">
                       <span className="font-medium">Ngày tạo:</span>
-                      <span>{formatDate(selectedOrderDetail.createdAt)}</span>
+                      <span>{formatDateTime(selectedOrderDetail.createdAt)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="font-medium">Ngày cập nhật:</span>
                       <span>
                         {selectedOrderDetail.updatedAt
-                          ? formatDate(selectedOrderDetail.updatedAt)
+                          ? formatDateTime(selectedOrderDetail.updatedAt)
                           : 'N/A'}
                       </span>
                     </div>
@@ -1300,7 +1292,7 @@ const ManagerOrdersPage: React.FC = () => {
                           <span className="font-medium">Ngày tạo tài khoản:</span>
                           <span className="text-sm">
                             {selectedOrderDetail.customer.createdAt
-                              ? formatDate(selectedOrderDetail.customer.createdAt)
+                              ? formatDateTime(selectedOrderDetail.customer.createdAt)
                               : 'N/A'}
                           </span>
                         </div>
@@ -1308,7 +1300,7 @@ const ManagerOrdersPage: React.FC = () => {
                           <span className="font-medium">Cập nhật lần cuối:</span>
                           <span className="text-sm">
                             {selectedOrderDetail.customer.updatedAt
-                              ? formatDate(selectedOrderDetail.customer.updatedAt)
+                              ? formatDateTime(selectedOrderDetail.customer.updatedAt)
                               : 'N/A'}
                           </span>
                         </div>
@@ -1389,7 +1381,7 @@ const ManagerOrdersPage: React.FC = () => {
                                     <span className="font-medium">Ngày tạo:</span>
                                     <span className="ml-2">
                                       {item.product.createdAt
-                                        ? formatDate(item.product.createdAt)
+                                        ? formatDateTime(item.product.createdAt)
                                         : 'N/A'}
                                     </span>
                                   </div>
@@ -1397,7 +1389,7 @@ const ManagerOrdersPage: React.FC = () => {
                                     <span className="font-medium">Cập nhật:</span>
                                     <span className="ml-2">
                                       {item.product.updatedAt
-                                        ? formatDate(item.product.updatedAt)
+                                        ? formatDateTime(item.product.updatedAt)
                                         : 'N/A'}
                                     </span>
                                   </div>
@@ -1470,7 +1462,7 @@ const ManagerOrdersPage: React.FC = () => {
                             <div className="flex justify-between">
                               <span>Ngày thanh toán:</span>
                               <span>
-                                {payment.createdAt ? formatDate(payment.createdAt) : 'N/A'}
+                                {payment.createdAt ? formatDateTime(payment.createdAt) : 'N/A'}
                               </span>
                             </div>
                           </div>

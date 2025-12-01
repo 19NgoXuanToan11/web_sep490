@@ -258,7 +258,7 @@ const ManagerIoTLogsPage: React.FC = () => {
                     <div>
                         <h1 className="text-3xl font-bold text-gray-900">Nhật ký hệ thống IoT</h1>
                         <p className="text-gray-600 mt-2">
-                            Theo dõi lịch sử đo đạc và đồng bộ trạng thái từ nền tảng Blynk. Dữ liệu tự động cập nhật mỗi {POLLING_INTERVAL / 1000} giây.
+                            Theo dõi lịch sử đo đạc và đồng bộ trạng thái.
                         </p>
                     </div>
                     <div className="flex flex-col sm:flex-row gap-3">

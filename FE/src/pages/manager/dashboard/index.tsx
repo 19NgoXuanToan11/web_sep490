@@ -37,6 +37,7 @@ import { orderService, getOrderStatusLabel, getOrderStatusVariant, type Order } 
 import { feedbackService, type Feedback } from '@/shared/api/feedbackService'
 import { productService } from '@/shared/api/productService'
 import { calculateRevenue, normalizeDateStartOfDay, parseOrderDate } from '@/shared/lib/revenue'
+import { formatDate } from '@/shared/lib/date-utils'
 import { useNavigate } from 'react-router-dom'
 import {
   BarChart,
@@ -522,12 +523,9 @@ export default function ManagerDashboard() {
     return getStatusBadge(order.status ?? 0)
   }
 
+  // Use centralized date formatting utility
   const formatDateOnly = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('vi-VN', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    })
+    return formatDate(dateString)
   }
 
   const dashboardMetrics = useMemo(() => {
@@ -945,11 +943,7 @@ export default function ManagerDashboard() {
                         <p className="text-xs text-gray-500">{weather.cityName}</p>
                         {weather.timeStamp && (
                           <p className="text-xs text-gray-400 mt-1">
-                            {new Date(weather.timeStamp).toLocaleDateString('vi-VN', {
-                              day: '2-digit',
-                              month: '2-digit',
-                              year: 'numeric',
-                            })}
+                            {formatDate(weather.timeStamp)}
                           </p>
                         )}
                       </div>
@@ -1086,9 +1080,7 @@ export default function ManagerDashboard() {
                             </p>
                           </div>
                           <span className="text-xs text-gray-400">
-                            {feedback.createdAt
-                              ? new Date(feedback.createdAt).toLocaleDateString('vi-VN')
-                              : 'Không xác định'}
+                            {formatDate(feedback.createdAt)}
                           </span>
                         </div>
                       </div>

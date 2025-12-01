@@ -14,6 +14,7 @@ import { cropService } from '@/shared/api/cropService'
 import { accountApi } from '@/shared/api/auth'
 import { farmActivityService, type FarmActivity } from '@/shared/api/farmActivityService'
 import { handleFetchError, handleCreateError, handleApiSuccess } from '@/shared/lib/error-handler'
+import { formatDate, formatDateTime } from '@/shared/lib/date-utils'
 
 interface BackendScheduleListProps {
     showCreate?: boolean
@@ -819,8 +820,8 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                         <tbody>
                             {displayItems.map((it, idx) => (
                                 <tr key={idx} className="border-b last:border-0">
-                                    <td className="py-2 pr-3">{it.startDate}</td>
-                                    <td className="py-2 pr-3">{it.endDate}</td>
+                                    <td className="py-2 pr-3">{formatDate(it.startDate)}</td>
+                                    <td className="py-2 pr-3">{formatDate(it.endDate)}</td>
                                     <td className="py-2 pr-3">
                                         <Badge variant={typeof it.status === 'number' && it.status === 1 ? 'success' : 'secondary'}>
                                             {getStatusLabel(it.status)}
@@ -1011,10 +1012,10 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                                 <div>
                                     <h3 className="text-lg font-semibold mb-3">Thông tin cơ bản</h3>
                                     <div className="grid grid-cols-2 gap-4">
-                                        <div><strong>Ngày bắt đầu:</strong> {scheduleDetail.startDate}</div>
-                                        <div><strong>Ngày kết thúc:</strong> {scheduleDetail.endDate}</div>
-                                        <div><strong>Ngày gieo trồng:</strong> {scheduleDetail.plantingDate ?? '-'}</div>
-                                        <div><strong>Ngày thu hoạch:</strong> {scheduleDetail.harvestDate ?? '-'}</div>
+                                        <div><strong>Ngày bắt đầu:</strong> {formatDate(scheduleDetail.startDate)}</div>
+                                        <div><strong>Ngày kết thúc:</strong> {formatDate(scheduleDetail.endDate)}</div>
+                                        <div><strong>Ngày gieo trồng:</strong> {formatDate(scheduleDetail.plantingDate)}</div>
+                                        <div><strong>Ngày thu hoạch:</strong> {formatDate(scheduleDetail.harvestDate)}</div>
                                         <div>
                                             <strong>Trạng thái:</strong>{' '}
                                             <Badge variant={typeof scheduleDetail.status === 'number' && scheduleDetail.status === 1 ? 'success' : 'secondary'}>
@@ -1023,7 +1024,7 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                                         </div>
                                         <div><strong>Thuốc BVTV:</strong> {scheduleDetail.pesticideUsed ? 'Có' : 'Không'}</div>
                                         <div><strong>Tình trạng bệnh:</strong> {getDiseaseLabel(scheduleDetail.diseaseStatus)}</div>
-                                        <div><strong>Tạo lúc:</strong> {scheduleDetail.createdAt ?? '-'}</div>
+                                        <div><strong>Tạo lúc:</strong> {formatDateTime(scheduleDetail.createdAt)}</div>
                                     </div>
                                 </div>
 
@@ -1049,10 +1050,10 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                                             <div><strong>Tên nông trại:</strong> {scheduleDetail.farmView.farmName ?? `#${scheduleDetail.farmView.farmId}`}</div>
                                             <div><strong>Địa điểm:</strong> {scheduleDetail.farmView.location ?? '-'}</div>
                                             {scheduleDetail.farmView.createdAt && (
-                                                <div><strong>Ngày tạo:</strong> {scheduleDetail.farmView.createdAt}</div>
+                                                <div><strong>Ngày tạo:</strong> {formatDate(scheduleDetail.farmView.createdAt)}</div>
                                             )}
                                             {scheduleDetail.farmView.updatedAt && (
-                                                <div><strong>Ngày cập nhật:</strong> {scheduleDetail.farmView.updatedAt}</div>
+                                                <div><strong>Ngày cập nhật:</strong> {formatDate(scheduleDetail.farmView.updatedAt)}</div>
                                             )}
                                         </div>
                                     </div>

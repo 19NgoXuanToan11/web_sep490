@@ -23,6 +23,7 @@ import {
 } from '@/shared/ui/dropdown-menu'
 import { useProductStore } from '../store/productStore'
 import type { Product } from '@/shared/api/productService'
+import { formatDate } from '@/shared/lib/date-utils'
 
 type ProductTableMode = 'manager' | 'staff'
 
@@ -104,10 +105,7 @@ export function ProductTable({
     }).format(price)
   }
 
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return '-'
-    return new Date(dateString).toLocaleDateString('vi-VN')
-  }
+  // Use centralized date formatting utility from date-utils
 
   const getStatusBadge = (status: string) => {
     return status === 'Active' ? (

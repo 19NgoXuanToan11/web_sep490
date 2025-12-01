@@ -599,7 +599,6 @@ const AdminDashboard: React.FC = () => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <BarChart3 className="h-5 w-5" />
                 Tổng quan hoạt động hệ thống
               </CardTitle>
               <CardDescription>So sánh các chỉ số hoạt động chính</CardDescription>
@@ -623,7 +622,6 @@ const AdminDashboard: React.FC = () => {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <ShoppingCart className="h-5 w-5" />
                 Phân bố trạng thái đơn hàng
               </CardTitle>
               <CardDescription>Chi tiết các trạng thái đơn hàng trong hệ thống</CardDescription>

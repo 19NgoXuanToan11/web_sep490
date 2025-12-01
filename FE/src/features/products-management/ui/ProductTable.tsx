@@ -368,11 +368,7 @@ export function ProductTable({
 
       { }
       {totalPages > 1 && (
-        <div className="flex items-center justify-between mt-6">
-          <div className="text-sm text-gray-700">
-            Hiển thị {startItem}-{endItem} trong tổng số {totalCount} sản phẩm
-          </div>
-
+        <div className="flex items-center justify-end mt-6">
           <div className="flex items-center gap-2">
             <Button
               variant="outline"

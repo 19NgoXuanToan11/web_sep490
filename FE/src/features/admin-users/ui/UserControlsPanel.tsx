@@ -41,7 +41,7 @@ export const UserControlsPanel: React.FC<UserControlsPanelProps> = ({ onCreateUs
                             <SelectValue placeholder="Lọc theo vai trò" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="__all__">Tất cả vai trò</SelectItem>
+                            <SelectItem value="__all__">Tất cả</SelectItem>
                             {availableRoles.map(role => (
                                 <SelectItem key={role.value} value={role.value}>
                                     {role.label}
@@ -55,7 +55,7 @@ export const UserControlsPanel: React.FC<UserControlsPanelProps> = ({ onCreateUs
                             <SelectValue placeholder="Trạng thái" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="__all__">Tất cả trạng thái</SelectItem>
+                            <SelectItem value="__all__">Tất cả</SelectItem>
                             {statusOptions.map(status => (
                                 <SelectItem key={status.value} value={status.value}>
                                     {status.label}

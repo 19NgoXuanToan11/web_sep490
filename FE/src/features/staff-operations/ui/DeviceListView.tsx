@@ -128,7 +128,7 @@ export const DeviceListView: React.FC<DeviceListViewProps> = ({
 
   return (
     <div className="space-y-4">
-      {}
+      { }
       {isLoading && devices.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -142,7 +142,7 @@ export const DeviceListView: React.FC<DeviceListViewProps> = ({
         </motion.div>
       )}
 
-      {}
+      { }
       <div className="hidden md:block px-4 py-2">
         <div className="grid grid-cols-12 gap-6 items-center text-xs font-medium text-gray-500 uppercase tracking-wide">
           <div className="col-span-1">
@@ -173,7 +173,7 @@ export const DeviceListView: React.FC<DeviceListViewProps> = ({
         </div>
       </div>
 
-      {}
+      { }
       <div className="space-y-3">
         <AnimatePresence mode="popLayout">
           {devices.map(device => {
@@ -191,16 +191,15 @@ export const DeviceListView: React.FC<DeviceListViewProps> = ({
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.2 }}
-                className={`relative bg-white border-0 rounded-xl hover:shadow-lg transition-all duration-300 ${
-                  isSelected
+                className={`relative bg-white border-0 rounded-xl hover:shadow-lg transition-all duration-300 ${isSelected
                     ? 'shadow-lg ring-2 ring-blue-500 ring-opacity-50'
                     : 'shadow-sm hover:shadow-md'
-                } ${isDeviceLoading ? 'opacity-75' : ''}`}
+                  } ${isDeviceLoading ? 'opacity-75' : ''}`}
                 onClick={e => e.stopPropagation()}
               >
-                {}
+                { }
                 <div className="hidden md:grid grid-cols-12 gap-6 items-center px-6 py-5">
-                  {}
+                  { }
                   <div className="col-span-1">
                     <Checkbox
                       checked={isSelected}
@@ -208,7 +207,7 @@ export const DeviceListView: React.FC<DeviceListViewProps> = ({
                     />
                   </div>
 
-                  {}
+                  { }
                   <div className="col-span-4">
                     <div className="flex items-center gap-4">
                       <div className={`w-2 h-8 rounded-full ${statusConfig.bgColor}`}></div>
@@ -228,7 +227,7 @@ export const DeviceListView: React.FC<DeviceListViewProps> = ({
                     </div>
                   </div>
 
-                  {}
+                  { }
                   <div className="col-span-2">
                     <div className="space-y-2">
                       <Badge
@@ -253,7 +252,7 @@ export const DeviceListView: React.FC<DeviceListViewProps> = ({
                     </div>
                   </div>
 
-                  {}
+                  { }
                   <div className="col-span-2">
                     <div className="space-y-1 text-xs text-gray-600">
                       <div className="flex items-center gap-1">
@@ -262,13 +261,12 @@ export const DeviceListView: React.FC<DeviceListViewProps> = ({
                       </div>
                       <div className="flex items-center gap-1">
                         <div
-                          className={`w-1.5 h-1.5 rounded-full ${
-                            device.uptimePct >= 95
+                          className={`w-1.5 h-1.5 rounded-full ${device.uptimePct >= 95
                               ? 'bg-green-500'
                               : device.uptimePct >= 85
                                 ? 'bg-yellow-500'
                                 : 'bg-red-500'
-                          }`}
+                            }`}
                         ></div>
                         <span>
                           {device.uptimePct >= 95
@@ -281,7 +279,7 @@ export const DeviceListView: React.FC<DeviceListViewProps> = ({
                     </div>
                   </div>
 
-                  {}
+                  { }
                   <div className="col-span-2">
                     <div className="space-y-1 text-xs text-gray-600">
                       <div>
@@ -299,7 +297,7 @@ export const DeviceListView: React.FC<DeviceListViewProps> = ({
                     </div>
                   </div>
 
-                  {}
+                  { }
                   <div className="col-span-1 flex justify-end">
                     <DropdownMenu modal={false}>
                       <DropdownMenuTrigger asChild>
@@ -358,7 +356,7 @@ export const DeviceListView: React.FC<DeviceListViewProps> = ({
                   </div>
                 </div>
 
-                {}
+                { }
                 <div className="md:hidden px-4 py-4">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-3">
@@ -438,7 +436,7 @@ export const DeviceListView: React.FC<DeviceListViewProps> = ({
                     </div>
                   </div>
 
-                  {}
+                  { }
                   <div className="flex items-center justify-between text-xs text-gray-600">
                     <div className="flex items-center gap-4">
                       <span>Hoạt động: {device.uptimePct}%</span>
@@ -459,7 +457,7 @@ export const DeviceListView: React.FC<DeviceListViewProps> = ({
                   </div>
                 </div>
 
-                {}
+                { }
                 {isDeviceLoading && (
                   <div className="absolute inset-0 bg-white bg-opacity-60 flex items-center justify-center rounded-lg">
                     <div className="flex items-center gap-2">
@@ -474,12 +472,9 @@ export const DeviceListView: React.FC<DeviceListViewProps> = ({
         </AnimatePresence>
       </div>
 
-      {}
-      <div className="flex items-center justify-between text-sm text-gray-600 pt-4 border-t">
-        <span>
-          Hiển thị {devices.length} trong tổng số {totalCount} thiết bị
-        </span>
-        {selectedDeviceIds.length > 0 && (
+      { }
+      {selectedDeviceIds.length > 0 && (
+        <div className="flex items-center justify-end text-sm text-gray-600 pt-4 border-t">
           <motion.span
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -487,8 +482,8 @@ export const DeviceListView: React.FC<DeviceListViewProps> = ({
           >
             {selectedDeviceIds.length} đã chọn
           </motion.span>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -419,11 +419,10 @@ export default function StaffDashboard() {
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                         <div>
                             <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-                                <BarChart3 className="h-8 w-8 text-purple-600" />
-                                Dashboard - Tổng quan
+                                Bảng điều khiển 
                             </h1>
                             <p className="mt-2 text-gray-600">
-                                Theo dõi hoạt động kinh doanh và công việc thực địa
+                                Tổng quan hoạt động trong hệ thống
                             </p>
                         </div>
                         <div className="mt-4 sm:mt-0 flex gap-3">
@@ -802,7 +801,7 @@ export default function StaffDashboard() {
                             <div className="flex items-center justify-between">
                                 <CardTitle className="flex items-center gap-2">
                                     <BarChart3 className="h-5 w-5 text-green-600" />
-                                    Sản phẩm theo danh mục
+                                    Danh mục sản phẩm
                                 </CardTitle>
                             </div>
                         </CardHeader>
@@ -833,11 +832,6 @@ export default function StaffDashboard() {
                                                             <span className="text-xs text-gray-500">
                                                                 {stat.count} sản phẩm
                                                             </span>
-                                                            {stat.activeCount > 0 && (
-                                                                <Badge variant="outline" className="text-xs">
-                                                                    {stat.activeCount} hoạt động
-                                                                </Badge>
-                                                            )}
                                                         </div>
                                                     </div>
                                                     <div className="ml-4 text-right">

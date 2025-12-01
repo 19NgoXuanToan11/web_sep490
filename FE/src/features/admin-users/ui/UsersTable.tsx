@@ -289,11 +289,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({
       { }
       {/* Pagination Controls */}
       {totalCount > 0 && (
-        <div className="flex items-center justify-between mt-6">
-          <div className="text-sm text-gray-700">
-            Hiển thị {startItem}-{endItem} trong tổng số {totalCount} người dùng
-          </div>
-
+        <div className="flex items-center justify-end mt-6">
           <div className="flex items-center gap-2">
             <Button
               variant="outline"

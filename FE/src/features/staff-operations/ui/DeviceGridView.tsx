@@ -92,7 +92,7 @@ export const DeviceGridView: React.FC<DeviceGridViewProps> = ({
 
   return (
     <div className="space-y-4">
-      {}
+      { }
       {isLoading && devices.length > 0 && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -106,7 +106,7 @@ export const DeviceGridView: React.FC<DeviceGridViewProps> = ({
         </motion.div>
       )}
 
-      {}
+      { }
       <motion.div
         layout
         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
@@ -133,12 +133,9 @@ export const DeviceGridView: React.FC<DeviceGridViewProps> = ({
         </AnimatePresence>
       </motion.div>
 
-      {}
-      <div className="flex items-center justify-between text-sm text-gray-600 pt-4 border-t">
-        <span>
-          Hiển thị {devices.length} trong tổng số {totalCount} thiết bị
-        </span>
-        {selectedDeviceIds.length > 0 && (
+      { }
+      {selectedDeviceIds.length > 0 && (
+        <div className="flex items-center justify-end text-sm text-gray-600 pt-4 border-t">
           <motion.span
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -146,8 +143,8 @@ export const DeviceGridView: React.FC<DeviceGridViewProps> = ({
           >
             {selectedDeviceIds.length} đã chọn
           </motion.span>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   )
 }

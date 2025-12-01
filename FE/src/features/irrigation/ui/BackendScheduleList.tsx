@@ -918,23 +918,7 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                     </table>
                 </div>
 
-                <div className="flex items-center justify-between flex-wrap gap-4">
-                    <div className="text-sm text-muted-foreground">
-                        {isFiltered ? (
-                            <>
-                                Hiển thị {displayItems.length} / {displayTotal} kết quả (đang lọc theo nhân viên)
-                            </>
-                        ) : (
-                            <>
-                                Hiển thị {((data?.data.pageIndex ?? pageIndex) - 1) * (data?.data.pageSize ?? pageSize) + 1} - {Math.min(
-                                    (data?.data.pageIndex ?? pageIndex) * (data?.data.pageSize ?? pageSize),
-                                    displayTotal
-                                )} / {displayTotal} kết quả
-                                {' • '}
-                                Trang {data?.data.pageIndex ?? pageIndex} / {data?.data.totalPagesCount ?? 1}
-                            </>
-                        )}
-                    </div>
+                <div className="flex items-center justify-end flex-wrap gap-4">
                     {!isFiltered && (
                         <div className="flex items-center gap-2">
                             <Button

@@ -198,7 +198,6 @@ const StaffFeedbacksPage: React.FC = () => {
                         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
                             <div className="flex-1">
                                 <h1 className="text-3xl font-bold text-gray-900 flex items-center">
-                                    <MessageSquare className="h-8 w-8 mr-3 text-purple-600" />
                                     Quản lý đánh giá
                                 </h1>
                                 <p className="mt-1 text-sm text-gray-500">

@@ -504,13 +504,7 @@ const ManagerIoTLogsPage: React.FC = () => {
                     </CardContent>
                     {filteredLogs.length > 0 && (
                         <div className="border-t px-6 py-4">
-                            <div className="flex items-center justify-between">
-                                <div className="text-sm text-gray-700">
-                                    Hiển thị {Math.min((currentPage - 1) * PAGE_SIZE + 1, filteredLogs.length)}-
-                                    {Math.min(currentPage * PAGE_SIZE, filteredLogs.length)} trong tổng số{' '}
-                                    {filteredLogs.length} bản ghi
-                                </div>
-
+                            <div className="flex items-center justify-end">
                                 {totalPages > 1 && (
                                     <div className="flex items-center gap-2">
                                         <Button

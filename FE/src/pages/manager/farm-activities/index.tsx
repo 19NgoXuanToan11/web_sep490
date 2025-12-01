@@ -657,10 +657,7 @@ export default function FarmActivitiesPage() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-4 px-2">
-              <div className="text-sm text-gray-600">
-                Hiển thị {((pageIndex - 1) * pageSize) + 1} - {Math.min(pageIndex * pageSize, totalItems)} trong tổng số {totalItems} hoạt động
-              </div>
+            <div className="flex flex-wrap items-center justify-end gap-4 mt-4 px-2">
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"

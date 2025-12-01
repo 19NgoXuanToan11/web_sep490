@@ -122,7 +122,20 @@ class BlynkService {
     }
 
     const payload = await response.json()
-    return Array.isArray(payload?.data) ? payload.data : []
+
+    if (Array.isArray(payload)) {
+      return payload
+    }
+
+    if (Array.isArray(payload?.data?.items)) {
+      return payload.data.items
+    }
+
+    if (Array.isArray(payload?.data)) {
+      return payload.data
+    }
+
+    return []
   }
 
   async triggerLogsUpdate(): Promise<{ success: boolean; message: string }> {

@@ -133,9 +133,9 @@ export default function FarmActivitiesPage() {
 
       const normalizedActivities = Array.isArray(response.items)
         ? response.items.map(activity => ({
-            ...activity,
-            activityType: normalizeBackendActivityType(activity.activityType),
-          }))
+          ...activity,
+          activityType: normalizeBackendActivityType(activity.activityType),
+        }))
         : []
       setActivities(normalizedActivities)
       setTotalPages(response.totalPagesCount || 1)

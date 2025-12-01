@@ -50,7 +50,6 @@ export const UsersTable: React.FC<UsersTableProps> = ({
   const totalCount = getTotalCount()
   const isLoading = loadingStates['fetch-users']?.isLoading
 
-  // Calculate pagination values
   const currentPage = paginationState.page
   const pageSize = paginationState.pageSize
   const totalPages = Math.ceil(totalCount / pageSize)

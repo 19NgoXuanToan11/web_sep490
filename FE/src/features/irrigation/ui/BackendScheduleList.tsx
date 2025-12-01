@@ -660,7 +660,7 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                                     <SelectTrigger>
                                         <SelectValue placeholder={metaLoading ? 'Đang tải...' : 'Chọn cây trồng'} />
                                     </SelectTrigger>
-                                    <SelectContent>
+                                    <SelectContent className="max-h-56 overflow-y-auto">
                                         {crops.map(c => (
                                             <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
                                         ))}
@@ -1156,7 +1156,7 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                                         <SelectTrigger>
                                             <SelectValue placeholder={metaLoading || editLoading ? 'Đang tải...' : 'Chọn cây trồng'} />
                                         </SelectTrigger>
-                                        <SelectContent>
+                                        <SelectContent className="max-h-56 overflow-y-auto">
                                             {crops.map(c => (
                                                 <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
                                             ))}

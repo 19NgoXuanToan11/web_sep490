@@ -47,7 +47,6 @@ export function ProductTable({
     isLoading,
     currentPage,
     pageSize,
-    totalCount,
     totalPages,
     selectedProductIds,
     toggleProductSelection,
@@ -126,8 +125,6 @@ export function ProductTable({
     return <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">{quantity}</Badge>
   }
 
-  const startItem = (currentPage - 1) * pageSize + 1
-  const endItem = Math.min(currentPage * pageSize, totalCount)
   const hasSelection = !isReadOnly && selectedProductIds.length > 0
 
   if (isLoading) {

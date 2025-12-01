@@ -55,7 +55,6 @@ export const UsersTable: React.FC<UsersTableProps> = ({
   const pageSize = paginationState.pageSize
   const totalPages = Math.ceil(totalCount / pageSize)
   const startItem = totalCount === 0 ? 0 : (currentPage - 1) * pageSize + 1
-  const endItem = Math.min(currentPage * pageSize, totalCount)
 
   const handleSort = (column: string) => {
     const newOrder =

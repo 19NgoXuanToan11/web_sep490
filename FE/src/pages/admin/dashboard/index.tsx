@@ -1,12 +1,6 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import {
-  ShoppingCart,
-  Activity,
-  RefreshCw,
-  Loader2,
-  BarChart3,
-} from 'lucide-react'
+import { Activity, RefreshCw, Loader2 } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card'
 import { AdminLayout } from '@/shared/layouts/AdminLayout'
@@ -112,17 +106,6 @@ const AdminDashboard: React.FC = () => {
 
     return Math.max(0, Math.min(100, Math.round(healthScore)))
   }, [])
-
-  const formatTimeAgo = (date: Date): string => {
-    const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000)
-    if (seconds < 60) return 'Vừa xong'
-    const minutes = Math.floor(seconds / 60)
-    if (minutes < 60) return `${minutes} phút trước`
-    const hours = Math.floor(minutes / 60)
-    if (hours < 24) return `${hours} giờ trước`
-    const days = Math.floor(hours / 24)
-    return `${days} ngày trước`
-  }
 
   const fetchDashboardData = useCallback(async () => {
     try {

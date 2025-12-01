@@ -2,7 +2,7 @@
 import { Button } from '@/shared/ui/button'
 import { useToast } from '@/shared/ui/use-toast'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card'
-import { RefreshCw, Package, AlertTriangle } from 'lucide-react'
+import { RefreshCw, Package } from 'lucide-react'
 import { StaffLayout } from '@/shared/layouts/StaffLayout'
 import { ProductTable } from '@/features/products-management/ui/ProductTable'
 import { ProductFilters } from '@/features/products-management/ui/ProductFilters'

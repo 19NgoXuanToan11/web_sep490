@@ -34,7 +34,6 @@ export default function FarmActivitiesPage() {
   // Pagination state
   const [pageIndex, setPageIndex] = useState(1)
   const [pageSize, setPageSize] = useState(10)
-  const [totalItems, setTotalItems] = useState(0)
   const [totalPages, setTotalPages] = useState(0)
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
@@ -146,7 +145,6 @@ export default function FarmActivitiesPage() {
         }))
         : []
       setActivities(normalizedActivities)
-      setTotalItems(response.totalItemCount || 0)
       setTotalPages(response.totalPagesCount || 1)
     } catch (error: any) {
       setActivities([])

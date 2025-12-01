@@ -90,7 +90,6 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
     const [editLoading, setEditLoading] = useState(false)
     const todayString = useMemo(() => new Date().toISOString().split('T')[0], [])
     const displayItems = filteredItems ?? data?.data.items ?? []
-    const displayTotal = filteredItems ? filteredItems.length : data?.data.totalItemCount ?? 0
     const isFiltered = filteredItems !== null
 
     const translateActivityType = useCallback((type: string) => {

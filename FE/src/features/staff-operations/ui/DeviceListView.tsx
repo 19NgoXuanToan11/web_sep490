@@ -36,16 +36,10 @@ export const DeviceListView: React.FC<DeviceListViewProps> = ({
   onDeviceAction,
   onDeviceSelect,
 }) => {
-  const {
-    selectedDeviceIds,
-    loadingStates,
-    getPaginatedDevices,
-    getTotalCount,
-    toggleDeviceSelection,
-  } = useStaffOperationsStore()
+  const { selectedDeviceIds, loadingStates, getPaginatedDevices, toggleDeviceSelection } =
+    useStaffOperationsStore()
 
   const devices = getPaginatedDevices()
-  const totalCount = getTotalCount()
   const isLoading = loadingStates['refresh-all-devices']?.isLoading
 
   const handleDeviceAction = (deviceId: string, action: string) => {
@@ -192,8 +186,8 @@ export const DeviceListView: React.FC<DeviceListViewProps> = ({
                 exit={{ opacity: 0, y: -20 }}
                 transition={{ duration: 0.2 }}
                 className={`relative bg-white border-0 rounded-xl hover:shadow-lg transition-all duration-300 ${isSelected
-                    ? 'shadow-lg ring-2 ring-blue-500 ring-opacity-50'
-                    : 'shadow-sm hover:shadow-md'
+                  ? 'shadow-lg ring-2 ring-blue-500 ring-opacity-50'
+                  : 'shadow-sm hover:shadow-md'
                   } ${isDeviceLoading ? 'opacity-75' : ''}`}
                 onClick={e => e.stopPropagation()}
               >
@@ -262,10 +256,10 @@ export const DeviceListView: React.FC<DeviceListViewProps> = ({
                       <div className="flex items-center gap-1">
                         <div
                           className={`w-1.5 h-1.5 rounded-full ${device.uptimePct >= 95
-                              ? 'bg-green-500'
-                              : device.uptimePct >= 85
-                                ? 'bg-yellow-500'
-                                : 'bg-red-500'
+                            ? 'bg-green-500'
+                            : device.uptimePct >= 85
+                              ? 'bg-yellow-500'
+                              : 'bg-red-500'
                             }`}
                         ></div>
                         <span>

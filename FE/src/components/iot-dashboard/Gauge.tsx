@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 
+type GaugeTrend = 'up' | 'down' | 'stable'
+
 interface GaugeProps {
   value: number
   min?: number
@@ -12,6 +14,7 @@ interface GaugeProps {
   isLoading?: boolean
   dataQuality?: 'good' | 'poor' | 'error'
   lastUpdated?: Date
+  trend?: GaugeTrend
 }
 
 const Gauge: React.FC<GaugeProps> = ({
@@ -25,6 +28,7 @@ const Gauge: React.FC<GaugeProps> = ({
   isLoading = false,
   dataQuality = 'good',
   lastUpdated,
+  trend,
 }) => {
   const [animatedValue, setAnimatedValue] = useState(min)
   const [previousValue, setPreviousValue] = useState(min)
@@ -125,10 +129,10 @@ const Gauge: React.FC<GaugeProps> = ({
             >
               <div
                 className={`text-3xl font-bold mb-1 ${dataQuality === 'error'
-                    ? 'text-red-600'
-                    : dataQuality === 'poor'
-                      ? 'text-yellow-600'
-                      : 'text-gray-900'
+                  ? 'text-red-600'
+                  : dataQuality === 'poor'
+                    ? 'text-yellow-600'
+                    : 'text-gray-900'
                   }`}
               >
                 {isLoading ? '...' : animatedValue.toFixed(1)}
@@ -138,10 +142,10 @@ const Gauge: React.FC<GaugeProps> = ({
               {!isLoading && previousValue !== animatedValue && (
                 <div
                   className={`text-xs mt-1 ${animatedValue > previousValue
-                      ? 'text-green-600'
-                      : animatedValue < previousValue
-                        ? 'text-red-600'
-                        : 'text-gray-500'
+                    ? 'text-green-600'
+                    : animatedValue < previousValue
+                      ? 'text-red-600'
+                      : 'text-gray-500'
                     }`}
                 >
                   {animatedValue > previousValue ? '+' : ''}
@@ -170,6 +174,20 @@ const Gauge: React.FC<GaugeProps> = ({
 
       { }
       <div className="w-full mt-4 px-4">
+        {trend && (
+          <div
+            className={`text-sm font-medium text-center ${trend === 'up'
+                ? 'text-green-600'
+                : trend === 'down'
+                  ? 'text-red-600'
+                  : 'text-gray-500'
+              }`}
+          >
+            {trend === 'up' && '↑ Xu hướng tăng'}
+            {trend === 'down' && '↓ Xu hướng giảm'}
+            {trend === 'stable' && '→ Ổn định'}
+          </div>
+        )}
         {lastUpdated && (
           <div className="text-center">
             <span className="text-xs text-gray-400">

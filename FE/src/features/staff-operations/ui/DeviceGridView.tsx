@@ -14,16 +14,10 @@ export const DeviceGridView: React.FC<DeviceGridViewProps> = ({
   onDeviceAction,
   onDeviceSelect,
 }) => {
-  const {
-    selectedDeviceIds,
-    loadingStates,
-    getPaginatedDevices,
-    getTotalCount,
-    toggleDeviceSelection,
-  } = useStaffOperationsStore()
+  const { selectedDeviceIds, loadingStates, getPaginatedDevices, toggleDeviceSelection } =
+    useStaffOperationsStore()
 
   const devices = getPaginatedDevices()
-  const totalCount = getTotalCount()
   const isLoading = loadingStates['refresh-all-devices']?.isLoading
 
   const handleDeviceAction = (deviceId: string, action: string) => {

@@ -6,39 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
 import { Button } from '@/shared/ui/button'
 import { Badge } from '@/shared/ui/badge'
 import { Input } from '@/shared/ui/input'
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/shared/ui/select'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
 import { RefreshCw, History, Play, Pause, Download } from 'lucide-react'
 import { Pagination } from '@/shared/ui/pagination'
-
-type TimeFilter = '24h' | '7d' | '30d' | 'all'
-
-const timeFilterOptions: { label: string; value: TimeFilter }[] = [
-    { label: '24 giờ', value: '24h' },
-    { label: '7 ngày', value: '7d' },
-    { label: '30 ngày', value: '30d' },
-    { label: 'Tất cả', value: 'all' },
-]
-
-const getDateThreshold = (filter: TimeFilter) => {
-    const now = new Date()
-    switch (filter) {
-        case '24h':
-            return new Date(now.getTime() - 24 * 60 * 60 * 1000)
-        case '7d':
-            return new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-        case '30d':
-            return new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000)
-        default:
-            return null
-    }
-}
 
 const formatSensorValue = (value: number) => {
     if (Number.isNaN(value)) return '--'
@@ -54,7 +25,6 @@ const ManagerIoTLogsPage: React.FC = () => {
     const [loading, setLoading] = useState(false)
     const [syncing, setSyncing] = useState(false)
     const [sensorFilter, setSensorFilter] = useState<string>('all')
-    const [timeFilter, setTimeFilter] = useState<TimeFilter>('24h')
     const [searchQuery, setSearchQuery] = useState('')
     const [autoRefresh, setAutoRefresh] = useState(true)
     const [lastRefreshTime, setLastRefreshTime] = useState<Date | null>(null)
@@ -150,13 +120,8 @@ const ManagerIoTLogsPage: React.FC = () => {
     }, [logs])
 
     const filteredLogs = useMemo(() => {
-        const threshold = getDateThreshold(timeFilter)
         return logs
             .filter(log => (sensorFilter === 'all' ? true : log.sensorName === sensorFilter))
-            .filter(log => {
-                if (!threshold) return true
-                return new Date(log.timestamp) >= threshold
-            })
             .filter(log => {
                 if (!searchQuery) return true
                 const text = `${log.sensorName} ${log.variableId} ${log.devicesId}`
@@ -166,7 +131,7 @@ const ManagerIoTLogsPage: React.FC = () => {
                 (a, b) =>
                     new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
             )
-    }, [logs, sensorFilter, timeFilter, searchQuery])
+    }, [logs, sensorFilter, searchQuery])
 
     // Calculate pagination
     const totalPages = useMemo(() => {
@@ -190,7 +155,7 @@ const ManagerIoTLogsPage: React.FC = () => {
     // Reset to page 1 when filters change
     useEffect(() => {
         setCurrentPage(1)
-    }, [sensorFilter, timeFilter, searchQuery])
+    }, [sensorFilter, searchQuery])
 
     const latestTimestamp = useMemo(() => {
         if (logs.length === 0) return null
@@ -388,7 +353,7 @@ const ManagerIoTLogsPage: React.FC = () => {
                     <CardHeader>
                         <CardTitle>Bộ lọc & tìm kiếm</CardTitle>
                     </CardHeader>
-                    <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                    <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                         <div className="space-y-2">
                             <label className="text-sm text-gray-600">Cảm biến</label>
                             <Select value={sensorFilter} onValueChange={setSensorFilter}>
@@ -400,22 +365,6 @@ const ManagerIoTLogsPage: React.FC = () => {
                                     {sensors.map(sensor => (
                                         <SelectItem key={sensor} value={sensor}>
                                             {sensor}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        <div className="space-y-2">
-                            <label className="text-sm text-gray-600">Khoảng thời gian</label>
-                            <Select value={timeFilter} onValueChange={value => setTimeFilter(value as TimeFilter)}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Chọn khoảng thời gian" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {timeFilterOptions.map(option => (
-                                        <SelectItem key={option.value} value={option.value}>
-                                            {option.label}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
@@ -451,7 +400,6 @@ const ManagerIoTLogsPage: React.FC = () => {
                                 <TableRow>
                                     <TableHead className="w-16">STT</TableHead>
                                     <TableHead>Cảm biến</TableHead>
-                                    <TableHead>Thiết bị</TableHead>
                                     <TableHead>Giá trị</TableHead>
                                     <TableHead>Thời gian</TableHead>
                                     <TableHead>Virtual Pin</TableHead>
@@ -460,7 +408,7 @@ const ManagerIoTLogsPage: React.FC = () => {
                             <TableBody>
                                 {loading ? (
                                     <TableRow>
-                                        <TableCell colSpan={6} className="py-10 text-center text-gray-500">
+                                        <TableCell colSpan={5} className="py-10 text-center text-gray-500">
                                             <div className="flex items-center justify-center gap-2">
                                                 <RefreshCw className="h-4 w-4 animate-spin" />
                                                 Đang tải dữ liệu nhật ký...
@@ -469,7 +417,7 @@ const ManagerIoTLogsPage: React.FC = () => {
                                     </TableRow>
                                 ) : filteredLogs.length === 0 ? (
                                     <TableRow>
-                                        <TableCell colSpan={6} className="py-10 text-center text-gray-500">
+                                        <TableCell colSpan={5} className="py-10 text-center text-gray-500">
                                             Không có bản ghi phù hợp với bộ lọc hiện tại.
                                         </TableCell>
                                     </TableRow>
@@ -480,9 +428,6 @@ const ManagerIoTLogsPage: React.FC = () => {
                                             <TableRow key={`${log.iotLogId || log.variableId}-${log.timestamp}`}>
                                                 <TableCell className="text-center">{ordinalNumber}</TableCell>
                                                 <TableCell className="font-semibold">{log.sensorName}</TableCell>
-                                                <TableCell>
-                                                    <span className="text-sm text-gray-700">Thiết bị #{log.devicesId}</span>
-                                                </TableCell>
                                                 <TableCell>
                                                     <Badge variant="secondary" className="text-base">
                                                         {formatSensorValue(Number(log.value))}

@@ -288,7 +288,7 @@ export default function CategoriesPage() {
                   <TableHeader>
                     <TableRow>
                       <TableHead className="w-16">STT</TableHead>
-                      <TableHead>Tên</TableHead>
+                      <TableHead>Tên danh mục</TableHead>
                       <TableHead className="text-right">Thao tác</TableHead>
                     </TableRow>
                   </TableHeader>

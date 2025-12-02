@@ -1,15 +1,5 @@
 import React from 'react'
-import {
-  Users,
-  MoreHorizontal,
-  Edit,
-  ArrowUpDown,
-  ArrowUp,
-  ArrowDown,
-  Key,
-  Eye,
-  RefreshCw,
-} from 'lucide-react'
+import { Users, MoreHorizontal, Edit, ArrowUpDown, ArrowUp, ArrowDown, Key, Eye } from 'lucide-react'
 import { Badge } from '@/shared/ui/badge'
 import { Button } from '@/shared/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'

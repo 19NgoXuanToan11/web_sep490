@@ -1145,17 +1145,18 @@ const ManagerOrdersPage: React.FC = () => {
                       </div>
                       <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                         <span className="font-medium">Trạng thái tài khoản:</span>
-                        <Badge
-                          variant={
-                            selectedOrderDetail.customer.status === 1 ||
-                            selectedOrderDetail.customer.status === 'active'
-                              ? 'default'
-                              : 'secondary'
-                          }
-                          className="w-fit"
-                        >
-                          {selectedOrderDetail.customer.status ?? 'N/A'}
-                        </Badge>
+                        {(() => {
+                          const statusValue = selectedOrderDetail.customer.status
+                          const isActive =
+                            statusValue === 1 ||
+                            String(statusValue).toLowerCase() === 'active'
+
+                          return (
+                            <Badge variant={isActive ? 'default' : 'secondary'} className="w-fit">
+                              {statusValue ?? 'N/A'}
+                            </Badge>
+                          )
+                        })()}
                       </div>
                       <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                         <span className="font-medium">Ngày tạo tài khoản:</span>

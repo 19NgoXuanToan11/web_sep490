@@ -35,7 +35,7 @@ export default function FarmActivitiesPage() {
 
   // Pagination state
   const [pageIndex, setPageIndex] = useState(1)
-  const [pageSize, setPageSize] = useState(10)
+  const pageSize = 10
   const [totalPages, setTotalPages] = useState(0)
 
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
@@ -151,7 +151,7 @@ export default function FarmActivitiesPage() {
     } finally {
       setLoading(false)
     }
-  }, [pageIndex, pageSize, statusFilter, activityTypeFilter, toast])
+  }, [pageIndex, statusFilter, activityTypeFilter, toast])
 
   const loadActivityStats = useCallback(async () => {
     try {

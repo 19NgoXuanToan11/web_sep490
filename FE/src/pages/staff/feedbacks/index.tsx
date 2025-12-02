@@ -27,7 +27,6 @@ import { Tabs, TabsList, TabsTrigger } from '@/shared/ui/tabs'
 import { StaffLayout } from '@/shared/layouts/StaffLayout'
 import { useToast } from '@/shared/ui/use-toast'
 import { feedbackService, type Feedback } from '@/shared/api/feedbackService'
-import { Pagination } from '@/shared/ui/pagination'
 import { ManagementPageHeader } from '@/shared/ui/management-page-header'
 
 const StaffFeedbacksPage: React.FC = () => {

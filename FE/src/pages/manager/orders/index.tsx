@@ -1147,9 +1147,12 @@ const ManagerOrdersPage: React.FC = () => {
                         <span className="font-medium">Trạng thái tài khoản:</span>
                         {(() => {
                           const statusValue = selectedOrderDetail.customer.status
+                          const normalizedStatus =
+                            typeof statusValue === 'string'
+                              ? statusValue.toLowerCase()
+                              : String(statusValue ?? '').toLowerCase()
                           const isActive =
-                            statusValue === 1 ||
-                            String(statusValue).toLowerCase() === 'active'
+                            normalizedStatus === '1' || normalizedStatus === 'active'
 
                           return (
                             <Badge variant={isActive ? 'default' : 'secondary'} className="w-fit">

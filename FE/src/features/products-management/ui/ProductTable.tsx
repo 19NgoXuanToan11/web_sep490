@@ -23,7 +23,6 @@ import {
 } from '@/shared/ui/dropdown-menu'
 import { useProductStore } from '../store/productStore'
 import type { Product } from '@/shared/api/productService'
-import { formatDate } from '@/shared/lib/date-utils'
 
 type ProductTableMode = 'manager' | 'staff'
 
@@ -36,14 +35,10 @@ const formatPrice = (price: number) => currencyFormatter.format(price)
 
 const getStatusBadge = (status: string) => {
   if (status === 'Active') {
-    return <Badge className="bg-green-100 text-green-800 hover:bg-green-100">Hoạt động</Badge>
+    return <Badge variant="default">Hoạt động</Badge>
   }
 
-  return (
-    <Badge variant="outline" className="text-gray-600">
-      Vô hiệu
-    </Badge>
-  )
+  return <Badge variant="secondary">Vô hiệu</Badge>
 }
 
 const getQuantityBadge = (quantity: number) => {
@@ -52,10 +47,10 @@ const getQuantityBadge = (quantity: number) => {
   }
 
   if (quantity < 10) {
-    return <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100">Sắp hết</Badge>
+    return <Badge variant="warning">Sắp hết</Badge>
   }
 
-  return <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">{quantity}</Badge>
+  return <Badge variant="secondary">{quantity}</Badge>
 }
 
 interface ProductRowProps {
@@ -87,7 +82,7 @@ const ProductRow = React.memo(
     setOpenDropdownId,
   }: ProductRowProps) => {
     return (
-      <TableRow key={product.productId} className={`hover:bg-gray-50 ${isSelected ? 'bg-blue-50' : ''}`}>
+      <TableRow key={product.productId} className={`hover:bg-gray-50 ${isSelected ? 'bg-green-50' : ''}`}>
         <TableCell className="text-center">{ordinalNumber}</TableCell>
         {!isReadOnly && (
           <TableCell>
@@ -118,9 +113,6 @@ const ProductRow = React.memo(
         </TableCell>
 
         <TableCell>
-          <span className="text-sm">{product.categoryName || 'Chưa phân loại'}</span>
-        </TableCell>
-        <TableCell>
           <span className="text-sm">{product.cropName || '-'}</span>
         </TableCell>
 
@@ -130,14 +122,7 @@ const ProductRow = React.memo(
 
         <TableCell className="text-center">
           {isReadOnly ? (
-            <div className="flex flex-col items-center gap-1">
-              {product.status === 'Active' ? (
-                <ToggleRight className="h-5 w-5 text-green-500" />
-              ) : (
-                <ToggleLeft className="h-5 w-5 text-gray-400" />
-              )}
-              {getStatusBadge(product.status)}
-            </div>
+            <div className="flex justify-center">{getStatusBadge(product.status)}</div>
           ) : (
             <>
               <button onClick={() => onToggleStatus(product)} className="inline-flex items-center">
@@ -151,8 +136,6 @@ const ProductRow = React.memo(
             </>
           )}
         </TableCell>
-
-        <TableCell className="text-sm text-gray-500">{formatDate(product.updatedAt)}</TableCell>
 
         {!isReadOnly && (
           <TableCell>
@@ -206,7 +189,7 @@ const ProductRow = React.memo(
 
         {isReadOnly && (
           <TableCell className="text-center">
-            <Button variant="ghost" size="sm" onClick={() => onViewProduct?.(product)} className="text-blue-600">
+            <Button variant="ghost" size="sm" onClick={() => onViewProduct?.(product)} className="text-green-600">
               <Eye className="h-4 w-4 mr-2" />
               Xem
             </Button>
@@ -339,8 +322,8 @@ export function ProductTable({
   return (
     <div className={className}>
       {!isReadOnly && hasSelection && (
-        <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between">
-          <span className="text-sm text-blue-700">
+        <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg flex items-center justify-between">
+          <span className="text-sm text-green-700">
             Đã chọn {selectedProductIds.length} sản phẩm
           </span>
           <Button variant="ghost" size="sm" onClick={clearSelection}>
@@ -371,12 +354,10 @@ export function ProductTable({
                   Sản phẩm
                 </div>
               </TableHead>
-              <TableHead className="font-semibold">Danh mục</TableHead>
               <TableHead className="font-semibold">Mùa vụ</TableHead>
               <TableHead className="font-semibold text-center">Giá</TableHead>
               <TableHead className="font-semibold text-center">Số lượng</TableHead>
               <TableHead className="font-semibold text-center">Trạng thái</TableHead>
-              <TableHead className="font-semibold">Cập nhật</TableHead>
               {!isReadOnly && <TableHead className="w-16"></TableHead>}
               {isReadOnly && (
                 <TableHead className="w-24 text-center font-semibold">Chi tiết</TableHead>

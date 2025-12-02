@@ -49,9 +49,9 @@ export const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({
 
     const getStatusBadge = (status: number) => {
         if (status === 1) {
-            return <Badge className="bg-green-100 text-green-800 border-green-200">Hoạt động</Badge>
+            return <Badge variant="default">Hoạt động</Badge>
         }
-        return <Badge className="bg-gray-100 text-gray-800 border-gray-200">Không xác định</Badge>
+        return <Badge variant="secondary">Không xác định</Badge>
     }
 
     const getStatusIcon = (status: number) => {

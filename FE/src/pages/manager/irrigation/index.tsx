@@ -6,6 +6,7 @@ import { Button } from '@/shared/ui/button'
 import { Card, CardContent } from '@/shared/ui/card'
 import { scheduleService, type PaginatedSchedules } from '@/shared/api/scheduleService'
 import { useToast } from '@/shared/ui/use-toast'
+import { ManagementPageHeader } from '@/shared/ui/management-page-header'
 
 export default function IrrigationPage() {
   const selectedTab = 'calendar'
@@ -69,15 +70,15 @@ export default function IrrigationPage() {
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="space-y-8">
           { }
-          <div>
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">Quản lý tưới nước</h1>
-                <p>Quản lý và lập lịch tưới nước</p>
-              </div>
-              <Button size="sm" onClick={() => setShowCreate(true)}>Tạo lịch mới</Button>
-            </div>
-          </div>
+          <ManagementPageHeader
+            title="Quản lý lịch tưới"
+            description="Quản lý và lập lịch tưới nước"
+            actions={
+              <Button size="sm" onClick={() => setShowCreate(true)}>
+                Tạo lịch mới
+              </Button>
+            }
+          />
 
           { }
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

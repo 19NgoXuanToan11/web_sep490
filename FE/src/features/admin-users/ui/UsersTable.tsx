@@ -8,8 +8,7 @@ import {
   ArrowDown,
   Key,
   Eye,
-  ChevronLeft,
-  ChevronRight,
+  RefreshCw,
 } from 'lucide-react'
 import { Badge } from '@/shared/ui/badge'
 import { Button } from '@/shared/ui/button'
@@ -24,6 +23,7 @@ import { Skeleton } from '@/shared/ui/skeleton'
 import { useAdminUsersStore } from '../store/adminUsersStore'
 import { statusOptions, availableRoles } from '../model/schemas'
 import type { User } from '@/shared/lib/localData'
+import { Pagination } from '@/shared/ui/pagination'
 
 interface UsersTableProps {
   onEditUser?: (user: User) => void
@@ -240,7 +240,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({
                             }}
                             className="cursor-pointer focus:bg-gray-100"
                           >
-                            <Eye className="h-4 w-4 mr-2 text-blue-600" />
+                            <Eye className="h-4 w-4 mr-2 text-green-600" />
                             Xem chi tiết
                           </DropdownMenuItem>
                           <DropdownMenuItem
@@ -288,101 +288,12 @@ export const UsersTable: React.FC<UsersTableProps> = ({
       {/* Pagination Controls */}
       {totalCount > 0 && (
         <div className="flex items-center justify-end mt-6">
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPagination(currentPage - 1)}
-              disabled={currentPage === 1 || isLoading}
-            >
-              <ChevronLeft className="h-4 w-4" />
-              Trước
-            </Button>
-
-            <div className="flex items-center gap-1">
-              {(() => {
-                const pages = []
-                const maxVisiblePages = 5
-                let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2))
-                const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1)
-
-                if (endPage - startPage < maxVisiblePages - 1) {
-                  startPage = Math.max(1, endPage - maxVisiblePages + 1)
-                }
-
-                if (startPage > 1) {
-                  pages.push(
-                    <Button
-                      key={1}
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setPagination(1)}
-                      disabled={isLoading}
-                      className="w-10"
-                    >
-                      1
-                    </Button>
-                  )
-                  if (startPage > 2) {
-                    pages.push(
-                      <span key="ellipsis-start" className="px-2 text-gray-500">
-                        ...
-                      </span>
-                    )
-                  }
-                }
-
-                for (let i = startPage; i <= endPage; i++) {
-                  pages.push(
-                    <Button
-                      key={i}
-                      variant={currentPage === i ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => setPagination(i)}
-                      disabled={isLoading}
-                      className="w-10"
-                    >
-                      {i}
-                    </Button>
-                  )
-                }
-
-                if (endPage < totalPages) {
-                  if (endPage < totalPages - 1) {
-                    pages.push(
-                      <span key="ellipsis-end" className="px-2 text-gray-500">
-                        ...
-                      </span>
-                    )
-                  }
-                  pages.push(
-                    <Button
-                      key={totalPages}
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setPagination(totalPages)}
-                      disabled={isLoading}
-                      className="w-10"
-                    >
-                      {totalPages}
-                    </Button>
-                  )
-                }
-
-                return pages
-              })()}
-            </div>
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setPagination(currentPage + 1)}
-              disabled={currentPage === totalPages || isLoading}
-            >
-              Sau
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setPagination}
+            disabled={isLoading}
+          />
         </div>
       )}
     </div>

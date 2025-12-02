@@ -11,6 +11,7 @@ import {
 } from '@/features/admin-users'
 import type { User } from '@/shared/lib/localData'
 import { accountApi, type AccountDto } from '@/shared/api/auth'
+import { ManagementPageHeader } from '@/shared/ui/management-page-header'
 
 const AdminUsersPage: React.FC = () => {
   const { initializeData } = useAdminUsersStore()
@@ -99,24 +100,21 @@ const AdminUsersPage: React.FC = () => {
   return (
     <AdminLayout>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        { }
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Quản lý người dùng</h1>
-            <p className="text-gray-600">Quản lý người dùng hệ thống, vai trò và phân quyền</p>
-          </div>
-
-          <div className="flex items-center gap-2" />
-        </div>
+        <ManagementPageHeader
+          className="mb-6"
+          title="Quản lý người dùng"
+          description="Quản lý người dùng hệ thống, vai trò và phân quyền"
+        />
 
         { }
         <div className="grid gap-4 mb-6 md:grid-cols-2 lg:grid-cols-4">
-          <Card>
+          <Card className="relative overflow-hidden border-0 shadow-lg bg-white">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 to-green-600" />
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-500">Tổng người dùng</p>
-                  <p className="text-2xl font-semibold mt-1">{stats.total}</p>
+                  <p className="text-sm text-gray-600 font-medium">Tổng người dùng</p>
+                  <p className="text-2xl font-bold text-gray-900 mt-1">{stats.total}</p>
                 </div>
               </div>
               <p className="text-xs text-gray-500 mt-2">
@@ -125,12 +123,15 @@ const AdminUsersPage: React.FC = () => {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="relative overflow-hidden border-0 shadow-lg bg-white">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 to-green-600" />
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-500">Đang hoạt động</p>
-                  <p className="text-2xl font-semibold mt-1 text-green-600">{stats.active}</p>
+                  <p className="text-sm text-gray-600 font-medium">Đang hoạt động</p>
+                  <p className="text-2xl font-bold text-gray-900 mt-1">
+                    <span className="text-green-600">{stats.active}</span>
+                  </p>
                 </div>
               </div>
               <p className="text-xs text-gray-500 mt-2">
@@ -139,12 +140,13 @@ const AdminUsersPage: React.FC = () => {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="relative overflow-hidden border-0 shadow-lg bg-white">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-gray-400 to-gray-500" />
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-500">Bị vô hiệu hóa</p>
-                  <p className="text-2xl font-semibold mt-1 text-gray-700">{stats.inactive}</p>
+                  <p className="text-sm text-gray-600 font-medium">Bị vô hiệu hóa</p>
+                  <p className="text-2xl font-bold text-gray-700 mt-1">{stats.inactive}</p>
                 </div>
               </div>
               <p className="text-xs text-gray-500 mt-2">
@@ -153,12 +155,13 @@ const AdminUsersPage: React.FC = () => {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="relative overflow-hidden border-0 shadow-lg bg-white">
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 to-green-600" />
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-500">Vai trò</p>
-                  <p className="text-sm mt-1 text-gray-800">
+                  <p className="text-sm text-gray-600 font-medium">Vai trò</p>
+                  <p className="text-sm font-semibold mt-1 text-gray-900">
                     {stats.customers} khách hàng • {stats.managers} quản lý • {stats.staffs} nhân viên
                   </p>
                 </div>

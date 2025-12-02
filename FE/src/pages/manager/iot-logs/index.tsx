@@ -14,7 +14,8 @@ import {
     SelectValue,
 } from '@/shared/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
-import { RefreshCw, History, Play, Pause, ChevronLeft, ChevronRight, Download } from 'lucide-react'
+import { RefreshCw, History, Play, Pause, Download } from 'lucide-react'
+import { Pagination } from '@/shared/ui/pagination'
 
 type TimeFilter = '24h' | '7d' | '30d' | 'all'
 
@@ -504,105 +505,12 @@ const ManagerIoTLogsPage: React.FC = () => {
                     </CardContent>
                     {filteredLogs.length > 0 && (
                         <div className="border-t px-6 py-4">
-                            <div className="flex items-center justify-end">
-                                {totalPages > 1 && (
-                                    <div className="flex items-center gap-2">
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                                            disabled={currentPage === 1 || loading}
-                                        >
-                                            <ChevronLeft className="h-4 w-4" />
-                                            Trước
-                                        </Button>
-
-                                        <div className="flex items-center gap-1">
-                                            {(() => {
-                                                const pages = []
-                                                const maxVisiblePages = 5
-                                                let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2))
-                                                const endPage = Math.min(totalPages, startPage + maxVisiblePages - 1)
-
-                                                if (endPage - startPage < maxVisiblePages - 1) {
-                                                    startPage = Math.max(1, endPage - maxVisiblePages + 1)
-                                                }
-
-                                                if (startPage > 1) {
-                                                    pages.push(
-                                                        <Button
-                                                            key={1}
-                                                            variant="outline"
-                                                            size="sm"
-                                                            onClick={() => setCurrentPage(1)}
-                                                            disabled={loading}
-                                                            className="w-10"
-                                                        >
-                                                            1
-                                                        </Button>
-                                                    )
-                                                    if (startPage > 2) {
-                                                        pages.push(
-                                                            <span key="ellipsis-start" className="px-2 text-gray-500">
-                                                                ...
-                                                            </span>
-                                                        )
-                                                    }
-                                                }
-
-                                                for (let i = startPage; i <= endPage; i++) {
-                                                    pages.push(
-                                                        <Button
-                                                            key={i}
-                                                            variant={currentPage === i ? 'default' : 'outline'}
-                                                            size="sm"
-                                                            onClick={() => setCurrentPage(i)}
-                                                            disabled={loading}
-                                                            className="w-10"
-                                                        >
-                                                            {i}
-                                                        </Button>
-                                                    )
-                                                }
-
-                                                if (endPage < totalPages) {
-                                                    if (endPage < totalPages - 1) {
-                                                        pages.push(
-                                                            <span key="ellipsis-end" className="px-2 text-gray-500">
-                                                                ...
-                                                            </span>
-                                                        )
-                                                    }
-                                                    pages.push(
-                                                        <Button
-                                                            key={totalPages}
-                                                            variant="outline"
-                                                            size="sm"
-                                                            onClick={() => setCurrentPage(totalPages)}
-                                                            disabled={loading}
-                                                            className="w-10"
-                                                        >
-                                                            {totalPages}
-                                                        </Button>
-                                                    )
-                                                }
-
-                                                return pages
-                                            })()}
-                                        </div>
-
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                                            disabled={currentPage === totalPages || loading}
-                                        >
-                                            Sau
-                                            <ChevronRight className="h-4 w-4" />
-                                        </Button>
-                                    </div>
-                                )}
-                            </div>
+                            <Pagination
+                                currentPage={currentPage}
+                                totalPages={totalPages}
+                                onPageChange={setCurrentPage}
+                                disabled={loading}
+                            />
                         </div>
                     )}
                 </Card>

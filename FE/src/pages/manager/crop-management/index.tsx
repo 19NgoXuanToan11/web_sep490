@@ -1,5 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import { ManagerLayout } from '@/shared/layouts/ManagerLayout'
+import { Pagination } from '@/shared/ui/pagination'
+import { ManagementPageHeader } from '@/shared/ui/management-page-header'
 import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
 import { Label } from '@/shared/ui/label'
@@ -442,12 +444,10 @@ export default function CropManagementPage() {
   return (
     <ManagerLayout>
       <div className="p-6 space-y-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Cây Trồng</h1>
-          <p className="text-gray-600 mt-2">
-            Quản lý toàn bộ thông tin cây trồng, sản phẩm và trạng thái hoạt động.
-          </p>
-        </div>
+          <ManagementPageHeader
+            title="Quản lý cây trồng"
+            description="Quản lý toàn bộ thông tin cây trồng, sản phẩm và trạng thái hoạt động."
+          />
 
         <div className="grid gap-4 md:grid-cols-3">
           <Card>
@@ -624,38 +624,17 @@ export default function CropManagementPage() {
         </div>
 
         {totalPages > 1 && (
-          <div className="flex justify-center items-center space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                const newPage = Math.max(1, currentPage - 1)
+          <div className="flex justify-center">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={newPage => {
                 setCurrentPage(newPage)
                 if (isSearchMode) {
                   loadCrops(newPage, true)
                 }
               }}
-              disabled={currentPage === 1}
-            >
-              Trước
-            </Button>
-            <span className="text-sm text-gray-600">
-              Trang {currentPage} / {totalPages}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                const newPage = Math.min(totalPages, currentPage + 1)
-                setCurrentPage(newPage)
-                if (isSearchMode) {
-                  loadCrops(newPage, true)
-                }
-              }}
-              disabled={currentPage === totalPages}
-            >
-              Sau
-            </Button>
+            />
           </div>
         )}
       </div>

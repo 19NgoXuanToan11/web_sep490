@@ -18,6 +18,7 @@ import { iotDeviceService, type IoTDevice } from '@/shared/api/iotDeviceService'
 import { CreateDeviceModal } from './components/CreateDeviceModal'
 import { DeviceDetailsModal } from './components/DeviceDetailsModal'
 import { UpdateDeviceModal } from './components/UpdateDeviceModal'
+import { ManagementPageHeader } from '@/shared/ui/management-page-header'
 
 const ManagerIoTDevicesPage: React.FC = () => {
   const { toast } = useToast()
@@ -129,9 +130,9 @@ const ManagerIoTDevicesPage: React.FC = () => {
 
   const getStatusBadge = (status: number) => {
     if (status === 1) {
-      return <Badge className="bg-green-100 text-green-800 border-green-200">Hoạt động</Badge>
+      return <Badge variant="default">Hoạt động</Badge>
     }
-    return <Badge className="bg-gray-100 text-gray-800 border-gray-200">Không xác định</Badge>
+    return <Badge variant="secondary">Không xác định</Badge>
   }
 
 
@@ -163,12 +164,10 @@ const ManagerIoTDevicesPage: React.FC = () => {
       <div className="p-6">
         <div className="space-y-8">
           { }
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Quản lý Thiết bị IoT</h1>
-            <p className="text-gray-600 mt-2">
-              Giám sát và điều khiển các thiết bị IoT trong nông trại
-            </p>
-          </div>
+          <ManagementPageHeader
+            title="Quản lý thiết bị IoT"
+            description="Giám sát và điều khiển các thiết bị IoT trong nông trại"
+          />
 
           { }
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

@@ -16,6 +16,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Plus, Edit, Trash2, Search, RefreshCw, Package } from 'lucide-react'
 import { useToast } from '@/shared/ui/use-toast'
 import { categoryService } from '@/shared/api/categoryService'
+import { ManagementPageHeader } from '@/shared/ui/management-page-header'
 
 interface Category {
   categoryId: number
@@ -169,30 +170,30 @@ export default function CategoriesPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="space-y-6">
           { }
-          <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Quản lý danh mục</h1>
-              <p className="text-gray-600">Quản lý danh mục sản phẩm để tổ chức kho</p>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={loadCategories}
-                disabled={loading}
-                className="flex items-center gap-2"
-              >
-                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-                Tải lại
-              </Button>
-              <Button
-                onClick={() => setIsCreateDialogOpen(true)}
-                className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
-              >
-                <Plus className="h-4 w-4" />
-                Thêm danh mục
-              </Button>
-            </div>
-          </div>
+          <ManagementPageHeader
+            title="Quản lý danh mục sản phẩm"
+            description="Quản lý danh mục sản phẩm để tổ chức kho"
+            actions={
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant="outline"
+                  onClick={loadCategories}
+                  disabled={loading}
+                  className="flex items-center gap-2"
+                >
+                  <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                  Tải lại
+                </Button>
+                <Button
+                  onClick={() => setIsCreateDialogOpen(true)}
+                  className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
+                >
+                  <Plus className="h-4 w-4" />
+                  Thêm danh mục
+                </Button>
+              </div>
+            }
+          />
 
           { }
           <div className="grid gap-4 md:grid-cols-3">

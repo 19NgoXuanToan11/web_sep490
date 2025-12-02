@@ -155,10 +155,10 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
   })
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       { }
       <motion.div
-        className={`hidden lg:fixed lg:inset-y-0 lg:flex lg:flex-col bg-white shadow-lg border-r border-gray-200 ${isSidebarOpen ? 'lg:w-72' : 'lg:w-20'
+        className={`hidden lg:fixed lg:inset-y-0 lg:flex lg:flex-col bg-white shadow-lg border-r border-gray-200 h-screen overflow-hidden ${isSidebarOpen ? 'lg:w-72' : 'lg:w-20'
           }`}
         animate={{ width: isSidebarOpen ? 288 : 80 }}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
@@ -211,7 +211,7 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
         </div>
 
         { }
-        <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
+        <nav className="flex-1 px-4 py-6 space-y-1 overflow-hidden">
           <div className="space-y-1">
             {navigationItems.map(item => (
               <NavLink key={item.href} item={item} />
@@ -306,9 +306,9 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
       </AnimatePresence>
 
       { }
-      <div className={`transition-all duration-300 ${isSidebarOpen ? 'lg:pl-72' : 'lg:pl-20'}`}>
+      <div className={`transition-all duration-300 flex-1 flex flex-col lg:h-screen ${isSidebarOpen ? 'lg:pl-72' : 'lg:pl-20'}`}>
         { }
-        <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40">
+        <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40 flex-shrink-0">
           <div className="px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between h-16">
               <div className="flex items-center">
@@ -331,7 +331,7 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
         </header>
 
         { }
-        <main className="flex-1">
+        <main className="flex-1 overflow-y-auto">
           <div className="py-8">{children}</div>
         </main>
       </div>

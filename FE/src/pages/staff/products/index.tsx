@@ -9,6 +9,7 @@ import { ProductFilters } from '@/features/products-management/ui/ProductFilters
 import { ProductModal } from '@/features/products-management/ui/ProductModal'
 import { useProductStore } from '@/features/products-management/store/productStore'
 import type { Product } from '@/shared/api/productService'
+import { ManagementPageHeader } from '@/shared/ui/management-page-header'
 
 export function StaffProductsPage() {
     const { products = [], filteredProducts = [], fetchAllProducts, isLoading, filters } =
@@ -88,21 +89,17 @@ export function StaffProductsPage() {
     return (
         <StaffLayout>
             <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-                    <div>
-                        <h1 className="text-3xl font-bold text-gray-900 mb-2">Sản phẩm</h1>
-                        <p className="text-gray-600">
-                            Nhân viên có thể tra cứu thông tin sản phẩm để phục vụ vận hành và dịch vụ khách hàng
-                        </p>
-                    </div>
-
-                    <div className="flex items-center gap-2">
+                <ManagementPageHeader
+                    className="mb-8"
+                    title="Quản lý sản phẩm"
+                    description="Nhân viên có thể tra cứu thông tin sản phẩm để phục vụ vận hành và dịch vụ khách hàng"
+                    actions={
                         <Button variant="outline" onClick={handleRefreshProducts} disabled={isLoading}>
                             <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
                             Làm mới
                         </Button>
-                    </div>
-                </div>
+                    }
+                />
 
                 { }
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">

@@ -94,14 +94,14 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({ children }) => {
           if (mobile) setIsMobileSidebarOpen(false)
         }}
         className={`w-full group flex items-center ${isSidebarOpen ? 'px-3' : 'px-2 justify-center'} py-2.5 text-sm font-medium rounded-lg transition-colors duration-200 ${isActive
-          ? 'bg-purple-50 text-purple-700 border-r-2 border-purple-600'
+          ? 'bg-green-50 text-green-700 border-r-2 border-green-600'
           : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
           }`}
         whileHover={{ scale: mobile ? 1 : 1.02 }}
         whileTap={{ scale: 0.98 }}
       >
         <item.icon
-          className={`${isSidebarOpen ? 'mr-3' : 'mx-auto'} h-5 w-5 flex-shrink-0 ${isActive ? 'text-purple-600' : 'text-gray-400 group-hover:text-gray-600'
+          className={`${isSidebarOpen ? 'mr-3' : 'mx-auto'} h-5 w-5 flex-shrink-0 ${isActive ? 'text-green-600' : 'text-gray-400 group-hover:text-gray-600'
             }`}
         />
         {(isSidebarOpen || mobile) && (
@@ -115,7 +115,7 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({ children }) => {
               )}
             </div>
             {!mobile && item.description && (
-              <p className={`text-xs mt-0.5 ${isActive ? 'text-purple-600' : 'text-gray-400'}`}>
+              <p className={`text-xs mt-0.5 ${isActive ? 'text-green-600' : 'text-gray-400'}`}>
                 {item.description}
               </p>
             )}
@@ -139,7 +139,7 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({ children }) => {
           {isSidebarOpen ? (
             <div className="flex items-center justify-between px-6 py-6">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
                   <Cpu className="w-6 h-6 text-white" />
                 </div>
                 <motion.div

@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { Badge } from '@/shared/ui/badge'
 import { Loader2, Eye, Edit, UserPlus, ToggleLeft, ToggleRight, Filter } from 'lucide-react'
+import { Pagination } from '@/shared/ui/pagination'
 import { farmService } from '@/shared/api/farmService'
 import { cropService } from '@/shared/api/cropService'
 import { accountApi } from '@/shared/api/auth'
@@ -882,70 +883,16 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                     </table>
                 </div>
 
-                <div className="flex items-center justify-end flex-wrap gap-4">
-                    {!isFiltered && (
-                        <div className="flex items-center gap-2">
-                            <Button
-                                size="sm"
-                                variant="outline"
-                                disabled={loading || !(data?.data.previous)}
-                                onClick={() => setPageIndex(1)}
-                            >
-                                Đầu
-                            </Button>
-                            <Button
-                                size="sm"
-                                variant="outline"
-                                disabled={loading || !(data?.data.previous)}
-                                onClick={() => setPageIndex(p => Math.max(1, p - 1))}
-                            >
-                                Trước
-                            </Button>
-                            <div className="flex items-center gap-2">
-                                <span className="text-sm text-muted-foreground">Trang</span>
-                                <Input
-                                    type="number"
-                                    min={1}
-                                    max={data?.data.totalPagesCount ?? 1}
-                                    value={pageIndex}
-                                    onChange={(e) => {
-                                        const val = parseInt(e.target.value)
-                                        if (!isNaN(val) && val >= 1 && val <= (data?.data.totalPagesCount ?? 1)) {
-                                            setPageIndex(val)
-                                        }
-                                    }}
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter') {
-                                            const val = parseInt(e.currentTarget.value)
-                                            if (!isNaN(val) && val >= 1 && val <= (data?.data.totalPagesCount ?? 1)) {
-                                                setPageIndex(val)
-                                            }
-                                        }
-                                    }}
-                                    className="w-16 h-8 text-center"
-                                    disabled={loading}
-                                />
-                                <span className="text-sm text-muted-foreground">/ {data?.data.totalPagesCount ?? 1}</span>
-                            </div>
-                            <Button
-                                size="sm"
-                                variant="outline"
-                                disabled={loading || !(data?.data.next)}
-                                onClick={() => setPageIndex(p => p + 1)}
-                            >
-                                Sau
-                            </Button>
-                            <Button
-                                size="sm"
-                                variant="outline"
-                                disabled={loading || !(data?.data.next)}
-                                onClick={() => setPageIndex(data?.data.totalPagesCount ?? 1)}
-                            >
-                                Cuối
-                            </Button>
-                        </div>
-                    )}
-                </div>
+                {!isFiltered && data?.data.totalPagesCount && data.data.totalPagesCount > 1 && (
+                    <div className="flex items-center justify-end flex-wrap gap-4">
+                        <Pagination
+                            currentPage={pageIndex}
+                            totalPages={data.data.totalPagesCount}
+                            onPageChange={setPageIndex}
+                            disabled={loading}
+                        />
+                    </div>
+                )}
 
                 {/* Detail View Modal */}
                 <Dialog open={showDetail} onOpenChange={setShowDetail}>

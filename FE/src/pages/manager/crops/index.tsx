@@ -28,6 +28,7 @@ import {
   Eye,
 } from 'lucide-react'
 import { useToast } from '@/shared/ui/use-toast'
+import { Pagination } from '@/shared/ui/pagination'
 import {
   cropRequirementService,
   type CropRequirementView,
@@ -353,9 +354,9 @@ export default function CropsPage() {
     <ManagerLayout>
       <div className="p-6 space-y-8">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Cây Trồng</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Theo dõi cây trồng</h1>
           <p className="text-gray-600 mt-2">
-            Lập kế hoạch gieo trồng, theo dõi chỉ số môi trường và giai đoạn phát triển cho từng vụ mùa.
+            Theo dõi và quản lý giai đoạn phát triển của cây trồng
           </p>
         </div>
 
@@ -565,26 +566,12 @@ export default function CropsPage() {
         </div>
 
         {totalPages > 1 && (
-          <div className="flex justify-center items-center space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-              disabled={currentPage === 1}
-            >
-              Trước
-            </Button>
-            <span className="text-sm text-gray-600">
-              Trang {currentPage} / {totalPages}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-              disabled={currentPage === totalPages}
-            >
-              Sau
-            </Button>
+          <div className="flex justify-end mt-4">
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
           </div>
         )}
       </div>

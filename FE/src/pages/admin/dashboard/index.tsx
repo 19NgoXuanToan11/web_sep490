@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { Activity, RefreshCw, Loader2 } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card'
+import { Skeleton } from '@/shared/ui/skeleton'
 import { AdminLayout } from '@/shared/layouts/AdminLayout'
 import { accountApi } from '@/shared/api/auth'
 import { farmService } from '@/shared/api/farmService'
@@ -288,20 +289,16 @@ const AdminDashboard: React.FC = () => {
     [metrics]
   )
 
-  if (isLoading) {
-    return (
-      <AdminLayout>
-        <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex items-center justify-center min-h-[400px]">
-            <div className="text-center">
-              <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-blue-600" />
-              <p className="text-gray-600">Đang tải dữ liệu bảng điều khiển...</p>
-            </div>
-          </div>
-        </div>
-      </AdminLayout>
-    )
-  }
+  // Manager style: Show skeleton instead of full-page loader
+  // if (isLoading && metrics.totalUsers === 0) {
+  //   return (
+  //     <AdminLayout>
+  //       <div className="flex items-center justify-center min-h-screen">
+  //         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
+  //       </div>
+  //     </AdminLayout>
+  //   )
+  // }
 
   return (
     <AdminLayout>
@@ -331,7 +328,7 @@ const AdminDashboard: React.FC = () => {
               className="flex items-center gap-2"
             >
               <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-              Làm mới
+              {isRefreshing ? 'Đang tải...' : 'Làm mới'}
             </Button>
           </div>
         </div>
@@ -342,25 +339,69 @@ const AdminDashboard: React.FC = () => {
           </div>
         )}
 
+        {/* Manager style: Loading indicator when refreshing */}
+        {isRefreshing && (
+          <div className="mb-4 flex items-center gap-2 text-sm text-gray-600">
+            <span className="h-2.5 w-2.5 rounded-full bg-green-500 animate-ping" />
+            <span>Đang đồng bộ dữ liệu thời gian thực...</span>
+          </div>
+        )}
+
         <div className="mb-8">
           <Card>
             <CardContent>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900">{metrics.onlineDevices}</div>
-                  <div className="text-xs text-gray-500">Thiết bị trực tuyến</div>
+                  {isLoading ? (
+                    <>
+                      <Skeleton className="h-8 w-16 mx-auto mb-2" />
+                      <Skeleton className="h-3 w-24 mx-auto" />
+                    </>
+                  ) : (
+                    <>
+                      <div className="text-2xl font-bold text-gray-900">{metrics.onlineDevices}</div>
+                      <div className="text-xs text-gray-500">Thiết bị trực tuyến</div>
+                    </>
+                  )}
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900">{metrics.activeUsers}</div>
-                  <div className="text-xs text-gray-500">Người dùng hoạt động</div>
+                  {isLoading ? (
+                    <>
+                      <Skeleton className="h-8 w-16 mx-auto mb-2" />
+                      <Skeleton className="h-3 w-24 mx-auto" />
+                    </>
+                  ) : (
+                    <>
+                      <div className="text-2xl font-bold text-gray-900">{metrics.activeUsers}</div>
+                      <div className="text-xs text-gray-500">Người dùng hoạt động</div>
+                    </>
+                  )}
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900">{metrics.completedOrders}</div>
-                  <div className="text-xs text-gray-500">Đơn hàng hoàn thành</div>
+                  {isLoading ? (
+                    <>
+                      <Skeleton className="h-8 w-16 mx-auto mb-2" />
+                      <Skeleton className="h-3 w-24 mx-auto" />
+                    </>
+                  ) : (
+                    <>
+                      <div className="text-2xl font-bold text-gray-900">{metrics.completedOrders}</div>
+                      <div className="text-xs text-gray-500">Đơn hàng hoàn thành</div>
+                    </>
+                  )}
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-gray-900">{metrics.activeProducts}</div>
-                  <div className="text-xs text-gray-500">Sản phẩm hoạt động</div>
+                  {isLoading ? (
+                    <>
+                      <Skeleton className="h-8 w-16 mx-auto mb-2" />
+                      <Skeleton className="h-3 w-24 mx-auto" />
+                    </>
+                  ) : (
+                    <>
+                      <div className="text-2xl font-bold text-gray-900">{metrics.activeProducts}</div>
+                      <div className="text-xs text-gray-500">Sản phẩm hoạt động</div>
+                    </>
+                  )}
                 </div>
               </div>
             </CardContent>
@@ -372,22 +413,36 @@ const AdminDashboard: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
+            whileHover={{ scale: 1.02, y: -2 }}
           >
-            <Card className="hover:shadow-lg transition-shadow">
+            <Card className="relative overflow-hidden border-0 shadow-lg bg-white">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 to-green-600" />
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Tổng số người dùng</CardTitle>
+                <CardTitle className="text-sm font-medium text-gray-600">Tổng số người dùng</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{metrics.totalUsers}</div>
+                <div className="text-2xl font-bold text-gray-900 mb-1">
+                  {isLoading ? <Skeleton className="h-8 w-20" /> : metrics.totalUsers}
+                </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  <span className="text-green-600 font-medium">{metrics.activeUsers} hoạt động</span>
+                  {isLoading ? (
+                    <Skeleton className="h-4 w-24 mt-1" />
+                  ) : (
+                    <span className="text-green-600 font-medium">{metrics.activeUsers} hoạt động</span>
+                  )}
                 </p>
                 <div className="mt-2 text-xs text-gray-500">
-                  Tỷ lệ hoạt động:{' '}
-                  {metrics.totalUsers > 0
-                    ? Math.round((metrics.activeUsers / metrics.totalUsers) * 100)
-                    : 0}
-                  %
+                  {isLoading ? (
+                    <Skeleton className="h-3 w-32 mt-1" />
+                  ) : (
+                    <>
+                      Tỷ lệ hoạt động:{' '}
+                      {metrics.totalUsers > 0
+                        ? Math.round((metrics.activeUsers / metrics.totalUsers) * 100)
+                        : 0}
+                      %
+                    </>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -397,18 +452,30 @@ const AdminDashboard: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
+            whileHover={{ scale: 1.02, y: -2 }}
           >
-            <Card className="hover:shadow-lg transition-shadow">
+            <Card className="relative overflow-hidden border-0 shadow-lg bg-white">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 to-green-600" />
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Trang trại</CardTitle>
+                <CardTitle className="text-sm font-medium text-gray-600">Trang trại</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{metrics.totalFarms}</div>
+                <div className="text-2xl font-bold text-gray-900 mb-1">
+                  {isLoading ? <Skeleton className="h-8 w-20" /> : metrics.totalFarms}
+                </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  <span className="text-green-600 font-medium">{metrics.activeFarms} hoạt động</span>
+                  {isLoading ? (
+                    <Skeleton className="h-4 w-24 mt-1" />
+                  ) : (
+                    <span className="text-green-600 font-medium">{metrics.activeFarms} hoạt động</span>
+                  )}
                 </p>
                 <div className="mt-2 text-xs text-gray-500">
-                  Tất cả trang trại đang hoạt động
+                  {isLoading ? (
+                    <Skeleton className="h-3 w-40 mt-1" />
+                  ) : (
+                    'Tất cả trang trại đang hoạt động'
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -418,29 +485,43 @@ const AdminDashboard: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
+            whileHover={{ scale: 1.02, y: -2 }}
           >
-            <Card className="hover:shadow-lg transition-shadow">
+            <Card className="relative overflow-hidden border-0 shadow-lg bg-white">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 to-green-600" />
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Thiết bị IoT</CardTitle>
+                <CardTitle className="text-sm font-medium text-gray-600">Thiết bị IoT</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{metrics.totalDevices}</div>
+                <div className="text-2xl font-bold text-gray-900 mb-1">
+                  {isLoading ? <Skeleton className="h-8 w-20" /> : metrics.totalDevices}
+                </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  <span
-                    className={`font-medium ${metrics.onlineDevices === metrics.totalDevices
-                      ? 'text-green-600'
-                      : 'text-yellow-600'
-                      }`}
-                  >
-                    {metrics.onlineDevices} trực tuyến
-                  </span>
+                  {isLoading ? (
+                    <Skeleton className="h-4 w-24 mt-1" />
+                  ) : (
+                    <span
+                      className={`font-medium ${metrics.onlineDevices === metrics.totalDevices
+                        ? 'text-green-600'
+                        : 'text-yellow-600'
+                        }`}
+                    >
+                      {metrics.onlineDevices} trực tuyến
+                    </span>
+                  )}
                 </p>
                 <div className="mt-2 text-xs text-gray-500">
-                  Tỷ lệ trực tuyến:{' '}
-                  {metrics.totalDevices > 0
-                    ? Math.round((metrics.onlineDevices / metrics.totalDevices) * 100)
-                    : 0}
-                  %
+                  {isLoading ? (
+                    <Skeleton className="h-3 w-32 mt-1" />
+                  ) : (
+                    <>
+                      Tỷ lệ trực tuyến:{' '}
+                      {metrics.totalDevices > 0
+                        ? Math.round((metrics.onlineDevices / metrics.totalDevices) * 100)
+                        : 0}
+                      %
+                    </>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -450,20 +531,32 @@ const AdminDashboard: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
+            whileHover={{ scale: 1.02, y: -2 }}
           >
-            <Card className="hover:shadow-lg transition-shadow">
+            <Card className="relative overflow-hidden border-0 shadow-lg bg-white">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 to-green-600" />
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Đơn hàng</CardTitle>
+                <CardTitle className="text-sm font-medium text-gray-600">Đơn hàng</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{metrics.totalOrders}</div>
+                <div className="text-2xl font-bold text-gray-900 mb-1">
+                  {isLoading ? <Skeleton className="h-8 w-20" /> : metrics.totalOrders}
+                </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  <span className="text-yellow-600 font-medium">
-                    {metrics.pendingOrders} đang xử lý
-                  </span>
+                  {isLoading ? (
+                    <Skeleton className="h-4 w-24 mt-1" />
+                  ) : (
+                    <span className="text-yellow-600 font-medium">
+                      {metrics.pendingOrders} đang xử lý
+                    </span>
+                  )}
                 </p>
                 <div className="mt-2 text-xs text-gray-500">
-                  {metrics.completedOrders} đã hoàn thành
+                  {isLoading ? (
+                    <Skeleton className="h-3 w-32 mt-1" />
+                  ) : (
+                    `${metrics.completedOrders} đã hoàn thành`
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -473,23 +566,35 @@ const AdminDashboard: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.5 }}
+            whileHover={{ scale: 1.02, y: -2 }}
           >
-            <Card className="hover:shadow-lg transition-shadow">
+            <Card className="relative overflow-hidden border-0 shadow-lg bg-white">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 to-green-600" />
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Sản phẩm</CardTitle>
+                <CardTitle className="text-sm font-medium text-gray-600">Sản phẩm</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{metrics.totalProducts}</div>
+                <div className="text-2xl font-bold text-gray-900 mb-1">
+                  {isLoading ? <Skeleton className="h-8 w-20" /> : metrics.totalProducts}
+                </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  <span className="text-green-600 font-medium">
-                    {metrics.activeProducts} hoạt động
-                  </span>
+                  {isLoading ? (
+                    <Skeleton className="h-4 w-24 mt-1" />
+                  ) : (
+                    <span className="text-green-600 font-medium">
+                      {metrics.activeProducts} hoạt động
+                    </span>
+                  )}
                 </p>
                 <div className="mt-2 text-xs text-gray-500">
-                  {metrics.lowStockItems > 0 ? (
-                    <span className="text-red-600">{metrics.lowStockItems} tồn kho thấp</span>
+                  {isLoading ? (
+                    <Skeleton className="h-3 w-32 mt-1" />
                   ) : (
-                    <span>Tất cả sản phẩm đủ tồn kho</span>
+                    metrics.lowStockItems > 0 ? (
+                      <span className="text-red-600">{metrics.lowStockItems} tồn kho thấp</span>
+                    ) : (
+                      <span>Tất cả sản phẩm đủ tồn kho</span>
+                    )
                   )}
                 </div>
               </CardContent>
@@ -500,17 +605,31 @@ const AdminDashboard: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.6 }}
+            whileHover={{ scale: 1.02, y: -2 }}
           >
-            <Card className="hover:shadow-lg transition-shadow">
+            <Card className="relative overflow-hidden border-0 shadow-lg bg-white">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 to-green-600" />
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Doanh thu</CardTitle>
+                <CardTitle className="text-sm font-medium text-gray-600">Doanh thu</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{formatCurrency(metrics.totalRevenue)}</div>
+                <div className="text-2xl font-bold text-gray-900 mb-1">
+                  {isLoading ? <Skeleton className="h-8 w-32" /> : formatCurrency(metrics.totalRevenue)}
+                </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Từ {metrics.completedOrders} đơn hàng
+                  {isLoading ? (
+                    <Skeleton className="h-4 w-24 mt-1" />
+                  ) : (
+                    `Từ ${metrics.completedOrders} đơn hàng`
+                  )}
                 </p>
-                <div className="mt-2 text-xs text-gray-500">Tổng doanh thu hệ thống</div>
+                <div className="mt-2 text-xs text-gray-500">
+                  {isLoading ? (
+                    <Skeleton className="h-3 w-32 mt-1" />
+                  ) : (
+                    'Tổng doanh thu hệ thống'
+                  )}
+                </div>
               </CardContent>
             </Card>
           </motion.div>
@@ -519,15 +638,27 @@ const AdminDashboard: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.7 }}
+            whileHover={{ scale: 1.02, y: -2 }}
           >
-            <Card className="hover:shadow-lg transition-shadow">
+            <Card className="relative overflow-hidden border-0 shadow-lg bg-white">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 to-green-600" />
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Đánh giá</CardTitle>
+                <CardTitle className="text-sm font-medium text-gray-600">Đánh giá</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{metrics.totalFeedbacks}</div>
-                <p className="text-xs text-muted-foreground mt-1">Tổng số đánh giá</p>
-                <div className="mt-2 text-xs text-gray-500">Phản hồi từ khách hàng</div>
+                <div className="text-2xl font-bold text-gray-900 mb-1">
+                  {isLoading ? <Skeleton className="h-8 w-20" /> : metrics.totalFeedbacks}
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {isLoading ? <Skeleton className="h-4 w-24 mt-1" /> : 'Tổng số đánh giá'}
+                </p>
+                <div className="mt-2 text-xs text-gray-500">
+                  {isLoading ? (
+                    <Skeleton className="h-3 w-32 mt-1" />
+                  ) : (
+                    'Phản hồi từ khách hàng'
+                  )}
+                </div>
               </CardContent>
             </Card>
           </motion.div>
@@ -536,22 +667,40 @@ const AdminDashboard: React.FC = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.8 }}
+            whileHover={{ scale: 1.02, y: -2 }}
           >
-            <Card className="hover:shadow-lg transition-shadow">
+            <Card className="relative overflow-hidden border-0 shadow-lg bg-white">
+              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 to-green-600" />
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Tỷ lệ hoàn thành</CardTitle>
+                <CardTitle className="text-sm font-medium text-gray-600">Tỷ lệ hoàn thành</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
-                  {metrics.totalOrders > 0
-                    ? Math.round((metrics.completedOrders / metrics.totalOrders) * 100)
-                    : 0}
-                  %
+                <div className="text-2xl font-bold text-gray-900 mb-1">
+                  {isLoading ? (
+                    <Skeleton className="h-8 w-16" />
+                  ) : (
+                    <>
+                      {metrics.totalOrders > 0
+                        ? Math.round((metrics.completedOrders / metrics.totalOrders) * 100)
+                        : 0}
+                      %
+                    </>
+                  )}
                 </div>
                 <p className="text-xs text-muted-foreground mt-1">
-                  {metrics.completedOrders} / {metrics.totalOrders} đơn hàng
+                  {isLoading ? (
+                    <Skeleton className="h-4 w-24 mt-1" />
+                  ) : (
+                    `${metrics.completedOrders} / ${metrics.totalOrders} đơn hàng`
+                  )}
                 </p>
-                <div className="mt-2 text-xs text-gray-500">Tỷ lệ đơn hàng hoàn thành</div>
+                <div className="mt-2 text-xs text-gray-500">
+                  {isLoading ? (
+                    <Skeleton className="h-3 w-32 mt-1" />
+                  ) : (
+                    'Tỷ lệ đơn hàng hoàn thành'
+                  )}
+                </div>
               </CardContent>
             </Card>
           </motion.div>
@@ -568,17 +717,24 @@ const AdminDashboard: React.FC = () => {
               <CardDescription>So sánh các chỉ số hoạt động chính</CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={systemActivityData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey={'Hoạt động'} fill="#10b981" name="Đang hoạt động" />
-                  <Bar dataKey={'Tổng'} fill="#94a3b8" name="Tổng số" />
-                </BarChart>
-              </ResponsiveContainer>
+              {isLoading ? (
+                <div className="space-y-4">
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-64 w-full" />
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={systemActivityData}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="name" />
+                    <YAxis />
+                    <Tooltip />
+                    <Legend />
+                    <Bar dataKey={'Hoạt động'} fill="#10b981" name="Đang hoạt động" />
+                    <Bar dataKey={'Tổng'} fill="#94a3b8" name="Tổng số" />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
             </CardContent>
           </Card>
 
@@ -591,41 +747,58 @@ const AdminDashboard: React.FC = () => {
               <CardDescription>Chi tiết các trạng thái đơn hàng trong hệ thống</CardDescription>
             </CardHeader>
             <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
-                  <Pie
-                    data={orderStatusData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                    outerRadius={100}
-                    fill="#8884d8"
-                    dataKey="value"
-                  >
-                    {orderStatusData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
+              {isLoading ? (
+                <div className="space-y-4">
+                  <Skeleton className="h-4 w-3/4" />
+                  <Skeleton className="h-64 w-full" />
+                  <div className="mt-4 grid grid-cols-3 gap-4">
+                    {Array.from({ length: 3 }).map((_, i) => (
+                      <div key={i} className="space-y-2">
+                        <Skeleton className="h-6 w-16 mx-auto" />
+                        <Skeleton className="h-3 w-20 mx-auto" />
+                      </div>
                     ))}
-                  </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="mt-4 grid grid-cols-3 gap-4 text-center">
-                <div>
-                  <div className="text-2xl font-bold text-yellow-600">{metrics.pendingOrders}</div>
-                  <div className="text-xs text-gray-500">Đang xử lý</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-green-600">{metrics.completedOrders}</div>
-                  <div className="text-xs text-gray-500">Đã hoàn thành</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-gray-600">
-                    {metrics.totalOrders - metrics.pendingOrders - metrics.completedOrders}
                   </div>
-                  <div className="text-xs text-gray-500">Khác</div>
                 </div>
-              </div>
+              ) : (
+                <>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <PieChart>
+                      <Pie
+                        data={orderStatusData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                        outerRadius={100}
+                        fill="#8884d8"
+                        dataKey="value"
+                      >
+                        {orderStatusData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="mt-4 grid grid-cols-3 gap-4 text-center">
+                    <div>
+                      <div className="text-2xl font-bold text-yellow-600">{metrics.pendingOrders}</div>
+                      <div className="text-xs text-gray-500">Đang xử lý</div>
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold text-green-600">{metrics.completedOrders}</div>
+                      <div className="text-xs text-gray-500">Đã hoàn thành</div>
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold text-gray-600">
+                        {metrics.totalOrders - metrics.pendingOrders - metrics.completedOrders}
+                      </div>
+                      <div className="text-xs text-gray-500">Khác</div>
+                    </div>
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
         </div>

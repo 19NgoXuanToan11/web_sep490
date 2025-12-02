@@ -4,7 +4,6 @@ import {
   Package,
   Truck,
   CheckCircle,
-  Clock,
   Eye,
   RefreshCw,
   Filter,
@@ -38,9 +37,11 @@ import {
 } from '@/shared/ui/dialog'
 import { Tabs, TabsContent } from '@/shared/ui/tabs'
 import { StaffLayout } from '@/shared/layouts/StaffLayout'
+import { ManagementPageHeader } from '@/shared/ui/management-page-header'
 import { useToast } from '@/shared/ui/use-toast'
 import { orderService, getOrderStatusLabel, getOrderStatusVariant } from '@/shared/api/orderService'
 import type { Order as ApiOrder, OrderItem } from '@/shared/api/orderService'
+import { Pagination } from '@/shared/ui/pagination'
 
 interface DisplayOrder {
   id: string
@@ -452,47 +453,16 @@ const StaffOrdersPage: React.FC = () => {
     })
   }
 
-  const getStatusIcon = (status: number) => {
-    switch (status) {
-      case 0:
-        return <Clock className="h-4 w-4 text-yellow-500" />
-      case 1:
-        return <CheckCircle className="h-4 w-4 text-blue-500" />
-      case 2:
-        return <Package className="h-4 w-4 text-purple-500" />
-      case 3:
-        return <Truck className="h-4 w-4 text-orange-500" />
-      case 4:
-        return <XCircle className="h-4 w-4 text-red-500" />
-      case 5:
-        return <CheckCircle className="h-4 w-4 text-green-500" />
-      case 6:
-        return <Truck className="h-4 w-4 text-blue-500" />
-      default:
-        return <ShoppingCart className="h-4 w-4 text-gray-500" />
-    }
-  }
-
   const getStatusBadge = (status: number) => {
     const variant = getOrderStatusVariant(status)
     const label = getOrderStatusLabel(status)
 
-    return (
-      <Badge variant={variant} className="flex items-center gap-1">
-        {getStatusIcon(status)}
-        {label}
-      </Badge>
-    )
+    return <Badge variant={variant}>{label}</Badge>
   }
 
   const getDisplayStatusBadge = (order: DisplayOrder) => {
     if (order.paymentStatus === 'failed' || order.paymentStatus === 'pending') {
-      return (
-        <Badge variant="secondary" className="flex items-center gap-1">
-          {getStatusIcon(0)}
-          Chưa thanh toán
-        </Badge>
-      )
+      return <Badge variant="secondary">Chưa thanh toán</Badge>
     }
     return getStatusBadge(order.status)
   }
@@ -683,14 +653,11 @@ const StaffOrdersPage: React.FC = () => {
   return (
     <StaffLayout>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        { }
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Quản lý đơn hàng</h1>
-            <p className="text-gray-600">Giám sát và quản lý tất cả đơn hàng trong hệ thống</p>
-          </div>
-
-          <div className="flex items-center gap-2">
+        <ManagementPageHeader
+          className="mb-8"
+          title="Quản lý đơn hàng"
+          description="Giám sát và quản lý tất cả đơn hàng trong hệ thống"
+          actions={
             <Button
               variant="outline"
               onClick={handleRefresh}
@@ -700,8 +667,8 @@ const StaffOrdersPage: React.FC = () => {
               <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
               Làm mới
             </Button>
-          </div>
-        </div>
+          }
+        />
 
         { }
         <div className="grid gap-4 mb-8 md:grid-cols-2 lg:grid-cols-3">
@@ -740,7 +707,7 @@ const StaffOrdersPage: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-500">Đang giao</p>
-                  <p className="text-2xl font-semibold mt-1 text-blue-600">{orderStats.shipping}</p>
+                  <p className="text-2xl font-semibold mt-1 text-green-600">{orderStats.shipping}</p>
                 </div>
               </div>
               <p className="text-xs text-gray-500 mt-2">
@@ -927,15 +894,15 @@ const StaffOrdersPage: React.FC = () => {
 
             { }
             {(searchQuery || selectedDate) && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <div className="bg-green-50 border border-green-200 rounded-lg p-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     {searchType === 'date' ? (
-                      <Calendar className="h-4 w-4 text-blue-600 mr-2" />
+                      <Calendar className="h-4 w-4 text-green-600 mr-2" />
                     ) : (
-                      <Search className="h-4 w-4 text-blue-600 mr-2" />
+                      <Search className="h-4 w-4 text-green-600 mr-2" />
                     )}
-                    <span className="text-sm text-blue-800">
+                    <span className="text-sm text-green-800">
                       {searchType === 'date' && selectedDate ? (
                         <>
                           Kết quả tìm kiếm đơn hàng trong ngày{' '}
@@ -966,7 +933,7 @@ const StaffOrdersPage: React.FC = () => {
                       )}
                     </span>
                   </div>
-                  <span className="text-sm font-medium text-blue-800">
+                  <span className="text-sm font-medium text-green-800">
                     {filteredOrders.length} đơn hàng
                   </span>
                 </div>
@@ -1017,8 +984,8 @@ const StaffOrdersPage: React.FC = () => {
                     <TableRow>
                       <TableCell colSpan={9} className="h-24">
                         <div className="flex items-center justify-center">
-                          <Loader2 className="h-6 w-6 animate-spin" />
-                          <span className="ml-2">Đang tải dữ liệu...</span>
+                          <RefreshCw className="h-6 w-6 animate-spin text-green-600" />
+                          <span className="ml-2 text-gray-600">Đang tải dữ liệu...</span>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -1065,7 +1032,7 @@ const StaffOrdersPage: React.FC = () => {
                                             `Sản phẩm #${item.productId || item.id}`}
                                         </div>
                                         <div className="text-xs text-gray-600 flex items-center gap-2">
-                                          <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
+                                          <span className="bg-green-100 text-green-800 px-2 py-0.5 rounded-full">
                                             SL: {item.quantity || 1}
                                           </span>
                                           {item.price && (
@@ -1084,7 +1051,7 @@ const StaffOrdersPage: React.FC = () => {
                                         +{products.length - 2} sản phẩm khác
                                       </div>
                                     )}
-                                    <div className="text-xs text-blue-600 font-medium mt-2 pt-2 border-t border-gray-100">
+                                    <div className="text-xs text-green-600 font-medium mt-2 pt-2 border-t border-gray-100">
                                       Tổng:{' '}
                                       {products.reduce(
                                         (sum: number, item: any) => sum + (item.quantity || 1),
@@ -1174,112 +1141,14 @@ const StaffOrdersPage: React.FC = () => {
             </div>
 
             { }
-            {!loading && totalItems > 0 && totalPages > 1 && (
-              <div className="flex items-center justify-end space-x-2 py-4 px-6 border-t">
-                <div className="flex items-center space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => fetchOrders(1)}
-                    disabled={currentPage <= 1 || loading}
-                  >
-                    Đầu
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => fetchOrders(currentPage - 1)}
-                    disabled={currentPage <= 1 || loading}
-                  >
-                    Trước
-                  </Button>
-                  <div className="flex items-center space-x-1">
-                    {(() => {
-                      const pages = []
-                      const maxVisiblePages = 7
-                      let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2))
-                      let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1)
-
-                      if (endPage - startPage < maxVisiblePages - 1) {
-                        startPage = Math.max(1, endPage - maxVisiblePages + 1)
-                      }
-
-                      if (startPage > 1) {
-                        pages.push(
-                          <Button
-                            key={1}
-                            variant="outline"
-                            size="sm"
-                            onClick={() => fetchOrders(1)}
-                            disabled={loading}
-                          >
-                            1
-                          </Button>
-                        )
-                        if (startPage > 2) {
-                          pages.push(
-                            <span key="ellipsis-start" className="px-2 text-muted-foreground">
-                              ...
-                            </span>
-                          )
-                        }
-                      }
-
-                      for (let i = startPage; i <= endPage; i++) {
-                        pages.push(
-                          <Button
-                            key={i}
-                            variant={currentPage === i ? 'default' : 'outline'}
-                            size="sm"
-                            onClick={() => fetchOrders(i)}
-                            disabled={loading}
-                          >
-                            {i}
-                          </Button>
-                        )
-                      }
-
-                      if (endPage < totalPages) {
-                        if (endPage < totalPages - 1) {
-                          pages.push(
-                            <span key="ellipsis-end" className="px-2 text-muted-foreground">
-                              ...
-                            </span>
-                          )
-                        }
-                        pages.push(
-                          <Button
-                            key={totalPages}
-                            variant="outline"
-                            size="sm"
-                            onClick={() => fetchOrders(totalPages)}
-                            disabled={loading}
-                          >
-                            {totalPages}
-                          </Button>
-                        )
-                      }
-
-                      return pages
-                    })()}
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => fetchOrders(currentPage + 1)}
-                    disabled={currentPage >= totalPages || loading}
-                  >
-                    Tiếp
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => fetchOrders(totalPages)}
-                    disabled={currentPage >= totalPages || loading}
-                  >
-                    Cuối
-                  </Button>
-                </div>
+            {!loading && totalItems > 0 && (
+              <div className="py-4 px-6 border-t">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={fetchOrders}
+                  disabled={loading}
+                />
               </div>
             )}
           </CardContent>
@@ -1305,55 +1174,43 @@ const StaffOrdersPage: React.FC = () => {
           ) : selectedOrderDetail ? (
             <div className="space-y-6">
               { }
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Thông tin đơn hàng</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="font-medium">Mã đơn hàng:</span>
-                      <span>{selectedOrderDetail.orderId || 'Chưa có mã'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="font-medium">Tổng tiền:</span>
-                      <span className="font-bold text-lg text-green-600">
-                        {formatCurrency(selectedOrderDetail.totalPrice)}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="font-medium">Ngày tạo:</span>
-                      <span>{formatDateTime(selectedOrderDetail.createdAt)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="font-medium">Trạng thái:</span>
-                      {getStatusBadge(selectedOrderDetail.status)}
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="font-medium">Địa chỉ giao hàng:</span>
-                      <span className="text-right max-w-[200px]">
-                        {selectedOrderDetail.shippingAddress}
-                      </span>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Thông tin khách hàng</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="font-medium">ID khách hàng:</span>
-                      <span>{selectedOrderDetail.customerId || 'N/A'}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="font-medium">Email:</span>
-                      <span>{selectedOrderDetail.email}</span>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Thông tin đơn hàng</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                    <span className="font-medium">Mã đơn hàng:</span>
+                    <span>{selectedOrderDetail.orderId || 'Chưa có mã'}</span>
+                  </div>
+                  <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                    <span className="font-medium">Tổng tiền:</span>
+                    <span className="font-bold text-lg text-green-600">
+                      {formatCurrency(selectedOrderDetail.totalPrice)}
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                    <span className="font-medium">Ngày đặt:</span>
+                    <span>{formatDateOnly(selectedOrderDetail.createdAt)}</span>
+                  </div>
+                  <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                    <span className="font-medium">Trạng thái:</span>
+                    {getStatusBadge(selectedOrderDetail.status)}
+                  </div>
+                  <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                    <span className="font-medium">Email khách hàng:</span>
+                    <span className="text-sm text-gray-700">
+                      {selectedOrderDetail.customer?.email || selectedOrderDetail.email || 'N/A'}
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+                    <span className="font-medium">Địa chỉ giao hàng:</span>
+                    <span className="text-sm text-gray-700 whitespace-pre-line sm:max-w-[70%] text-right sm:text-left">
+                      {selectedOrderDetail.shippingAddress || 'N/A'}
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
 
               { }
               <Card>

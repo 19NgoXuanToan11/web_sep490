@@ -5,6 +5,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/shared/ui/dialog'
+import { Badge } from '@/shared/ui/badge'
 import { ProductForm } from './ProductForm'
 import type { Product } from '@/shared/api/productService'
 
@@ -91,32 +92,26 @@ function ProductViewContent({ product }: ProductViewContentProps) {
     if (!dateString) return '-'
     return new Date(dateString).toLocaleDateString('vi-VN', {
       year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+      month: '2-digit',
+      day: '2-digit',
     })
   }
 
   const getStatusBadge = (status: string) => {
     return status === 'Active' ? (
-      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-        Hoạt động
-      </span>
+      <Badge variant="default">Hoạt động</Badge>
     ) : (
-      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-        Vô hiệu
-      </span>
+      <Badge variant="secondary">Vô hiệu</Badge>
     )
   }
 
   const getQuantityStatus = (quantity: number) => {
     if (quantity === 0) {
-      return { text: 'Hết hàng', color: 'text-red-600' }
+      return { text: 'Hết hàng', variant: 'destructive' as const }
     } else if (quantity < 10) {
-      return { text: 'Sắp hết', color: 'text-yellow-600' }
+      return { text: 'Sắp hết', variant: 'warning' as const }
     }
-    return { text: 'Còn hàng', color: 'text-green-600' }
+    return { text: 'Còn hàng', variant: 'default' as const }
   }
 
   const quantityStatus = getQuantityStatus(product.quantity)
@@ -174,13 +169,18 @@ function ProductViewContent({ product }: ProductViewContentProps) {
           <h4 className="text-lg font-semibold text-gray-900">Thông tin kho</h4>
 
           <div className="bg-gray-50 rounded-lg p-4 space-y-3">
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-center gap-6">
               <span className="text-sm font-medium text-gray-500">Số lượng tồn kho</span>
-              <div className="text-right">
-                <span className="text-2xl font-bold">{product.quantity}</span>
-                <span className={`block text-sm ${quantityStatus.color}`}>
-                  {quantityStatus.text}
+              <div className="flex flex-col items-center gap-3 min-w-[120px]">
+                <span className="text-4xl font-extrabold leading-none text-gray-900">
+                  {product.quantity}
                 </span>
+                <Badge
+                  className="w-full justify-center py-2 text-sm font-semibold rounded-full"
+                  variant={quantityStatus.variant}
+                >
+                  {quantityStatus.text}
+                </Badge>
               </div>
             </div>
           </div>

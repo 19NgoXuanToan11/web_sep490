@@ -15,8 +15,10 @@ import {
 } from '@/shared/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
-import { Plus, Edit, RefreshCw, ChevronLeft, ChevronRight, Eye } from 'lucide-react'
+import { Plus, Edit, RefreshCw, Eye } from 'lucide-react'
 import { useToast } from '@/shared/ui/use-toast'
+import { Pagination } from '@/shared/ui/pagination'
+import { ManagementPageHeader } from '@/shared/ui/management-page-header'
 import {
   farmActivityService,
   type FarmActivity,
@@ -110,10 +112,10 @@ export default function FarmActivitiesPage() {
   }
 
   const statusOptions = [
-    { value: 'ACTIVE', label: 'Hoạt động', color: 'bg-green-100 text-green-800' },
-    { value: 'COMPLETED', label: 'Hoàn thành', color: 'bg-blue-100 text-blue-800' },
-    { value: 'CANCELLED', label: 'Đã hủy', color: 'bg-red-100 text-red-800' },
-    { value: 'PENDING', label: 'Chờ thực hiện', color: 'bg-yellow-100 text-yellow-800' },
+    { value: 'ACTIVE', label: 'Hoạt động', variant: 'default' as const },
+    { value: 'COMPLETED', label: 'Hoàn thành', variant: 'completed' as const },
+    { value: 'CANCELLED', label: 'Đã hủy', variant: 'failed' as const },
+    { value: 'PENDING', label: 'Chờ thực hiện', variant: 'pending' as const },
   ]
 
   const loadActivities = useCallback(async () => {
@@ -429,7 +431,7 @@ export default function FarmActivitiesPage() {
     const statusOption = statusOptions.find(s => s.value === status)
     if (!statusOption) return <Badge variant="outline">{status}</Badge>
 
-    return <Badge className={statusOption.color}>{statusOption.label}</Badge>
+    return <Badge variant={statusOption.variant}>{statusOption.label}</Badge>
   }
 
   const formatDisplayDate = (dateString: string | undefined | null): string => {
@@ -474,12 +476,10 @@ export default function FarmActivitiesPage() {
     <ManagerLayout>
       <div className="p-6">
         <div className="space-y-8">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Quản Lý Hoạt Động Nông Trại</h1>
-            <p className="text-gray-600 mt-2">
-              Quản lý các hoạt động nông nghiệp, lập kế hoạch và theo dõi tiến độ thực hiện.
-            </p>
-          </div>
+          <ManagementPageHeader
+            title="Quản lý hoạt động nông trại"
+            description="Quản lý các hoạt động nông nghiệp, lập kế hoạch và theo dõi tiến độ thực hiện."
+          />
 
           <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
             <Card>
@@ -633,70 +633,12 @@ export default function FarmActivitiesPage() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex flex-wrap items-center justify-end gap-4 mt-4 px-2">
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handlePageChange(pageIndex - 1)}
-                  disabled={pageIndex === 1}
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <div className="flex items-center gap-1">
-                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                    let pageNum
-                    if (totalPages <= 5) {
-                      pageNum = i + 1
-                    } else if (pageIndex <= 3) {
-                      pageNum = i + 1
-                    } else if (pageIndex >= totalPages - 2) {
-                      pageNum = totalPages - 4 + i
-                    } else {
-                      pageNum = pageIndex - 2 + i
-                    }
-                    return (
-                      <Button
-                        key={pageNum}
-                        variant={pageIndex === pageNum ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => handlePageChange(pageNum)}
-                        className="min-w-[40px]"
-                      >
-                        {pageNum}
-                      </Button>
-                    )
-                  })}
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handlePageChange(pageIndex + 1)}
-                  disabled={pageIndex === totalPages}
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </div>
-              <div className="flex items-center gap-2">
-                <Label className="text-sm">Số lượng mỗi trang:</Label>
-                <Select
-                  value={pageSize.toString()}
-                  onValueChange={value => {
-                    setPageSize(Number(value))
-                    setPageIndex(1)
-                  }}
-                >
-                  <SelectTrigger className="w-[80px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="10">10</SelectItem>
-                    <SelectItem value="20">20</SelectItem>
-                    <SelectItem value="50">50</SelectItem>
-                    <SelectItem value="100">100</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="mt-4 px-2">
+              <Pagination
+                currentPage={pageIndex}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+              />
             </div>
           )}
         </div>

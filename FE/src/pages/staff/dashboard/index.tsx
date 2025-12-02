@@ -51,7 +51,7 @@ interface MetricCardProps {
 }
 
 const MetricCard = React.memo<MetricCardProps>(
-    ({ title, value, change, changeType = 'increase', description, color = 'purple', onClick }) => {
+    ({ title, value, change, changeType = 'increase', description, color = 'green', onClick }) => {
         const colorClasses = {
             purple: 'from-purple-500 to-purple-600',
             blue: 'from-blue-500 to-blue-600',
@@ -406,7 +406,7 @@ export default function StaffDashboard() {
         return (
             <StaffLayout>
                 <div className="flex items-center justify-center min-h-screen">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
                 </div>
             </StaffLayout>
         )
@@ -428,7 +428,7 @@ export default function StaffDashboard() {
                         <div className="mt-4 sm:mt-0 flex gap-3">
                             <Button
                                 variant="outline"
-                                className="border-purple-200 text-purple-700 hover:bg-purple-50"
+                                className="border-green-200 text-green-700 hover:bg-green-50"
                                 onClick={fetchDashboardData}
                                 disabled={isLoading}
                             >
@@ -455,7 +455,7 @@ export default function StaffDashboard() {
                         title="Tổng đơn hàng"
                         value={stats.totalOrders}
                         change={`${stats.recentOrders} đơn mới`}
-                        color="purple"
+                        color="green"
                         description={`Trong ${timeRange === 'week' ? '7 ngày' : '30 ngày'} qua`}
                         onClick={() => navigate('/staff/orders')}
                     />
@@ -491,7 +491,7 @@ export default function StaffDashboard() {
                     <Card className="border-0 shadow-lg">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
-                                <TrendingUp className="h-5 w-5 text-purple-600" />
+                                <TrendingUp className="h-5 w-5 text-green-600" />
                                 Số lượng đơn hàng {timeRange === 'week' ? 'theo ngày' : 'theo tuần'}
                             </CardTitle>
                         </CardHeader>
@@ -514,7 +514,7 @@ export default function StaffDashboard() {
                     <Card className="border-0 shadow-lg">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
-                                <ShoppingCart className="h-5 w-5 text-purple-600" />
+                                <ShoppingCart className="h-5 w-5 text-green-600" />
                                 Trạng thái đơn hàng
                             </CardTitle>
                         </CardHeader>
@@ -585,14 +585,14 @@ export default function StaffDashboard() {
                         <CardHeader className="border-b border-gray-100">
                             <div className="flex items-center justify-between">
                                 <CardTitle className="flex items-center gap-2">
-                                    <Clock className="h-5 w-5 text-purple-600" />
+                                    <Clock className="h-5 w-5 text-green-600" />
                                     Đơn hàng gần đây
                                 </CardTitle>
                                 <Button
                                     variant="outline"
                                     size="sm"
                                     onClick={() => navigate('/staff/orders')}
-                                    className="border-purple-200 text-purple-700 hover:bg-purple-50"
+                                    className="border-green-200 text-green-700 hover:bg-green-50"
                                 >
                                     Xem tất cả
                                 </Button>
@@ -644,7 +644,7 @@ export default function StaffDashboard() {
                                     variant="outline"
                                     size="sm"
                                     onClick={() => navigate('/staff/feedbacks')}
-                                    className="border-purple-200 text-purple-700 hover:bg-purple-50"
+                                    className="border-green-200 text-green-700 hover:bg-green-50"
                                 >
                                     Xem tất cả
                                 </Button>
@@ -705,14 +705,14 @@ export default function StaffDashboard() {
                         <CardHeader className="border-b border-gray-100">
                             <div className="flex items-center justify-between">
                                 <CardTitle className="flex items-center gap-2">
-                                    <Package className="h-5 w-5 text-blue-600" />
+                                    <Package className="h-5 w-5 text-green-600" />
                                     Sản phẩm
                                 </CardTitle>
                                 <Button
                                     variant="outline"
                                     size="sm"
                                     onClick={() => navigate('/staff/products')}
-                                    className="border-blue-200 text-blue-700 hover:bg-blue-50"
+                                    className="border-green-200 text-green-700 hover:bg-green-50"
                                 >
                                     Xem tất cả
                                 </Button>
@@ -764,7 +764,7 @@ export default function StaffDashboard() {
                                                         {product.productDescription || 'Không có mô tả'}
                                                     </p>
                                                     <div className="flex items-center justify-between">
-                                                        <span className="text-lg font-bold text-blue-600">
+                                                        <span className="text-lg font-bold text-green-600">
                                                             {new Intl.NumberFormat('vi-VN', {
                                                                 style: 'currency',
                                                                 currency: 'VND',
@@ -884,12 +884,12 @@ export default function StaffDashboard() {
                         <div className="grid gap-4 md:grid-cols-3">
                             <motion.button
                                 onClick={() => navigate('/staff/orders')}
-                                className="p-4 text-left rounded-lg border border-gray-200 hover:border-purple-300 hover:shadow-md hover:bg-purple-50/30 transition-all duration-200"
+                                className="p-4 text-left rounded-lg border border-gray-200 hover:border-green-300 hover:shadow-md hover:bg-green-50/30 transition-all duration-200"
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
                             >
                                 <div className="flex items-center space-x-3">
-                                    <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500 to-purple-600 shadow-lg">
+                                    <div className="p-2 rounded-lg bg-gradient-to-br from-green-500 to-green-600 shadow-lg">
                                         <ShoppingCart className="w-5 h-5 text-white" />
                                     </div>
                                     <div>
@@ -901,12 +901,12 @@ export default function StaffDashboard() {
 
                             <motion.button
                                 onClick={() => navigate('/staff/products')}
-                                className="p-4 text-left rounded-lg border border-gray-200 hover:border-blue-300 hover:shadow-md hover:bg-blue-50/30 transition-all duration-200"
+                                className="p-4 text-left rounded-lg border border-gray-200 hover:border-green-300 hover:shadow-md hover:bg-green-50/30 transition-all duration-200"
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
                             >
                                 <div className="flex items-center space-x-3">
-                                    <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg">
+                                    <div className="p-2 rounded-lg bg-gradient-to-br from-green-500 to-green-600 shadow-lg">
                                         <Package className="w-5 h-5 text-white" />
                                     </div>
                                     <div>

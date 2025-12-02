@@ -94,7 +94,7 @@ const StaffOperationsPage: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm text-gray-500">Sắp tới</p>
-                    <p className="text-2xl font-semibold mt-1 text-blue-600">{stats.upcoming}</p>
+                    <p className="text-2xl font-semibold mt-1 text-green-600">{stats.upcoming}</p>
                   </div>
                 </div>
                 <p className="text-xs text-gray-500 mt-2">

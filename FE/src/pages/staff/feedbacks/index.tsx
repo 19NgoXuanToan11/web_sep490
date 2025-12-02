@@ -29,6 +29,16 @@ import { useToast } from '@/shared/ui/use-toast'
 import { feedbackService, type Feedback } from '@/shared/api/feedbackService'
 import { ManagementPageHeader } from '@/shared/ui/management-page-header'
 
+const formatPrice = (price?: number) => {
+    if (price == null) return '0'
+
+    // Hiển thị theo dạng 10,000 (không phần thập phân)
+    return price.toLocaleString('en-US', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+    })
+}
+
 const StaffFeedbacksPage: React.FC = () => {
     const { toast } = useToast()
     const [feedbacks, setFeedbacks] = useState<Feedback[]>([])
@@ -210,227 +220,227 @@ const StaffFeedbacksPage: React.FC = () => {
                         </Button>
                     }
                 />
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                        <Card>
-                            <CardContent className="p-4">
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <p className="text-sm text-gray-500">Tổng đánh giá</p>
-                                        <p className="text-2xl font-semibold mt-1">{stats.total}</p>
-                                    </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <Card>
+                        <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm text-gray-500">Tổng đánh giá</p>
+                                    <p className="text-2xl font-semibold mt-1">{stats.total}</p>
                                 </div>
-                                <p className="text-xs text-gray-500 mt-2">
-                                    Tất cả đánh giá mà khách hàng đã gửi
-                                </p>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardContent className="p-4">
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <p className="text-sm text-gray-500">Đang hiển thị</p>
-                                        <p className="text-2xl font-semibold mt-1 text-green-600">
-                                            {stats.active}
-                                        </p>
-                                    </div>
-                                </div>
-                                <p className="text-xs text-gray-500 mt-2">
-                                    Đánh giá đang được hiển thị trên giao diện khách hàng
-                                </p>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardContent className="p-4">
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <p className="text-sm text-gray-500">Điểm trung bình</p>
-                                        <p className="text-2xl font-semibold mt-1 text-yellow-500">
-                                            {stats.avgRating}{' '}
-                                            <span className="text-base align-middle">⭐</span>
-                                        </p>
-                                    </div>
-                                </div>
-                                <p className="text-xs text-gray-500 mt-2">
-                                    Mức độ hài lòng trung bình của khách hàng
-                                </p>
-                            </CardContent>
-                        </Card>
-                    </div>
-
-                    <Card className="mb-6">
-                        <CardHeader>
-                            <CardTitle className="text-lg">Bộ lọc và tìm kiếm</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                                <div className="md:col-span-2">
-                                    <div className="relative">
-                                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                                        <Input
-                                            placeholder="Tìm kiếm theo tên, email, sản phẩm, nội dung..."
-                                            value={searchQuery}
-                                            onChange={e => setSearchQuery(e.target.value)}
-                                            className="pl-10"
-                                        />
-                                    </div>
-                                </div>
-
-                                <select
-                                    value={statusFilter}
-                                    onChange={e => setStatusFilter(e.target.value)}
-                                    className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-                                >
-                                    <option value="all">Tất cả trạng thái</option>
-                                    <option value="ACTIVE">Đang hiển thị</option>
-                                    <option value="DEACTIVATED">Đang ẩn</option>
-                                </select>
-
-                                <select
-                                    value={ratingFilter}
-                                    onChange={e => setRatingFilter(e.target.value)}
-                                    className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-                                >
-                                    <option value="all">Tất cả đánh giá</option>
-                                    <option value="5">⭐⭐⭐⭐⭐ 5 sao</option>
-                                    <option value="4">⭐⭐⭐⭐ 4 sao</option>
-                                    <option value="3">⭐⭐⭐ 3 sao</option>
-                                    <option value="2">⭐⭐ 2 sao</option>
-                                    <option value="1">⭐ 1 sao</option>
-                                </select>
                             </div>
+                            <p className="text-xs text-gray-500 mt-2">
+                                Tất cả đánh giá mà khách hàng đã gửi
+                            </p>
                         </CardContent>
                     </Card>
 
-                    <Tabs value={selectedTab} onValueChange={setSelectedTab} className="mb-6">
-                        <TabsList>
-                            <TabsTrigger value="all">
-                                Tất cả ({stats.total})
-                            </TabsTrigger>
-                            <TabsTrigger value="active">
-                                Đang hiển thị ({stats.active})
-                            </TabsTrigger>
-                            <TabsTrigger value="inactive">
-                                Đang ẩn ({stats.inactive})
-                            </TabsTrigger>
-                        </TabsList>
-                    </Tabs>
+                    <Card>
+                        <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm text-gray-500">Đang hiển thị</p>
+                                    <p className="text-2xl font-semibold mt-1 text-green-600">
+                                        {stats.active}
+                                    </p>
+                                </div>
+                            </div>
+                            <p className="text-xs text-gray-500 mt-2">
+                                Đánh giá đang được hiển thị trên giao diện khách hàng
+                            </p>
+                        </CardContent>
+                    </Card>
 
                     <Card>
-                        <CardHeader>
+                        <CardContent className="p-4">
                             <div className="flex items-center justify-between">
-                                <CardTitle>Danh sách đánh giá</CardTitle>
-                                <Badge variant="secondary">
-                                    {filteredFeedbacks.length} kết quả
-                                </Badge>
-                            </div>
-                        </CardHeader>
-                        <CardContent>
-                            {loading ? (
-                                <div className="flex items-center justify-center py-12">
-                                    <RefreshCw className="h-8 w-8 animate-spin text-green-600" />
-                                    <span className="ml-2 text-gray-600">Đang tải dữ liệu...</span>
-                                </div>
-                            ) : filteredFeedbacks.length === 0 ? (
-                                <div className="text-center py-12">
-                                    <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                                    <p className="text-gray-500">Không tìm thấy đánh giá nào</p>
-                                </div>
-                            ) : (
                                 <div>
-                                    <div className="overflow-x-auto">
-                                        <Table>
-                                            <TableHeader>
-                                                <TableRow>
-                                                    <TableHead className="w-16">STT</TableHead>
-                                                    <TableHead>Khách hàng</TableHead>
-                                                    <TableHead>Sản phẩm</TableHead>
-                                                    <TableHead>Đánh giá</TableHead>
-                                                    <TableHead>Nội dung</TableHead>
-                                                    <TableHead>Ngày tạo</TableHead>
-                                                    <TableHead>Trạng thái</TableHead>
-                                                    <TableHead className="text-right">Thao tác</TableHead>
-                                                </TableRow>
-                                            </TableHeader>
-                                            <TableBody>
-                                                {filteredFeedbacks.map((feedback, index) => (
-                                                    <TableRow key={feedback.feedbackId}>
-                                                        <TableCell className="text-center">
-                                                            {(currentPage - 1) * pageSize + index + 1}
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <div>
-                                                                <p className="font-medium text-gray-900">{feedback.fullName}</p>
-                                                                <p className="text-sm text-gray-500">{feedback.email}</p>
-                                                            </div>
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <p className="font-medium text-gray-900">
-                                                                {feedback.orderDetail?.productName || 'N/A'}
-                                                            </p>
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <div className="flex items-center space-x-1">
-                                                                {getRatingStars(feedback.rating || 0)}
-                                                            </div>
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <p className="text-sm text-gray-900 max-w-xs truncate">
-                                                                {feedback.comment || 'Không có nội dung'}
-                                                            </p>
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            <p className="text-sm text-gray-500">
-                                                                {formatDate(feedback.createdAt)}
-                                                            </p>
-                                                        </TableCell>
-                                                        <TableCell className="whitespace-nowrap">{getStatusBadge(feedback.status)}</TableCell>
-                                                        <TableCell className="text-right">
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                onClick={() => handleViewDetail(feedback)}
-                                                            >
-                                                                <Eye className="h-4 w-4" />
-                                                            </Button>
-                                                        </TableCell>
-                                                    </TableRow>
-                                                ))}
-                                            </TableBody>
-                                        </Table>
-                                    </div>
-
-                                    {totalPages > 1 && (
-                                        <div className="flex items-center justify-between mt-4">
-                                            <p className="text-sm text-gray-600">
-                                                Trang {currentPage} / {totalPages} - Tổng {totalItems} đánh giá
-                                            </p>
-                                            <div className="flex space-x-2">
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                                                    disabled={currentPage === 1}
-                                                >
-                                                    Trước
-                                                </Button>
-                                                <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                                                    disabled={currentPage === totalPages}
-                                                >
-                                                    Sau
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    )}
+                                    <p className="text-sm text-gray-500">Điểm trung bình</p>
+                                    <p className="text-2xl font-semibold mt-1 text-yellow-500">
+                                        {stats.avgRating}{' '}
+                                        <span className="text-base align-middle">⭐</span>
+                                    </p>
                                 </div>
-                            )}
+                            </div>
+                            <p className="text-xs text-gray-500 mt-2">
+                                Mức độ hài lòng trung bình của khách hàng
+                            </p>
                         </CardContent>
                     </Card>
                 </div>
+
+                <Card className="mb-6">
+                    <CardHeader>
+                        <CardTitle className="text-lg">Bộ lọc và tìm kiếm</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                            <div className="md:col-span-2">
+                                <div className="relative">
+                                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                    <Input
+                                        placeholder="Tìm kiếm theo tên, email, sản phẩm, nội dung..."
+                                        value={searchQuery}
+                                        onChange={e => setSearchQuery(e.target.value)}
+                                        className="pl-10"
+                                    />
+                                </div>
+                            </div>
+
+                            <select
+                                value={statusFilter}
+                                onChange={e => setStatusFilter(e.target.value)}
+                                className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            >
+                                <option value="all">Tất cả trạng thái</option>
+                                <option value="ACTIVE">Đang hiển thị</option>
+                                <option value="DEACTIVATED">Đang ẩn</option>
+                            </select>
+
+                            <select
+                                value={ratingFilter}
+                                onChange={e => setRatingFilter(e.target.value)}
+                                className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            >
+                                <option value="all">Tất cả đánh giá</option>
+                                <option value="5">⭐⭐⭐⭐⭐ 5 sao</option>
+                                <option value="4">⭐⭐⭐⭐ 4 sao</option>
+                                <option value="3">⭐⭐⭐ 3 sao</option>
+                                <option value="2">⭐⭐ 2 sao</option>
+                                <option value="1">⭐ 1 sao</option>
+                            </select>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Tabs value={selectedTab} onValueChange={setSelectedTab} className="mb-6">
+                    <TabsList>
+                        <TabsTrigger value="all">
+                            Tất cả ({stats.total})
+                        </TabsTrigger>
+                        <TabsTrigger value="active">
+                            Đang hiển thị ({stats.active})
+                        </TabsTrigger>
+                        <TabsTrigger value="inactive">
+                            Đang ẩn ({stats.inactive})
+                        </TabsTrigger>
+                    </TabsList>
+                </Tabs>
+
+                <Card>
+                    <CardHeader>
+                        <div className="flex items-center justify-between">
+                            <CardTitle>Danh sách đánh giá</CardTitle>
+                            <Badge variant="secondary">
+                                {filteredFeedbacks.length} kết quả
+                            </Badge>
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        {loading ? (
+                            <div className="flex items-center justify-center py-12">
+                                <RefreshCw className="h-8 w-8 animate-spin text-green-600" />
+                                <span className="ml-2 text-gray-600">Đang tải dữ liệu...</span>
+                            </div>
+                        ) : filteredFeedbacks.length === 0 ? (
+                            <div className="text-center py-12">
+                                <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                                <p className="text-gray-500">Không tìm thấy đánh giá nào</p>
+                            </div>
+                        ) : (
+                            <div>
+                                <div className="overflow-x-auto">
+                                    <Table>
+                                        <TableHeader>
+                                            <TableRow>
+                                                <TableHead className="w-16">STT</TableHead>
+                                                <TableHead>Khách hàng</TableHead>
+                                                <TableHead>Sản phẩm</TableHead>
+                                                <TableHead>Đánh giá</TableHead>
+                                                <TableHead>Nội dung</TableHead>
+                                                <TableHead>Ngày tạo</TableHead>
+                                                <TableHead>Trạng thái</TableHead>
+                                                <TableHead className="text-right">Thao tác</TableHead>
+                                            </TableRow>
+                                        </TableHeader>
+                                        <TableBody>
+                                            {filteredFeedbacks.map((feedback, index) => (
+                                                <TableRow key={feedback.feedbackId}>
+                                                    <TableCell className="text-center">
+                                                        {(currentPage - 1) * pageSize + index + 1}
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <div>
+                                                            <p className="font-medium text-gray-900">{feedback.fullName}</p>
+                                                            <p className="text-sm text-gray-500">{feedback.email}</p>
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <p className="font-medium text-gray-900">
+                                                            {feedback.orderDetail?.productName || 'N/A'}
+                                                        </p>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <div className="flex items-center space-x-1">
+                                                            {getRatingStars(feedback.rating || 0)}
+                                                        </div>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <p className="text-sm text-gray-900 max-w-xs truncate">
+                                                            {feedback.comment || 'Không có nội dung'}
+                                                        </p>
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <p className="text-sm text-gray-500">
+                                                            {formatDate(feedback.createdAt)}
+                                                        </p>
+                                                    </TableCell>
+                                                    <TableCell className="whitespace-nowrap">{getStatusBadge(feedback.status)}</TableCell>
+                                                    <TableCell className="text-right">
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() => handleViewDetail(feedback)}
+                                                        >
+                                                            <Eye className="h-4 w-4" />
+                                                        </Button>
+                                                    </TableCell>
+                                                </TableRow>
+                                            ))}
+                                        </TableBody>
+                                    </Table>
+                                </div>
+
+                                {totalPages > 1 && (
+                                    <div className="flex items-center justify-between mt-4">
+                                        <p className="text-sm text-gray-600">
+                                            Trang {currentPage} / {totalPages} - Tổng {totalItems} đánh giá
+                                        </p>
+                                        <div className="flex space-x-2">
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                                                disabled={currentPage === 1}
+                                            >
+                                                Trước
+                                            </Button>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                                                disabled={currentPage === totalPages}
+                                            >
+                                                Sau
+                                            </Button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </CardContent>
+                </Card>
+            </div>
 
             <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
                 <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -498,7 +508,7 @@ const StaffFeedbacksPage: React.FC = () => {
                                         <div className="flex justify-between">
                                             <span className="text-sm text-gray-600">Đơn giá:</span>
                                             <span className="text-sm font-medium">
-                                                {selectedFeedback.orderDetail?.unitPrice?.toLocaleString('vi-VN', { minimumFractionDigits: 3, maximumFractionDigits: 3 })} đ
+                                                {formatPrice(selectedFeedback.orderDetail?.unitPrice)} đ
                                             </span>
                                         </div>
                                     </div>

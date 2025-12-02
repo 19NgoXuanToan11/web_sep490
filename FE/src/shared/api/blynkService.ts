@@ -138,27 +138,6 @@ class BlynkService {
     return []
   }
 
-  async triggerLogsUpdate(): Promise<{ success: boolean; message: string }> {
-    const response = await fetch(`${this.baseUrl}/logs/update`, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
-    })
-
-    if (!response.ok) {
-      const data = await response.json().catch(() => ({}))
-      return {
-        success: false,
-        message: data?.message || `Không thể đồng bộ nhật ký (mã ${response.status})`,
-      }
-    }
-
-    const data = await response.json().catch(() => ({}))
-    return {
-      success: data?.status === 1 || true,
-      message: data?.message || 'Đã đồng bộ dữ liệu từ thiết bị IoT',
-    }
-  }
-
   async exportLogs(): Promise<Blob> {
     const response = await fetch(`${this.baseUrl}/export`, {
       method: 'GET',

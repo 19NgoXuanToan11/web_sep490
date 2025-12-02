@@ -8,7 +8,7 @@ import { Badge } from '@/shared/ui/badge'
 import { Input } from '@/shared/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
-import { RefreshCw, History, Play, Pause, Download } from 'lucide-react'
+import { RefreshCw, Play, Pause, Download } from 'lucide-react'
 import { Pagination } from '@/shared/ui/pagination'
 
 const formatSensorValue = (value: number) => {
@@ -23,7 +23,6 @@ const ManagerIoTLogsPage: React.FC = () => {
     const { toast } = useToast()
     const [logs, setLogs] = useState<BlynkLogEntry[]>([])
     const [loading, setLoading] = useState(false)
-    const [syncing, setSyncing] = useState(false)
     const [sensorFilter, setSensorFilter] = useState<string>('all')
     const [searchQuery, setSearchQuery] = useState('')
     const [autoRefresh, setAutoRefresh] = useState(true)
@@ -66,19 +65,19 @@ const ManagerIoTLogsPage: React.FC = () => {
         if (!autoRefresh) return
 
         const intervalId = setInterval(() => {
-            // Only poll if not currently syncing and page is visible
-            if (!syncing && !document.hidden) {
+            // Only poll if page is visible
+            if (!document.hidden) {
                 fetchLogs(true) // Silent refresh (no loading indicator)
             }
         }, POLLING_INTERVAL)
 
         return () => clearInterval(intervalId)
-    }, [autoRefresh, syncing, fetchLogs])
+    }, [autoRefresh, fetchLogs])
 
     // Pause polling when page is hidden, resume when visible
     useEffect(() => {
         const handleVisibilityChange = () => {
-            if (!document.hidden && autoRefresh && !syncing) {
+            if (!document.hidden && autoRefresh) {
                 // Refresh immediately when page becomes visible
                 fetchLogs(true)
             }
@@ -86,33 +85,7 @@ const ManagerIoTLogsPage: React.FC = () => {
 
         document.addEventListener('visibilitychange', handleVisibilityChange)
         return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
-    }, [autoRefresh, syncing, fetchLogs])
-
-    const handleManualSync = async () => {
-        try {
-            setSyncing(true)
-            const result = await blynkService.triggerLogsUpdate()
-            toast({
-                title: result.success ? 'Đồng bộ thành công' : 'Đồng bộ thất bại',
-                description:
-                    result.message ||
-                    (result.success ? 'Dữ liệu đã được cập nhật.' : 'Không thể đồng bộ dữ liệu.'),
-                variant: result.success ? 'default' : 'destructive',
-            })
-
-            if (result.success) {
-                await fetchLogs()
-            }
-        } catch (error) {
-            toast({
-                title: 'Đồng bộ thất bại',
-                description: 'Không thể gửi yêu cầu đồng bộ đến máy chủ.',
-                variant: 'destructive',
-            })
-        } finally {
-            setSyncing(false)
-        }
-    }
+    }, [autoRefresh, fetchLogs])
 
     const sensors = useMemo(() => {
         const unique = new Set(logs.map(log => log.sensorName))
@@ -245,13 +218,9 @@ const ManagerIoTLogsPage: React.FC = () => {
                                 </>
                             )}
                         </Button>
-                        <Button variant="outline" onClick={() => fetchLogs()} disabled={loading || syncing}>
+                        <Button variant="outline" onClick={() => fetchLogs()} disabled={loading}>
                             <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
                             Làm mới
-                        </Button>
-                        <Button onClick={handleManualSync} disabled={syncing}>
-                            <History className="h-4 w-4 mr-2" />
-                            {syncing ? 'Đang đồng bộ...' : 'Đồng bộ ngay'}
                         </Button>
                     </div>
                 </div>
@@ -303,7 +272,7 @@ const ManagerIoTLogsPage: React.FC = () => {
                         </CardHeader>
                         <CardContent>
                             <div className="text-lg font-semibold text-gray-900">
-                                {syncing ? 'Đang đồng bộ...' : loading ? 'Đang tải dữ liệu...' : autoRefresh ? 'Tự động cập nhật' : 'Sẵn sàng'}
+                                {loading ? 'Đang tải dữ liệu...' : autoRefresh ? 'Tự động cập nhật' : 'Sẵn sàng'}
                             </div>
                             <p className="text-xs text-gray-500 mt-1">
                                 {autoRefresh

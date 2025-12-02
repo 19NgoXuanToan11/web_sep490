@@ -226,13 +226,9 @@ const StaffOrdersPage: React.FC = () => {
   }, [maxOrderId, currentPage, statusFilter, searchType, searchQuery, selectedDate, fetchOrders, toast])
 
   const handleStatusFilterChange = (status: string) => {
+    // Chỉ thay đổi filter ở client; dữ liệu đã được load sẵn theo trang
+    // Việc lọc sẽ được thực hiện trong filteredOrders để tránh phụ thuộc vào backend
     setStatusFilter(status)
-    // Nếu đang có kết quả tìm kiếm, chỉ cập nhật filter (filteredOrders sẽ tự động filter)
-    // Nếu không có tìm kiếm, mới gọi API
-    if (!searchQuery && !selectedDate) {
-      const statusParam = status === 'all' ? undefined : parseInt(status)
-      fetchOrders(1, statusParam)
-    }
   }
 
   const handleTabChange = (tab: string) => {
@@ -426,7 +422,12 @@ const StaffOrdersPage: React.FC = () => {
           ? customerEmail.toLowerCase().includes(searchTerm)
           : false)
 
-      const matchesStatus = statusFilter === 'all' || order.status?.toString() === statusFilter
+      const matchesStatus =
+        statusFilter === 'all' ||
+        // Với filter "Đang giao" (mã 3), bao gồm cả các trạng thái đang giao khác (ví dụ 6)
+        (statusFilter === '3'
+          ? [3, 6].includes(order.status)
+          : order.status?.toString() === statusFilter)
       const matchesPayment = paymentFilter === 'all' || order.paymentStatus === paymentFilter
 
       return matchesSearch && matchesStatus && matchesPayment
@@ -468,9 +469,8 @@ const StaffOrdersPage: React.FC = () => {
   }
 
   const getDisplayStatusBadge = (order: DisplayOrder) => {
-    if (order.paymentStatus === 'failed' || order.paymentStatus === 'pending') {
-      return <Badge variant="secondary">Chưa thanh toán</Badge>
-    }
+    // Luôn hiển thị trạng thái ĐƠN HÀNG (Đang giao, Đã xác nhận, Hoàn thành...)
+    // Trạng thái thanh toán đã có cột riêng "Thanh toán"
     return getStatusBadge(order.status)
   }
 
@@ -844,7 +844,7 @@ const StaffOrdersPage: React.FC = () => {
                 <DropdownMenuTrigger asChild>
                   <Button variant="outline">
                     <Filter className="h-4 w-4 mr-2" />
-                    Trạng thái: {(() => {
+                    Đơn hàng: {(() => {
                       if (statusFilter === 'all') return 'Tất cả'
                       const statusNum = parseInt(statusFilter)
                       return getOrderStatusLabel(statusNum)

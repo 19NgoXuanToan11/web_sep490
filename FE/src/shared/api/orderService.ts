@@ -186,7 +186,7 @@ export const getOrderStatusLabel = (status: number): string => {
     3: 'Đang giao', // PENDING - Đang trong quá trình giao hàng
     4: 'Đã hủy', // CANCELLED - Đơn hàng đã bị hủy
     5: 'Hoàn thành', // COMPLETED - Đơn hàng đã hoàn thành
-    6: 'Đã giao', // DELIVERED - Đã giao hàng thành công
+    6: 'Đang giao', // DELIVERED / SHIPPING - Đơn đang giao cho khách
   }
   return statusMap[status] || 'Không xác định'
 }
@@ -196,10 +196,10 @@ export const getOrderStatusVariant = (status: number): 'default' | 'secondary' |
     case 0: // Chờ xử lý
     case 2: // Đang chuẩn bị
     case 3: // Đang giao
+    case 6: // Đang giao
       return 'secondary'
     case 1: // Đã xác nhận
     case 5: // Hoàn thành
-    case 6: // Đã giao
       return 'default'
     case 4: // Đã hủy
       return 'destructive'

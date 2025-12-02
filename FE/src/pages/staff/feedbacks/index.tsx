@@ -446,7 +446,6 @@ const StaffFeedbacksPage: React.FC = () => {
                 <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle className="flex items-center">
-                            <MessageSquare className="h-5 w-5 mr-2 text-green-600" />
                             Chi tiết đánh giá
                         </DialogTitle>
                         <DialogDescription>

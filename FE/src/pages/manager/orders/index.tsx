@@ -413,7 +413,7 @@ const ManagerOrdersPage: React.FC = () => {
       case 5:
         return <CheckCircle className="h-4 w-4 text-green-500" />
       case 6:
-        return <Truck className="h-4 w-4 text-blue-500" />
+        return <Truck className="h-4 w-4 text-orange-500" />
       default:
         return <ShoppingCart className="h-4 w-4 text-gray-500" />
     }

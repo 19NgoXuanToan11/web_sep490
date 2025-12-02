@@ -61,6 +61,11 @@ interface DisplayOrder {
   updatedAt?: string
 }
 
+// Mở rộng kiểu ApiOrder để bao gồm thêm thuộc tính fullname từ API
+type ApiOrderWithFullname = ApiOrder & {
+  fullname?: string
+}
+
 const StaffOrdersPage: React.FC = () => {
   const { toast } = useToast()
   const [orders, setOrders] = useState<DisplayOrder[]>([])
@@ -87,10 +92,14 @@ const StaffOrdersPage: React.FC = () => {
   const [loadingOrderDetail, setLoadingOrderDetail] = useState(false)
   const [maxOrderId, setMaxOrderId] = useState<number>(0)
 
-  const transformApiOrder = (apiOrder: ApiOrder): DisplayOrder => {
+  const transformApiOrder = (apiOrder: ApiOrderWithFullname): DisplayOrder => {
     const email = apiOrder.customer?.email || apiOrder.email || 'N/A'
+
+    // Ưu tiên hiển thị đúng fullname trả về từ API,
+    // nếu không có thì fallback như cũ từ email
     const customerName =
-      email !== 'N/A' ? email.split('@')[0].replace(/[._]/g, ' ') : 'Unknown Customer'
+      apiOrder.fullname ||
+      (email !== 'N/A' ? email.split('@')[0].replace(/[._]/g, ' ') : 'Unknown Customer')
 
     const mapPaymentStatus = (status: number): 'pending' | 'paid' | 'failed' | 'refunded' => {
       switch (status) {

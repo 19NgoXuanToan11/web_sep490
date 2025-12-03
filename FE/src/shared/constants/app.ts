@@ -1,7 +1,7 @@
 export const APP_CONFIG = {
   DEFAULT_USER: {
     name: 'Quản lý nông trại',
-    email: 'manager@farm.com',
+    email: 'manager@email.com',
   },
   PAGINATION: {
     DEFAULT_PAGE_SIZE: 10,

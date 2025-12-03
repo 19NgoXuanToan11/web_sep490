@@ -9,7 +9,6 @@ import {
 import { Badge } from '@/shared/ui/badge'
 import type { User } from '@/shared/lib/localData'
 import { availableRoles, statusOptions, genderOptions } from '../model/schemas'
-import { Mail, Phone, MapPin } from 'lucide-react'
 
 interface UserDetailDialogProps {
     user: User | null
@@ -109,7 +108,6 @@ export const UserDetailDialog: React.FC<UserDetailDialogProps> = ({ user, isOpen
                                 label="Email"
                                 value={
                                     <span className="inline-flex items-center gap-2">
-                                        <Mail className="h-4 w-4 text-gray-400" />
                                         {user.email}
                                     </span>
                                 }
@@ -119,7 +117,6 @@ export const UserDetailDialog: React.FC<UserDetailDialogProps> = ({ user, isOpen
                                 value={
                                     profile?.phone ? (
                                         <span className="inline-flex items-center gap-2">
-                                            <Phone className="h-4 w-4 text-gray-400" />
                                             {profile.phone}
                                         </span>
                                     ) : (
@@ -133,7 +130,6 @@ export const UserDetailDialog: React.FC<UserDetailDialogProps> = ({ user, isOpen
                                 value={
                                     profile?.address ? (
                                         <span className="inline-flex items-center gap-2">
-                                            <MapPin className="h-4 w-4 text-gray-400" />
                                             {profile.address}
                                         </span>
                                     ) : (

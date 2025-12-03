@@ -116,10 +116,11 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
     get().setLoadingState(key, { isLoading: true })
 
     try {
-      const { paginationState, statusFilter } = get()
+      const { statusFilter } = get()
+      // Fetch all users at once to enable proper client-side sorting and pagination
       const response = await accountApi.getAll({
-        pageSize: paginationState.pageSize,
-        pageIndex: paginationState.page,
+        pageSize: 1000, // Fetch all users
+        pageIndex: 1,
         // Omit role filter to fetch all roles by default
         role: undefined,
         status: statusFilter ? (statusFilter as 'Active' | 'Inactive') : undefined,
@@ -160,15 +161,14 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
       })
 
       const currentPaginationState = get().paginationState
-      // Keep the current page from state to ensure UI displays the correct page number
-      // The API response pageIndex should match what we sent, but we trust our state more
+      // Store all users and update total count for client-side pagination
       set({
         users,
         roles: [...initialRoles],
         tableDensity: prefs.tableDensity,
         paginationState: {
           page: currentPaginationState.page,
-          pageSize: response.pageSize,
+          pageSize: currentPaginationState.pageSize,
           total: response.totalItemCount,
         },
       })
@@ -477,7 +477,27 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
       )
     }
 
+    // Role priority for default sorting: MANAGER (0) -> STAFF (1) -> CUSTOMER (2)
+    const getRolePriority = (role: string): number => {
+      if (role === 'MANAGER') return 0
+      if (role === 'STAFF') return 1
+      if (role === 'CUSTOMER') return 2
+      return 3 // Unknown roles go last
+    }
+
     filtered = filtered.sort((a, b) => {
+      // Always prioritize role sorting first: MANAGER -> STAFF -> CUSTOMER
+      // This ensures consistent ordering regardless of filters, search, or other sort options
+      const aRolePriority = getRolePriority(a.roles[0] || 'STAFF')
+      const bRolePriority = getRolePriority(b.roles[0] || 'STAFF')
+      
+      if (aRolePriority !== bRolePriority) {
+        // Always maintain role priority order (Manager -> Staff -> Customer)
+        // regardless of sort order setting
+        return aRolePriority - bRolePriority
+      }
+
+      // If roles are the same, apply the selected sort
       let aValue: string | number
       let bValue: string | number
 
@@ -485,6 +505,8 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
         aValue = a.lastLogin ? new Date(a.lastLogin).getTime() : 0
         bValue = b.lastLogin ? new Date(b.lastLogin).getTime() : 0
       } else if (searchState.sortBy === 'roles') {
+        // When sorting by roles, still use priority (already handled above)
+        // But if same priority, maintain alphabetical order within same role
         aValue = a.roles[0] || 'STAFF'
         bValue = b.roles[0] || 'STAFF'
       } else {
@@ -509,11 +531,16 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
   },
 
   getPaginatedUsers: () => {
-    return get().getFilteredUsers()
+    const filtered = get().getFilteredUsers()
+    const { paginationState } = get()
+    const startIndex = (paginationState.page - 1) * paginationState.pageSize
+    const endIndex = startIndex + paginationState.pageSize
+    return filtered.slice(startIndex, endIndex)
   },
 
   getTotalCount: () => {
-    return get().paginationState.total
+    // Return the count of filtered users for accurate pagination
+    return get().getFilteredUsers().length
   },
 
   getRoleById: (roleId: string) => {

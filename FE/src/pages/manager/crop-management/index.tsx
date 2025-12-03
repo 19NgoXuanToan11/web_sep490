@@ -444,10 +444,10 @@ export default function CropManagementPage() {
   return (
     <ManagerLayout>
       <div className="p-6 space-y-8">
-          <ManagementPageHeader
-            title="Quản lý cây trồng"
-            description="Quản lý toàn bộ thông tin cây trồng, sản phẩm và trạng thái hoạt động."
-          />
+        <ManagementPageHeader
+          title="Quản lý cây trồng"
+          description="Quản lý toàn bộ thông tin cây trồng, sản phẩm và trạng thái hoạt động."
+        />
 
         <div className="grid gap-4 md:grid-cols-3">
           <Card>
@@ -540,7 +540,7 @@ export default function CropManagementPage() {
           </CardContent>
         </Card>
 
-        <div className="border rounded-lg bg-white">
+        <div className="border rounded-lg bg-white mt-4">
           <Table>
             <TableHeader>
               <TableRow>

@@ -32,6 +32,8 @@ const badgeVariants = cva(
           'border-transparent bg-gradient-to-r from-teal-500 to-emerald-600 text-white hover:from-teal-600 hover:to-emerald-700 shadow-teal-500/25',
         shipping:
           'border-transparent bg-gradient-to-r from-indigo-500 to-blue-600 text-white hover:from-indigo-600 hover:to-blue-700 shadow-indigo-500/25',
+        golden:
+          'border-transparent bg-gradient-to-r from-yellow-400 to-yellow-500 text-white hover:from-yellow-500 hover:to-yellow-600 shadow-yellow-500/25',
       },
     },
     defaultVariants: {

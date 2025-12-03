@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Cpu, Menu, X, ChevronRight, Home, Package, ShoppingCart, MessageSquare, BarChart3 } from 'lucide-react'
@@ -6,6 +6,7 @@ import { Button } from '@/shared/ui/button'
 import LogoutButton from '@/shared/ui/LogoutButton'
 import { Badge } from '@/shared/ui/badge'
 import { User } from 'lucide-react'
+import { accountProfileApi } from '@/shared/api/auth'
 
 interface StaffLayoutProps {
   children: React.ReactNode
@@ -52,8 +53,40 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({ children }) => {
     return saved !== null ? JSON.parse(saved) : true
   })
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false)
+  const [staffProfile, setStaffProfile] = useState<{
+    fullname: string
+    email: string
+    images?: string
+  }>({
+    fullname: 'Nhân viên thực địa',
+    email: 'staff@farm.com',
+  })
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true)
+  const [imageError, setImageError] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        setIsLoadingProfile(true)
+        const profile = await accountProfileApi.getProfile()
+        setStaffProfile({
+          fullname: profile.fullname || 'Nhân viên thực địa',
+          email: profile.email || 'staff@farm.com',
+          images: profile.images,
+        })
+        setImageError(false)
+      } catch (error) {
+        console.error('Failed to fetch staff profile:', error)
+        // Keep default values on error
+      } finally {
+        setIsLoadingProfile(false)
+      }
+    }
+
+    fetchProfile()
+  }, [])
 
   const handleSidebarToggle = (newState: boolean) => {
     setIsSidebarOpen(newState)
@@ -196,13 +229,26 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({ children }) => {
               : 'flex flex-col items-center space-y-3'
               }`}
           >
-            <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
-              <User className="w-4 h-4 text-gray-600" />
-            </div>
+            {staffProfile.images && !imageError ? (
+              <img
+                src={staffProfile.images}
+                alt={staffProfile.fullname}
+                className="w-8 h-8 rounded-full object-cover border-2 border-gray-200"
+                onError={() => setImageError(true)}
+              />
+            ) : (
+              <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
+                <User className="w-4 h-4 text-gray-600" />
+              </div>
+            )}
             {isSidebarOpen && (
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">Nhân viên thực địa</p>
-                <p className="text-xs text-gray-500 truncate">staff@farm.com</p>
+                <p className="text-sm font-medium text-gray-900 truncate">
+                  {isLoadingProfile ? 'Đang tải...' : staffProfile.fullname}
+                </p>
+                <p className="text-xs text-gray-500 truncate">
+                  {isLoadingProfile ? '...' : staffProfile.email}
+                </p>
               </div>
             )}
             {/* Hiển thị nút đăng xuất ở cả hai trạng thái; khi thu nhỏ đặt dưới avatar */}

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react'
 import { motion } from 'framer-motion'
-import { Activity, RefreshCw } from 'lucide-react'
+import { RefreshCw } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card'
 import { Skeleton } from '@/shared/ui/skeleton'
@@ -69,7 +69,6 @@ const AdminDashboard: React.FC = () => {
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [autoRefreshEnabled, setAutoRefreshEnabled] = useState(true)
 
   const calculateSystemHealth = useCallback((m: SystemMetrics): number => {
     let healthScore = 100
@@ -216,16 +215,6 @@ const AdminDashboard: React.FC = () => {
     fetchDashboardData()
   }, [fetchDashboardData])
 
-  useEffect(() => {
-    if (!autoRefreshEnabled) return
-
-    const interval = setInterval(() => {
-      fetchDashboardData()
-    }, 30000)
-
-    return () => clearInterval(interval)
-  }, [autoRefreshEnabled, fetchDashboardData])
-
   const handleRefresh = async () => {
     await fetchDashboardData()
     toast({
@@ -312,15 +301,6 @@ const AdminDashboard: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setAutoRefreshEnabled(!autoRefreshEnabled)}
-              className="flex items-center gap-2"
-            >
-              <Activity className={`h-4 w-4 ${autoRefreshEnabled ? 'text-green-600' : ''}`} />
-              {autoRefreshEnabled ? 'Tự động làm mới' : 'Tắt tự động'}
-            </Button>
             <Button
               variant="outline"
               onClick={handleRefresh}
@@ -424,13 +404,13 @@ const AdminDashboard: React.FC = () => {
                 <div className="text-2xl font-bold text-gray-900 mb-1">
                   {isLoading ? <Skeleton className="h-8 w-20" /> : metrics.totalUsers}
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">
+                <div className="text-xs text-muted-foreground mt-1">
                   {isLoading ? (
                     <Skeleton className="h-4 w-24 mt-1" />
                   ) : (
                     <span className="text-green-600 font-medium">{metrics.activeUsers} hoạt động</span>
                   )}
-                </p>
+                </div>
                 <div className="mt-2 text-xs text-gray-500">
                   {isLoading ? (
                     <Skeleton className="h-3 w-32 mt-1" />
@@ -463,13 +443,13 @@ const AdminDashboard: React.FC = () => {
                 <div className="text-2xl font-bold text-gray-900 mb-1">
                   {isLoading ? <Skeleton className="h-8 w-20" /> : metrics.totalFarms}
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">
+                <div className="text-xs text-muted-foreground mt-1">
                   {isLoading ? (
                     <Skeleton className="h-4 w-24 mt-1" />
                   ) : (
                     <span className="text-green-600 font-medium">{metrics.activeFarms} hoạt động</span>
                   )}
-                </p>
+                </div>
                 <div className="mt-2 text-xs text-gray-500">
                   {isLoading ? (
                     <Skeleton className="h-3 w-40 mt-1" />
@@ -496,7 +476,7 @@ const AdminDashboard: React.FC = () => {
                 <div className="text-2xl font-bold text-gray-900 mb-1">
                   {isLoading ? <Skeleton className="h-8 w-20" /> : metrics.totalDevices}
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">
+                <div className="text-xs text-muted-foreground mt-1">
                   {isLoading ? (
                     <Skeleton className="h-4 w-24 mt-1" />
                   ) : (
@@ -509,7 +489,7 @@ const AdminDashboard: React.FC = () => {
                       {metrics.onlineDevices} trực tuyến
                     </span>
                   )}
-                </p>
+                </div>
                 <div className="mt-2 text-xs text-gray-500">
                   {isLoading ? (
                     <Skeleton className="h-3 w-32 mt-1" />
@@ -542,7 +522,7 @@ const AdminDashboard: React.FC = () => {
                 <div className="text-2xl font-bold text-gray-900 mb-1">
                   {isLoading ? <Skeleton className="h-8 w-20" /> : metrics.totalOrders}
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">
+                <div className="text-xs text-muted-foreground mt-1">
                   {isLoading ? (
                     <Skeleton className="h-4 w-24 mt-1" />
                   ) : (
@@ -550,7 +530,7 @@ const AdminDashboard: React.FC = () => {
                       {metrics.pendingOrders} đang xử lý
                     </span>
                   )}
-                </p>
+                </div>
                 <div className="mt-2 text-xs text-gray-500">
                   {isLoading ? (
                     <Skeleton className="h-3 w-32 mt-1" />
@@ -577,7 +557,7 @@ const AdminDashboard: React.FC = () => {
                 <div className="text-2xl font-bold text-gray-900 mb-1">
                   {isLoading ? <Skeleton className="h-8 w-20" /> : metrics.totalProducts}
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">
+                <div className="text-xs text-muted-foreground mt-1">
                   {isLoading ? (
                     <Skeleton className="h-4 w-24 mt-1" />
                   ) : (
@@ -585,7 +565,7 @@ const AdminDashboard: React.FC = () => {
                       {metrics.activeProducts} hoạt động
                     </span>
                   )}
-                </p>
+                </div>
                 <div className="mt-2 text-xs text-gray-500">
                   {isLoading ? (
                     <Skeleton className="h-3 w-32 mt-1" />
@@ -616,13 +596,13 @@ const AdminDashboard: React.FC = () => {
                 <div className="text-2xl font-bold text-gray-900 mb-1">
                   {isLoading ? <Skeleton className="h-8 w-32" /> : formatCurrency(metrics.totalRevenue)}
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">
+                <div className="text-xs text-muted-foreground mt-1">
                   {isLoading ? (
                     <Skeleton className="h-4 w-24 mt-1" />
                   ) : (
                     `Từ ${metrics.completedOrders} đơn hàng`
                   )}
-                </p>
+                </div>
                 <div className="mt-2 text-xs text-gray-500">
                   {isLoading ? (
                     <Skeleton className="h-3 w-32 mt-1" />
@@ -649,9 +629,9 @@ const AdminDashboard: React.FC = () => {
                 <div className="text-2xl font-bold text-gray-900 mb-1">
                   {isLoading ? <Skeleton className="h-8 w-20" /> : metrics.totalFeedbacks}
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">
+                <div className="text-xs text-muted-foreground mt-1">
                   {isLoading ? <Skeleton className="h-4 w-24 mt-1" /> : 'Tổng số đánh giá'}
-                </p>
+                </div>
                 <div className="mt-2 text-xs text-gray-500">
                   {isLoading ? (
                     <Skeleton className="h-3 w-32 mt-1" />
@@ -687,13 +667,13 @@ const AdminDashboard: React.FC = () => {
                     </>
                   )}
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">
+                <div className="text-xs text-muted-foreground mt-1">
                   {isLoading ? (
                     <Skeleton className="h-4 w-24 mt-1" />
                   ) : (
                     `${metrics.completedOrders} / ${metrics.totalOrders} đơn hàng`
                   )}
-                </p>
+                </div>
                 <div className="mt-2 text-xs text-gray-500">
                   {isLoading ? (
                     <Skeleton className="h-3 w-32 mt-1" />

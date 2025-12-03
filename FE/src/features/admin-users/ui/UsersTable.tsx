@@ -1,5 +1,5 @@
 import React from 'react'
-import { Users, MoreHorizontal, Edit, ArrowUpDown, ArrowUp, ArrowDown, Key, Eye } from 'lucide-react'
+import { Users, MoreHorizontal } from 'lucide-react'
 import { Badge } from '@/shared/ui/badge'
 import { Button } from '@/shared/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
@@ -30,7 +30,6 @@ export const UsersTable: React.FC<UsersTableProps> = ({
     searchState,
     loadingStates,
     paginationState,
-    setSort,
     setPagination,
     getPaginatedUsers,
     getTotalCount,
@@ -45,20 +44,6 @@ export const UsersTable: React.FC<UsersTableProps> = ({
   const totalPages = Math.ceil(totalCount / pageSize)
   const startItem = totalCount === 0 ? 0 : (currentPage - 1) * pageSize + 1
 
-  const handleSort = (column: string) => {
-    const newOrder =
-      searchState.sortBy === column && searchState.sortOrder === 'asc' ? 'desc' : 'asc'
-    setSort(column, newOrder)
-  }
-
-  const getSortIcon = (column: string) => {
-    if (searchState.sortBy !== column) return <ArrowUpDown className="h-4 w-4" />
-    return searchState.sortOrder === 'asc' ? (
-      <ArrowUp className="h-4 w-4" />
-    ) : (
-      <ArrowDown className="h-4 w-4" />
-    )
-  }
 
   const getRolesBadges = (roles: string[]) => {
 
@@ -66,7 +51,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({
     const roleConfig = availableRoles.find(r => r.value === role)
     return (
       <Badge
-        variant={role === 'CUSTOMER' ? 'default' : role === 'MANAGER' ? 'secondary' : 'destructive'}
+        variant={role === 'CUSTOMER' ? 'default' : role === 'MANAGER' ? 'golden' : 'destructive'}
         className="text-xs"
       >
         {roleConfig?.label || role}
@@ -88,41 +73,11 @@ export const UsersTable: React.FC<UsersTableProps> = ({
           <TableHeader>
             <TableRow>
               <TableHead className="w-16">STT</TableHead>
-              <TableHead>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-auto p-0 font-medium"
-                  onClick={() => handleSort('name')}
-                >
-                  Người dùng
-                  {getSortIcon('name')}
-                </Button>
-              </TableHead>
+              <TableHead className="font-medium">Người dùng</TableHead>
 
-              <TableHead>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-auto p-0 font-medium"
-                  onClick={() => handleSort('roles')}
-                >
-                  Vai trò
-                  {getSortIcon('roles')}
-                </Button>
-              </TableHead>
+              <TableHead className="font-medium">Vai trò</TableHead>
 
-              <TableHead>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-auto p-0 font-medium"
-                  onClick={() => handleSort('status')}
-                >
-                  Trạng thái
-                  {getSortIcon('status')}
-                </Button>
-              </TableHead>
+              <TableHead className="font-medium">Trạng thái</TableHead>
 
               <TableHead className="w-12"></TableHead>
             </TableRow>
@@ -230,7 +185,6 @@ export const UsersTable: React.FC<UsersTableProps> = ({
                             }}
                             className="cursor-pointer focus:bg-gray-100"
                           >
-                            <Eye className="h-4 w-4 mr-2 text-green-600" />
                             Xem chi tiết
                           </DropdownMenuItem>
                           <DropdownMenuItem
@@ -244,9 +198,8 @@ export const UsersTable: React.FC<UsersTableProps> = ({
                             }}
                             className="cursor-pointer focus:bg-gray-100"
                           >
-                            <Edit className="h-4 w-4 mr-2 text-green-600" />
                             <div className="flex flex-col">
-                              <span className="font-medium text-gray-900">Chỉnh sửa người dùng</span>
+                              <span className="font-medium text-gray-900">Chỉnh sửa</span>
                             </div>
                           </DropdownMenuItem>
                           <DropdownMenuItem
@@ -260,7 +213,6 @@ export const UsersTable: React.FC<UsersTableProps> = ({
                             }}
                             className="cursor-pointer focus:bg-gray-100"
                           >
-                            <Key className="h-4 w-4 mr-2" />
                             Đặt lại mật khẩu
                           </DropdownMenuItem>
                         </DropdownMenuContent>

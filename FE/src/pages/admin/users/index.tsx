@@ -162,7 +162,7 @@ const AdminUsersPage: React.FC = () => {
                 <div>
                   <p className="text-sm text-gray-600 font-medium">Vai trò</p>
                   <p className="text-sm font-semibold mt-1 text-gray-900">
-                    {stats.customers} khách hàng • {stats.managers} quản lý • {stats.staffs} nhân viên
+                    {stats.managers} quản lý • {stats.staffs} nhân viên • {stats.customers} khách hàng
                   </p>
                 </div>
               </div>

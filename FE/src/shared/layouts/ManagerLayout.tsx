@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react'
+import React, { useState, useCallback, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -19,6 +19,7 @@ import { Button } from '@/shared/ui/button'
 import LogoutButton from '@/shared/ui/LogoutButton'
 import { Badge } from '@/shared/ui/badge'
 import { APP_CONFIG } from '@/shared/constants/app'
+import { accountProfileApi } from '@/shared/api/auth'
 
 interface ManagerLayoutProps {
   children: React.ReactNode
@@ -91,13 +92,44 @@ const navigationItems: NavItem[] = [
 
 export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(() => {
-
     const saved = localStorage.getItem('manager-sidebar-open')
     return saved !== null ? JSON.parse(saved) : true
   })
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false)
+  const [managerProfile, setManagerProfile] = useState<{
+    fullname: string
+    email: string
+    images?: string
+  }>({
+    fullname: APP_CONFIG.DEFAULT_USER.name,
+    email: APP_CONFIG.DEFAULT_USER.email,
+  })
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true)
+  const [imageError, setImageError] = useState(false)
   const location = useLocation()
   const navigate = useNavigate()
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        setIsLoadingProfile(true)
+        const profile = await accountProfileApi.getProfile()
+        setManagerProfile({
+          fullname: profile.fullname || APP_CONFIG.DEFAULT_USER.name,
+          email: profile.email || APP_CONFIG.DEFAULT_USER.email,
+          images: profile.images,
+        })
+        setImageError(false)
+      } catch (error) {
+        console.error('Failed to fetch manager profile:', error)
+        // Keep default values on error
+      } finally {
+        setIsLoadingProfile(false)
+      }
+    }
+
+    fetchProfile()
+  }, [])
 
   const handleSidebarToggle = useCallback((newState: boolean) => {
     setIsSidebarOpen(newState)
@@ -229,13 +261,26 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
               : 'flex flex-col items-center space-y-3'
               }`}
           >
-            <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
-              <User className="w-4 h-4 text-gray-600" />
-            </div>
+            {managerProfile.images && !imageError ? (
+              <img
+                src={managerProfile.images}
+                alt={managerProfile.fullname}
+                className="w-8 h-8 rounded-full object-cover border-2 border-gray-200"
+                onError={() => setImageError(true)}
+              />
+            ) : (
+              <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
+                <User className="w-4 h-4 text-gray-600" />
+              </div>
+            )}
             {isSidebarOpen && (
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">{APP_CONFIG.DEFAULT_USER.name}</p>
-                <p className="text-xs text-gray-500 truncate">{APP_CONFIG.DEFAULT_USER.email}</p>
+                <p className="text-sm font-medium text-gray-900 truncate">
+                  {isLoadingProfile ? 'Đang tải...' : managerProfile.fullname}
+                </p>
+                <p className="text-xs text-gray-500 truncate">
+                  {isLoadingProfile ? '...' : managerProfile.email}
+                </p>
               </div>
             )}
             <LogoutButton

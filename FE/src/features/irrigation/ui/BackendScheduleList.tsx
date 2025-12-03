@@ -769,7 +769,7 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                     </DialogContent>
                 </Dialog>
 
-                <div className="overflow-auto">
+                <div className="overflow-auto mt-4">
                     <table className="w-full text-sm">
                         <thead>
                             <tr className="text-left border-b">

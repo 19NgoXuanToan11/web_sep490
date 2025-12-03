@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import LogoutButton from '@/shared/ui/LogoutButton'
+import { accountProfileApi } from '@/shared/api/auth'
 
 import { Badge } from '@/shared/ui/badge'
 
@@ -49,8 +50,36 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
     return saved !== null ? JSON.parse(saved) : true
   })
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false)
+  const [adminProfile, setAdminProfile] = useState<{
+    fullname: string
+    email: string
+  }>({
+    fullname: 'Quản trị viên hệ thống',
+    email: 'admin@email.com',
+  })
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true)
   const location = useLocation()
   const navigate = useNavigate()
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        setIsLoadingProfile(true)
+        const profile = await accountProfileApi.getProfile()
+        setAdminProfile({
+          fullname: profile.fullname || 'Quản trị viên hệ thống',
+          email: profile.email || 'admin@email.com',
+        })
+      } catch (error) {
+        console.error('Failed to fetch admin profile:', error)
+        // Keep default values on error
+      } finally {
+        setIsLoadingProfile(false)
+      }
+    }
+
+    fetchProfile()
+  }, [])
 
   const handleSidebarToggle = (newState: boolean) => {
     setIsSidebarOpen(newState)
@@ -198,8 +227,12 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
             </div>
             {isSidebarOpen && (
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">System Admin</p>
-                <p className="text-xs text-gray-500 truncate">admin@email.com</p>
+                <p className="text-sm font-medium text-gray-900 truncate">
+                  {isLoadingProfile ? 'Đang tải...' : adminProfile.fullname}
+                </p>
+                <p className="text-xs text-gray-500 truncate">
+                  {isLoadingProfile ? '...' : adminProfile.email}
+                </p>
               </div>
             )}
             <LogoutButton

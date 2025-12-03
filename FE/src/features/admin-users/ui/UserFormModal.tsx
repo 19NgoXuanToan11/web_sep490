@@ -2,7 +2,7 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { motion } from 'framer-motion'
-import { Save, UserPlus, Edit, Upload, X, Loader2 } from 'lucide-react'
+import { Upload, X, Loader2 } from 'lucide-react'
 import { Badge } from '@/shared/ui/badge'
 import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
@@ -246,8 +246,7 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            {isEditing ? <Edit className="h-5 w-5" /> : <UserPlus className="h-5 w-5" />}
-            {isEditing ? 'Chỉnh sửa người dùng' : 'Tạo người dùng mới'}
+            {isEditing ? 'Chỉnh sửa' : 'Tạo người dùng mới'}
           </DialogTitle>
         </DialogHeader>
 
@@ -443,20 +442,29 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
                 <SelectValue placeholder="Chọn vai trò" />
               </SelectTrigger>
               <SelectContent>
-                {availableRoles.map(role => (
-                  <SelectItem key={role.value} value={role.value}>
-                    <div className="flex items-center justify-between w-full">
-                      <div className="flex items-center gap-2">
-                        <span>{role.label}</span>
-                        {role.value === 'MANAGER' && (
-                          <Badge variant="destructive" className="text-xs">
-                            Quyền cao
-                          </Badge>
-                        )}
+                {availableRoles
+                  .filter(role => {
+                    // When editing, hide the current user's role from the selection
+                    if (isEditing && user) {
+                      const currentUserRole = user.roles[0] || 'STAFF'
+                      return role.value !== currentUserRole
+                    }
+                    return true
+                  })
+                  .map(role => (
+                    <SelectItem key={role.value} value={role.value}>
+                      <div className="flex items-center justify-between w-full">
+                        <div className="flex items-center gap-2">
+                          <span>{role.label}</span>
+                          {role.value === 'MANAGER' && (
+                            <Badge variant="destructive" className="text-xs">
+                              Quyền cao
+                            </Badge>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  </SelectItem>
-                ))}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
             {errors.role && <p className="text-sm text-red-600">{errors.role.message}</p>}
@@ -476,8 +484,7 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
                 />
               ) : (
                 <>
-                  <Save className="h-4 w-4 mr-2" />
-                  {isEditing ? 'Cập nhật người dùng' : 'Tạo người dùng'}
+                  {isEditing ? 'Cập nhật' : 'Tạo'}
                 </>
               )}
             </Button>

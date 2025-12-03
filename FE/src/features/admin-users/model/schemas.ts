@@ -46,11 +46,6 @@ export const defaultUserFormValues: UserFormData = {
 
 export const availableRoles: { value: UserRole; label: string; description: string }[] = [
   {
-    value: 'CUSTOMER',
-    label: 'Khách hàng',
-    description: 'Quyền truy cập khách hàng với các đặc quyền cơ bản',
-  },
-  {
     value: 'MANAGER',
     label: 'Quản lý nông trại',
     description: 'Kiểm soát hoạt động các tính năng quản lý nông trại',
@@ -59,6 +54,11 @@ export const availableRoles: { value: UserRole; label: string; description: stri
     value: 'STAFF',
     label: 'Nhân viên đồng ruộng',
     description: 'Quyền truy cập hạn chế cho hoạt động đồng ruộng và quản lý nhiệm vụ',
+  },
+  {
+    value: 'CUSTOMER',
+    label: 'Khách hàng',
+    description: 'Quyền truy cập khách hàng với các đặc quyền cơ bản',
   },
 ]
 

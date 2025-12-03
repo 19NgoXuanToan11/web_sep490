@@ -43,6 +43,19 @@ export interface AccountProfileDto {
   updatedAt?: string
 }
 
+export interface AccountProfileResponse {
+  accountProfileId: number
+  gender: string
+  phone: string
+  fullname: string
+  address: string
+  createdAt: string
+  updatedAt: string
+  role: string
+  email: string
+  images?: string
+}
+
 export interface AccountDto {
   accountId: number
   email: string
@@ -148,6 +161,13 @@ export const accountApi = {
     const { data } = await http.put<BasicResponse>(
       `/v1/account/update-password-by/${id}?requestPassword=${encodeURIComponent(newPassword)}`
     )
+    return data
+  },
+}
+
+export const accountProfileApi = {
+  getProfile: async (): Promise<AccountProfileResponse> => {
+    const { data } = await http.get<AccountProfileResponse>('/v1/account-profile/profile')
     return data
   },
 }

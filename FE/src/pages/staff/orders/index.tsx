@@ -92,6 +92,24 @@ const StaffOrdersPage: React.FC = () => {
   const [loadingOrderDetail, setLoadingOrderDetail] = useState(false)
   const [maxOrderId, setMaxOrderId] = useState<number>(0)
 
+  const mapPaymentStatus = (status: number): 'pending' | 'paid' | 'failed' | 'refunded' => {
+    switch (status) {
+      case 1:
+      case 5:
+      case 6:
+        return 'paid'
+      case 0:
+      case 3:
+        return 'pending'
+      case 2:
+        return 'failed'
+      case 4:
+        return 'refunded'
+      default:
+        return 'pending'
+    }
+  }
+
   const transformApiOrder = (apiOrder: ApiOrderWithFullname): DisplayOrder => {
     const email = apiOrder.customer?.email || apiOrder.email || 'N/A'
 
@@ -100,24 +118,6 @@ const StaffOrdersPage: React.FC = () => {
     const customerName =
       apiOrder.fullname ||
       (email !== 'N/A' ? email.split('@')[0].replace(/[._]/g, ' ') : 'Unknown Customer')
-
-    const mapPaymentStatus = (status: number): 'pending' | 'paid' | 'failed' | 'refunded' => {
-      switch (status) {
-        case 1:
-        case 5:
-        case 6:
-          return 'paid'
-        case 0:
-        case 3:
-          return 'pending'
-        case 2:
-          return 'failed'
-        case 4:
-          return 'refunded'
-        default:
-          return 'pending'
-      }
-    }
 
     return {
       id: String(apiOrder.orderId || ''),
@@ -461,9 +461,15 @@ const StaffOrdersPage: React.FC = () => {
     })
   }
 
-  const getStatusBadge = (status: number) => {
-    const variant = getOrderStatusVariant(status)
-    const label = getOrderStatusLabel(status)
+  const getStatusBadge = (status: number, paymentStatus?: string) => {
+    // Nếu thanh toán thất bại, hiển thị "Thất bại" thay vì "Đang chuẩn bị"
+    let label = getOrderStatusLabel(status)
+    let variant = getOrderStatusVariant(status)
+
+    if (paymentStatus === 'failed' && status === 2) {
+      label = 'Thất bại'
+      variant = 'destructive'
+    }
 
     return <Badge variant={variant}>{label}</Badge>
   }
@@ -471,7 +477,8 @@ const StaffOrdersPage: React.FC = () => {
   const getDisplayStatusBadge = (order: DisplayOrder) => {
     // Luôn hiển thị trạng thái ĐƠN HÀNG (Đang giao, Đã xác nhận, Hoàn thành...)
     // Trạng thái thanh toán đã có cột riêng "Thanh toán"
-    return getStatusBadge(order.status)
+    // Nhưng nếu thanh toán thất bại, hiển thị "Thất bại" thay vì "Đang chuẩn bị"
+    return getStatusBadge(order.status, order.paymentStatus)
   }
 
   const getPaymentBadge = (paymentStatus: string) => {
@@ -971,7 +978,7 @@ const StaffOrdersPage: React.FC = () => {
         { }
         <Card>
           <CardContent className="p-0">
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto mt-4">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -1202,7 +1209,10 @@ const StaffOrdersPage: React.FC = () => {
                   </div>
                   <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                     <span className="font-medium">Trạng thái:</span>
-                    {getStatusBadge(selectedOrderDetail.status)}
+                    {getStatusBadge(
+                      selectedOrderDetail.status,
+                      mapPaymentStatus(selectedOrderDetail.status ?? 0)
+                    )}
                   </div>
                   <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                     <span className="font-medium">Email khách hàng:</span>

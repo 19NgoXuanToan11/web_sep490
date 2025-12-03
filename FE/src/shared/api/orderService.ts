@@ -182,7 +182,7 @@ export const getOrderStatusLabel = (status: number): string => {
   const statusMap: Record<number, string> = {
     0: 'Chờ xử lý', // UNPAID - Đơn hàng mới, chờ xử lý
     1: 'Đã xác nhận', // PAID - Đã thanh toán và xác nhận
-    2: 'Đang chuẩn bị', // UNDISCHARGED - Đang chuẩn bị hàng
+    2: 'Thất bại', // UNDISCHARGED - Đang chuẩn bị hàng
     3: 'Đang giao', // PENDING - Đang trong quá trình giao hàng
     4: 'Đã hủy', // CANCELLED - Đơn hàng đã bị hủy
     5: 'Hoàn thành', // COMPLETED - Đơn hàng đã hoàn thành

@@ -89,29 +89,29 @@ const ManagerOrdersPage: React.FC = () => {
   const [selectedOrderDetail, setSelectedOrderDetail] = useState<ApiOrder | null>(null)
   const [loadingOrderDetail, setLoadingOrderDetail] = useState(false)
 
+  const mapPaymentStatus = (status: number): 'pending' | 'paid' | 'failed' | 'refunded' => {
+    switch (status) {
+      case 1: // PAID - Đã thanh toán
+      case 5: // COMPLETED - Hoàn thành
+      case 6: // DELIVERED - Đã giao hàng
+        return 'paid'
+      case 0: // UNPAID - Chưa thanh toán
+      case 3: // PENDING - Đang xử lý
+        return 'pending'
+      case 2: // UNDISCHARGED - Thanh toán thất bại/Chưa thanh toán
+        return 'failed'
+      case 4: // CANCELLED - Đã hủy
+        return 'refunded'
+      default:
+        return 'pending'
+    }
+  }
+
   const transformApiOrder = (apiOrder: ApiOrder): DisplayOrder => {
     // Ưu tiên lấy email từ customer object, nếu không có thì dùng email trực tiếp
     const email = apiOrder.customer?.email || apiOrder.email || 'N/A'
     const customerName =
       email !== 'N/A' ? email.split('@')[0].replace(/[._]/g, ' ') : 'Unknown Customer'
-
-    const mapPaymentStatus = (status: number): 'pending' | 'paid' | 'failed' | 'refunded' => {
-      switch (status) {
-        case 1: // PAID - Đã thanh toán
-        case 5: // COMPLETED - Hoàn thành
-        case 6: // DELIVERED - Đã giao hàng
-          return 'paid'
-        case 0: // UNPAID - Chưa thanh toán
-        case 3: // PENDING - Đang xử lý
-          return 'pending'
-        case 2: // UNDISCHARGED - Thanh toán thất bại/Chưa thanh toán
-          return 'failed'
-        case 4: // CANCELLED - Đã hủy
-          return 'refunded'
-        default:
-          return 'pending'
-      }
-    }
 
     return {
       id: String(apiOrder.orderId || ''),
@@ -419,13 +419,21 @@ const ManagerOrdersPage: React.FC = () => {
     }
   }
 
-  const getStatusBadge = (status: number) => {
-    const variant = getOrderStatusVariant(status)
-    const label = getOrderStatusLabel(status)
+  const getStatusBadge = (status: number, paymentStatus?: string) => {
+    // Nếu thanh toán thất bại, hiển thị "Thất bại" thay vì "Đang chuẩn bị"
+    let label = getOrderStatusLabel(status)
+    let variant = getOrderStatusVariant(status)
+    let statusIcon = getStatusIcon(status)
+
+    if (paymentStatus === 'failed' && status === 2) {
+      label = 'Thất bại'
+      variant = 'destructive'
+      statusIcon = <XCircle className="h-4 w-4 text-red-500" />
+    }
 
     return (
       <Badge variant={variant} className="flex items-center gap-1">
-        {getStatusIcon(status)}
+        {statusIcon}
         {label}
       </Badge>
     )
@@ -870,7 +878,7 @@ const ManagerOrdersPage: React.FC = () => {
                 )}
 
                 { }
-                <div className="overflow-x-auto">
+                <div className="overflow-x-auto mt-4">
                   <Table>
                     <TableHeader>
                       <TableRow>
@@ -976,7 +984,7 @@ const ManagerOrdersPage: React.FC = () => {
                                 })()}
                               </div>
                             </TableCell>
-                            <TableCell>{getStatusBadge(order.status)}</TableCell>
+                            <TableCell>{getStatusBadge(order.status, order.paymentStatus)}</TableCell>
                             <TableCell>{getPaymentBadge(order.paymentStatus)}</TableCell>
                             <TableCell>
                               <div className="font-medium">{formatCurrency(order.totalAmount)}</div>
@@ -1123,7 +1131,10 @@ const ManagerOrdersPage: React.FC = () => {
                   </div>
                   <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                     <span className="font-medium">Trạng thái:</span>
-                    {getStatusBadge(selectedOrderDetail.status)}
+                    {getStatusBadge(
+                      selectedOrderDetail.status,
+                      mapPaymentStatus(selectedOrderDetail.status ?? 0)
+                    )}
                   </div>
                   <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                     <span className="font-medium">Email khách hàng:</span>

@@ -369,11 +369,10 @@ export function ProductTable({
               <TableHead className="w-16"></TableHead>
               <TableHead className="font-semibold">
                 <div className="flex items-center gap-2">
-                  <Package className="h-4 w-4" />
                   Sản phẩm
                 </div>
               </TableHead>
-              <TableHead className="font-semibold">Mùa vụ</TableHead>
+              <TableHead className="font-semibold">Cây trồng</TableHead>
               <TableHead className="font-semibold text-center">Giá</TableHead>
               <TableHead className="font-semibold text-center">Số lượng</TableHead>
               <TableHead className="font-semibold text-center">Trạng thái</TableHead>

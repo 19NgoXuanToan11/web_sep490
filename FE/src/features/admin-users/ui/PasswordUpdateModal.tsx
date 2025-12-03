@@ -84,15 +84,14 @@ export const PasswordUpdateModal: React.FC<PasswordUpdateModalProps> = ({
       <DialogContent className="sm:max-w-[400px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Lock className="h-5 w-5" />
-            Cập nhật mật khẩu
+            Đặt lại mật khẩu
           </DialogTitle>
         </DialogHeader>
 
         {user && (
           <div className="mb-4 p-3 bg-gray-50 rounded-lg">
             <p className="text-sm text-gray-600">
-              Cập nhật mật khẩu cho: <strong>{user.email}</strong>
+              Đặt lại mật khẩu cho: <strong>{user.email}</strong>
             </p>
           </div>
         )}
@@ -124,7 +123,7 @@ export const PasswordUpdateModal: React.FC<PasswordUpdateModalProps> = ({
 
           { }
           <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Xác nhận mật khẩu *</Label>
+            <Label htmlFor="confirmPassword">Xác nhận mật khẩu mới *</Label>
             <div className="relative">
               <Input
                 id="confirmPassword"
@@ -160,7 +159,7 @@ export const PasswordUpdateModal: React.FC<PasswordUpdateModalProps> = ({
                   className="h-4 w-4 border-2 border-white border-t-transparent rounded-full"
                 />
               ) : (
-                'Cập nhật'
+                'Đặt lại'
               )}
             </Button>
           </div>

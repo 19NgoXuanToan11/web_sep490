@@ -15,7 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
 import { Badge } from '@/shared/ui/badge'
 import { Input } from '@/shared/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
+import { StaffDataTable, type StaffDataTableColumn } from '@/shared/ui/staff-data-table'
 import { formatDate } from '@/shared/lib/date-utils'
 import {
     Dialog,
@@ -309,11 +309,6 @@ const StaffFeedbacksPage: React.FC = () => {
                 </div>
 
                 <Card>
-                    <CardHeader>
-                        <div className="flex items-center justify-between">
-                            <CardTitle>Danh sách đánh giá</CardTitle>
-                        </div>
-                    </CardHeader>
                     <CardContent>
                         {loading ? (
                             <div className="flex items-center justify-center py-12">
@@ -327,119 +322,112 @@ const StaffFeedbacksPage: React.FC = () => {
                             </div>
                         ) : (
                             <div>
-                                <div className="overflow-x-auto">
-                                    <Table>
-                                        <TableHeader>
-                                            <TableRow>
-                                                <TableHead className="w-16">STT</TableHead>
-                                                <TableHead>Khách hàng</TableHead>
-                                                <TableHead>Sản phẩm</TableHead>
-                                                <TableHead>Đánh giá</TableHead>
-                                                <TableHead>Nội dung</TableHead>
-                                                <TableHead>Ngày đánh giá</TableHead>
-                                                <TableHead>Trạng thái</TableHead>
-                                            </TableRow>
-                                        </TableHeader>
-                                        <TableBody>
-                                            {filteredFeedbacks.map((feedback, index) => (
-                                                <TableRow key={feedback.feedbackId}>
-                                                    <TableCell className="text-center">
-                                                        {(currentPage - 1) * pageSize + index + 1}
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <div>
-                                                            <p className="font-medium text-gray-900">{feedback.fullName}</p>
-                                                            <p className="text-sm text-gray-500">{feedback.email}</p>
-                                                        </div>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <p className="font-medium text-gray-900">
-                                                            {feedback.orderDetail?.productName || 'N/A'}
-                                                        </p>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <div className="flex items-center space-x-1">
-                                                            {getRatingStars(feedback.rating || 0)}
-                                                        </div>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <p className="text-sm text-gray-900 max-w-xs truncate">
-                                                            {feedback.comment || 'Không có nội dung'}
-                                                        </p>
-                                                    </TableCell>
-                                                    <TableCell>
-                                                        <p className="text-sm text-gray-500">
-                                                            {formatDate(feedback.createdAt)}
-                                                        </p>
-                                                    </TableCell>
-                                                    <TableCell className="whitespace-nowrap">{getStatusBadge(feedback.status)}</TableCell>
-                                                    <TableCell className="text-right">
-                                                        <DropdownMenu
-                                                            modal={false}
-                                                            onOpenChange={open => {
-                                                                if (!open) {
-                                                                    setTimeout(() => {
-                                                                    }, 0)
-                                                                }
-                                                            }}
+                                <StaffDataTable<Feedback>
+                                    data={filteredFeedbacks}
+                                    getRowKey={feedback => feedback.feedbackId}
+                                    currentPage={currentPage}
+                                    pageSize={pageSize}
+                                    totalPages={totalPages}
+                                    onPageChange={page => setCurrentPage(page)}
+                                    emptyTitle="Không có đánh giá"
+                                    emptyDescription="Không tìm thấy đánh giá nào phù hợp điều kiện lọc."
+                                    columns={[
+                                        {
+                                            id: 'customer',
+                                            header: 'Khách hàng',
+                                            render: feedback => (
+                                                <div>
+                                                    <p className="font-medium text-gray-900">{feedback.fullName}</p>
+                                                    <p className="text-sm text-gray-500">{feedback.email}</p>
+                                                </div>
+                                            ),
+                                        },
+                                        {
+                                            id: 'product',
+                                            header: 'Sản phẩm',
+                                            render: feedback => (
+                                                <p className="font-medium text-gray-900">
+                                                    {feedback.orderDetail?.productName || 'N/A'}
+                                                </p>
+                                            ),
+                                        },
+                                        {
+                                            id: 'rating',
+                                            header: 'Đánh giá',
+                                            cellClassName: 'w-32',
+                                            render: feedback => (
+                                                <div className="flex items-center space-x-1">
+                                                    {getRatingStars(feedback.rating || 0)}
+                                                </div>
+                                            ),
+                                        },
+                                        {
+                                            id: 'comment',
+                                            header: 'Nội dung',
+                                            render: feedback => (
+                                                <p className="text-sm text-gray-900 max-w-xs truncate">
+                                                    {feedback.comment || 'Không có nội dung'}
+                                                </p>
+                                            ),
+                                        },
+                                        {
+                                            id: 'date',
+                                            header: 'Ngày đánh giá',
+                                            render: feedback => (
+                                                <p className="text-sm text-gray-500">
+                                                    {formatDate(feedback.createdAt)}
+                                                </p>
+                                            ),
+                                        },
+                                        {
+                                            id: 'status',
+                                            header: 'Trạng thái',
+                                            cellClassName: 'whitespace-nowrap',
+                                            render: feedback => getStatusBadge(feedback.status),
+                                        },
+                                        {
+                                            id: 'actions',
+                                            header: '',
+                                            cellClassName: 'text-right',
+                                            render: feedback => (
+                                                <DropdownMenu
+                                                    modal={false}
+                                                    onOpenChange={open => {
+                                                        if (!open) {
+                                                            setTimeout(() => {
+                                                            }, 0)
+                                                        }
+                                                    }}
+                                                >
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            className="h-8 w-8 p-0"
+                                                            onClick={e => e.stopPropagation()}
                                                         >
-                                                            <DropdownMenuTrigger asChild>
-                                                                <Button
-                                                                    variant="ghost"
-                                                                    size="sm"
-                                                                    className="h-8 w-8 p-0"
-                                                                    onClick={e => e.stopPropagation()}
-                                                                >
-                                                                    <MoreHorizontal className="h-4 w-4" />
-                                                                </Button>
-                                                            </DropdownMenuTrigger>
-                                                            <DropdownMenuContent align="end" className="w-48" sideOffset={5}>
-                                                                <DropdownMenuItem
-                                                                    onClick={e => {
-                                                                        e.preventDefault()
-                                                                        e.stopPropagation()
-                                                                        setTimeout(() => {
-                                                                            handleViewDetail(feedback)
-                                                                        }, 0)
-                                                                    }}
-                                                                    className="cursor-pointer focus:bg-gray-100"
-                                                                >
-                                                                    Xem chi tiết
-                                                                </DropdownMenuItem>
-                                                            </DropdownMenuContent>
-                                                        </DropdownMenu>
-                                                    </TableCell>
-                                                </TableRow>
-                                            ))}
-                                        </TableBody>
-                                    </Table>
-                                </div>
-
-                                {totalPages > 1 && (
-                                    <div className="flex items-center justify-between mt-4">
-                                        <p className="text-sm text-gray-600">
-                                            Trang {currentPage} / {totalPages} - Tổng {totalItems} đánh giá
-                                        </p>
-                                        <div className="flex space-x-2">
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                                                disabled={currentPage === 1}
-                                            >
-                                                Trước
-                                            </Button>
-                                            <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                                                disabled={currentPage === totalPages}
-                                            >
-                                                Sau
-                                            </Button>
-                                        </div>
-                                    </div>
-                                )}
+                                                            <MoreHorizontal className="h-4 w-4" />
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end" className="w-48" sideOffset={5}>
+                                                        <DropdownMenuItem
+                                                            onClick={e => {
+                                                                e.preventDefault()
+                                                                e.stopPropagation()
+                                                                setTimeout(() => {
+                                                                    handleViewDetail(feedback)
+                                                                }, 0)
+                                                            }}
+                                                            className="cursor-pointer focus:bg-gray-100"
+                                                        >
+                                                            Xem chi tiết
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            ),
+                                        },
+                                    ] satisfies StaffDataTableColumn<Feedback>[]}
+                                />
                             </div>
                         )}
                     </CardContent>

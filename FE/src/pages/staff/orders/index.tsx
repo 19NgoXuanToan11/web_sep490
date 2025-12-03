@@ -1,18 +1,11 @@
 ﻿import React, { useEffect, useState, useCallback, useMemo } from 'react'
-import {
-  CheckCircle,
-  RefreshCw,
-  Search,
-  MoreHorizontal,
-  Loader2,
-  CreditCard,
-} from 'lucide-react'
+import { CheckCircle, RefreshCw, Search, MoreHorizontal, Loader2, CreditCard } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
 import { Badge } from '@/shared/ui/badge'
 import { Input } from '@/shared/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
+import { StaffDataTable, type StaffDataTableColumn } from '@/shared/ui/staff-data-table'
 import { formatDate } from '@/shared/lib/date-utils'
 import {
   DropdownMenu,
@@ -33,7 +26,6 @@ import { ManagementPageHeader } from '@/shared/ui/management-page-header'
 import { useToast } from '@/shared/ui/use-toast'
 import { orderService, getOrderStatusLabel, getOrderStatusVariant } from '@/shared/api/orderService'
 import type { Order as ApiOrder, OrderItem } from '@/shared/api/orderService'
-import { Pagination } from '@/shared/ui/pagination'
 
 interface DisplayOrder {
   id: string
@@ -67,7 +59,8 @@ const StaffOrdersPage: React.FC = () => {
   const [totalItems, setTotalItems] = useState(0)
   const [totalPages, setTotalPages] = useState(0)
   const [currentPage, setCurrentPage] = useState(1)
-  const pageSize = 40
+  // Sử dụng cùng kích thước trang với các màn quản lý khác để pagination đồng nhất
+  const pageSize = 10
 
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
@@ -752,186 +745,177 @@ const StaffOrdersPage: React.FC = () => {
         { }
         <Card>
           <CardContent className="p-0">
-            <div className="overflow-x-auto mt-4">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-16">STT</TableHead>
-                    <TableHead>Mã đơn hàng</TableHead>
-                    <TableHead>Khách hàng</TableHead>
-                    <TableHead>Sản phẩm & Số lượng</TableHead>
-                    <TableHead>Trạng thái đơn hàng</TableHead>
-                    <TableHead>Thanh toán</TableHead>
-                    <TableHead>Tổng tiền</TableHead>
-                    <TableHead>Ngày đặt</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {loading ? (
-                    <TableRow>
-                      <TableCell colSpan={9} className="h-24">
-                        <div className="flex items-center justify-center">
-                          <RefreshCw className="h-6 w-6 animate-spin text-green-600" />
-                          <span className="ml-2 text-gray-600">Đang tải dữ liệu...</span>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ) : filteredOrders.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={9} className="h-24 text-center">
-                        Không tìm thấy đơn hàng nào
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    filteredOrders.map((order, index) => (
-                      <TableRow key={`order-${order.id}-${order.orderNumber}`}>
-                        <TableCell className="text-center">
-                          {(currentPage - 1) * pageSize + index + 1}
-                        </TableCell>
-                        <TableCell>
-                          <div className="font-medium">{order.orderNumber || 'Chưa có mã'}</div>
-                        </TableCell>
-                        <TableCell>
-                          <div>
-                            <div className="font-medium">{order.customer.name}</div>
-                            <div className="text-sm text-gray-500">{order.customer.email}</div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="space-y-1">
-                            {(() => {
-                              const products =
-                                order.orderDetails && order.orderDetails.length > 0
-                                  ? order.orderDetails
-                                  : order.items || []
-
-                              if (products.length > 0) {
-                                return (
-                                  <>
-                                    {products.slice(0, 2).map((item: any, index: number) => (
-                                      <div
-                                        key={`item-${item.productId || item.id}-${index}-${order.id}`}
-                                        className="text-sm mb-1"
-                                      >
-                                        <div className="font-medium text-gray-900">
-                                          {item.product?.productName ||
-                                            item.productName ||
-                                            `Sản phẩm #${item.productId || item.id}`}
-                                        </div>
-                                        <div className="text-xs text-gray-600 flex items-center gap-2">
-                                          <span className="bg-green-100 text-green-800 px-2 py-0.5 rounded-full">
-                                            SL: {item.quantity || 1}
-                                          </span>
-                                          {item.price && (
-                                            <span className="text-gray-500">
-                                              {new Intl.NumberFormat('vi-VN', {
-                                                style: 'currency',
-                                                currency: 'VND',
-                                              }).format(item.price)}
-                                            </span>
-                                          )}
-                                        </div>
-                                      </div>
-                                    ))}
-                                    {products.length > 2 && (
-                                      <div className="text-xs text-gray-500 mt-1">
-                                        +{products.length - 2} sản phẩm khác
-                                      </div>
-                                    )}
-                                    <div className="text-xs text-green-600 font-medium mt-2 pt-2 border-t border-gray-100">
-                                      Tổng:{' '}
-                                      {products.reduce(
-                                        (sum: number, item: any) => sum + (item.quantity || 1),
-                                        0
-                                      )}{' '}
-                                      sản phẩm
-                                    </div>
-                                  </>
-                                )
-                              } else {
-                                return (
-                                  <div className="text-sm text-gray-500">Không có sản phẩm</div>
-                                )
-                              }
-                            })()}
-                          </div>
-                        </TableCell>
-                        <TableCell>{getDisplayStatusBadge(order)}</TableCell>
-                        <TableCell>{getPaymentBadge(order.paymentStatus)}</TableCell>
-                        <TableCell>
-                          <div className="font-medium">{formatCurrency(order.totalAmount)}</div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="text-sm">{formatDateOnly(order.orderDate)}</div>
-                        </TableCell>
-                        <TableCell>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm">
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent>
-                              <DropdownMenuItem onClick={() => fetchOrderDetail(order.id)}>
-                                Xem chi tiết
-                              </DropdownMenuItem>
-                              {order.status === 0 && (
-                                <DropdownMenuItem
-                                  onClick={() => handleUpdateStatus(order.id, 'CONFIRMED')}
-                                >
-                                  <CheckCircle className="h-4 w-4 mr-2" />
-                                  Xác nhận đơn hàng
-                                </DropdownMenuItem>
-                              )}
-                              {(order.status === 1 || order.status === 2) && (
-                                <DropdownMenuItem onClick={() => handleDeliveryStatus(order.id)}>
-                                  Đánh dấu đang giao
-                                </DropdownMenuItem>
-                              )}
-                              {order.status === 3 && (
-                                <DropdownMenuItem onClick={() => handleCompleteStatus(order.id)}>
-                                  Đánh dấu hoàn thành
-                                </DropdownMenuItem>
-                              )}
-                              { }
-                              {order.status === 6 && (
-                                <DropdownMenuItem onClick={() => handleCompleteStatus(order.id)}>
-                                  Hoàn thành đơn hàng
-                                </DropdownMenuItem>
-                              )}
-                              { }
-                              {order.status !== 4 && order.status !== 5 && order.status !== 6 && (
-                                <DropdownMenuItem onClick={() => handleCancelStatus(order.id)}>
-                                  Hủy đơn hàng
-                                </DropdownMenuItem>
-                              )}
-                              { }
-                              {order.status === 4 && (
-                                <DropdownMenuItem onClick={() => handleCreatePayment(order.id)}>
-                                  <CreditCard className="h-4 w-4 mr-2" />
-                                  Thanh toán lại
-                                </DropdownMenuItem>
-                              )}
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-
-            { }
-            {!loading && totalItems > 0 && (
-              <div className="py-4 px-6 border-t">
-                <Pagination
-                  currentPage={currentPage}
-                  totalPages={totalPages}
-                  onPageChange={fetchOrders}
-                  disabled={loading}
-                />
+            {loading ? (
+              <div className="flex items-center justify-center py-10">
+                <RefreshCw className="h-6 w-6 animate-spin text-green-600" />
+                <span className="ml-2 text-gray-600">Đang tải dữ liệu...</span>
               </div>
+            ) : (
+              <>
+                <StaffDataTable<DisplayOrder>
+                  className="px-4 sm:px-6 pb-6"
+                  data={filteredOrders}
+                  getRowKey={order => `${order.id}-${order.orderNumber}`}
+                  currentPage={currentPage}
+                  pageSize={pageSize}
+                  totalPages={totalPages}
+                  onPageChange={page => fetchOrders(page)}
+                  emptyTitle="Không tìm thấy đơn hàng nào"
+                  emptyDescription="Không có đơn hàng nào phù hợp với điều kiện lọc hiện tại."
+                  columns={[
+                    {
+                      id: 'orderNumber',
+                      header: 'Mã đơn hàng',
+                      render: order => (
+                        <div className="font-medium">{order.orderNumber || 'Chưa có mã'}</div>
+                      ),
+                    },
+                    {
+                      id: 'customer',
+                      header: 'Khách hàng',
+                      render: order => (
+                        <div>
+                          <div className="font-medium">{order.customer.name}</div>
+                          <div className="text-sm text-gray-500">{order.customer.email}</div>
+                        </div>
+                      ),
+                    },
+                    {
+                      id: 'products',
+                      header: 'Sản phẩm & Số lượng',
+                      render: order => {
+                        const products =
+                          order.orderDetails && order.orderDetails.length > 0
+                            ? order.orderDetails
+                            : order.items || []
+
+                        if (products.length === 0) {
+                          return <div className="text-sm text-gray-500">Không có sản phẩm</div>
+                        }
+
+                        return (
+                          <div className="space-y-1">
+                            {products.slice(0, 2).map((item: any, index: number) => (
+                              <div
+                                key={`item-${item.productId || item.id}-${index}-${order.id}`}
+                                className="text-sm mb-1"
+                              >
+                                <div className="font-medium text-gray-900">
+                                  {item.product?.productName ||
+                                    item.productName ||
+                                    `Sản phẩm #${item.productId || item.id}`}
+                                </div>
+                                <div className="text-xs text-gray-600 flex items-center gap-2">
+                                  <span className="bg-green-100 text-green-800 px-2 py-0.5 rounded-full">
+                                    SL: {item.quantity || 1}
+                                  </span>
+                                  {item.price && (
+                                    <span className="text-gray-500">
+                                      {new Intl.NumberFormat('vi-VN', {
+                                        style: 'currency',
+                                        currency: 'VND',
+                                      }).format(item.price)}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                            {products.length > 2 && (
+                              <div className="text-xs text-gray-500 mt-1">
+                                +{products.length - 2} sản phẩm khác
+                              </div>
+                            )}
+                            <div className="text-xs text-green-600 font-medium mt-2 pt-2 border-t border-gray-100">
+                              Tổng:{' '}
+                              {products.reduce(
+                                (sum: number, item: any) => sum + (item.quantity || 1),
+                                0,
+                              )}{' '}
+                              sản phẩm
+                            </div>
+                          </div>
+                        )
+                      },
+                    },
+                    {
+                      id: 'status',
+                      header: 'Trạng thái',
+                      render: order => getDisplayStatusBadge(order),
+                    },
+                    {
+                      id: 'payment',
+                      header: 'Thanh toán',
+                      render: order => getPaymentBadge(order.paymentStatus),
+                    },
+                    {
+                      id: 'total',
+                      header: 'Tổng tiền',
+                      render: order => (
+                        <div className="font-medium">{formatCurrency(order.totalAmount)}</div>
+                      ),
+                    },
+                    {
+                      id: 'date',
+                      header: 'Ngày đặt',
+                      render: order => (
+                        <div className="text-sm">{formatDateOnly(order.orderDate)}</div>
+                      ),
+                    },
+                    {
+                      id: 'actions',
+                      header: '',
+                      render: order => (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent>
+                            <DropdownMenuItem onClick={() => fetchOrderDetail(order.id)}>
+                              Xem chi tiết
+                            </DropdownMenuItem>
+                            {order.status === 0 && (
+                              <DropdownMenuItem
+                                onClick={() => handleUpdateStatus(order.id, 'CONFIRMED')}
+                              >
+                                <CheckCircle className="h-4 w-4 mr-2" />
+                                Xác nhận đơn hàng
+                              </DropdownMenuItem>
+                            )}
+                            {(order.status === 1 || order.status === 2) && (
+                              <DropdownMenuItem onClick={() => handleDeliveryStatus(order.id)}>
+                                Đánh dấu đang giao
+                              </DropdownMenuItem>
+                            )}
+                            {order.status === 3 && (
+                              <DropdownMenuItem onClick={() => handleCompleteStatus(order.id)}>
+                                Đánh dấu hoàn thành
+                              </DropdownMenuItem>
+                            )}
+                            {order.status === 6 && (
+                              <DropdownMenuItem onClick={() => handleCompleteStatus(order.id)}>
+                                Hoàn thành đơn hàng
+                              </DropdownMenuItem>
+                            )}
+                            {order.status !== 4 && order.status !== 5 && order.status !== 6 && (
+                              <DropdownMenuItem onClick={() => handleCancelStatus(order.id)}>
+                                Hủy đơn hàng
+                              </DropdownMenuItem>
+                            )}
+                            {order.status === 4 && (
+                              <DropdownMenuItem onClick={() => handleCreatePayment(order.id)}>
+                                <CreditCard className="h-4 w-4 mr-2" />
+                                Thanh toán lại
+                              </DropdownMenuItem>
+                            )}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      ),
+                    },
+                  ] satisfies StaffDataTableColumn<DisplayOrder>[]}
+                />
+              </>
             )}
           </CardContent>
         </Card>

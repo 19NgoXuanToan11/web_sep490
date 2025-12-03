@@ -2,7 +2,6 @@
 import {
     MessageSquare,
     Star,
-    Eye,
     RefreshCw,
     Search,
     CheckCircle,

@@ -7,7 +7,6 @@ import {
     ArrowUpRight,
     ArrowDownRight,
     BarChart3,
-    TrendingUp,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
 import { Button } from '@/shared/ui/button'

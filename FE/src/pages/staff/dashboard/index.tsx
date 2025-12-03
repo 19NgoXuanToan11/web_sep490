@@ -4,13 +4,9 @@ import {
     ShoppingCart,
     Package,
     Star,
-    Clock,
     ArrowUpRight,
     ArrowDownRight,
     BarChart3,
-    CheckCircle,
-    Truck,
-    XCircle,
     TrendingUp,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
@@ -351,50 +347,25 @@ export default function StaffDashboard() {
         }
     }
 
-    const getStatusIcon = (status: number) => {
-        switch (status) {
-            case 0:
-                return <Clock className="h-4 w-4 text-yellow-500" />
-            case 1:
-                return <CheckCircle className="h-4 w-4 text-blue-500" />
-            case 2:
-                return <Package className="h-4 w-4 text-purple-500" />
-            case 3:
-                return <Truck className="h-4 w-4 text-orange-500" />
-            case 4:
-                return <XCircle className="h-4 w-4 text-red-500" />
-            case 5:
-                return <CheckCircle className="h-4 w-4 text-green-500" />
-            case 6:
-                return <Truck className="h-4 w-4 text-blue-500" />
-            default:
-                return <ShoppingCart className="h-4 w-4 text-gray-500" />
+    const getStatusBadge = (status: number, paymentStatus?: string) => {
+        // Nếu thanh toán thất bại, hiển thị "Thất bại" thay vì "Đang chuẩn bị"
+        let label = getOrderStatusLabel(status)
+        let variant = getOrderStatusVariant(status)
+
+        if (paymentStatus === 'failed' && status === 2) {
+            label = 'Thất bại'
+            variant = 'destructive'
         }
-    }
 
-    const getStatusBadge = (status: number) => {
-        const variant = getOrderStatusVariant(status)
-        const label = getOrderStatusLabel(status)
-
-        return (
-            <Badge variant={variant} className="flex items-center gap-1">
-                {getStatusIcon(status)}
-                {label}
-            </Badge>
-        )
+        return <Badge variant={variant}>{label}</Badge>
     }
 
     const getDisplayStatusBadge = (order: Order) => {
+        // Luôn hiển thị trạng thái ĐƠN HÀNG (Đang giao, Đã xác nhận, Hoàn thành...)
+        // Trạng thái thanh toán đã có cột riêng "Thanh toán"
+        // Nhưng nếu thanh toán thất bại, hiển thị "Thất bại" thay vì "Đang chuẩn bị"
         const paymentStatus = mapPaymentStatus(order.status ?? 0)
-        if (paymentStatus === 'failed' || paymentStatus === 'pending') {
-            return (
-                <Badge variant="secondary" className="flex items-center gap-1">
-                    {getStatusIcon(0)}
-                    Chưa thanh toán
-                </Badge>
-            )
-        }
-        return getStatusBadge(order.status ?? 0)
+        return getStatusBadge(order.status ?? 0, paymentStatus)
     }
 
     // Use centralized date formatting utility
@@ -419,7 +390,7 @@ export default function StaffDashboard() {
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                         <div>
                             <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-                                Bảng điều khiển 
+                                Bảng điều khiển
                             </h1>
                             <p className="mt-2 text-gray-600">
                                 Tổng quan hoạt động trong hệ thống
@@ -491,7 +462,6 @@ export default function StaffDashboard() {
                     <Card className="border-0 shadow-lg">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
-                                <TrendingUp className="h-5 w-5 text-green-600" />
                                 Số lượng đơn hàng {timeRange === 'week' ? 'theo ngày' : 'theo tuần'}
                             </CardTitle>
                         </CardHeader>
@@ -514,7 +484,6 @@ export default function StaffDashboard() {
                     <Card className="border-0 shadow-lg">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
-                                <ShoppingCart className="h-5 w-5 text-green-600" />
                                 Trạng thái đơn hàng
                             </CardTitle>
                         </CardHeader>
@@ -563,7 +532,6 @@ export default function StaffDashboard() {
                     <Card className="border-0 shadow-lg">
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
-                                <Star className="h-5 w-5 text-orange-500" />
                                 Phân bố đánh giá
                             </CardTitle>
                         </CardHeader>
@@ -585,7 +553,6 @@ export default function StaffDashboard() {
                         <CardHeader className="border-b border-gray-100">
                             <div className="flex items-center justify-between">
                                 <CardTitle className="flex items-center gap-2">
-                                    <Clock className="h-5 w-5 text-green-600" />
                                     Đơn hàng gần đây
                                 </CardTitle>
                                 <Button
@@ -637,7 +604,6 @@ export default function StaffDashboard() {
                         <CardHeader className="border-b border-gray-100">
                             <div className="flex items-center justify-between">
                                 <CardTitle className="flex items-center gap-2">
-                                    <Star className="h-5 w-5 text-orange-500" />
                                     Đánh giá gần đây
                                 </CardTitle>
                                 <Button
@@ -705,7 +671,6 @@ export default function StaffDashboard() {
                         <CardHeader className="border-b border-gray-100">
                             <div className="flex items-center justify-between">
                                 <CardTitle className="flex items-center gap-2">
-                                    <Package className="h-5 w-5 text-green-600" />
                                     Sản phẩm
                                 </CardTitle>
                                 <Button
@@ -745,15 +710,6 @@ export default function StaffDashboard() {
                                                         <div className="w-full h-full flex items-center justify-center bg-gray-100">
                                                             <Package className="h-12 w-12 text-gray-400" />
                                                         </div>
-                                                    )}
-                                                    {product.status === 'Active' ? (
-                                                        <Badge className="absolute top-2 right-2 bg-green-500">
-                                                            Hoạt động
-                                                        </Badge>
-                                                    ) : (
-                                                        <Badge variant="secondary" className="absolute top-2 right-2">
-                                                            Ngừng
-                                                        </Badge>
                                                     )}
                                                 </div>
                                                 <div className="p-4">
@@ -800,7 +756,6 @@ export default function StaffDashboard() {
                         <CardHeader className="border-b border-gray-100">
                             <div className="flex items-center justify-between">
                                 <CardTitle className="flex items-center gap-2">
-                                    <BarChart3 className="h-5 w-5 text-green-600" />
                                     Danh mục sản phẩm
                                 </CardTitle>
                             </div>

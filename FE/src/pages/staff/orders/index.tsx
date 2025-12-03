@@ -1,24 +1,18 @@
 ﻿import React, { useEffect, useState, useCallback, useMemo } from 'react'
 import {
-  Truck,
   CheckCircle,
-  Eye,
   RefreshCw,
-  Filter,
   Search,
   MoreHorizontal,
   Loader2,
-  Calendar,
-  XCircle,
   CreditCard,
 } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
 import { Badge } from '@/shared/ui/badge'
 import { Input } from '@/shared/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
-import { format } from 'date-fns'
-import { vi } from 'date-fns/locale'
 import { formatDate } from '@/shared/lib/date-utils'
 import {
   DropdownMenu,
@@ -76,16 +70,11 @@ const StaffOrdersPage: React.FC = () => {
   const pageSize = 40
 
   const [searchQuery, setSearchQuery] = useState('')
-  const [searchType, setSearchType] = useState<
-    'all' | 'orderId' | 'customerName' | 'customerId' | 'email' | 'date'
-  >('all')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [paymentFilter, setPaymentFilter] = useState<string>('all')
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [selectedTab, setSelectedTab] = useState('all')
-  const [isSearching, setIsSearching] = useState(false)
 
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined)
 
   const [isOrderDetailOpen, setIsOrderDetailOpen] = useState(false)
   const [selectedOrderDetail, setSelectedOrderDetail] = useState<ApiOrder | null>(null)
@@ -187,7 +176,7 @@ const StaffOrdersPage: React.FC = () => {
   }, [])
 
   useEffect(() => {
-    if (searchType !== 'all' || searchQuery.trim() || selectedDate) {
+    if (searchQuery.trim()) {
       return
     }
 
@@ -202,8 +191,7 @@ const StaffOrdersPage: React.FC = () => {
           const latestOrderId = parseInt(String(response.items[0].orderId || 0))
 
           if (latestOrderId > maxOrderId && maxOrderId > 0) {
-            const statusParam = statusFilter === 'all' ? undefined : parseInt(statusFilter)
-            await fetchOrders(currentPage, statusParam)
+            await fetchOrders(currentPage)
 
             toast({
               title: 'Có đơn hàng mới',
@@ -223,7 +211,7 @@ const StaffOrdersPage: React.FC = () => {
     return () => {
       window.clearInterval(intervalId)
     }
-  }, [maxOrderId, currentPage, statusFilter, searchType, searchQuery, selectedDate, fetchOrders, toast])
+  }, [maxOrderId, currentPage, statusFilter, searchQuery, fetchOrders, toast])
 
   const handleStatusFilterChange = (status: string) => {
     // Chỉ thay đổi filter ở client; dữ liệu đã được load sẵn theo trang
@@ -252,34 +240,6 @@ const StaffOrdersPage: React.FC = () => {
     fetchOrders(1, statusParam)
   }
 
-  const handleDateSearch = async (date: Date) => {
-    try {
-      setIsSearching(true)
-      const dateString = format(date, 'yyyy-MM-dd')
-
-      const searchResult = await orderService.getOrdersByDate(dateString)
-      const transformedOrders = searchResult.items.map(transformApiOrder)
-
-      setOrders(transformedOrders)
-      setTotalItems(searchResult.totalItemCount)
-      setTotalPages(searchResult.totalPageCount)
-      setCurrentPage(1)
-
-      toast({
-        title: 'Tìm kiếm thành công',
-        description: `Tìm thấy ${searchResult.totalItemCount} đơn hàng trong ngày ${format(date, 'dd/MM/yyyy', { locale: vi })}`,
-      })
-    } catch (error) {
-      toast({
-        title: 'Lỗi tìm kiếm',
-        description: 'Không thể tìm kiếm đơn hàng theo ngày. Vui lòng thử lại.',
-        variant: 'destructive',
-      })
-    } finally {
-      setIsSearching(false)
-    }
-  }
-
   const handleAdvancedSearch = async () => {
     if (!searchQuery.trim()) {
       fetchOrders(1)
@@ -287,70 +247,37 @@ const StaffOrdersPage: React.FC = () => {
     }
 
     try {
-      setIsSearching(true)
       let searchResult
 
-      switch (searchType) {
-        case 'orderId':
-          try {
-            const orderDetail = await orderService.getOrderById(searchQuery.trim())
-            searchResult = {
-              items: [orderDetail],
-              totalItemCount: 1,
-              pageSize: 1,
-              totalPageCount: 1,
-              pageIndex: 1,
-              next: false,
-              previous: false,
-            }
+      try {
+        const orderDetail = await orderService.getOrderById(searchQuery.trim())
+        searchResult = {
+          items: [orderDetail],
+          totalItemCount: 1,
+          pageSize: 1,
+          totalPageCount: 1,
+          pageIndex: 1,
+          next: false,
+          previous: false,
+        }
 
-            setSelectedOrderDetail(orderDetail)
-            setIsOrderDetailOpen(true)
-          } catch (error) {
-            searchResult = {
-              items: [],
-              totalItemCount: 0,
-              pageSize: 10,
-              totalPageCount: 0,
-              pageIndex: 1,
-              next: false,
-              previous: false,
-            }
-            toast({
-              title: 'Không tìm thấy đơn hàng',
-              description: `Không tìm thấy đơn hàng với mã "${searchQuery.trim()}"`,
-              variant: 'destructive',
-            })
-          }
-          break
-        case 'customerName':
-          searchResult = await orderService.getOrdersByCustomerName(searchQuery.trim())
-          break
-        case 'customerId':
-          searchResult = await orderService.getOrdersByCustomerId(searchQuery.trim())
-          break
-        case 'email':
-          searchResult = await orderService.getOrdersByEmail(searchQuery.trim())
-          break
-        case 'date':
-          if (selectedDate) {
-            const dateString = format(selectedDate, 'yyyy-MM-dd')
-            // Sử dụng pageSize lớn để lấy tất cả đơn hàng trong ngày
-            searchResult = await orderService.getOrdersByDate(dateString, 1, 1000)
-          } else {
-            toast({
-              title: 'Chưa chọn ngày',
-              description: 'Vui lòng chọn ngày để tìm kiếm đơn hàng',
-              variant: 'destructive',
-            })
-            return
-          }
-          break
-        default:
-          searchResult = await orderService.getOrderList({
-            pageIndex: 1,
-            pageSize: 50,
-          })
+        setSelectedOrderDetail(orderDetail)
+        setIsOrderDetailOpen(true)
+      } catch (error) {
+        searchResult = {
+          items: [],
+          totalItemCount: 0,
+          pageSize: 10,
+          totalPageCount: 0,
+          pageIndex: 1,
+          next: false,
+          previous: false,
+        }
+        toast({
+          title: 'Không tìm thấy đơn hàng',
+          description: `Không tìm thấy đơn hàng với mã "${searchQuery.trim()}"`,
+          variant: 'destructive',
+        })
       }
 
       // Đảm bảo searchResult có items
@@ -370,18 +297,12 @@ const StaffOrdersPage: React.FC = () => {
         description: `Tìm thấy ${searchResult.totalItemCount || 0} đơn hàng`,
       })
     } catch (error) {
-      const errorMessage =
-        searchType === 'date'
-          ? 'Không thể tìm kiếm đơn hàng theo ngày. Vui lòng thử lại.'
-          : 'Không thể thực hiện tìm kiếm. Vui lòng thử lại.'
       toast({
         title: 'Lỗi tìm kiếm',
-        description: errorMessage,
+        description: 'Không thể thực hiện tìm kiếm. Vui lòng thử lại.',
         variant: 'destructive',
       })
       console.error('Search error:', error)
-    } finally {
-      setIsSearching(false)
     }
   }
 
@@ -402,7 +323,7 @@ const StaffOrdersPage: React.FC = () => {
         return false
       }
 
-      if (searchQuery.trim() && searchType !== 'all') {
+      if (searchQuery.trim()) {
         return true
       }
 
@@ -432,7 +353,7 @@ const StaffOrdersPage: React.FC = () => {
 
       return matchesSearch && matchesStatus && matchesPayment
     })
-  }, [orders, searchQuery, searchType, statusFilter, paymentFilter])
+  }, [orders, searchQuery, statusFilter, paymentFilter])
 
   const orderStats = useMemo(
     () => ({
@@ -738,105 +659,21 @@ const StaffOrdersPage: React.FC = () => {
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="flex-1">
                 <div className="flex gap-2">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="outline" className="min-w-[140px]">
-                        {searchType === 'all' && 'Tất cả'}
-                        {searchType === 'orderId' && 'Mã đơn hàng'}
-                        {searchType === 'customerName' && 'Tên khách hàng'}
-                        {searchType === 'customerId' && 'Mã khách hàng'}
-                        {searchType === 'email' && 'Email'}
-                        {searchType === 'date' && 'Theo ngày'}
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent>
-                      <DropdownMenuItem onClick={() => setSearchType('all')}>
-                        Tất cả
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setSearchType('orderId')}>
-                        Mã đơn hàng
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setSearchType('customerName')}>
-                        Tên khách hàng
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setSearchType('customerId')}>
-                        Mã khách hàng
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setSearchType('email')}>
-                        Email
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setSearchType('date')}>
-                        Theo ngày
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                  {searchType === 'date' ? (
-                    <div className="flex-1 flex items-center gap-2">
-                      <div className="relative flex-1">
-                        <Calendar className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                        <Input
-                          type="date"
-                          placeholder="Chọn ngày để tìm kiếm..."
-                          value={selectedDate ? format(selectedDate, 'yyyy-MM-dd') : ''}
-                          onChange={e => {
-                            if (e.target.value) {
-                              const date = new Date(e.target.value)
-                              setSelectedDate(date)
-                              handleDateSearch(date)
-                            } else {
-                              setSelectedDate(undefined)
-                            }
-                          }}
-                          max={format(new Date(), 'yyyy-MM-dd')}
-                          className="pl-10"
-                        />
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="relative flex-1">
-                      <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        placeholder={
-                          searchType === 'orderId'
-                            ? 'Nhập mã đơn hàng...'
-                            : searchType === 'customerName'
-                              ? 'Nhập tên khách hàng...'
-                              : searchType === 'customerId'
-                                ? 'Nhập mã khách hàng...'
-                                : searchType === 'email'
-                                  ? 'Nhập email khách hàng...'
-                                  : 'Tìm kiếm đơn hàng...'
-                        }
-                        value={searchQuery}
-                        onChange={e => handleSearchInputChange(e.target.value)}
-                        onKeyPress={e => e.key === 'Enter' && handleAdvancedSearch()}
-                        className="pl-10"
-                      />
-                    </div>
-                  )}
-                  {searchType !== 'date' && (
-                    <Button
-                      onClick={handleAdvancedSearch}
-                      disabled={isSearching}
-                      className="min-w-[100px]"
-                    >
-                      {isSearching ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <>
-                          <Search className="h-4 w-4 mr-2" />
-                          Tìm kiếm
-                        </>
-                      )}
-                    </Button>
-                  )}
-                  {(searchQuery || selectedDate) && (
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                    <Input
+                      placeholder="Nhập mã đơn hàng..."
+                      value={searchQuery}
+                      onChange={e => handleSearchInputChange(e.target.value)}
+                      onKeyPress={e => e.key === 'Enter' && handleAdvancedSearch()}
+                      className="pl-10"
+                    />
+                  </div>
+                  {searchQuery && (
                     <Button
                       variant="outline"
                       onClick={() => {
                         setSearchQuery('')
-                        setSelectedDate(undefined)
-                        setSearchType('all')
                         fetchOrders(1)
                       }}
                       className="min-w-[80px]"
@@ -847,104 +684,41 @@ const StaffOrdersPage: React.FC = () => {
                   )}
                 </div>
               </div>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline">
-                    <Filter className="h-4 w-4 mr-2" />
-                    Đơn hàng: {(() => {
-                      if (statusFilter === 'all') return 'Tất cả'
-                      const statusNum = parseInt(statusFilter)
-                      return getOrderStatusLabel(statusNum)
-                    })()}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem onClick={() => handleStatusFilterChange('all')}>
-                    Tất cả
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleStatusFilterChange('1')}>
-                    {getOrderStatusLabel(1)}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleStatusFilterChange('3')}>
-                    {getOrderStatusLabel(3)}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleStatusFilterChange('4')}>
-                    {getOrderStatusLabel(4)}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => handleStatusFilterChange('5')}>
-                    {getOrderStatusLabel(5)}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline">
-                    <CreditCard className="h-4 w-4 mr-2" />
-                    Thanh toán: {(() => {
-                      if (paymentFilter === 'all') return 'Tất cả'
-                      if (paymentFilter === 'paid') return 'Đã thanh toán'
-                      if (paymentFilter === 'pending') return 'Chờ thanh toán'
-                      if (paymentFilter === 'failed') return 'Thất bại'
-                      return 'Tất cả'
-                    })()}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem onClick={() => setPaymentFilter('all')}>
-                    Tất cả
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setPaymentFilter('paid')}>
-                    Đã thanh toán
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setPaymentFilter('pending')}>
-                    Chờ thanh toán
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setPaymentFilter('failed')}>
-                    Thất bại
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <div className="flex gap-2">
+                <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue placeholder="Trạng thái" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tất cả</SelectItem>
+                    <SelectItem value="1">{getOrderStatusLabel(1)}</SelectItem>
+                    <SelectItem value="3">{getOrderStatusLabel(3)}</SelectItem>
+                    <SelectItem value="4">{getOrderStatusLabel(4)}</SelectItem>
+                    <SelectItem value="5">{getOrderStatusLabel(5)}</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={paymentFilter} onValueChange={setPaymentFilter}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue placeholder="Thanh toán" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tất cả</SelectItem>
+                    <SelectItem value="paid">Đã thanh toán</SelectItem>
+                    <SelectItem value="pending">Chờ thanh toán</SelectItem>
+                    <SelectItem value="failed">Thất bại</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             { }
-            {(searchQuery || selectedDate) && (
+            {searchQuery && (
               <div className="bg-green-50 border border-green-200 rounded-lg p-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
-                    {searchType === 'date' ? (
-                      <Calendar className="h-4 w-4 text-green-600 mr-2" />
-                    ) : (
-                      <Search className="h-4 w-4 text-green-600 mr-2" />
-                    )}
+                    <Search className="h-4 w-4 text-green-600 mr-2" />
                     <span className="text-sm text-green-800">
-                      {searchType === 'date' && selectedDate ? (
-                        <>
-                          Kết quả tìm kiếm đơn hàng trong ngày{' '}
-                          <span className="font-medium">
-                            {format(selectedDate, 'dd/MM/yyyy', { locale: vi })}
-                          </span>
-                        </>
-                      ) : (
-                        <>
-                          Kết quả tìm kiếm cho "{searchQuery}"
-                          {searchType !== 'all' && (
-                            <span className="font-medium">
-                              {' '}
-                              (theo{' '}
-                              {searchType === 'orderId'
-                                ? 'mã đơn hàng'
-                                : searchType === 'customerName'
-                                  ? 'tên khách hàng'
-                                  : searchType === 'customerId'
-                                    ? 'mã khách hàng'
-                                    : searchType === 'email'
-                                      ? 'email'
-                                      : ''}
-                              )
-                            </span>
-                          )}
-                        </>
-                      )}
+                      Kết quả tìm kiếm cho "{searchQuery}" (theo mã đơn hàng)
                     </span>
                   </div>
                   <span className="text-sm font-medium text-green-800">
@@ -990,7 +764,6 @@ const StaffOrdersPage: React.FC = () => {
                     <TableHead>Thanh toán</TableHead>
                     <TableHead>Tổng tiền</TableHead>
                     <TableHead>Ngày đặt</TableHead>
-                    <TableHead>Thao tác</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -1100,7 +873,6 @@ const StaffOrdersPage: React.FC = () => {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent>
                               <DropdownMenuItem onClick={() => fetchOrderDetail(order.id)}>
-                                <Eye className="h-4 w-4 mr-2" />
                                 Xem chi tiết
                               </DropdownMenuItem>
                               {order.status === 0 && (
@@ -1113,27 +885,23 @@ const StaffOrdersPage: React.FC = () => {
                               )}
                               {(order.status === 1 || order.status === 2) && (
                                 <DropdownMenuItem onClick={() => handleDeliveryStatus(order.id)}>
-                                  <Truck className="h-4 w-4 mr-2" />
                                   Đánh dấu đang giao
                                 </DropdownMenuItem>
                               )}
                               {order.status === 3 && (
                                 <DropdownMenuItem onClick={() => handleCompleteStatus(order.id)}>
-                                  <CheckCircle className="h-4 w-4 mr-2" />
                                   Đánh dấu hoàn thành
                                 </DropdownMenuItem>
                               )}
                               { }
                               {order.status === 6 && (
                                 <DropdownMenuItem onClick={() => handleCompleteStatus(order.id)}>
-                                  <CheckCircle className="h-4 w-4 mr-2" />
                                   Hoàn thành đơn hàng
                                 </DropdownMenuItem>
                               )}
                               { }
                               {order.status !== 4 && order.status !== 5 && order.status !== 6 && (
                                 <DropdownMenuItem onClick={() => handleCancelStatus(order.id)}>
-                                  <XCircle className="h-4 w-4 mr-2" />
                                   Hủy đơn hàng
                                 </DropdownMenuItem>
                               )}

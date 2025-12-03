@@ -8,7 +8,7 @@ import { Badge } from '@/shared/ui/badge'
 import { Input } from '@/shared/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
-import { RefreshCw, Play, Pause, Download } from 'lucide-react'
+import { RefreshCw, Download } from 'lucide-react'
 import { Pagination } from '@/shared/ui/pagination'
 
 const formatSensorValue = (value: number) => {
@@ -25,33 +25,23 @@ const ManagerIoTLogsPage: React.FC = () => {
     const [loading, setLoading] = useState(false)
     const [sensorFilter, setSensorFilter] = useState<string>('all')
     const [searchQuery, setSearchQuery] = useState('')
-    const [autoRefresh, setAutoRefresh] = useState(true)
-    const [lastRefreshTime, setLastRefreshTime] = useState<Date | null>(null)
     const [currentPage, setCurrentPage] = useState(1)
 
-    const POLLING_INTERVAL = 15000 // 15 seconds
     const PAGE_SIZE = 25 // Items per page
 
-    const fetchLogs = useCallback(async (silent = false) => {
+    const fetchLogs = useCallback(async () => {
         try {
-            if (!silent) {
-                setLoading(true)
-            }
+            setLoading(true)
             const data = await blynkService.getLogs()
             setLogs(data)
-            setLastRefreshTime(new Date())
         } catch (error) {
-            if (!silent) {
-                toast({
-                    title: 'Không thể tải nhật ký',
-                    description: 'Vui lòng thử lại sau hoặc kiểm tra kết nối.',
-                    variant: 'destructive',
-                })
-            }
+            toast({
+                title: 'Không thể tải nhật ký',
+                description: 'Vui lòng thử lại sau hoặc kiểm tra kết nối.',
+                variant: 'destructive',
+            })
         } finally {
-            if (!silent) {
-                setLoading(false)
-            }
+            setLoading(false)
         }
     }, [toast])
 
@@ -59,33 +49,6 @@ const ManagerIoTLogsPage: React.FC = () => {
     useEffect(() => {
         fetchLogs()
     }, [fetchLogs])
-
-    // Auto-refresh polling mechanism
-    useEffect(() => {
-        if (!autoRefresh) return
-
-        const intervalId = setInterval(() => {
-            // Only poll if page is visible
-            if (!document.hidden) {
-                fetchLogs(true) // Silent refresh (no loading indicator)
-            }
-        }, POLLING_INTERVAL)
-
-        return () => clearInterval(intervalId)
-    }, [autoRefresh, fetchLogs])
-
-    // Pause polling when page is hidden, resume when visible
-    useEffect(() => {
-        const handleVisibilityChange = () => {
-            if (!document.hidden && autoRefresh) {
-                // Refresh immediately when page becomes visible
-                fetchLogs(true)
-            }
-        }
-
-        document.addEventListener('visibilitychange', handleVisibilityChange)
-        return () => document.removeEventListener('visibilitychange', handleVisibilityChange)
-    }, [autoRefresh, fetchLogs])
 
     const sensors = useMemo(() => {
         const unique = new Set(logs.map(log => log.sensorName))
@@ -200,29 +163,6 @@ const ManagerIoTLogsPage: React.FC = () => {
                             Theo dõi lịch sử đo đạc và đồng bộ trạng thái.
                         </p>
                     </div>
-                    <div className="flex flex-col sm:flex-row gap-3">
-                        <Button
-                            variant={autoRefresh ? 'default' : 'outline'}
-                            onClick={() => setAutoRefresh(!autoRefresh)}
-                            className={autoRefresh ? 'bg-green-600 hover:bg-green-700' : ''}
-                        >
-                            {autoRefresh ? (
-                                <>
-                                    <Pause className="h-4 w-4 mr-2" />
-                                    Tạm dừng tự động
-                                </>
-                            ) : (
-                                <>
-                                    <Play className="h-4 w-4 mr-2" />
-                                    Bật tự động
-                                </>
-                            )}
-                        </Button>
-                        <Button variant="outline" onClick={() => fetchLogs()} disabled={loading}>
-                            <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-                            Làm mới
-                        </Button>
-                    </div>
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
@@ -272,18 +212,11 @@ const ManagerIoTLogsPage: React.FC = () => {
                         </CardHeader>
                         <CardContent>
                             <div className="text-lg font-semibold text-gray-900">
-                                {loading ? 'Đang tải dữ liệu...' : autoRefresh ? 'Tự động cập nhật' : 'Sẵn sàng'}
+                                {loading ? 'Đang tải dữ liệu...' : 'Sẵn sàng'}
                             </div>
                             <p className="text-xs text-gray-500 mt-1">
-                                {autoRefresh
-                                    ? `Tự động làm mới mỗi ${POLLING_INTERVAL / 1000} giây`
-                                    : 'Nút đồng bộ có thể kích hoạt bất cứ lúc nào'}
+                                Hệ thống sẵn sàng xử lý dữ liệu
                             </p>
-                            {lastRefreshTime && (
-                                <p className="text-xs text-green-600 mt-1">
-                                    Lần cập nhật: {lastRefreshTime.toLocaleTimeString('vi-VN')}
-                                </p>
-                            )}
                         </CardContent>
                     </Card>
                 </div>

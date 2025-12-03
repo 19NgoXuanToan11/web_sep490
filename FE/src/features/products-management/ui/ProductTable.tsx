@@ -188,11 +188,30 @@ const ProductRow = React.memo(
         )}
 
         {isReadOnly && (
-          <TableCell className="text-center">
-            <Button variant="ghost" size="sm" onClick={() => onViewProduct?.(product)} className="text-green-600">
-              <Eye className="h-4 w-4 mr-2" />
-              Xem
-            </Button>
+          <TableCell>
+            <DropdownMenu
+              open={openDropdownId === product.productId}
+              onOpenChange={open => {
+                setOpenDropdownId(open ? product.productId : null)
+              }}
+            >
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem
+                  onClick={e => {
+                    e.preventDefault()
+                    e.stopPropagation()
+                    onViewProduct?.(product)
+                  }}
+                >
+                  Xem chi tiết
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </TableCell>
         )}
       </TableRow>
@@ -332,7 +351,7 @@ export function ProductTable({
         </div>
       )}
 
-      <div className="border rounded-lg overflow-hidden">
+      <div className="border rounded-lg overflow-hidden mt-4">
         <Table>
           <TableHeader>
             <TableRow className="bg-gray-50">
@@ -358,10 +377,7 @@ export function ProductTable({
               <TableHead className="font-semibold text-center">Giá</TableHead>
               <TableHead className="font-semibold text-center">Số lượng</TableHead>
               <TableHead className="font-semibold text-center">Trạng thái</TableHead>
-              {!isReadOnly && <TableHead className="w-16"></TableHead>}
-              {isReadOnly && (
-                <TableHead className="w-24 text-center font-semibold">Chi tiết</TableHead>
-              )}
+              <TableHead className="w-16"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

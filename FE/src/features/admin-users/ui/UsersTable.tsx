@@ -68,7 +68,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({
 
   return (
     <div className="space-y-4">
-      <div className="border rounded-lg overflow-hidden">
+      <div className="border rounded-lg overflow-hidden pt-4 mt-4">
         <Table>
           <TableHeader>
             <TableRow>

@@ -64,7 +64,7 @@ export function ProductFilters({ className }: ProductFiltersProps) {
       <div className="bg-white border rounded-lg p-4 shadow-sm">
         <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center">
           { }
-          <div className="relative flex-1 min-w-0 lg:max-w-sm">
+          <div className="relative flex-1 min-w-0 lg:flex-1 lg:max-w-md">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
               placeholder="Tìm kiếm sản phẩm..."
@@ -75,18 +75,18 @@ export function ProductFilters({ className }: ProductFiltersProps) {
           </div>
 
           { }
-          <div className="flex flex-wrap lg:flex-nowrap gap-3 items-center w-full lg:w-auto">
+          <div className="flex flex-wrap lg:flex-nowrap gap-3 items-center w-full lg:flex-1 lg:justify-end">
             { }
-            <div className="min-w-[140px]">
+            <div className="min-w-[140px] lg:min-w-[150px]">
               <Select
                 value={filters.categoryId?.toString() || 'all'}
                 onValueChange={handleCategoryChange}
               >
-                <SelectTrigger className="h-10 text-sm">
+                <SelectTrigger className="h-10 text-sm w-full">
                   <SelectValue placeholder="Danh mục" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Tất cả danh mục</SelectItem>
+                  <SelectItem value="all">Tất cả </SelectItem>
                   {categories.map(category => (
                     <SelectItem key={category.categoryId} value={category.categoryId.toString()}>
                       {category.categoryName}
@@ -97,9 +97,9 @@ export function ProductFilters({ className }: ProductFiltersProps) {
             </div>
 
             { }
-            <div className="min-w-[120px]">
+            <div className="min-w-[120px] lg:min-w-[130px]">
               <Select value={filters.status || 'all'} onValueChange={handleStatusChange}>
-                <SelectTrigger className="h-10 text-sm">
+                <SelectTrigger className="h-10 text-sm w-full">
                   <SelectValue placeholder="Trạng thái" />
                 </SelectTrigger>
                 <SelectContent>
@@ -111,12 +111,12 @@ export function ProductFilters({ className }: ProductFiltersProps) {
             </div>
 
             { }
-            <div className="min-w-[140px]">
+            <div className="min-w-[140px] lg:min-w-[150px]">
               <Select
                 value={`${filters.sortBy || 'updatedAt'}-${filters.sortOrder || 'desc'}`}
                 onValueChange={handleSortChange}
               >
-                <SelectTrigger className="h-10 text-sm">
+                <SelectTrigger className="h-10 text-sm w-full">
                   <SelectValue placeholder="Sắp xếp" />
                 </SelectTrigger>
                 <SelectContent>
@@ -133,7 +133,7 @@ export function ProductFilters({ className }: ProductFiltersProps) {
             </div>
 
             { }
-            <div className="flex items-center gap-2 min-w-fit">
+            <div className="flex items-center gap-2 min-w-fit flex-1 lg:flex-initial lg:justify-end">
               <span className="text-sm text-gray-500 whitespace-nowrap hidden sm:inline">Giá:</span>
               <Input
                 type="number"
@@ -142,7 +142,7 @@ export function ProductFilters({ className }: ProductFiltersProps) {
                 onChange={e =>
                   setFilters({ minPrice: e.target.value ? parseInt(e.target.value) : undefined })
                 }
-                className="w-20 h-10 text-sm"
+                className="w-24 lg:w-28 h-10 text-sm"
               />
               <span className="text-gray-400">-</span>
               <Input
@@ -152,12 +152,12 @@ export function ProductFilters({ className }: ProductFiltersProps) {
                 onChange={e =>
                   setFilters({ maxPrice: e.target.value ? parseInt(e.target.value) : undefined })
                 }
-                className="w-20 h-10 text-sm"
+                className="w-24 lg:w-28 h-10 text-sm"
               />
             </div>
 
             { }
-            <div className="flex items-center gap-2 ml-auto lg:ml-0">
+            <div className="flex items-center gap-2 ml-auto lg:ml-0 flex-shrink-0">
               {activeFiltersCount > 0 && (
                 <Badge variant="secondary" className="flex items-center gap-1 text-xs">
                   <Filter className="h-3 w-3" />

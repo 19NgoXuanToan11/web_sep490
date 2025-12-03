@@ -9,11 +9,13 @@ import {
     XCircle,
     Loader2,
     Image as ImageIcon,
+    MoreHorizontal,
 } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
 import { Badge } from '@/shared/ui/badge'
 import { Input } from '@/shared/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
 import { formatDate } from '@/shared/lib/date-utils'
 import {
@@ -23,7 +25,12 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/shared/ui/dialog'
-import { Tabs, TabsList, TabsTrigger } from '@/shared/ui/tabs'
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/shared/ui/dropdown-menu'
 import { StaffLayout } from '@/shared/layouts/StaffLayout'
 import { useToast } from '@/shared/ui/use-toast'
 import { feedbackService, type Feedback } from '@/shared/api/feedbackService'
@@ -51,7 +58,6 @@ const StaffFeedbacksPage: React.FC = () => {
     const [statusFilter, setStatusFilter] = useState<string>('all')
     const [ratingFilter, setRatingFilter] = useState<string>('all')
     const [isRefreshing, setIsRefreshing] = useState(false)
-    const [selectedTab, setSelectedTab] = useState('all')
 
     const [isDetailOpen, setIsDetailOpen] = useState(false)
     const [selectedFeedback, setSelectedFeedback] = useState<Feedback | null>(null)
@@ -101,15 +107,6 @@ const StaffFeedbacksPage: React.FC = () => {
         if (ratingFilter !== 'all') {
             const rating = parseInt(ratingFilter)
             if (feedback.rating !== rating) {
-                return false
-            }
-        }
-
-        if (selectedTab !== 'all') {
-            if (selectedTab === 'active' && feedback.status !== 'ACTIVE') {
-                return false
-            }
-            if (selectedTab === 'inactive' && feedback.status !== 'DEACTIVATED') {
                 return false
             }
         }
@@ -269,71 +266,53 @@ const StaffFeedbacksPage: React.FC = () => {
                     </Card>
                 </div>
 
-                <Card className="mb-6">
-                    <CardHeader>
-                        <CardTitle className="text-lg">Bộ lọc và tìm kiếm</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                            <div className="md:col-span-2">
-                                <div className="relative">
-                                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                                    <Input
-                                        placeholder="Tìm kiếm theo tên, email, sản phẩm, nội dung..."
-                                        value={searchQuery}
-                                        onChange={e => setSearchQuery(e.target.value)}
-                                        className="pl-10"
-                                    />
-                                </div>
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
+                    <div className="flex flex-col sm:flex-row gap-4">
+                        <div className="flex-1">
+                            <div className="relative">
+                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                <Input
+                                    placeholder="Tìm kiếm theo tên, email, sản phẩm, nội dung..."
+                                    value={searchQuery}
+                                    onChange={e => setSearchQuery(e.target.value)}
+                                    className="pl-9"
+                                />
                             </div>
-
-                            <select
-                                value={statusFilter}
-                                onChange={e => setStatusFilter(e.target.value)}
-                                className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-                            >
-                                <option value="all">Tất cả trạng thái</option>
-                                <option value="ACTIVE">Đang hiển thị</option>
-                                <option value="DEACTIVATED">Đang ẩn</option>
-                            </select>
-
-                            <select
-                                value={ratingFilter}
-                                onChange={e => setRatingFilter(e.target.value)}
-                                className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-                            >
-                                <option value="all">Tất cả đánh giá</option>
-                                <option value="5">⭐⭐⭐⭐⭐ 5 sao</option>
-                                <option value="4">⭐⭐⭐⭐ 4 sao</option>
-                                <option value="3">⭐⭐⭐ 3 sao</option>
-                                <option value="2">⭐⭐ 2 sao</option>
-                                <option value="1">⭐ 1 sao</option>
-                            </select>
                         </div>
-                    </CardContent>
-                </Card>
 
-                <Tabs value={selectedTab} onValueChange={setSelectedTab} className="mb-6">
-                    <TabsList>
-                        <TabsTrigger value="all">
-                            Tất cả ({stats.total})
-                        </TabsTrigger>
-                        <TabsTrigger value="active">
-                            Đang hiển thị ({stats.active})
-                        </TabsTrigger>
-                        <TabsTrigger value="inactive">
-                            Đang ẩn ({stats.inactive})
-                        </TabsTrigger>
-                    </TabsList>
-                </Tabs>
+                        <div className="flex gap-2">
+                            <Select value={statusFilter} onValueChange={setStatusFilter}>
+                                <SelectTrigger className="w-40">
+                                    <SelectValue placeholder="Trạng thái" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">Tất cả</SelectItem>
+                                    <SelectItem value="ACTIVE">Hiển thị</SelectItem>
+                                    <SelectItem value="DEACTIVATED">Ẩn</SelectItem>
+                                </SelectContent>
+                            </Select>
+
+                            <Select value={ratingFilter} onValueChange={setRatingFilter}>
+                                <SelectTrigger className="w-40">
+                                    <SelectValue placeholder="Đánh giá" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="all">Tất cả</SelectItem>
+                                    <SelectItem value="5">⭐⭐⭐⭐⭐ 5 sao</SelectItem>
+                                    <SelectItem value="4">⭐⭐⭐⭐ 4 sao</SelectItem>
+                                    <SelectItem value="3">⭐⭐⭐ 3 sao</SelectItem>
+                                    <SelectItem value="2">⭐⭐ 2 sao</SelectItem>
+                                    <SelectItem value="1">⭐ 1 sao</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    </div>
+                </div>
 
                 <Card>
                     <CardHeader>
                         <div className="flex items-center justify-between">
                             <CardTitle>Danh sách đánh giá</CardTitle>
-                            <Badge variant="secondary">
-                                {filteredFeedbacks.length} kết quả
-                            </Badge>
                         </div>
                     </CardHeader>
                     <CardContent>
@@ -358,9 +337,8 @@ const StaffFeedbacksPage: React.FC = () => {
                                                 <TableHead>Sản phẩm</TableHead>
                                                 <TableHead>Đánh giá</TableHead>
                                                 <TableHead>Nội dung</TableHead>
-                                                <TableHead>Ngày tạo</TableHead>
+                                                <TableHead>Ngày đánh giá</TableHead>
                                                 <TableHead>Trạng thái</TableHead>
-                                                <TableHead className="text-right">Thao tác</TableHead>
                                             </TableRow>
                                         </TableHeader>
                                         <TableBody>
@@ -397,13 +375,40 @@ const StaffFeedbacksPage: React.FC = () => {
                                                     </TableCell>
                                                     <TableCell className="whitespace-nowrap">{getStatusBadge(feedback.status)}</TableCell>
                                                     <TableCell className="text-right">
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="sm"
-                                                            onClick={() => handleViewDetail(feedback)}
+                                                        <DropdownMenu
+                                                            modal={false}
+                                                            onOpenChange={open => {
+                                                                if (!open) {
+                                                                    setTimeout(() => {
+                                                                    }, 0)
+                                                                }
+                                                            }}
                                                         >
-                                                            <Eye className="h-4 w-4" />
-                                                        </Button>
+                                                            <DropdownMenuTrigger asChild>
+                                                                <Button
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    className="h-8 w-8 p-0"
+                                                                    onClick={e => e.stopPropagation()}
+                                                                >
+                                                                    <MoreHorizontal className="h-4 w-4" />
+                                                                </Button>
+                                                            </DropdownMenuTrigger>
+                                                            <DropdownMenuContent align="end" className="w-48" sideOffset={5}>
+                                                                <DropdownMenuItem
+                                                                    onClick={e => {
+                                                                        e.preventDefault()
+                                                                        e.stopPropagation()
+                                                                        setTimeout(() => {
+                                                                            handleViewDetail(feedback)
+                                                                        }, 0)
+                                                                    }}
+                                                                    className="cursor-pointer focus:bg-gray-100"
+                                                                >
+                                                                    Xem chi tiết
+                                                                </DropdownMenuItem>
+                                                            </DropdownMenuContent>
+                                                        </DropdownMenu>
                                                     </TableCell>
                                                 </TableRow>
                                             ))}

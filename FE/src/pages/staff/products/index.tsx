@@ -1,7 +1,7 @@
 ﻿import React from 'react'
 import { Button } from '@/shared/ui/button'
 import { useToast } from '@/shared/ui/use-toast'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
 import { RefreshCw, Package } from 'lucide-react'
 import { StaffLayout } from '@/shared/layouts/StaffLayout'
 import { ProductTable } from '@/features/products-management/ui/ProductTable'
@@ -143,12 +143,6 @@ export function StaffProductsPage() {
 
                 { }
                 <Card>
-                    <CardHeader>
-                        <CardTitle>Sản phẩm</CardTitle>
-                        <CardDescription>
-                            Danh sách sản phẩm được đồng bộ từ module Cây trồng (Manager)
-                        </CardDescription>
-                    </CardHeader>
                     <CardContent>
                         {isLoading ? (
                             <div className="flex items-center justify-center h-32">

@@ -41,8 +41,6 @@ export const UsersTable: React.FC<UsersTableProps> = ({
   const currentPage = paginationState.page
   const pageSize = paginationState.pageSize
   const totalPages = Math.ceil(totalCount / pageSize)
-  const startItem = totalCount === 0 ? 0 : (currentPage - 1) * pageSize + 1
-
 
   const getRolesBadges = (roles: string[]) => {
 

@@ -56,9 +56,9 @@ const StaffOrdersPage: React.FC = () => {
   const { toast } = useToast()
   const [orders, setOrders] = useState<DisplayOrder[]>([])
   const [loading, setLoading] = useState(true)
-  const [totalItems, setTotalItems] = useState(0)
   const [totalPages, setTotalPages] = useState(0)
   const [currentPage, setCurrentPage] = useState(1)
+  const [, setTotalItems] = useState(0)
   // Sử dụng cùng kích thước trang với các màn quản lý khác để pagination đồng nhất
   const pageSize = 10
 

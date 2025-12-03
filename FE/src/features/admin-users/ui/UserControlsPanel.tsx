@@ -1,5 +1,5 @@
 import React from 'react'
-import { Search, UserPlus } from 'lucide-react'
+import { Search } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'

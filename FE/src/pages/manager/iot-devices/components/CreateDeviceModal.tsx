@@ -1,10 +1,10 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
-import { X, Plus, Loader2 } from 'lucide-react'
+import { X, Loader2 } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
 import { Label } from '@/shared/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { useToast } from '@/shared/ui/use-toast'
 import { iotDeviceService, type IoTDeviceRequest } from '@/shared/api/iotDeviceService'
@@ -132,7 +132,7 @@ export const CreateDeviceModal: React.FC<CreateDeviceModalProps> = ({
   }
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
       onClick={handleOverlayClick}
     >

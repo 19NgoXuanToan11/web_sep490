@@ -10,7 +10,6 @@ import { Badge } from '@/shared/ui/badge'
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -25,13 +24,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/shared/ui/textarea'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
 import {
-  Plus,
-  Edit,
   Search,
-  RefreshCw,
-  Eye,
-  ToggleLeft,
-  ToggleRight,
   Upload,
   Loader2,
   X,
@@ -83,11 +76,9 @@ interface CropActionMenuProps {
   crop: Crop
   onViewDetails: (crop: Crop) => void
   onEdit: (crop: Crop) => void
-  onChangeStatus: (cropId: number) => void
-  isActive: boolean
 }
 
-const CropActionMenu: React.FC<CropActionMenuProps> = React.memo(({ crop, onViewDetails, onEdit, onChangeStatus, isActive }) => {
+const CropActionMenu: React.FC<CropActionMenuProps> = React.memo(({ crop, onViewDetails, onEdit }) => {
   const [open, setOpen] = useState(false)
 
   const handleViewDetails = useCallback((e: React.MouseEvent) => {
@@ -108,14 +99,6 @@ const CropActionMenu: React.FC<CropActionMenuProps> = React.memo(({ crop, onView
     }, 0)
   }, [crop, onEdit])
 
-  const handleChangeStatus = useCallback((e: React.MouseEvent) => {
-    e.preventDefault()
-    e.stopPropagation()
-    setOpen(false)
-    setTimeout(() => {
-      onChangeStatus(crop.cropId)
-    }, 0)
-  }, [crop, onChangeStatus])
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen} modal={false}>
@@ -387,19 +370,6 @@ export default function CropManagementPage() {
     setFormDialogOpen(true)
   }, [])
 
-  const handleChangeStatus = useCallback(async (cropId: number) => {
-    try {
-      await cropService.changeStatus(cropId)
-      toast({ title: 'Thành công', description: 'Đã thay đổi trạng thái cây trồng' })
-      loadCrops(currentPage, isSearchMode)
-    } catch (error: any) {
-      toast({
-        title: 'Lỗi',
-        description: error?.response?.data?.message || 'Không thể thay đổi trạng thái',
-        variant: 'destructive',
-      })
-    }
-  }, [currentPage, isSearchMode])
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -671,8 +641,6 @@ export default function CropManagementPage() {
                         crop={crop}
                         onViewDetails={openDetailsDialog}
                         onEdit={openEditDialog}
-                        onChangeStatus={handleChangeStatus}
-                        isActive={isActiveStatus(crop.status)}
                       />
                     </TableCell>
                   </TableRow>

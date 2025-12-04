@@ -8,7 +8,7 @@ import { useToast } from '@/shared/ui/use-toast'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/shared/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { Badge } from '@/shared/ui/badge'
-import { Loader2, UserPlus, ToggleLeft, ToggleRight, MoreHorizontal } from 'lucide-react'
+import { Loader2, MoreHorizontal } from 'lucide-react'
 import {
     StaffDataTable,
     type StaffDataTableColumn,
@@ -136,7 +136,6 @@ interface ScheduleActionMenuProps {
     onView: (schedule: ScheduleListItem) => void
     onEdit: (schedule: ScheduleListItem) => void
     onAssignStaff: (schedule: ScheduleListItem) => void
-    onToggleStatus: (schedule: ScheduleListItem) => void
     actionLoading: { [key: string]: boolean }
 }
 
@@ -145,7 +144,6 @@ const ScheduleActionMenu: React.FC<ScheduleActionMenuProps> = React.memo(({
     onView,
     onEdit,
     onAssignStaff,
-    onToggleStatus,
     actionLoading,
 }) => {
     const [open, setOpen] = useState(false)
@@ -189,19 +187,6 @@ const ScheduleActionMenu: React.FC<ScheduleActionMenuProps> = React.memo(({
         [schedule, onAssignStaff]
     )
 
-    const handleToggleStatus = useCallback(
-        (e: React.MouseEvent) => {
-            e.preventDefault()
-            e.stopPropagation()
-            setOpen(false)
-            setTimeout(() => {
-                onToggleStatus(schedule)
-            }, 0)
-        },
-        [schedule, onToggleStatus]
-    )
-
-    const isActive = typeof schedule.status === 'number' && schedule.status === 1
 
     return (
         <DropdownMenu open={open} onOpenChange={setOpen} modal={false}>
@@ -281,16 +266,13 @@ export function BackendScheduleList({
     const [activities, setActivities] = useState<ActivityOption[]>([])
     const [metaLoading, setMetaLoading] = useState(false)
     const [allSchedules, setAllSchedules] = useState<ScheduleListItem[]>([])
-    const [allSchedulesLoading, setAllSchedulesLoading] = useState(false)
 
     // Use external state if provided, otherwise use internal state
     const [internalFilteredItems, setInternalFilteredItems] = useState<ScheduleListItem[] | null>(null)
     const filteredItems = externalFilteredItems !== undefined ? externalFilteredItems : internalFilteredItems
     const setFilteredItems = onFilteredItemsChange ?? setInternalFilteredItems
 
-    const [internalStaffFilter, setInternalStaffFilter] = useState<number | null>(null)
-    const staffFilter = externalStaffFilter !== undefined ? externalStaffFilter : internalStaffFilter
-    const setStaffFilter = onStaffFilterChange ?? setInternalStaffFilter
+    const [internalStaffFilter] = useState<number | null>(null)
 
     const [showDetail, setShowDetail] = useState(false)
     const [showEdit, setShowEdit] = useState(false)
@@ -320,7 +302,6 @@ export function BackendScheduleList({
     }, [pageIndex, pageSize, toast])
 
     const loadAllSchedules = useCallback(async (silent = false): Promise<ScheduleListItem[]> => {
-        setAllSchedulesLoading(true)
         try {
             const first = await scheduleService.getScheduleList(1, BULK_PAGE_SIZE)
             let items = [...first.data.items]
@@ -343,8 +324,6 @@ export function BackendScheduleList({
                 handleFetchError(e, toast, 'lịch tưới (toàn bộ)')
             }
             return []
-        } finally {
-            setAllSchedulesLoading(false)
         }
     }, [toast])
 
@@ -771,7 +750,6 @@ export function BackendScheduleList({
                                                 setSelectedSchedule(s)
                                                 handleAssignStaffDialogChange(true)
                                             }}
-                                            onToggleStatus={handleToggleStatus}
                                             actionLoading={actionLoading}
                                         />
                                     ),

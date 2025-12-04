@@ -2,18 +2,11 @@ import React from 'react'
 import {
     Dialog,
     DialogContent,
-    DialogDescription,
     DialogHeader,
     DialogTitle,
 } from '@/shared/ui/dialog'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
 import { Badge } from '@/shared/ui/badge'
-import {
-    Thermometer,
-    Droplets,
-    Gauge,
-    Cpu,
-} from 'lucide-react'
 import { type IoTDevice } from '@/shared/api/iotDeviceService'
 
 interface DeviceDetailsModalProps {
@@ -28,20 +21,6 @@ export const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({
     device,
 }) => {
     if (!device) return null
-
-    const getDeviceTypeIcon = (deviceType: string) => {
-        const type = deviceType?.toLowerCase() || ''
-        if (type.includes('temperature') || type.includes('nhiệt độ')) {
-            return <Thermometer className="h-5 w-5 text-orange-500" />
-        }
-        if (type.includes('humidity') || type.includes('độ ẩm')) {
-            return <Droplets className="h-5 w-5 text-blue-500" />
-        }
-        if (type.includes('soil') || type.includes('đất')) {
-            return <Gauge className="h-5 w-5 text-green-500" />
-        }
-        return <Cpu className="h-5 w-5 text-gray-500" />
-    }
 
     const getStatusBadge = (status: number) => {
         if (status === 1) {

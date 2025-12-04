@@ -7,15 +7,13 @@ import { Card, CardContent } from '@/shared/ui/card'
 import { Badge } from '@/shared/ui/badge'
 import {
   Dialog,
-
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/shared/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
-import { Plus, RefreshCw, Search, MoreHorizontal } from 'lucide-react'
+import { RefreshCw, Search, MoreHorizontal } from 'lucide-react'
 import { useToast } from '@/shared/ui/use-toast'
 import {
   ManagementPageHeader,
@@ -586,7 +584,7 @@ export default function FarmActivitiesPage() {
                   </div>
                 </div>
                 <p className="text-xs text-gray-500 mt-2">
-                  Toàn bộ hoạt động nông trại trong hệ thống 
+                  Toàn bộ hoạt động nông trại trong hệ thống
                 </p>
               </CardContent>
             </Card>

@@ -20,7 +20,6 @@ import { formatDate } from '@/shared/lib/date-utils'
 import {
     Dialog,
     DialogContent,
-    DialogDescription,
     DialogHeader,
     DialogTitle,
 } from '@/shared/ui/dialog'

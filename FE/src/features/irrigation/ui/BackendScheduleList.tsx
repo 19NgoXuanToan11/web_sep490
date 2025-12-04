@@ -244,8 +244,6 @@ ScheduleActionMenu.displayName = 'ScheduleActionMenu'
 export function BackendScheduleList({
     showCreate: externalShowCreate,
     onShowCreateChange,
-    staffFilter: externalStaffFilter,
-    onStaffFilterChange,
     filteredItems: externalFilteredItems,
     onFilteredItemsChange,
 }: BackendScheduleListProps) {
@@ -271,8 +269,6 @@ export function BackendScheduleList({
     const [internalFilteredItems, setInternalFilteredItems] = useState<ScheduleListItem[] | null>(null)
     const filteredItems = externalFilteredItems !== undefined ? externalFilteredItems : internalFilteredItems
     const setFilteredItems = onFilteredItemsChange ?? setInternalFilteredItems
-
-    const [internalStaffFilter] = useState<number | null>(null)
 
     const [showDetail, setShowDetail] = useState(false)
     const [showEdit, setShowEdit] = useState(false)
@@ -619,22 +615,6 @@ export function BackendScheduleList({
         }
     }
 
-    const handleToggleStatus = async (schedule: ScheduleListItem) => {
-        if (!schedule.scheduleId) return
-        const currentStatus = typeof schedule.status === 'number' ? schedule.status : 0
-        const newStatus = currentStatus === 1 ? 'DEACTIVATED' : 'ACTIVE'
-        setActionLoading({ [`status-${schedule.scheduleId}`]: true })
-        try {
-            await scheduleService.updateScheduleStatus(schedule.scheduleId, newStatus)
-            toast({ title: 'Cập nhật trạng thái thành công', variant: 'success' })
-            await load()
-            await loadAllSchedules()
-        } catch (e) {
-            toast({ title: 'Cập nhật trạng thái thất bại', description: (e as Error).message, variant: 'destructive' })
-        } finally {
-            setActionLoading({ [`status-${schedule.scheduleId}`]: false })
-        }
-    }
 
     const handleAssignStaff = async () => {
         if (!selectedSchedule?.scheduleId || !assignStaffId) return

@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { ManagerLayout } from '@/shared/layouts/ManagerLayout'
-import { Pagination } from '@/shared/ui/pagination'
-import { ManagementPageHeader, StaffFilterBar } from '@/shared/ui'
+import { ManagementPageHeader, StaffFilterBar, StaffDataTable, type StaffDataTableColumn } from '@/shared/ui'
 import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
 import { Label } from '@/shared/ui/label'
@@ -22,7 +21,6 @@ import {
 } from '@/shared/ui/dropdown-menu'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { Textarea } from '@/shared/ui/textarea'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
 import {
   Search,
   Upload,
@@ -587,83 +585,86 @@ export default function CropManagementPage() {
           </div>
         </StaffFilterBar>
 
-        <div className="border rounded-lg bg-white mt-4">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-16">STT</TableHead>
-                <TableHead>Tên cây trồng</TableHead>
-                <TableHead>Mô tả</TableHead>
-                <TableHead>Xuất xứ</TableHead>
-                <TableHead>Trạng thái</TableHead>
-                <TableHead className="w-16"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center py-6">
-                    Đang tải dữ liệu...
-                  </TableCell>
-                </TableRow>
-              ) : crops.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center py-6">
-                    Không tìm thấy cây trồng nào
-                  </TableCell>
-                </TableRow>
-              ) : (
-                crops.map((crop, index) => (
-                  <TableRow key={crop.cropId}>
-                    <TableCell className="text-center">
-                      {(currentPage - 1) * pageSize + index + 1}
-                    </TableCell>
-                    <TableCell>
+        <Card>
+          <CardContent className="p-0">
+            {loading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-green-600" />
+                <span className="ml-2 text-gray-600">Đang tải dữ liệu...</span>
+              </div>
+            ) : (
+              <StaffDataTable<Crop>
+                className="px-4 sm:px-6 pb-6"
+                data={crops}
+                getRowKey={(crop) => crop.cropId}
+                currentPage={currentPage}
+                pageSize={pageSize}
+                totalPages={totalPages}
+                onPageChange={(newPage) => {
+                  setCurrentPage(newPage)
+                  if (isSearchMode) {
+                    loadCrops(newPage, true)
+                  }
+                }}
+                emptyTitle="Không tìm thấy cây trồng nào"
+                emptyDescription={
+                  searchTerm || statusFilter !== 'all'
+                    ? 'Không có cây trồng nào phù hợp với điều kiện lọc hiện tại.'
+                    : 'Hãy tạo cây trồng đầu tiên.'
+                }
+                columns={[
+                  {
+                    id: 'cropName',
+                    header: 'Tên cây trồng',
+                    render: (crop) => (
                       <p className="font-semibold">{crop.cropName}</p>
-                    </TableCell>
-                    <TableCell>
+                    ),
+                  },
+                  {
+                    id: 'description',
+                    header: 'Mô tả',
+                    render: (crop) => (
                       <p className="text-sm text-gray-600 line-clamp-2">
                         {crop.description || '—'}
                       </p>
-                    </TableCell>
-                    <TableCell>
-                      <p className="text-sm text-gray-600">{crop.origin || '—'}</p>
-                    </TableCell>
-                    <TableCell>
+                    ),
+                  },
+                  {
+                    id: 'origin',
+                    header: 'Xuất xứ',
+                    render: (crop) => (
+                      <p className="text-sm text-gray-600">
+                        {crop.origin || '—'}
+                      </p>
+                    ),
+                  },
+                  {
+                    id: 'status',
+                    header: 'Trạng thái',
+                    render: (crop) => (
                       <Badge
                         variant={isActiveStatus(crop.status) ? 'default' : 'secondary'}
                       >
                         {isActiveStatus(crop.status) ? 'Hoạt động' : 'Tạm dừng'}
                       </Badge>
-                    </TableCell>
-                    <TableCell>
+                    ),
+                  },
+                  {
+                    id: 'actions',
+                    header: '',
+                    render: (crop) => (
                       <CropActionMenu
                         crop={crop}
                         onViewDetails={openDetailsDialog}
                         onEdit={openEditDialog}
                       />
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
-
-        {totalPages > 1 && (
-          <div className="flex justify-center">
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={newPage => {
-                setCurrentPage(newPage)
-                if (isSearchMode) {
-                  loadCrops(newPage, true)
-                }
-              }}
-            />
-          </div>
-        )}
+                    ),
+                  },
+                ] satisfies StaffDataTableColumn<Crop>[]}
+              />
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       <Dialog

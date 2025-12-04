@@ -56,14 +56,28 @@ type RequirementFormState = {
   notes: string
 }
 
+// Map UI labels to the 4 enum values that backend accepts (Domain.Enum.PlantStage)
 const PLANT_STAGE_OPTIONS: { value: PlantStage; label: string; description: string }[] = [
-  { value: 'Sowing', label: 'Gieo hạt', description: 'Chuẩn bị đất và gieo giống' },
-  { value: 'Germination', label: 'Nảy mầm', description: 'Theo dõi độ ẩm đất' },
-  { value: 'CotyledonLeaves', label: 'Ra lá mầm', description: 'Bắt đầu bổ sung dinh dưỡng' },
-  { value: 'TrueLeavesGrowth', label: 'Phát triển lá thật', description: 'Tăng cường ánh sáng' },
-  { value: 'VigorousGrowth', label: 'Tăng trưởng mạnh', description: 'Theo dõi độ ẩm/ánh sáng' },
-  { value: 'ReadyForHarvest', label: 'Sẵn sàng thu hoạch', description: 'Kiểm tra chất lượng' },
-  { value: 'PostHarvest', label: 'Sau thu hoạch', description: 'Chuẩn bị vụ mới' },
+  {
+    value: 'Germination',
+    label: 'Gieo hạt',
+    description: 'Chuẩn bị đất và gieo giống (0–7 ngày)',
+  },
+  {
+    value: 'Seedling',
+    label: 'Nảy mầm',
+    description: 'Theo dõi độ ẩm và sự phát triển mầm (8–18 ngày)',
+  },
+  {
+    value: 'Vegetative',
+    label: 'Tăng trưởng lá',
+    description: 'Phát triển thân, lá – tăng cường ánh sáng và dinh dưỡng (19–35 ngày)',
+  },
+  {
+    value: 'Harvest',
+    label: 'Thu hoạch',
+    description: 'Sẵn sàng thu hoạch và đánh giá chất lượng (36–37 ngày)',
+  },
 ]
 
 const INITIAL_FORM_STATE: RequirementFormState = {

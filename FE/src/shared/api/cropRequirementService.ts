@@ -1,13 +1,14 @@
 import { http } from './client'
 
-export type PlantStage =
-  | 'Sowing'
-  | 'Germination'
-  | 'CotyledonLeaves'
-  | 'TrueLeavesGrowth'
-  | 'VigorousGrowth'
-  | 'ReadyForHarvest'
-  | 'PostHarvest'
+// Backend enum: Domain.Enum.PlantStage
+// public enum PlantStage
+// {
+//   Germination,   // 0–7 days
+//   Seedling,      // 8–18 days
+//   Vegetative,    // 19–35 days
+//   Harvest        // 36–37 days
+// }
+export type PlantStage = 'Germination' | 'Seedling' | 'Vegetative' | 'Harvest'
 
 export interface CropRequirementPayload {
   estimatedDate?: number | null
@@ -79,7 +80,8 @@ export const cropRequirementService = {
 
   async create(cropId: number, payload: CropRequirementPayload, plantStage: PlantStage) {
     const response = await http.post<CropRequirementApiResponse<CropRequirementView>>(
-      `${BASE_URL}/create${buildQuery({ cropRequirementId: cropId, plantStage })}`,
+      // Backend expects: long cropId (from query) + PlantStage plantStage (from query)
+      `${BASE_URL}/create${buildQuery({ cropId, plantStage })}`,
       payload
     )
     return response.data

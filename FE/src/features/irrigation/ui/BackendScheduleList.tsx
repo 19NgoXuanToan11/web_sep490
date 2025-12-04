@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useMemo } from 'react'
 import { scheduleService, type PaginatedSchedules, type CreateScheduleRequest, type ScheduleDetail, type ScheduleListItem } from '@/shared/api/scheduleService'
-import { Card, CardContent, CardHeader } from '@/shared/ui/card'
+import { Card, CardContent } from '@/shared/ui/card'
 import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
 import { Label } from '@/shared/ui/label'
@@ -8,8 +8,17 @@ import { useToast } from '@/shared/ui/use-toast'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/shared/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { Badge } from '@/shared/ui/badge'
-import { Loader2, Eye, Edit, UserPlus, ToggleLeft, ToggleRight, Filter } from 'lucide-react'
-import { Pagination } from '@/shared/ui/pagination'
+import { Loader2, UserPlus, ToggleLeft, ToggleRight, MoreHorizontal } from 'lucide-react'
+import {
+    StaffDataTable,
+    type StaffDataTableColumn,
+} from '@/shared/ui'
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/shared/ui/dropdown-menu'
 import { farmService } from '@/shared/api/farmService'
 import { cropService } from '@/shared/api/cropService'
 import { accountApi } from '@/shared/api/auth'
@@ -20,6 +29,10 @@ import { formatDate, formatDateTime } from '@/shared/lib/date-utils'
 interface BackendScheduleListProps {
     showCreate?: boolean
     onShowCreateChange?: (v: boolean) => void
+    staffFilter?: number | null
+    onStaffFilterChange?: (filter: number | null) => void
+    filteredItems?: ScheduleListItem[] | null
+    onFilteredItemsChange?: (items: ScheduleListItem[] | null) => void
 }
 
 const BULK_PAGE_SIZE = 50
@@ -117,7 +130,140 @@ const buildEmptyScheduleForm = (): CreateScheduleRequest => ({
     farmActivitiesId: 0,
 })
 
-export function BackendScheduleList({ showCreate: externalShowCreate, onShowCreateChange }: BackendScheduleListProps) {
+// Component riêng cho Action Menu
+interface ScheduleActionMenuProps {
+    schedule: ScheduleListItem
+    onView: (schedule: ScheduleListItem) => void
+    onEdit: (schedule: ScheduleListItem) => void
+    onAssignStaff: (schedule: ScheduleListItem) => void
+    onToggleStatus: (schedule: ScheduleListItem) => void
+    actionLoading: { [key: string]: boolean }
+}
+
+const ScheduleActionMenu: React.FC<ScheduleActionMenuProps> = React.memo(({
+    schedule,
+    onView,
+    onEdit,
+    onAssignStaff,
+    onToggleStatus,
+    actionLoading,
+}) => {
+    const [open, setOpen] = useState(false)
+    const isLoading = actionLoading[`detail-${schedule.scheduleId}`] ||
+        actionLoading[`edit-${schedule.scheduleId}`] ||
+        actionLoading[`status-${schedule.scheduleId}`]
+
+    const handleView = useCallback(
+        (e: React.MouseEvent) => {
+            e.preventDefault()
+            e.stopPropagation()
+            setOpen(false)
+            setTimeout(() => {
+                onView(schedule)
+            }, 0)
+        },
+        [schedule, onView]
+    )
+
+    const handleEdit = useCallback(
+        (e: React.MouseEvent) => {
+            e.preventDefault()
+            e.stopPropagation()
+            setOpen(false)
+            setTimeout(() => {
+                onEdit(schedule)
+            }, 0)
+        },
+        [schedule, onEdit]
+    )
+
+    const handleAssignStaff = useCallback(
+        (e: React.MouseEvent) => {
+            e.preventDefault()
+            e.stopPropagation()
+            setOpen(false)
+            setTimeout(() => {
+                onAssignStaff(schedule)
+            }, 0)
+        },
+        [schedule, onAssignStaff]
+    )
+
+    const handleToggleStatus = useCallback(
+        (e: React.MouseEvent) => {
+            e.preventDefault()
+            e.stopPropagation()
+            setOpen(false)
+            setTimeout(() => {
+                onToggleStatus(schedule)
+            }, 0)
+        },
+        [schedule, onToggleStatus]
+    )
+
+    const isActive = typeof schedule.status === 'number' && schedule.status === 1
+
+    return (
+        <DropdownMenu open={open} onOpenChange={setOpen} modal={false}>
+            <DropdownMenuTrigger asChild>
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 w-8 p-0"
+                    onClick={(e) => e.stopPropagation()}
+                    disabled={isLoading}
+                >
+                    {isLoading ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                        <MoreHorizontal className="h-4 w-4" />
+                    )}
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+                align="end"
+                className="w-48"
+                sideOffset={5}
+                onCloseAutoFocus={(e) => e.preventDefault()}
+            >
+                <DropdownMenuItem
+                    onClick={handleView}
+                    className="cursor-pointer focus:bg-gray-100"
+                    onSelect={(e) => e.preventDefault()}
+                    disabled={actionLoading[`detail-${schedule.scheduleId}`]}
+                >
+                    Xem chi tiết
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                    onClick={handleEdit}
+                    className="cursor-pointer focus:bg-gray-100"
+                    onSelect={(e) => e.preventDefault()}
+                    disabled={actionLoading[`edit-${schedule.scheduleId}`]}
+                >
+                    Chỉnh sửa
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                    onClick={handleAssignStaff}
+                    className="cursor-pointer focus:bg-gray-100"
+                    onSelect={(e) => e.preventDefault()}
+                >
+                    Phân công nhân viên
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
+    )
+})
+
+ScheduleActionMenu.displayName = 'ScheduleActionMenu'
+
+export function BackendScheduleList({
+    showCreate: externalShowCreate,
+    onShowCreateChange,
+    staffFilter: externalStaffFilter,
+    onStaffFilterChange,
+    filteredItems: externalFilteredItems,
+    onFilteredItemsChange,
+}: BackendScheduleListProps) {
     const { toast } = useToast()
     const [pageIndex, setPageIndex] = useState(1)
     const [pageSize] = useState(10)
@@ -136,7 +282,15 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
     const [metaLoading, setMetaLoading] = useState(false)
     const [allSchedules, setAllSchedules] = useState<ScheduleListItem[]>([])
     const [allSchedulesLoading, setAllSchedulesLoading] = useState(false)
-    const [filteredItems, setFilteredItems] = useState<ScheduleListItem[] | null>(null)
+
+    // Use external state if provided, otherwise use internal state
+    const [internalFilteredItems, setInternalFilteredItems] = useState<ScheduleListItem[] | null>(null)
+    const filteredItems = externalFilteredItems !== undefined ? externalFilteredItems : internalFilteredItems
+    const setFilteredItems = onFilteredItemsChange ?? setInternalFilteredItems
+
+    const [internalStaffFilter, setInternalStaffFilter] = useState<number | null>(null)
+    const staffFilter = externalStaffFilter !== undefined ? externalStaffFilter : internalStaffFilter
+    const setStaffFilter = onStaffFilterChange ?? setInternalStaffFilter
 
     const [showDetail, setShowDetail] = useState(false)
     const [showEdit, setShowEdit] = useState(false)
@@ -146,8 +300,6 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
     const [editForm, setEditForm] = useState<CreateScheduleRequest>(buildEmptyScheduleForm)
     const [assignStaffId, setAssignStaffId] = useState<number>(0)
     const [actionLoading, setActionLoading] = useState<{ [key: string]: boolean }>({})
-    const [staffFilter, setStaffFilter] = useState<number | null>(null)
-    const [showStaffFilter, setShowStaffFilter] = useState(false)
     const [editingScheduleId, setEditingScheduleId] = useState<number | null>(null)
     const [editLoading, setEditLoading] = useState(false)
     const todayString = useMemo(() => new Date().toISOString().split('T')[0], [])
@@ -338,7 +490,7 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
 
     // Load metadata whenever any dialog/filter that depends on it is opened
     useEffect(() => {
-        const shouldLoadMetadata = showCreate || showEdit || showAssignStaff || showStaffFilter
+        const shouldLoadMetadata = showCreate || showEdit || showAssignStaff
         if (!shouldLoadMetadata) return
         let cancelled = false
             ; (async () => {
@@ -361,7 +513,7 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
         return () => {
             cancelled = true
         }
-    }, [showCreate, showEdit, showAssignStaff, showStaffFilter, loadReferenceData, toast])
+    }, [showCreate, showEdit, showAssignStaff, loadReferenceData, toast])
 
     const handleCreateDialogChange = useCallback((open: boolean) => {
         setShowCreate(open)
@@ -521,92 +673,430 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
         }
     }
 
-    const handleStaffFilter = async () => {
-        if (!staffFilter) {
-            toast({ title: 'Chọn nhân viên trước khi lọc', variant: 'destructive' })
-            return
-        }
-        let source = allSchedules
-        if (!source.length && !allSchedulesLoading) {
-            source = await loadAllSchedules()
-        }
-        if (!source.length) {
-            toast({ title: 'Không thể tải danh sách lịch để lọc', variant: 'destructive' })
-            return
-        }
-        const filtered = source.filter(it => it.staffId === staffFilter)
-        setFilteredItems(filtered)
-        if (!filtered.length) {
-            toast({ title: 'Không tìm thấy lịch', description: 'Nhân viên này chưa có lịch nào trong hệ thống.', variant: 'destructive' })
-        }
-    }
-
     return (
-        <Card>
-            { /* Header kept minimal; create button now lives in page header */}
-            <CardHeader className="flex flex-row items-center justify-between">
-                <div className="flex items-center gap-2">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setShowStaffFilter(!showStaffFilter)}
-                    >
-                        <Filter className="h-4 w-4 mr-2" />
-                        Lọc theo nhân viên
-                    </Button>
-                    {staffFilter && (
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                                setStaffFilter(null)
-                                setFilteredItems(null)
-                                load()
-                            }}
-                        >
-                            Xóa bộ lọc
-                        </Button>
+        <>
+            <Card>
+                <CardContent className="p-0">
+                    {loading ? (
+                        <div className="flex items-center justify-center py-12">
+                            <Loader2 className="h-8 w-8 animate-spin text-green-600" />
+                            <span className="ml-2 text-gray-600">Đang tải dữ liệu...</span>
+                        </div>
+                    ) : (
+                        <StaffDataTable<ScheduleListItem>
+                            className="px-4 sm:px-6 pb-6"
+                            data={displayItems}
+                            getRowKey={(schedule, index) => schedule.scheduleId ?? `schedule-${index}`}
+                            currentPage={isFiltered ? 1 : pageIndex}
+                            pageSize={isFiltered ? displayItems.length : pageSize}
+                            totalPages={isFiltered ? 1 : (data?.data.totalPagesCount ?? 1)}
+                            onPageChange={isFiltered ? undefined : setPageIndex}
+                            emptyTitle="Không tìm thấy lịch tưới nào"
+                            emptyDescription={
+                                isFiltered
+                                    ? 'Không có lịch tưới nào phù hợp với điều kiện lọc hiện tại.'
+                                    : 'Hãy tạo lịch tưới đầu tiên.'
+                            }
+                            columns={[
+                                {
+                                    id: 'startDate',
+                                    header: 'Ngày bắt đầu',
+                                    render: (schedule: ScheduleListItem) => (
+                                        <div className="font-medium">{formatDate(schedule.startDate)}</div>
+                                    ),
+                                },
+                                {
+                                    id: 'endDate',
+                                    header: 'Ngày kết thúc',
+                                    render: (schedule: ScheduleListItem) => (
+                                        <div>{formatDate(schedule.endDate)}</div>
+                                    ),
+                                },
+                                {
+                                    id: 'status',
+                                    header: 'Trạng thái',
+                                    render: (schedule: ScheduleListItem) => (
+                                        <Badge variant={typeof schedule.status === 'number' && schedule.status === 1 ? 'default' : 'secondary'}>
+                                            {getStatusLabel(schedule.status)}
+                                        </Badge>
+                                    ),
+                                },
+                                {
+                                    id: 'staff',
+                                    header: 'Nhân viên',
+                                    render: (schedule: ScheduleListItem) => (
+                                        <div className="flex flex-col">
+                                            <span className="font-medium">{schedule.staff?.fullname ?? schedule.staffName ?? '-'}</span>
+                                            {schedule.staff?.phone && (
+                                                <span className="text-xs text-muted-foreground">{schedule.staff.phone}</span>
+                                            )}
+                                        </div>
+                                    ),
+                                },
+                                {
+                                    id: 'farm',
+                                    header: 'Nông trại',
+                                    render: (schedule: ScheduleListItem) => (
+                                        <div className="flex flex-col">
+                                            <span className="font-medium">{schedule.farmView?.farmName ?? `#${schedule.farmId ?? '-'}`}</span>
+                                            {schedule.farmView?.location && (
+                                                <span className="text-xs text-muted-foreground">{schedule.farmView.location}</span>
+                                            )}
+                                        </div>
+                                    ),
+                                },
+                                {
+                                    id: 'crop',
+                                    header: 'Cây trồng',
+                                    render: (schedule: ScheduleListItem) => (
+                                        <div className="flex flex-col">
+                                            <span className="font-medium">{schedule.cropView?.cropName ?? `#${schedule.cropId ?? '-'}`}</span>
+                                            {schedule.cropView?.description && (
+                                                <span className="text-xs text-muted-foreground line-clamp-1" title={schedule.cropView.description}>
+                                                    {schedule.cropView.description}
+                                                </span>
+                                            )}
+                                        </div>
+                                    ),
+                                },
+                                {
+                                    id: 'actions',
+                                    header: '',
+                                    render: (schedule: ScheduleListItem) => (
+                                        <ScheduleActionMenu
+                                            schedule={schedule}
+                                            onView={handleViewDetail}
+                                            onEdit={handleEdit}
+                                            onAssignStaff={(s) => {
+                                                setSelectedSchedule(s)
+                                                handleAssignStaffDialogChange(true)
+                                            }}
+                                            onToggleStatus={handleToggleStatus}
+                                            actionLoading={actionLoading}
+                                        />
+                                    ),
+                                },
+                            ] satisfies StaffDataTableColumn<ScheduleListItem>[]}
+                        />
                     )}
-                </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                {showStaffFilter && (
-                    <div className="flex items-center gap-2 p-4 bg-muted/50 rounded-lg">
-                        <Select
-                            value={staffFilter ? String(staffFilter) : ''}
-                            onValueChange={v => setStaffFilter(Number(v))}
-                        >
-                            <SelectTrigger className="w-64">
-                                <SelectValue placeholder="Chọn nhân viên" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {staffs.map(s => (
-                                    <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                        <Button onClick={handleStaffFilter} disabled={!staffFilter || allSchedulesLoading}>
-                            Áp dụng
-                        </Button>
-                        {allSchedulesLoading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
-                    </div>
-                )}
-                <Dialog open={showCreate} onOpenChange={handleCreateDialogChange}>
-                    <DialogContent className="sm:max-w-2xl">
-                        <DialogHeader>
-                            <DialogTitle>Tạo lịch tưới mới</DialogTitle>
-                            <DialogDescription>Nhập thông tin lịch tưới rồi bấm Tạo.</DialogDescription>
-                        </DialogHeader>
-                        <form className="grid grid-cols-2 md:grid-cols-3 gap-3" onSubmit={submit}>
+                </CardContent>
+            </Card>
+
+            <Dialog open={showCreate} onOpenChange={handleCreateDialogChange}>
+                <DialogContent className="sm:max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle>Tạo lịch tưới mới</DialogTitle>
+                    </DialogHeader>
+                    <form className="grid grid-cols-2 md:grid-cols-3 gap-3" onSubmit={submit}>
+                        <div>
+                            <Label>Farm</Label>
+                            <Select
+                                value={form.farmId ? String(form.farmId) : ''}
+                                onValueChange={v => setForm({ ...form, farmId: Number(v) })}
+                                disabled={metaLoading || editLoading}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder={metaLoading ? 'Đang tải...' : 'Chọn nông trại'} />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {farms.map(f => (
+                                        <SelectItem key={f.id} value={String(f.id)}>{f.name}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div>
+                            <Label>Crop</Label>
+                            <Select
+                                value={form.cropId ? String(form.cropId) : ''}
+                                onValueChange={v => setForm({ ...form, cropId: Number(v) })}
+                                disabled={metaLoading || editLoading}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder={metaLoading ? 'Đang tải...' : 'Chọn cây trồng'} />
+                                </SelectTrigger>
+                                <SelectContent className="max-h-56 overflow-y-auto">
+                                    {crops.map(c => (
+                                        <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div>
+                            <Label>Staff</Label>
+                            <Select
+                                value={form.staffId ? String(form.staffId) : ''}
+                                onValueChange={v => setForm({ ...form, staffId: Number(v) })}
+                                disabled={metaLoading || editLoading}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder={metaLoading ? 'Đang tải...' : 'Chọn nhân viên'} />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {staffs.map(s => (
+                                        <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div>
+                            <Label>Ngày bắt đầu</Label>
+                            <Input
+                                type="date"
+                                min={todayString}
+                                value={form.startDate}
+                                onChange={e => setForm({ ...form, startDate: e.target.value })}
+                            />
+                        </div>
+                        <div>
+                            <Label>Ngày kết thúc</Label>
+                            <Input
+                                type="date"
+                                min={form.startDate || todayString}
+                                value={form.endDate}
+                                onChange={e => setForm({ ...form, endDate: e.target.value })}
+                            />
+                        </div>
+                        <div>
+                            <Label>Ngày gieo trồng</Label>
+                            <Input
+                                type="date"
+                                min={form.startDate || todayString}
+                                max={form.endDate || undefined}
+                                value={form.plantingDate}
+                                onChange={e => setForm({ ...form, plantingDate: e.target.value })}
+                            />
+                        </div>
+                        <div>
+                            <Label>Ngày thu hoạch</Label>
+                            <Input
+                                type="date"
+                                min={form.plantingDate || form.startDate || todayString}
+                                max={form.endDate || undefined}
+                                value={form.harvestDate}
+                                onChange={e => setForm({ ...form, harvestDate: e.target.value })}
+                            />
+                        </div>
+                        <div>
+                            <Label>Số lượng</Label>
+                            <Input
+                                type="number"
+                                min={1}
+                                value={form.quantity}
+                                onChange={e => setForm({ ...form, quantity: Number(e.target.value) })}
+                            />
+                        </div>
+                        <div>
+                            <Label>Trạng thái</Label>
+                            <Select
+                                value={String(form.status)}
+                                onValueChange={v => setForm({ ...form, status: Number(v) })}
+                                disabled={metaLoading || editLoading}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Chọn trạng thái" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {statusOptions.map(o => (
+                                        <SelectItem key={o.value} value={String(o.value)}>{o.label}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div>
+                            <Label>Tình trạng bệnh</Label>
+                            <Select
+                                value={getDiseaseSelectValue(form.diseaseStatus)}
+                                onValueChange={v => {
+                                    const numValue = Number(v)
+                                    setForm({ ...form, diseaseStatus: numValue === -1 ? null : numValue })
+                                }}
+                                disabled={metaLoading || editLoading}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Chọn tình trạng bệnh" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {diseaseOptions.map(o => (
+                                        <SelectItem key={o.value} value={String(o.value)}>{o.label}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div>
+                            <Label>Mã hoạt động nông trại</Label>
+                            <Select
+                                value={form.farmActivitiesId ? String(form.farmActivitiesId) : ''}
+                                onValueChange={v => setForm({ ...form, farmActivitiesId: Number(v) })}
+                                disabled={metaLoading}
+                            >
+                                <SelectTrigger>
+                                    <SelectValue placeholder={metaLoading ? 'Đang tải...' : 'Chọn hoạt động'} />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {activities.map(a => (
+                                        <SelectItem key={a.id} value={String(a.id)}>{a.name}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div className="flex items-end gap-2 col-span-2 md:col-span-3">
+                            <label className="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    checked={form.pesticideUsed}
+                                    onChange={e => setForm({ ...form, pesticideUsed: e.target.checked })}
+                                />
+                                <span>Đã dùng thuốc BVTV</span>
+                            </label>
+                            <div className="ml-auto flex gap-2">
+                                {metaLoading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+                                <Button type="button" variant="outline" size="sm" onClick={() => handleCreateDialogChange(false)}>Hủy</Button>
+                                <Button type="submit" size="sm" disabled={metaLoading}>Tạo</Button>
+                            </div>
+                        </div>
+                    </form>
+                </DialogContent>
+            </Dialog>
+
+            {/* Detail View Modal */}
+            <Dialog open={showDetail} onOpenChange={setShowDetail}>
+                <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
+                    <DialogHeader>
+                        <DialogTitle>Chi tiết lịch tưới</DialogTitle>
+                    </DialogHeader>
+                    {scheduleDetail && (
+                        <div className="space-y-6">
+                            {/* Basic Information */}
+                            <div>
+                                <h3 className="text-lg font-semibold mb-3">Thông tin cơ bản</h3>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div><strong>Ngày bắt đầu:</strong> {formatDate(scheduleDetail.startDate)}</div>
+                                    <div><strong>Ngày kết thúc:</strong> {formatDate(scheduleDetail.endDate)}</div>
+                                    <div><strong>Ngày gieo trồng:</strong> {formatDate(scheduleDetail.plantingDate)}</div>
+                                    <div><strong>Ngày thu hoạch:</strong> {formatDate(scheduleDetail.harvestDate)}</div>
+                                    <div>
+                                        <strong>Trạng thái:</strong>{' '}
+                                        <Badge variant={typeof scheduleDetail.status === 'number' && scheduleDetail.status === 1 ? 'success' : 'secondary'}>
+                                            {getStatusLabel(scheduleDetail.status)}
+                                        </Badge>
+                                    </div>
+                                    <div><strong>Thuốc BVTV:</strong> {scheduleDetail.pesticideUsed ? 'Có' : 'Không'}</div>
+                                    <div><strong>Tình trạng bệnh:</strong> {getDiseaseLabel(scheduleDetail.diseaseStatus)}</div>
+                                    <div><strong>Tạo lúc:</strong> {formatDateTime(scheduleDetail.createdAt)}</div>
+                                </div>
+                            </div>
+
+                            {/* Staff Information */}
+                            {scheduleDetail.staff && (
+                                <div>
+                                    <h3 className="text-lg font-semibold mb-3">Thông tin nhân viên</h3>
+                                    <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
+                                        <div><strong>Họ tên:</strong> {scheduleDetail.staff.fullname ?? scheduleDetail.staffName ?? '-'}</div>
+                                        <div><strong>Số điện thoại:</strong> {scheduleDetail.staff.phone ?? '-'}</div>
+                                        {scheduleDetail.staff.email && (
+                                            <div><strong>Email:</strong> {scheduleDetail.staff.email}</div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Farm Information */}
+                            {scheduleDetail.farmView && (
+                                <div>
+                                    <h3 className="text-lg font-semibold mb-3">Thông tin nông trại</h3>
+                                    <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
+                                        <div><strong>Tên nông trại:</strong> {scheduleDetail.farmView.farmName ?? `#${scheduleDetail.farmView.farmId}`}</div>
+                                        <div><strong>Địa điểm:</strong> {scheduleDetail.farmView.location ?? '-'}</div>
+                                        {scheduleDetail.farmView.createdAt && (
+                                            <div><strong>Ngày tạo:</strong> {formatDate(scheduleDetail.farmView.createdAt)}</div>
+                                        )}
+                                        {scheduleDetail.farmView.updatedAt && (
+                                            <div><strong>Ngày cập nhật:</strong> {formatDate(scheduleDetail.farmView.updatedAt)}</div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Crop Information */}
+                            {scheduleDetail.cropView && (
+                                <div>
+                                    <h3 className="text-lg font-semibold mb-3">Thông tin cây trồng</h3>
+                                    <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
+                                        <div><strong>Tên cây trồng:</strong> {scheduleDetail.cropView.cropName ?? `#${scheduleDetail.cropView.cropId}`}</div>
+                                        <div><strong>Số lượng:</strong> {scheduleDetail.quantity}</div>
+                                        {scheduleDetail.cropView.origin && (
+                                            <div><strong>Nguồn gốc:</strong> {scheduleDetail.cropView.origin}</div>
+                                        )}
+                                        {/* TODO: Replace with API data */}
+                                        <div><strong>Giai đoạn cây:</strong> {scheduleDetail.cropView.plantStage ? translatePlantStage(scheduleDetail.cropView.plantStage) : 'Giai đoạn nảy mầm'}</div>
+                                        {/* TODO: Replace with API data */}
+                                        <div><strong>Độ ẩm đất yêu cầu:</strong> 70% - 80%</div>
+                                        {/* TODO: Replace with API data */}
+                                        <div><strong>Nhiệt độ yêu cầu:</strong> 25°C - 30°C</div>
+                                        {/* TODO: Replace with API data */}
+                                        <div><strong>Phân bón:</strong> NPK 20-20-15</div>
+                                        {scheduleDetail.cropView.description && (
+                                            <div className="col-span-2">
+                                                <strong>Mô tả:</strong>
+                                                <p className="mt-1 text-sm text-muted-foreground">{scheduleDetail.cropView.description}</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Farm Activity Information */}
+                            {scheduleDetail.farmActivityView && (
+                                <div>
+                                    <h3 className="text-lg font-semibold mb-3">Thông tin hoạt động nông trại</h3>
+                                    <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
+                                        <div>
+                                            <strong>Loại hoạt động:</strong>{' '}
+                                            {scheduleDetail.farmActivityView.activityType
+                                                ? translateActivityType(scheduleDetail.farmActivityView.activityType)
+                                                : `#${scheduleDetail.farmActivityView.farmActivitiesId}`}
+                                        </div>
+                                        {scheduleDetail.farmActivityView.status && (
+                                            <div>
+                                                <strong>Trạng thái:</strong>{' '}
+                                                <Badge variant={scheduleDetail.farmActivityView.status === 'ACTIVE' ? 'success' : 'secondary'}>
+                                                    {scheduleDetail.farmActivityView.status === 'ACTIVE' ? 'Hoạt động' : 'Vô hiệu hóa'}
+                                                </Badge>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+                </DialogContent>
+            </Dialog>
+
+            {/* Edit Modal */}
+            <Dialog open={showEdit} onOpenChange={handleEditDialogChange}>
+                <DialogContent className="sm:max-w-2xl">
+                    <DialogHeader>
+                        <DialogTitle>Chỉnh sửa lịch tưới</DialogTitle>
+                        <DialogDescription>Cập nhật thông tin lịch tưới.</DialogDescription>
+                    </DialogHeader>
+                    <form onSubmit={handleUpdateSchedule}>
+                        <fieldset className="grid grid-cols-2 md:grid-cols-3 gap-3" disabled={editLoading}>
+                            {editLoading && (
+                                <div className="col-span-2 md:col-span-3 flex items-center gap-2 text-sm text-muted-foreground">
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                    Đang tải dữ liệu lịch...
+                                </div>
+                            )}
                             <div>
                                 <Label>Farm</Label>
                                 <Select
-                                    value={form.farmId ? String(form.farmId) : ''}
-                                    onValueChange={v => setForm({ ...form, farmId: Number(v) })}
+                                    value={editForm.farmId != null && editForm.farmId > 0 ? String(editForm.farmId) : ''}
+                                    onValueChange={v => setEditForm({ ...editForm, farmId: Number(v) })}
                                     disabled={metaLoading || editLoading}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder={metaLoading ? 'Đang tải...' : 'Chọn nông trại'} />
+                                        <SelectValue placeholder={metaLoading || editLoading ? 'Đang tải...' : 'Chọn nông trại'} />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {farms.map(f => (
@@ -618,12 +1108,12 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                             <div>
                                 <Label>Crop</Label>
                                 <Select
-                                    value={form.cropId ? String(form.cropId) : ''}
-                                    onValueChange={v => setForm({ ...form, cropId: Number(v) })}
+                                    value={editForm.cropId != null && editForm.cropId > 0 ? String(editForm.cropId) : ''}
+                                    onValueChange={v => setEditForm({ ...editForm, cropId: Number(v) })}
                                     disabled={metaLoading || editLoading}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder={metaLoading ? 'Đang tải...' : 'Chọn cây trồng'} />
+                                        <SelectValue placeholder={metaLoading || editLoading ? 'Đang tải...' : 'Chọn cây trồng'} />
                                     </SelectTrigger>
                                     <SelectContent className="max-h-56 overflow-y-auto">
                                         {crops.map(c => (
@@ -635,12 +1125,12 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                             <div>
                                 <Label>Staff</Label>
                                 <Select
-                                    value={form.staffId ? String(form.staffId) : ''}
-                                    onValueChange={v => setForm({ ...form, staffId: Number(v) })}
+                                    value={editForm.staffId != null && editForm.staffId > 0 ? String(editForm.staffId) : ''}
+                                    onValueChange={v => setEditForm({ ...editForm, staffId: Number(v) })}
                                     disabled={metaLoading || editLoading}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder={metaLoading ? 'Đang tải...' : 'Chọn nhân viên'} />
+                                        <SelectValue placeholder={metaLoading || editLoading ? 'Đang tải...' : 'Chọn nhân viên'} />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {staffs.map(s => (
@@ -654,37 +1144,37 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                                 <Input
                                     type="date"
                                     min={todayString}
-                                    value={form.startDate}
-                                    onChange={e => setForm({ ...form, startDate: e.target.value })}
+                                    value={editForm.startDate}
+                                    onChange={e => setEditForm({ ...editForm, startDate: e.target.value })}
                                 />
                             </div>
                             <div>
                                 <Label>Ngày kết thúc</Label>
                                 <Input
                                     type="date"
-                                    min={form.startDate || todayString}
-                                    value={form.endDate}
-                                    onChange={e => setForm({ ...form, endDate: e.target.value })}
+                                    min={editForm.startDate || todayString}
+                                    value={editForm.endDate}
+                                    onChange={e => setEditForm({ ...editForm, endDate: e.target.value })}
                                 />
                             </div>
                             <div>
                                 <Label>Ngày gieo trồng</Label>
                                 <Input
                                     type="date"
-                                    min={form.startDate || todayString}
-                                    max={form.endDate || undefined}
-                                    value={form.plantingDate}
-                                    onChange={e => setForm({ ...form, plantingDate: e.target.value })}
+                                    min={editForm.startDate || todayString}
+                                    max={editForm.endDate || undefined}
+                                    value={editForm.plantingDate}
+                                    onChange={e => setEditForm({ ...editForm, plantingDate: e.target.value })}
                                 />
                             </div>
                             <div>
                                 <Label>Ngày thu hoạch</Label>
                                 <Input
                                     type="date"
-                                    min={form.plantingDate || form.startDate || todayString}
-                                    max={form.endDate || undefined}
-                                    value={form.harvestDate}
-                                    onChange={e => setForm({ ...form, harvestDate: e.target.value })}
+                                    min={editForm.plantingDate || editForm.startDate || todayString}
+                                    max={editForm.endDate || undefined}
+                                    value={editForm.harvestDate}
+                                    onChange={e => setEditForm({ ...editForm, harvestDate: e.target.value })}
                                 />
                             </div>
                             <div>
@@ -692,23 +1182,22 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                                 <Input
                                     type="number"
                                     min={1}
-                                    value={form.quantity}
-                                    onChange={e => setForm({ ...form, quantity: Number(e.target.value) })}
+                                    value={editForm.quantity}
+                                    onChange={e => setEditForm({ ...editForm, quantity: Number(e.target.value) })}
                                 />
                             </div>
                             <div>
                                 <Label>Trạng thái</Label>
                                 <Select
-                                    value={String(form.status)}
-                                    onValueChange={v => setForm({ ...form, status: Number(v) })}
-                                    disabled={metaLoading || editLoading}
+                                    value={String(editForm.status)}
+                                    onValueChange={v => setEditForm({ ...editForm, status: Number(v) })}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Chọn trạng thái" />
+                                        <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {statusOptions.map(o => (
-                                            <SelectItem key={o.value} value={String(o.value)}>{o.label}</SelectItem>
+                                        {statusOptions.map(opt => (
+                                            <SelectItem key={opt.value} value={String(opt.value)}>{opt.label}</SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
@@ -716,32 +1205,31 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                             <div>
                                 <Label>Tình trạng bệnh</Label>
                                 <Select
-                                    value={getDiseaseSelectValue(form.diseaseStatus)}
+                                    value={getDiseaseSelectValue(editForm.diseaseStatus)}
                                     onValueChange={v => {
                                         const numValue = Number(v)
-                                        setForm({ ...form, diseaseStatus: numValue === -1 ? null : numValue })
+                                        setEditForm({ ...editForm, diseaseStatus: numValue === -1 ? null : numValue })
                                     }}
-                                    disabled={metaLoading || editLoading}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Chọn tình trạng bệnh" />
+                                        <SelectValue />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        {diseaseOptions.map(o => (
-                                            <SelectItem key={o.value} value={String(o.value)}>{o.label}</SelectItem>
+                                        {diseaseOptions.map(opt => (
+                                            <SelectItem key={opt.value} value={String(opt.value)}>{opt.label}</SelectItem>
                                         ))}
                                     </SelectContent>
                                 </Select>
                             </div>
                             <div>
-                                <Label>Mã hoạt động nông trại</Label>
+                                <Label>Hoạt động</Label>
                                 <Select
-                                    value={form.farmActivitiesId ? String(form.farmActivitiesId) : ''}
-                                    onValueChange={v => setForm({ ...form, farmActivitiesId: Number(v) })}
-                                    disabled={metaLoading}
+                                    value={editForm.farmActivitiesId != null && editForm.farmActivitiesId > 0 ? String(editForm.farmActivitiesId) : ''}
+                                    onValueChange={v => setEditForm({ ...editForm, farmActivitiesId: Number(v) })}
+                                    disabled={metaLoading || editLoading}
                                 >
                                     <SelectTrigger>
-                                        <SelectValue placeholder={metaLoading ? 'Đang tải...' : 'Chọn hoạt động'} />
+                                        <SelectValue placeholder={metaLoading || editLoading ? 'Đang tải...' : 'Chọn hoạt động'} />
                                     </SelectTrigger>
                                     <SelectContent>
                                         {activities.map(a => (
@@ -750,502 +1238,76 @@ export function BackendScheduleList({ showCreate: externalShowCreate, onShowCrea
                                     </SelectContent>
                                 </Select>
                             </div>
-                            <div className="flex items-end gap-2 col-span-2 md:col-span-3">
-                                <label className="flex items-center gap-2">
-                                    <input
-                                        type="checkbox"
-                                        checked={form.pesticideUsed}
-                                        onChange={e => setForm({ ...form, pesticideUsed: e.target.checked })}
-                                    />
-                                    <span>Đã dùng thuốc BVTV</span>
-                                </label>
-                                <div className="ml-auto flex gap-2">
-                                    {metaLoading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
-                                    <Button type="button" variant="outline" size="sm" onClick={() => handleCreateDialogChange(false)}>Hủy</Button>
-                                    <Button type="submit" size="sm" disabled={metaLoading}>Tạo</Button>
-                                </div>
+                            <div className="flex items-center space-x-2">
+                                <input
+                                    type="checkbox"
+                                    id="editPesticide"
+                                    checked={editForm.pesticideUsed}
+                                    onChange={e => setEditForm({ ...editForm, pesticideUsed: e.target.checked })}
+                                />
+                                <Label htmlFor="editPesticide">Sử dụng thuốc BVTV</Label>
                             </div>
-                        </form>
-                    </DialogContent>
-                </Dialog>
-
-                <div className="overflow-auto mt-4">
-                    <table className="w-full text-sm">
-                        <thead>
-                            <tr className="text-left border-b">
-                                <th className="py-2 pr-3">Ngày bắt đầu</th>
-                                <th className="py-2 pr-3">Ngày kết thúc</th>
-                                <th className="py-2 pr-3">Trạng thái</th>
-                                <th className="py-2 pr-3">Nhân viên</th>
-                                <th className="py-2 pr-3">Nông trại</th>
-                                <th className="py-2 pr-3">Cây trồng</th>
-                                <th className="py-2 pr-3">Thao tác</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {displayItems.map((it, idx) => (
-                                <tr key={idx} className="border-b last:border-0">
-                                    <td className="py-2 pr-3">{formatDate(it.startDate)}</td>
-                                    <td className="py-2 pr-3">{formatDate(it.endDate)}</td>
-                                    <td className="py-2 pr-3">
-                                        <Badge variant={typeof it.status === 'number' && it.status === 1 ? 'success' : 'secondary'}>
-                                            {getStatusLabel(it.status)}
-                                        </Badge>
-                                    </td>
-                                    <td className="py-2 pr-3">
-                                        <div className="flex flex-col">
-                                            <span className="font-medium">{it.staff?.fullname ?? it.staffName ?? '-'}</span>
-                                            {it.staff?.phone && (
-                                                <span className="text-xs text-muted-foreground">{it.staff.phone}</span>
-                                            )}
-                                        </div>
-                                    </td>
-                                    <td className="py-2 pr-3">
-                                        <div className="flex flex-col">
-                                            <span className="font-medium">{it.farmView?.farmName ?? `#${it.farmId ?? '-'}`}</span>
-                                            {it.farmView?.location && (
-                                                <span className="text-xs text-muted-foreground">{it.farmView.location}</span>
-                                            )}
-                                        </div>
-                                    </td>
-                                    <td className="py-2 pr-3">
-                                        <div className="flex flex-col">
-                                            <span className="font-medium">{it.cropView?.cropName ?? `#${it.cropId ?? '-'}`}</span>
-                                            {it.cropView?.description && (
-                                                <span className="text-xs text-muted-foreground line-clamp-1" title={it.cropView.description}>
-                                                    {it.cropView.description}
-                                                </span>
-                                            )}
-                                        </div>
-                                    </td>
-                                    <td className="py-2 pr-3">
-                                        <div className="flex items-center gap-1">
-                                            <Button
-                                                size="sm"
-                                                variant="ghost"
-                                                onClick={() => handleViewDetail(it)}
-                                                disabled={actionLoading[`detail-${it.scheduleId}`]}
-                                            >
-                                                {actionLoading[`detail-${it.scheduleId}`] ? (
-                                                    <Loader2 className="h-3 w-3 animate-spin" />
-                                                ) : (
-                                                    <Eye className="h-3 w-3" />
-                                                )}
-                                            </Button>
-                                            <Button
-                                                size="sm"
-                                                variant="ghost"
-                                                onClick={() => handleEdit(it)}
-                                                disabled={actionLoading[`edit-${it.scheduleId}`]}
-                                            >
-                                                {actionLoading[`edit-${it.scheduleId}`] ? (
-                                                    <Loader2 className="h-3 w-3 animate-spin" />
-                                                ) : (
-                                                    <Edit className="h-3 w-3" />
-                                                )}
-                                            </Button>
-                                            <Button
-                                                size="sm"
-                                                variant="ghost"
-                                                onClick={() => {
-                                                    setSelectedSchedule(it)
-                                                    handleAssignStaffDialogChange(true)
-                                                }}
-                                            >
-                                                <UserPlus className="h-3 w-3" />
-                                            </Button>
-                                            <Button
-                                                size="sm"
-                                                variant="ghost"
-                                                onClick={() => handleToggleStatus(it)}
-                                                disabled={actionLoading[`status-${it.scheduleId}`]}
-                                            >
-                                                {actionLoading[`status-${it.scheduleId}`] ? (
-                                                    <Loader2 className="h-3 w-3 animate-spin" />
-                                                ) : typeof it.status === 'number' && it.status === 1 ? (
-                                                    <ToggleRight className="h-3 w-3 text-green-600" />
-                                                ) : (
-                                                    <ToggleLeft className="h-3 w-3 text-gray-400" />
-                                                )}
-                                            </Button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
-                            {!loading && displayItems.length === 0 && (
-                                <tr>
-                                    <td colSpan={7} className="py-6 text-center text-muted-foreground">
-                                        Chưa có dữ liệu
-                                    </td>
-                                </tr>
+                        </fieldset>
+                    </form>
+                    <DialogFooter>
+                        <Button type="button" variant="outline" onClick={() => handleEditDialogChange(false)}>
+                            Hủy
+                        </Button>
+                        <Button
+                            type="submit"
+                            onClick={handleUpdateSchedule}
+                            disabled={actionLoading[`update-${selectedSchedule?.scheduleId}`]}
+                        >
+                            {actionLoading[`update-${selectedSchedule?.scheduleId}`] && (
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                             )}
-                        </tbody>
-                    </table>
-                </div>
+                            Cập nhật
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
 
-                {!isFiltered && data?.data.totalPagesCount && data.data.totalPagesCount > 1 && (
-                    <div className="flex items-center justify-end flex-wrap gap-4">
-                        <Pagination
-                            currentPage={pageIndex}
-                            totalPages={data.data.totalPagesCount}
-                            onPageChange={setPageIndex}
-                            disabled={loading}
-                        />
-                    </div>
-                )}
-
-                {/* Detail View Modal */}
-                <Dialog open={showDetail} onOpenChange={setShowDetail}>
-                    <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
-                        <DialogHeader>
-                            <DialogTitle>Chi tiết lịch tưới</DialogTitle>
-                            <DialogDescription>Thông tin chi tiết về lịch tưới được chọn.</DialogDescription>
-                        </DialogHeader>
-                        {scheduleDetail && (
-                            <div className="space-y-6">
-                                {/* Basic Information */}
-                                <div>
-                                    <h3 className="text-lg font-semibold mb-3">Thông tin cơ bản</h3>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div><strong>Ngày bắt đầu:</strong> {formatDate(scheduleDetail.startDate)}</div>
-                                        <div><strong>Ngày kết thúc:</strong> {formatDate(scheduleDetail.endDate)}</div>
-                                        <div><strong>Ngày gieo trồng:</strong> {formatDate(scheduleDetail.plantingDate)}</div>
-                                        <div><strong>Ngày thu hoạch:</strong> {formatDate(scheduleDetail.harvestDate)}</div>
-                                        <div>
-                                            <strong>Trạng thái:</strong>{' '}
-                                            <Badge variant={typeof scheduleDetail.status === 'number' && scheduleDetail.status === 1 ? 'success' : 'secondary'}>
-                                                {getStatusLabel(scheduleDetail.status)}
-                                            </Badge>
-                                        </div>
-                                        <div><strong>Thuốc BVTV:</strong> {scheduleDetail.pesticideUsed ? 'Có' : 'Không'}</div>
-                                        <div><strong>Tình trạng bệnh:</strong> {getDiseaseLabel(scheduleDetail.diseaseStatus)}</div>
-                                        <div><strong>Tạo lúc:</strong> {formatDateTime(scheduleDetail.createdAt)}</div>
-                                    </div>
-                                </div>
-
-                                {/* Staff Information */}
-                                {scheduleDetail.staff && (
-                                    <div>
-                                        <h3 className="text-lg font-semibold mb-3">Thông tin nhân viên</h3>
-                                        <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
-                                            <div><strong>Họ tên:</strong> {scheduleDetail.staff.fullname ?? scheduleDetail.staffName ?? '-'}</div>
-                                            <div><strong>Số điện thoại:</strong> {scheduleDetail.staff.phone ?? '-'}</div>
-                                            {scheduleDetail.staff.email && (
-                                                <div><strong>Email:</strong> {scheduleDetail.staff.email}</div>
-                                            )}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Farm Information */}
-                                {scheduleDetail.farmView && (
-                                    <div>
-                                        <h3 className="text-lg font-semibold mb-3">Thông tin nông trại</h3>
-                                        <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
-                                            <div><strong>Tên nông trại:</strong> {scheduleDetail.farmView.farmName ?? `#${scheduleDetail.farmView.farmId}`}</div>
-                                            <div><strong>Địa điểm:</strong> {scheduleDetail.farmView.location ?? '-'}</div>
-                                            {scheduleDetail.farmView.createdAt && (
-                                                <div><strong>Ngày tạo:</strong> {formatDate(scheduleDetail.farmView.createdAt)}</div>
-                                            )}
-                                            {scheduleDetail.farmView.updatedAt && (
-                                                <div><strong>Ngày cập nhật:</strong> {formatDate(scheduleDetail.farmView.updatedAt)}</div>
-                                            )}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Crop Information */}
-                                {scheduleDetail.cropView && (
-                                    <div>
-                                        <h3 className="text-lg font-semibold mb-3">Thông tin cây trồng</h3>
-                                        <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
-                                            <div><strong>Tên cây trồng:</strong> {scheduleDetail.cropView.cropName ?? `#${scheduleDetail.cropView.cropId}`}</div>
-                                            <div><strong>Số lượng:</strong> {scheduleDetail.quantity}</div>
-                                            {scheduleDetail.cropView.origin && (
-                                                <div><strong>Nguồn gốc:</strong> {scheduleDetail.cropView.origin}</div>
-                                            )}
-                                            {/* TODO: Replace with API data */}
-                                            <div><strong>Giai đoạn cây:</strong> {scheduleDetail.cropView.plantStage ? translatePlantStage(scheduleDetail.cropView.plantStage) : 'Giai đoạn nảy mầm'}</div>
-                                            {/* TODO: Replace with API data */}
-                                            <div><strong>Độ ẩm đất yêu cầu:</strong> 70% - 80%</div>
-                                            {/* TODO: Replace with API data */}
-                                            <div><strong>Nhiệt độ yêu cầu:</strong> 25°C - 30°C</div>
-                                            {/* TODO: Replace with API data */}
-                                            <div><strong>Phân bón:</strong> NPK 20-20-15</div>
-                                            {scheduleDetail.cropView.description && (
-                                                <div className="col-span-2">
-                                                    <strong>Mô tả:</strong>
-                                                    <p className="mt-1 text-sm text-muted-foreground">{scheduleDetail.cropView.description}</p>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Farm Activity Information */}
-                                {scheduleDetail.farmActivityView && (
-                                    <div>
-                                        <h3 className="text-lg font-semibold mb-3">Thông tin hoạt động nông trại</h3>
-                                        <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
-                                            <div>
-                                                <strong>Loại hoạt động:</strong>{' '}
-                                                {scheduleDetail.farmActivityView.activityType
-                                                    ? translateActivityType(scheduleDetail.farmActivityView.activityType)
-                                                    : `#${scheduleDetail.farmActivityView.farmActivitiesId}`}
-                                            </div>
-                                            {scheduleDetail.farmActivityView.status && (
-                                                <div>
-                                                    <strong>Trạng thái:</strong>{' '}
-                                                    <Badge variant={scheduleDetail.farmActivityView.status === 'ACTIVE' ? 'success' : 'secondary'}>
-                                                        {scheduleDetail.farmActivityView.status === 'ACTIVE' ? 'Hoạt động' : 'Vô hiệu hóa'}
-                                                    </Badge>
-                                                </div>
-                                            )}
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                    </DialogContent>
-                </Dialog>
-
-                {/* Edit Modal */}
-                <Dialog open={showEdit} onOpenChange={handleEditDialogChange}>
-                    <DialogContent className="sm:max-w-2xl">
-                        <DialogHeader>
-                            <DialogTitle>Chỉnh sửa lịch tưới</DialogTitle>
-                            <DialogDescription>Cập nhật thông tin lịch tưới.</DialogDescription>
-                        </DialogHeader>
-                        <form onSubmit={handleUpdateSchedule}>
-                            <fieldset className="grid grid-cols-2 md:grid-cols-3 gap-3" disabled={editLoading}>
-                                {editLoading && (
-                                    <div className="col-span-2 md:col-span-3 flex items-center gap-2 text-sm text-muted-foreground">
-                                        <Loader2 className="h-4 w-4 animate-spin" />
-                                        Đang tải dữ liệu lịch...
-                                    </div>
-                                )}
-                                <div>
-                                    <Label>Farm</Label>
-                                    <Select
-                                        value={editForm.farmId != null && editForm.farmId > 0 ? String(editForm.farmId) : ''}
-                                        onValueChange={v => setEditForm({ ...editForm, farmId: Number(v) })}
-                                        disabled={metaLoading || editLoading}
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue placeholder={metaLoading || editLoading ? 'Đang tải...' : 'Chọn nông trại'} />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {farms.map(f => (
-                                                <SelectItem key={f.id} value={String(f.id)}>{f.name}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div>
-                                    <Label>Crop</Label>
-                                    <Select
-                                        value={editForm.cropId != null && editForm.cropId > 0 ? String(editForm.cropId) : ''}
-                                        onValueChange={v => setEditForm({ ...editForm, cropId: Number(v) })}
-                                        disabled={metaLoading || editLoading}
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue placeholder={metaLoading || editLoading ? 'Đang tải...' : 'Chọn cây trồng'} />
-                                        </SelectTrigger>
-                                        <SelectContent className="max-h-56 overflow-y-auto">
-                                            {crops.map(c => (
-                                                <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div>
-                                    <Label>Staff</Label>
-                                    <Select
-                                        value={editForm.staffId != null && editForm.staffId > 0 ? String(editForm.staffId) : ''}
-                                        onValueChange={v => setEditForm({ ...editForm, staffId: Number(v) })}
-                                        disabled={metaLoading || editLoading}
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue placeholder={metaLoading || editLoading ? 'Đang tải...' : 'Chọn nhân viên'} />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {staffs.map(s => (
-                                                <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div>
-                                    <Label>Ngày bắt đầu</Label>
-                                    <Input
-                                        type="date"
-                                        min={todayString}
-                                        value={editForm.startDate}
-                                        onChange={e => setEditForm({ ...editForm, startDate: e.target.value })}
-                                    />
-                                </div>
-                                <div>
-                                    <Label>Ngày kết thúc</Label>
-                                    <Input
-                                        type="date"
-                                        min={editForm.startDate || todayString}
-                                        value={editForm.endDate}
-                                        onChange={e => setEditForm({ ...editForm, endDate: e.target.value })}
-                                    />
-                                </div>
-                                <div>
-                                    <Label>Ngày gieo trồng</Label>
-                                    <Input
-                                        type="date"
-                                        min={editForm.startDate || todayString}
-                                        max={editForm.endDate || undefined}
-                                        value={editForm.plantingDate}
-                                        onChange={e => setEditForm({ ...editForm, plantingDate: e.target.value })}
-                                    />
-                                </div>
-                                <div>
-                                    <Label>Ngày thu hoạch</Label>
-                                    <Input
-                                        type="date"
-                                        min={editForm.plantingDate || editForm.startDate || todayString}
-                                        max={editForm.endDate || undefined}
-                                        value={editForm.harvestDate}
-                                        onChange={e => setEditForm({ ...editForm, harvestDate: e.target.value })}
-                                    />
-                                </div>
-                                <div>
-                                    <Label>Số lượng</Label>
-                                    <Input
-                                        type="number"
-                                        min={1}
-                                        value={editForm.quantity}
-                                        onChange={e => setEditForm({ ...editForm, quantity: Number(e.target.value) })}
-                                    />
-                                </div>
-                                <div>
-                                    <Label>Trạng thái</Label>
-                                    <Select
-                                        value={String(editForm.status)}
-                                        onValueChange={v => setEditForm({ ...editForm, status: Number(v) })}
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {statusOptions.map(opt => (
-                                                <SelectItem key={opt.value} value={String(opt.value)}>{opt.label}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div>
-                                    <Label>Tình trạng bệnh</Label>
-                                    <Select
-                                        value={getDiseaseSelectValue(editForm.diseaseStatus)}
-                                        onValueChange={v => {
-                                            const numValue = Number(v)
-                                            setEditForm({ ...editForm, diseaseStatus: numValue === -1 ? null : numValue })
-                                        }}
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {diseaseOptions.map(opt => (
-                                                <SelectItem key={opt.value} value={String(opt.value)}>{opt.label}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div>
-                                    <Label>Hoạt động</Label>
-                                    <Select
-                                        value={editForm.farmActivitiesId != null && editForm.farmActivitiesId > 0 ? String(editForm.farmActivitiesId) : ''}
-                                        onValueChange={v => setEditForm({ ...editForm, farmActivitiesId: Number(v) })}
-                                        disabled={metaLoading || editLoading}
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue placeholder={metaLoading || editLoading ? 'Đang tải...' : 'Chọn hoạt động'} />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {activities.map(a => (
-                                                <SelectItem key={a.id} value={String(a.id)}>{a.name}</SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div className="flex items-center space-x-2">
-                                    <input
-                                        type="checkbox"
-                                        id="editPesticide"
-                                        checked={editForm.pesticideUsed}
-                                        onChange={e => setEditForm({ ...editForm, pesticideUsed: e.target.checked })}
-                                    />
-                                    <Label htmlFor="editPesticide">Sử dụng thuốc BVTV</Label>
-                                </div>
-                            </fieldset>
-                        </form>
-                        <DialogFooter>
-                            <Button type="button" variant="outline" onClick={() => handleEditDialogChange(false)}>
-                                Hủy
-                            </Button>
-                            <Button
-                                type="submit"
-                                onClick={handleUpdateSchedule}
-                                disabled={actionLoading[`update-${selectedSchedule?.scheduleId}`]}
+            {/* Assign Staff Modal */}
+            <Dialog open={showAssignStaff} onOpenChange={handleAssignStaffDialogChange}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Phân công nhân viên</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                        <div>
+                            <Label>Nhân viên</Label>
+                            <Select
+                                value={assignStaffId ? String(assignStaffId) : ''}
+                                onValueChange={v => setAssignStaffId(Number(v))}
                             >
-                                {actionLoading[`update-${selectedSchedule?.scheduleId}`] && (
-                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                )}
-                                Cập nhật
-                            </Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
-
-                {/* Assign Staff Modal */}
-                <Dialog open={showAssignStaff} onOpenChange={handleAssignStaffDialogChange}>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>Phân công nhân viên</DialogTitle>
-                            <DialogDescription>Chọn nhân viên để phân công cho lịch tưới này.</DialogDescription>
-                        </DialogHeader>
-                        <div className="space-y-4">
-                            <div>
-                                <Label>Nhân viên</Label>
-                                <Select
-                                    value={assignStaffId ? String(assignStaffId) : ''}
-                                    onValueChange={v => setAssignStaffId(Number(v))}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Chọn nhân viên" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {staffs.map(s => (
-                                            <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Chọn nhân viên" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {staffs.map(s => (
+                                        <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
                         </div>
-                        <DialogFooter>
-                            <Button type="button" variant="outline" onClick={() => handleAssignStaffDialogChange(false)}>
-                                Hủy
-                            </Button>
-                            <Button
-                                onClick={handleAssignStaff}
-                                disabled={!assignStaffId || actionLoading[`assign-${selectedSchedule?.scheduleId}`]}
-                            >
-                                {actionLoading[`assign-${selectedSchedule?.scheduleId}`] && (
-                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                )}
-                                Phân công
-                            </Button>
-                        </DialogFooter>
-                    </DialogContent>
-                </Dialog>
-            </CardContent>
-        </Card>
+                    </div>
+                    <DialogFooter>
+                        <Button type="button" variant="outline" onClick={() => handleAssignStaffDialogChange(false)}>
+                            Hủy
+                        </Button>
+                        <Button
+                            onClick={handleAssignStaff}
+                            disabled={!assignStaffId || actionLoading[`assign-${selectedSchedule?.scheduleId}`]}
+                        >
+                            {actionLoading[`assign-${selectedSchedule?.scheduleId}`] && (
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            )}
+                            Phân công
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+        </>
     )
 }
 

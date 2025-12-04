@@ -66,7 +66,7 @@ export const UserControlsPanel: React.FC<UserControlsPanelProps> = ({ onCreateUs
 
                     {onCreateUser && (
                         <Button onClick={onCreateUser} className="whitespace-nowrap">
-                            Tạo người dùng mới
+                            Tạo
                         </Button>
                     )}
                 </div>

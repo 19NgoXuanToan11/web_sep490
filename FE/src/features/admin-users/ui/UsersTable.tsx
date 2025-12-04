@@ -111,6 +111,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({
       ) : (
         <>
           <StaffDataTable<User>
+            className="px-4 sm:px-6 pb-6"
             data={users}
             getRowKey={user => user.id}
             currentPage={currentPage}

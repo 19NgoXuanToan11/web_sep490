@@ -246,7 +246,7 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
       <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            {isEditing ? 'Chỉnh sửa' : 'Tạo người dùng mới'}
+            {isEditing ? 'Chỉnh sửa người dùng' : 'Tạo người dùng mới'}
           </DialogTitle>
         </DialogHeader>
 

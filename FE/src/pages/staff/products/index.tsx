@@ -95,7 +95,6 @@ export function StaffProductsPage() {
                     description="Nhân viên có thể tra cứu thông tin sản phẩm để phục vụ vận hành và dịch vụ khách hàng"
                     actions={
                         <Button variant="outline" onClick={handleRefreshProducts} disabled={isLoading}>
-                            <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
                             Làm mới
                         </Button>
                     }

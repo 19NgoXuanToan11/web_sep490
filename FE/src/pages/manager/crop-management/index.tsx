@@ -1,7 +1,7 @@
-import { useState, useEffect, useMemo, useRef } from 'react'
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { ManagerLayout } from '@/shared/layouts/ManagerLayout'
 import { Pagination } from '@/shared/ui/pagination'
-import { ManagementPageHeader } from '@/shared/ui/management-page-header'
+import { ManagementPageHeader, StaffFilterBar } from '@/shared/ui'
 import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
 import { Label } from '@/shared/ui/label'
@@ -15,9 +15,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/shared/ui/dialog'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/shared/ui/dropdown-menu'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
 import { Textarea } from '@/shared/ui/textarea'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
 import {
   Plus,
   Edit,
@@ -29,6 +35,7 @@ import {
   Upload,
   Loader2,
   X,
+  MoreHorizontal,
 } from 'lucide-react'
 import { useToast } from '@/shared/ui/use-toast'
 import {
@@ -70,6 +77,84 @@ const isActiveStatus = (status: string | undefined | null): boolean => {
   const normalized = status.toUpperCase()
   return normalized === 'ACTIVE'
 }
+
+// Component riêng cho Action Menu để tránh re-render issues
+interface CropActionMenuProps {
+  crop: Crop
+  onViewDetails: (crop: Crop) => void
+  onEdit: (crop: Crop) => void
+  onChangeStatus: (cropId: number) => void
+  isActive: boolean
+}
+
+const CropActionMenu: React.FC<CropActionMenuProps> = React.memo(({ crop, onViewDetails, onEdit, onChangeStatus, isActive }) => {
+  const [open, setOpen] = useState(false)
+
+  const handleViewDetails = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setOpen(false)
+    setTimeout(() => {
+      onViewDetails(crop)
+    }, 0)
+  }, [crop, onViewDetails])
+
+  const handleEdit = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setOpen(false)
+    setTimeout(() => {
+      onEdit(crop)
+    }, 0)
+  }, [crop, onEdit])
+
+  const handleChangeStatus = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setOpen(false)
+    setTimeout(() => {
+      onChangeStatus(crop.cropId)
+    }, 0)
+  }, [crop, onChangeStatus])
+
+  return (
+    <DropdownMenu open={open} onOpenChange={setOpen} modal={false}>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-8 w-8 p-0"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <MoreHorizontal className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align="end"
+        className="w-48"
+        sideOffset={5}
+        onCloseAutoFocus={(e) => e.preventDefault()}
+      >
+        <DropdownMenuItem
+          onClick={handleViewDetails}
+          className="cursor-pointer focus:bg-gray-100"
+          onSelect={(e) => e.preventDefault()}
+        >
+          Xem chi tiết
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={handleEdit}
+          className="cursor-pointer focus:bg-gray-100"
+          onSelect={(e) => e.preventDefault()}
+        >
+          Chỉnh sửa
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+})
+
+CropActionMenu.displayName = 'CropActionMenu'
 
 export default function CropManagementPage() {
   const [crops, setCrops] = useState<Crop[]>([])
@@ -189,13 +274,6 @@ export default function CropManagementPage() {
     setFormDialogOpen(true)
   }
 
-  const openEditDialog = (crop: Crop) => {
-    setSelectedCrop(crop)
-    populateForm(crop)
-    setFormMode('edit')
-    loadCategories()
-    setFormDialogOpen(true)
-  }
 
   const handleSubmitForm = async () => {
     if (!formData.cropName.trim()) {
@@ -283,19 +361,6 @@ export default function CropManagementPage() {
     }
   }
 
-  const handleChangeStatus = async (cropId: number) => {
-    try {
-      await cropService.changeStatus(cropId)
-      toast({ title: 'Thành công', description: 'Đã thay đổi trạng thái cây trồng' })
-      loadCrops(currentPage, isSearchMode)
-    } catch (error: any) {
-      toast({
-        title: 'Lỗi',
-        description: error?.response?.data?.message || 'Không thể thay đổi trạng thái',
-        variant: 'destructive',
-      })
-    }
-  }
 
   const handleSearch = () => {
     setCurrentPage(1)
@@ -309,10 +374,32 @@ export default function CropManagementPage() {
     await loadCrops(1, false)
   }
 
-  const openDetailsDialog = (crop: Crop) => {
+  const openDetailsDialog = useCallback((crop: Crop) => {
     setSelectedCropForDetails(crop)
     setDetailsDialogOpen(true)
-  }
+  }, [])
+
+  const openEditDialog = useCallback((crop: Crop) => {
+    setSelectedCrop(crop)
+    populateForm(crop)
+    setFormMode('edit')
+    loadCategories()
+    setFormDialogOpen(true)
+  }, [])
+
+  const handleChangeStatus = useCallback(async (cropId: number) => {
+    try {
+      await cropService.changeStatus(cropId)
+      toast({ title: 'Thành công', description: 'Đã thay đổi trạng thái cây trồng' })
+      loadCrops(currentPage, isSearchMode)
+    } catch (error: any) {
+      toast({
+        title: 'Lỗi',
+        description: error?.response?.data?.message || 'Không thể thay đổi trạng thái',
+        variant: 'destructive',
+      })
+    }
+  }, [currentPage, isSearchMode])
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -447,6 +534,11 @@ export default function CropManagementPage() {
         <ManagementPageHeader
           title="Quản lý cây trồng"
           description="Quản lý toàn bộ thông tin cây trồng, sản phẩm và trạng thái hoạt động."
+          actions={
+            <Button variant="outline" onClick={handleRefresh} size="sm">
+              Làm mới
+            </Button>
+          }
         />
 
         <div className="grid gap-4 md:grid-cols-3">
@@ -489,56 +581,41 @@ export default function CropManagementPage() {
           </Card>
         </div>
 
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex flex-col gap-4 md:flex-row md:items-end">
-              <div className="flex-1">
-                <Label className="text-sm font-medium text-gray-600">Tìm kiếm theo tên</Label>
-                <div className="relative mt-1">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <Input
-                    placeholder="Nhập tên cây trồng..."
-                    value={searchTerm}
-                    onChange={e => setSearchTerm(e.target.value)}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter') {
-                        handleSearch()
-                      }
-                    }}
-                    className="pl-9"
-                  />
-                </div>
-              </div>
-              <div className="w-full md:w-48">
-                <Label className="text-sm font-medium text-gray-600">Trạng thái</Label>
-                <Select value={statusFilter} onValueChange={value => setStatusFilter(value as typeof statusFilter)}>
-                  <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="Tất cả trạng thái" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tất cả trạng thái</SelectItem>
-                    <SelectItem value="active">Hoạt động</SelectItem>
-                    <SelectItem value="inactive">Tạm dừng</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex gap-2 w-full md:w-auto">
-                <Button variant="outline" onClick={handleRefresh}>
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Làm mới
-                </Button>
-                <Button variant="outline" onClick={handleSearch}>
-                  <Search className="h-4 w-4 mr-2" />
-                  Tìm kiếm
-                </Button>
-                <Button onClick={openCreateDialog} className="bg-green-600 hover:bg-green-700">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Thêm mới
-                </Button>
-              </div>
+        <StaffFilterBar>
+          <div className="flex-1">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Nhập tên cây trồng..."
+                value={searchTerm}
+                onChange={e => setSearchTerm(e.target.value)}
+                onKeyDown={e => {
+                  if (e.key === 'Enter') {
+                    handleSearch()
+                  }
+                }}
+                className="pl-9"
+              />
             </div>
-          </CardContent>
-        </Card>
+          </div>
+
+          <div className="flex gap-2">
+            <Select value={statusFilter} onValueChange={value => setStatusFilter(value as typeof statusFilter)}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="Trạng thái" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tất cả</SelectItem>
+                <SelectItem value="active">Hoạt động</SelectItem>
+                <SelectItem value="inactive">Tạm dừng</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Button onClick={openCreateDialog} className="bg-green-600 hover:bg-green-700" size="sm">
+              Tạo
+            </Button>
+          </div>
+        </StaffFilterBar>
 
         <div className="border rounded-lg bg-white mt-4">
           <Table>
@@ -549,7 +626,7 @@ export default function CropManagementPage() {
                 <TableHead>Mô tả</TableHead>
                 <TableHead>Xuất xứ</TableHead>
                 <TableHead>Trạng thái</TableHead>
-                <TableHead className="text-right">Hành động</TableHead>
+                <TableHead className="w-16"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -589,32 +666,14 @@ export default function CropManagementPage() {
                         {isActiveStatus(crop.status) ? 'Hoạt động' : 'Tạm dừng'}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => openDetailsDialog(crop)}
-                          title="Xem chi tiết"
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={() => openEditDialog(crop)} title="Chỉnh sửa">
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleChangeStatus(crop.cropId)}
-                          title={isActiveStatus(crop.status) ? 'Tạm dừng' : 'Kích hoạt'}
-                        >
-                          {isActiveStatus(crop.status) ? (
-                            <ToggleRight className="h-4 w-4 text-green-600" />
-                          ) : (
-                            <ToggleLeft className="h-4 w-4 text-gray-400" />
-                          )}
-                        </Button>
-                      </div>
+                    <TableCell>
+                      <CropActionMenu
+                        crop={crop}
+                        onViewDetails={openDetailsDialog}
+                        onEdit={openEditDialog}
+                        onChangeStatus={handleChangeStatus}
+                        isActive={isActiveStatus(crop.status)}
+                      />
                     </TableCell>
                   </TableRow>
                 ))
@@ -655,12 +714,7 @@ export default function CropManagementPage() {
       >
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{formMode === 'create' ? 'Thêm cây trồng mới' : 'Cập nhật cây trồng'}</DialogTitle>
-            <DialogDescription>
-              {formMode === 'create'
-                ? 'Nhập thông tin cây trồng và sản phẩm liên quan'
-                : 'Cập nhật thông tin cây trồng'}
-            </DialogDescription>
+            <DialogTitle>{formMode === 'create' ? 'Tạo cây trồng mới' : 'Chỉnh sửa cây trồng'}</DialogTitle>
           </DialogHeader>
 
           <div className="space-y-4">
@@ -844,7 +898,7 @@ export default function CropManagementPage() {
               Huỷ
             </Button>
             <Button onClick={handleSubmitForm} disabled={isSubmitting}>
-              {isSubmitting ? 'Đang lưu...' : formMode === 'create' ? 'Tạo mới' : 'Cập nhật'}
+              {isSubmitting ? 'Đang lưu...' : formMode === 'create' ? 'Tạo' : 'Cập nhật'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -854,7 +908,6 @@ export default function CropManagementPage() {
         <DialogContent className="max-w-3xl">
           <DialogHeader>
             <DialogTitle>Chi tiết cây trồng</DialogTitle>
-            <DialogDescription>Thông tin chi tiết về cây trồng</DialogDescription>
           </DialogHeader>
 
           {selectedCropForDetails && (

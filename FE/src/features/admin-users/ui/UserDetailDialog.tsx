@@ -67,8 +67,7 @@ export const UserDetailDialog: React.FC<UserDetailDialogProps> = ({ user, isOpen
         <Dialog open={isOpen} onOpenChange={opened => !opened && onClose()}>
             <DialogContent className="sm:max-w-[600px]">
                 <DialogHeader>
-                    <DialogTitle>Xem chi tiết người dùng</DialogTitle>
-                    <DialogDescription>Thông tin hồ sơ và hoạt động gần đây</DialogDescription>
+                    <DialogTitle>Chi tiết người dùng</DialogTitle>
                 </DialogHeader>
 
                 {user && (

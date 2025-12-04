@@ -22,7 +22,7 @@ import {
 } from '@/shared/ui/dialog'
 import { Tabs, TabsContent } from '@/shared/ui/tabs'
 import { StaffLayout } from '@/shared/layouts/StaffLayout'
-import { ManagementPageHeader } from '@/shared/ui/management-page-header'
+import { ManagementPageHeader, StaffFilterBar } from '@/shared/ui'
 import { useToast } from '@/shared/ui/use-toast'
 import { orderService, getOrderStatusLabel, getOrderStatusVariant } from '@/shared/api/orderService'
 import type { Order as ApiOrder, OrderItem } from '@/shared/api/orderService'
@@ -592,7 +592,6 @@ const StaffOrdersPage: React.FC = () => {
               disabled={isRefreshing}
               className="flex items-center gap-2"
             >
-              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
               Làm mới
             </Button>
           }
@@ -648,8 +647,7 @@ const StaffOrdersPage: React.FC = () => {
         { }
         <Tabs value={selectedTab} onValueChange={handleTabChange} className="space-y-4 mb-6">
           <TabsContent value="all" className="space-y-4 mt-4">
-            { }
-            <div className="flex flex-col sm:flex-row gap-4">
+            <StaffFilterBar>
               <div className="flex-1">
                 <div className="flex gap-2">
                   <div className="relative flex-1">
@@ -702,7 +700,7 @@ const StaffOrdersPage: React.FC = () => {
                   </SelectContent>
                 </Select>
               </div>
-            </div>
+            </StaffFilterBar>
 
             { }
             {searchQuery && (
@@ -929,7 +927,6 @@ const StaffOrdersPage: React.FC = () => {
               Chi tiết đơn hàng{' '}
               {selectedOrderDetail?.orderId ? `#${selectedOrderDetail.orderId}` : ''}
             </DialogTitle>
-            <DialogDescription>Thông tin chi tiết về đơn hàng và sản phẩm</DialogDescription>
           </DialogHeader>
 
           {loadingOrderDetail ? (

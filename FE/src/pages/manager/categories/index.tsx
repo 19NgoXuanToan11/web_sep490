@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { ManagerLayout } from '@/shared/layouts/ManagerLayout'
 import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
@@ -12,17 +12,91 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/shared/ui/dialog'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
-import { Plus, Edit, Trash2, Search, RefreshCw, Package } from 'lucide-react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/shared/ui/dropdown-menu'
+import { Search, RefreshCw, MoreHorizontal } from 'lucide-react'
 import { useToast } from '@/shared/ui/use-toast'
 import { categoryService } from '@/shared/api/categoryService'
-import { ManagementPageHeader } from '@/shared/ui/management-page-header'
+import { ManagementPageHeader, StaffFilterBar, StaffDataTable, type StaffDataTableColumn } from '@/shared/ui'
 
 interface Category {
   categoryId: number
   categoryName: string
   products?: any[]
 }
+
+// Component riêng cho Action Menu để tránh re-render issues
+interface CategoryActionMenuProps {
+  category: Category
+  onEdit: (category: Category) => void
+  onDelete: (category: Category) => void
+}
+
+const CategoryActionMenu: React.FC<CategoryActionMenuProps> = React.memo(({ category, onEdit, onDelete }) => {
+  const [open, setOpen] = useState(false)
+
+  const handleEdit = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setOpen(false) // Đóng menu ngay lập tức
+    // Sử dụng setTimeout để tránh blocking UI
+    setTimeout(() => {
+      onEdit(category)
+    }, 0)
+  }, [category, onEdit])
+
+  const handleDelete = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setOpen(false) // Đóng menu ngay lập tức
+    // Sử dụng setTimeout để tránh blocking UI
+    setTimeout(() => {
+      onDelete(category)
+    }, 0)
+  }, [category, onDelete])
+
+  return (
+    <DropdownMenu open={open} onOpenChange={setOpen} modal={false}>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-8 w-8 p-0"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <MoreHorizontal className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align="end"
+        className="w-48"
+        sideOffset={5}
+        onCloseAutoFocus={(e) => e.preventDefault()}
+      >
+        <DropdownMenuItem
+          onClick={handleEdit}
+          className="cursor-pointer focus:bg-gray-100"
+          onSelect={(e) => e.preventDefault()}
+        >
+          Chỉnh sửa 
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={handleDelete}
+          className="cursor-pointer focus:bg-gray-100 text-red-600 focus:text-red-600"
+          onSelect={(e) => e.preventDefault()}
+        >
+          Xóa
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+})
+
+CategoryActionMenu.displayName = 'CategoryActionMenu'
 
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([])
@@ -150,16 +224,16 @@ export default function CategoriesPage() {
     }
   }
 
-  const openEditDialog = (category: Category) => {
+  const openEditDialog = useCallback((category: Category) => {
     setSelectedCategory(category)
     setCategoryName(category.categoryName)
     setIsEditDialogOpen(true)
-  }
+  }, [])
 
-  const openDeleteDialog = (category: Category) => {
+  const openDeleteDialog = useCallback((category: Category) => {
     setSelectedCategory(category)
     setIsDeleteDialogOpen(true)
-  }
+  }, [])
 
   useEffect(() => {
     loadCategories()
@@ -171,7 +245,7 @@ export default function CategoriesPage() {
         <div className="space-y-6">
           { }
           <ManagementPageHeader
-            title="Quản lý danh mục sản phẩm"
+            title="Quản lý danh mục"
             description="Quản lý danh mục sản phẩm để tổ chức kho"
             actions={
               <div className="flex flex-wrap gap-2">
@@ -181,15 +255,7 @@ export default function CategoriesPage() {
                   disabled={loading}
                   className="flex items-center gap-2"
                 >
-                  <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-                  Tải lại
-                </Button>
-                <Button
-                  onClick={() => setIsCreateDialogOpen(true)}
-                  className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
-                >
-                  <Plus className="h-4 w-4" />
-                  Thêm danh mục
+                  Làm mới
                 </Button>
               </div>
             }
@@ -241,86 +307,71 @@ export default function CategoriesPage() {
           </div>
 
           { }
-          <div className="grid gap-4 md:grid-cols-4">
-            <Card className="md:col-span-3">
-              <CardContent className="p-4">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <Input
-                    placeholder="Tìm kiếm danh mục..."
-                    value={searchTerm}
-                    onChange={e => setSearchTerm(e.target.value)}
-                    className="pl-9"
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          <StaffFilterBar>
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Tìm kiếm danh mục..."
+                  value={searchTerm}
+                  onChange={e => setSearchTerm(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                onClick={() => setIsCreateDialogOpen(true)}
+                className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
+              >
+                Tạo
+              </Button>
+            </div>
+          </StaffFilterBar>
 
           { }
           <Card>
-            <CardContent>
+            <CardContent className="p-0">
               {loading ? (
-                <div className="flex items-center justify-center h-32">
-                  <RefreshCw className="h-6 w-6 animate-spin" />
-                  <span className="ml-2">Đang tải danh mục...</span>
-                </div>
-              ) : filteredCategories.length === 0 ? (
-                <div className="text-center py-8">
-                  <Package className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">
-                    Không tìm thấy danh mục
-                  </h3>
-                  <p className="text-gray-500 mb-4">
-                    {searchTerm
-                      ? 'Không có danh mục phù hợp với tìm kiếm.'
-                      : 'Hãy tạo danh mục đầu tiên.'}
-                  </p>
-                  {!searchTerm && (
-                    <Button onClick={() => setIsCreateDialogOpen(true)}>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Thêm danh mục
-                    </Button>
-                  )}
+                <div className="flex items-center justify-center py-12">
+                  <RefreshCw className="h-8 w-8 animate-spin text-green-600" />
+                  <span className="ml-2 text-gray-600">Đang tải danh mục...</span>
                 </div>
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-16">STT</TableHead>
-                      <TableHead>Tên danh mục</TableHead>
-                      <TableHead className="text-right">Thao tác</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredCategories.map((category, index) => (
-                      <TableRow key={category.categoryId}>
-                        <TableCell className="text-center">{index + 1}</TableCell>
-                        <TableCell className="font-medium">{category.categoryName}</TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => openEditDialog(category)}
-                              className="h-8 w-8 p-0"
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => openDeleteDialog(category)}
-                              className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                <StaffDataTable<Category>
+                  className="px-4 sm:px-6 pb-6"
+                  data={filteredCategories}
+                  getRowKey={(category) => category.categoryId}
+                  currentPage={1}
+                  pageSize={filteredCategories.length || 10}
+                  totalPages={1}
+                  emptyTitle="Không tìm thấy danh mục"
+                  emptyDescription={
+                    searchTerm
+                      ? 'Không có danh mục phù hợp với tìm kiếm.'
+                      : 'Hãy tạo danh mục đầu tiên.'
+                  }
+                  columns={[
+                    {
+                      id: 'name',
+                      header: 'Tên danh mục',
+                      render: (category) => (
+                        <div className="font-medium">{category.categoryName}</div>
+                      ),
+                    },
+                    {
+                      id: 'actions',
+                      header: '',
+                      render: (category) => (
+                        <CategoryActionMenu
+                          category={category}
+                          onEdit={openEditDialog}
+                          onDelete={openDeleteDialog}
+                        />
+                      ),
+                    },
+                  ] satisfies StaffDataTableColumn<Category>[]}
+                />
               )}
             </CardContent>
           </Card>
@@ -332,7 +383,6 @@ export default function CategoriesPage() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Tạo danh mục mới</DialogTitle>
-            <DialogDescription>Thêm danh mục để tổ chức sản phẩm.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
@@ -356,7 +406,7 @@ export default function CategoriesPage() {
             >
               Hủy
             </Button>
-            <Button onClick={handleCreate}>Tạo danh mục</Button>
+            <Button onClick={handleCreate}>Tạo</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -366,7 +416,6 @@ export default function CategoriesPage() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Chỉnh sửa danh mục</DialogTitle>
-            <DialogDescription>Cập nhật tên danh mục.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">

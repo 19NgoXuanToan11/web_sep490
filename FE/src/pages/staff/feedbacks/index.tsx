@@ -33,7 +33,7 @@ import {
 import { StaffLayout } from '@/shared/layouts/StaffLayout'
 import { useToast } from '@/shared/ui/use-toast'
 import { feedbackService, type Feedback } from '@/shared/api/feedbackService'
-import { ManagementPageHeader } from '@/shared/ui/management-page-header'
+import { ManagementPageHeader, StaffFilterBar } from '@/shared/ui'
 
 const formatPrice = (price?: number) => {
     if (price == null) return '0'
@@ -211,7 +211,6 @@ const StaffFeedbacksPage: React.FC = () => {
                             disabled={isRefreshing}
                             className="flex items-center"
                         >
-                            <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
                             Làm mới
                         </Button>
                     }
@@ -265,48 +264,46 @@ const StaffFeedbacksPage: React.FC = () => {
                     </Card>
                 </div>
 
-                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
-                    <div className="flex flex-col sm:flex-row gap-4">
-                        <div className="flex-1">
-                            <div className="relative">
-                                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                                <Input
-                                    placeholder="Tìm kiếm theo tên, email, sản phẩm, nội dung..."
-                                    value={searchQuery}
-                                    onChange={e => setSearchQuery(e.target.value)}
-                                    className="pl-9"
-                                />
-                            </div>
-                        </div>
-
-                        <div className="flex gap-2">
-                            <Select value={statusFilter} onValueChange={setStatusFilter}>
-                                <SelectTrigger className="w-40">
-                                    <SelectValue placeholder="Trạng thái" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">Tất cả</SelectItem>
-                                    <SelectItem value="ACTIVE">Hiển thị</SelectItem>
-                                    <SelectItem value="DEACTIVATED">Ẩn</SelectItem>
-                                </SelectContent>
-                            </Select>
-
-                            <Select value={ratingFilter} onValueChange={setRatingFilter}>
-                                <SelectTrigger className="w-40">
-                                    <SelectValue placeholder="Đánh giá" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">Tất cả</SelectItem>
-                                    <SelectItem value="5">⭐⭐⭐⭐⭐ 5 sao</SelectItem>
-                                    <SelectItem value="4">⭐⭐⭐⭐ 4 sao</SelectItem>
-                                    <SelectItem value="3">⭐⭐⭐ 3 sao</SelectItem>
-                                    <SelectItem value="2">⭐⭐ 2 sao</SelectItem>
-                                    <SelectItem value="1">⭐ 1 sao</SelectItem>
-                                </SelectContent>
-                            </Select>
+                <StaffFilterBar>
+                    <div className="flex-1">
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <Input
+                                placeholder="Tìm kiếm theo tên, email, sản phẩm, nội dung..."
+                                value={searchQuery}
+                                onChange={e => setSearchQuery(e.target.value)}
+                                className="pl-9"
+                            />
                         </div>
                     </div>
-                </div>
+
+                    <div className="flex gap-2">
+                        <Select value={statusFilter} onValueChange={setStatusFilter}>
+                            <SelectTrigger className="w-40">
+                                <SelectValue placeholder="Trạng thái" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">Tất cả</SelectItem>
+                                <SelectItem value="ACTIVE">Hiển thị</SelectItem>
+                                <SelectItem value="DEACTIVATED">Ẩn</SelectItem>
+                            </SelectContent>
+                        </Select>
+
+                        <Select value={ratingFilter} onValueChange={setRatingFilter}>
+                            <SelectTrigger className="w-40">
+                                <SelectValue placeholder="Đánh giá" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">Tất cả</SelectItem>
+                                <SelectItem value="5">⭐⭐⭐⭐⭐ 5 sao</SelectItem>
+                                <SelectItem value="4">⭐⭐⭐⭐ 4 sao</SelectItem>
+                                <SelectItem value="3">⭐⭐⭐ 3 sao</SelectItem>
+                                <SelectItem value="2">⭐⭐ 2 sao</SelectItem>
+                                <SelectItem value="1">⭐ 1 sao</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </StaffFilterBar>
 
                 <Card>
                     <CardContent>
@@ -440,9 +437,6 @@ const StaffFeedbacksPage: React.FC = () => {
                         <DialogTitle className="flex items-center">
                             Chi tiết đánh giá
                         </DialogTitle>
-                        <DialogDescription>
-                            Thông tin chi tiết về đánh giá từ khách hàng
-                        </DialogDescription>
                     </DialogHeader>
 
                     {selectedFeedback && (

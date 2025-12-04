@@ -9,7 +9,7 @@ interface GaugeProps {
   max: number
   unit: string
   label: string
-  icon: React.ReactNode
+  icon?: React.ReactNode
   className?: string
   isLoading?: boolean
   dataQuality?: 'good' | 'poor' | 'error'
@@ -79,7 +79,7 @@ const GaugeComponent: React.FC<GaugeProps> = ({
     >
       <div className="flex items-center justify-between w-full mb-4">
         <div className="flex items-center gap-3">
-          <div className="text-gray-600 text-xl">{icon}</div>
+          {icon && <div className="text-gray-600 text-xl">{icon}</div>}
           <h3 className="text-gray-800 text-sm font-medium">{label}</h3>
         </div>
         <div className="flex items-center gap-2">

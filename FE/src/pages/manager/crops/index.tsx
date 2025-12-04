@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { ManagerLayout } from '@/shared/layouts/ManagerLayout'
 import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
@@ -14,21 +14,28 @@ import {
   DialogTitle,
 } from '@/shared/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
 import { Textarea } from '@/shared/ui/textarea'
 import {
-  Plus,
-  Edit,
-  Trash2,
   Search,
   RefreshCw,
   Droplets,
   Sun,
   Thermometer,
-  Eye,
+  MoreHorizontal,
 } from 'lucide-react'
 import { useToast } from '@/shared/ui/use-toast'
-import { Pagination } from '@/shared/ui/pagination'
+import {
+  StaffDataTable,
+  type StaffDataTableColumn,
+  ManagementPageHeader,
+  StaffFilterBar,
+} from '@/shared/ui'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/shared/ui/dropdown-menu'
 import {
   cropRequirementService,
   type CropRequirementView,
@@ -85,6 +92,101 @@ const stageLabel = (stage?: string | null) => {
 const toNullableNumber = (value: string | number | '') =>
   value === '' ? null : Number(value)
 
+// Component riêng cho Action Menu
+interface RequirementActionMenuProps {
+  requirement: CropRequirementView
+  onView: (requirement: CropRequirementView) => void
+  onEdit: (requirement: CropRequirementView) => void
+  onDelete: (requirement: CropRequirementView) => void
+}
+
+const RequirementActionMenu: React.FC<RequirementActionMenuProps> = React.memo(
+  ({ requirement, onView, onEdit, onDelete }) => {
+    const [open, setOpen] = useState(false)
+
+    const handleView = useCallback(
+      (e: React.MouseEvent) => {
+        e.preventDefault()
+        e.stopPropagation()
+        setOpen(false)
+        setTimeout(() => {
+          onView(requirement)
+        }, 0)
+      },
+      [requirement, onView]
+    )
+
+    const handleEdit = useCallback(
+      (e: React.MouseEvent) => {
+        e.preventDefault()
+        e.stopPropagation()
+        setOpen(false)
+        setTimeout(() => {
+          onEdit(requirement)
+        }, 0)
+      },
+      [requirement, onEdit]
+    )
+
+    const handleDelete = useCallback(
+      (e: React.MouseEvent) => {
+        e.preventDefault()
+        e.stopPropagation()
+        setOpen(false)
+        setTimeout(() => {
+          onDelete(requirement)
+        }, 0)
+      },
+      [requirement, onDelete]
+    )
+
+    return (
+      <DropdownMenu open={open} onOpenChange={setOpen} modal={false}>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent
+          align="end"
+          className="w-48"
+          sideOffset={5}
+          onCloseAutoFocus={(e) => e.preventDefault()}
+        >
+          <DropdownMenuItem
+            onClick={handleView}
+            className="cursor-pointer focus:bg-gray-100"
+            onSelect={(e) => e.preventDefault()}
+          >
+            Xem chi tiết
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={handleEdit}
+            className="cursor-pointer focus:bg-gray-100"
+            onSelect={(e) => e.preventDefault()}
+          >
+            Chỉnh sửa
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={handleDelete}
+            className="cursor-pointer focus:bg-gray-100 text-red-600 focus:text-red-600"
+            onSelect={(e) => e.preventDefault()}
+          >
+            Xóa
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    )
+  }
+)
+
+RequirementActionMenu.displayName = 'RequirementActionMenu'
+
 export default function CropsPage() {
   const [requirements, setRequirements] = useState<CropRequirementView[]>([])
   const [loading, setLoading] = useState(true)
@@ -103,6 +205,9 @@ export default function CropsPage() {
   const [loadingCrops, setLoadingCrops] = useState(false)
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false)
   const [selectedRequirementForDetails, setSelectedRequirementForDetails] =
+    useState<CropRequirementView | null>(null)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [selectedRequirementForDelete, setSelectedRequirementForDelete] =
     useState<CropRequirementView | null>(null)
 
   const { toast } = useToast()
@@ -316,12 +421,19 @@ export default function CropsPage() {
     }
   }
 
-  const handleDeleteRequirement = async (requirementId: number) => {
-    const confirmDelete = window.confirm('Bạn có chắc muốn xoá yêu cầu này?')
-    if (!confirmDelete) return
+  const openDeleteDialog = useCallback((requirement: CropRequirementView) => {
+    setSelectedRequirementForDelete(requirement)
+    setIsDeleteDialogOpen(true)
+  }, [])
+
+  const handleDeleteRequirement = async () => {
+    if (!selectedRequirementForDelete) return
+
     try {
-      await cropRequirementService.remove(requirementId)
+      await cropRequirementService.remove(selectedRequirementForDelete.cropRequirementId)
       toast({ title: 'Đã xoá', description: 'Yêu cầu cây trồng đã bị xoá' })
+      setIsDeleteDialogOpen(false)
+      setSelectedRequirementForDelete(null)
       loadRequirements()
     } catch (error) {
       toast({
@@ -352,228 +464,210 @@ export default function CropsPage() {
 
   return (
     <ManagerLayout>
-      <div className="p-6 space-y-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Theo dõi cây trồng</h1>
-          <p className="text-gray-600 mt-2">
-            Theo dõi và quản lý giai đoạn phát triển của cây trồng
-          </p>
-        </div>
-
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-500">Tổng kế hoạch</p>
-                  <p className="text-2xl font-semibold mt-1">{stats.total}</p>
-                </div>
-              </div>
-              <p className="text-sm text-gray-500 mt-2">
-                {stats.active} đang hoạt động • {stats.inactive} tạm dừng
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-500">Độ ẩm trung bình</p>
-                  <p className="text-2xl font-semibold mt-1">{formatNumber(stats.moisture, '%')}</p>
-                </div>
-              </div>
-              <p className="text-sm text-gray-500 mt-2">Theo dõi độ ẩm để đảm bảo nảy mầm đều</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-500">Ánh sáng trung bình</p>
-                  <p className="text-2xl font-semibold mt-1">{formatNumber(stats.light, 'lux')}</p>
-                </div>
-              </div>
-              <p className="text-sm text-gray-500 mt-2">Giữ ánh sáng ổn định cho các giai đoạn tăng trưởng</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-500">Nhiệt độ trung bình</p>
-                  <p className="text-2xl font-semibold mt-1">{formatNumber(stats.temperature, '°C')}</p>
-                </div>
-              </div>
-              <p className="text-sm text-gray-500 mt-2">Cảnh báo sớm khi nhiệt độ vượt ngưỡng</p>
-            </CardContent>
-          </Card>
-        </div>
-
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex flex-col gap-4 md:flex-row md:items-end">
-              <div className="flex-1">
-                <Label className="text-sm font-medium text-gray-600">Tìm kiếm</Label>
-                <div className="relative mt-1">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <Input
-                    placeholder="Nhập tên cây trồng hoặc ghi chú..."
-                    value={searchTerm}
-                    onChange={e => setSearchTerm(e.target.value)}
-                    className="pl-9"
-                  />
-                </div>
-              </div>
-              <div className="w-full md:w-48">
-                <Label className="text-sm font-medium text-gray-600">Trạng thái</Label>
-                <Select value={statusFilter} onValueChange={value => setStatusFilter(value as typeof statusFilter)}>
-                  <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="Tất cả trạng thái" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tất cả trạng thái</SelectItem>
-                    <SelectItem value="active">Hoạt động</SelectItem>
-                    <SelectItem value="inactive">Tạm dừng</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="w-full md:w-56">
-                <Label className="text-sm font-medium text-gray-600">Giai đoạn</Label>
-                <Select value={stageFilter} onValueChange={value => setStageFilter(value as typeof stageFilter)}>
-                  <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="Tất cả giai đoạn" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Tất cả giai đoạn</SelectItem>
-                    {PLANT_STAGE_OPTIONS.map(stage => (
-                      <SelectItem key={stage.value} value={stage.value}>
-                        {stage.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex gap-2 w-full md:w-auto">
-                <Button variant="outline" onClick={handleRefresh}>
-                  <RefreshCw className="h-4 w-4 mr-2" />
+      <div className="container mx-auto px-4 py-8">
+        <div className="space-y-6">
+          <ManagementPageHeader
+            title="Theo dõi cây trồng"
+            description="Theo dõi và quản lý giai đoạn phát triển của cây trồng"
+            actions={
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant="outline"
+                  onClick={handleRefresh}
+                  disabled={loading}
+                  className="flex items-center gap-2"
+                >
                   Làm mới
                 </Button>
-                <Button onClick={openCreateDialog} className="bg-green-600 hover:bg-green-700">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Thêm kế hoạch
-                </Button>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            }
+          />
 
-        <Card>
-          <CardContent className="p-4">
-            <h3 className="text-lg font-semibold mb-4">Theo dõi giai đoạn</h3>
-            <div className="space-y-3">
-              {stats.stageDistribution.map(stage => (
-                <div key={stage.value}>
-                  <div className="flex justify-between text-sm">
-                    <span className="font-medium">{stage.label}</span>
-                    <span className="text-gray-500">{stage.count} ({stage.percent}%)</span>
-                  </div>
-                  <div className="h-2 rounded-full bg-gray-100 mt-1 overflow-hidden">
-                    <div
-                      className="h-full rounded-full bg-green-500 transition-all"
-                      style={{ width: `${stage.percent}%` }}
-                    />
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-500">Tổng kế hoạch</p>
+                    <p className="text-2xl font-semibold mt-1">{stats.total}</p>
                   </div>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+                <p className="text-sm text-gray-500 mt-2">
+                  {stats.active} đang hoạt động • {stats.inactive} tạm dừng
+                </p>
+              </CardContent>
+            </Card>
 
-        <div className="border rounded-lg bg-white">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-16">STT</TableHead>
-                <TableHead>Cây trồng & giai đoạn</TableHead>
-                <TableHead>Thời gian dự kiến</TableHead>
-                <TableHead className="text-right">Hành động</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-center py-6">
-                    Đang tải dữ liệu...
-                  </TableCell>
-                </TableRow>
-              ) : paginatedRequirements.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={4} className="text-center py-6">
-                    Không tìm thấy yêu cầu nào phù hợp
-                  </TableCell>
-                </TableRow>
-              ) : (
-                paginatedRequirements.map((requirement, index) => (
-                  <TableRow key={requirement.cropRequirementId}>
-                    <TableCell className="text-center">
-                      {(currentPage - 1) * pageSize + index + 1}
-                    </TableCell>
-                    <TableCell>
-                      <p className="font-semibold">{requirement.cropName ?? 'Không xác định'}</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Badge variant={requirement.isActive ? 'default' : 'secondary'}>
-                          {requirement.isActive ? 'Hoạt động' : 'Tạm dừng'}
-                        </Badge>
-                        <Badge variant="outline">{stageLabel(requirement.plantStage)}</Badge>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <p className="font-medium">
-                        {requirement.estimatedDate ? `${requirement.estimatedDate} ngày` : 'Chưa đặt'}
-                      </p>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => openDetailsDialog(requirement)}
-                          title="Xem chi tiết"
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={() => openEditDialog(requirement)} title="Chỉnh sửa">
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDeleteRequirement(requirement.cropRequirementId)}
-                          title="Xóa"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-500">Độ ẩm trung bình</p>
+                    <p className="text-2xl font-semibold mt-1">{formatNumber(stats.moisture, '%')}</p>
+                  </div>
+                </div>
+                <p className="text-sm text-gray-500 mt-2">Theo dõi độ ẩm để đảm bảo nảy mầm đều</p>
+              </CardContent>
+            </Card>
 
-        {totalPages > 1 && (
-          <div className="flex justify-end mt-4">
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-            />
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-500">Ánh sáng trung bình</p>
+                    <p className="text-2xl font-semibold mt-1">{formatNumber(stats.light, 'lux')}</p>
+                  </div>
+                </div>
+                <p className="text-sm text-gray-500 mt-2">Giữ ánh sáng ổn định cho các giai đoạn tăng trưởng</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-500">Nhiệt độ trung bình</p>
+                    <p className="text-2xl font-semibold mt-1">{formatNumber(stats.temperature, '°C')}</p>
+                  </div>
+                </div>
+                <p className="text-sm text-gray-500 mt-2">Cảnh báo sớm khi nhiệt độ vượt ngưỡng</p>
+              </CardContent>
+            </Card>
           </div>
-        )}
+
+          <StaffFilterBar>
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Nhập tên cây trồng hoặc ghi chú..."
+                  value={searchTerm}
+                  onChange={e => setSearchTerm(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+            </div>
+            <div className="w-full sm:w-48">
+              <Select value={statusFilter} onValueChange={value => setStatusFilter(value as typeof statusFilter)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Tất cả trạng thái" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả</SelectItem>
+                  <SelectItem value="active">Hoạt động</SelectItem>
+                  <SelectItem value="inactive">Tạm dừng</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="w-full sm:w-56">
+              <Select value={stageFilter} onValueChange={value => setStageFilter(value as typeof stageFilter)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Tất cả giai đoạn" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả</SelectItem>
+                  {PLANT_STAGE_OPTIONS.map(stage => (
+                    <SelectItem key={stage.value} value={stage.value}>
+                      {stage.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={openCreateDialog} className="flex items-center gap-2 bg-green-600 hover:bg-green-700">
+                Tạo
+              </Button>
+            </div>
+          </StaffFilterBar>
+
+          <Card>
+            <CardContent className="p-4">
+              <h3 className="text-lg font-semibold mb-4">Theo dõi giai đoạn</h3>
+              <div className="space-y-3">
+                {stats.stageDistribution.map(stage => (
+                  <div key={stage.value}>
+                    <div className="flex justify-between text-sm">
+                      <span className="font-medium">{stage.label}</span>
+                      <span className="text-gray-500">{stage.count} ({stage.percent}%)</span>
+                    </div>
+                    <div className="h-2 rounded-full bg-gray-100 mt-1 overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-green-500 transition-all"
+                        style={{ width: `${stage.percent}%` }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-0">
+              {loading ? (
+                <div className="flex items-center justify-center py-12">
+                  <RefreshCw className="h-8 w-8 animate-spin text-green-600" />
+                  <span className="ml-2 text-gray-600">Đang tải dữ liệu...</span>
+                </div>
+              ) : (
+                <StaffDataTable<CropRequirementView>
+                  className="px-4 sm:px-6 pb-6"
+                  data={paginatedRequirements}
+                  getRowKey={(requirement) => requirement.cropRequirementId}
+                  currentPage={currentPage}
+                  pageSize={pageSize}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                  emptyTitle="Không tìm thấy yêu cầu nào"
+                  emptyDescription={
+                    searchTerm || statusFilter !== 'all' || stageFilter !== 'all'
+                      ? 'Không có yêu cầu nào phù hợp với điều kiện lọc hiện tại.'
+                      : 'Hãy tạo yêu cầu cây trồng đầu tiên.'
+                  }
+                  columns={[
+                    {
+                      id: 'cropAndStage',
+                      header: 'Cây trồng & giai đoạn',
+                      render: (requirement) => (
+                        <div>
+                          <p className="font-semibold">{requirement.cropName ?? 'Không xác định'}</p>
+                          <div className="flex items-center gap-2 mt-1">
+                            <Badge variant={requirement.isActive ? 'default' : 'secondary'}>
+                              {requirement.isActive ? 'Hoạt động' : 'Tạm dừng'}
+                            </Badge>
+                            <Badge variant="outline">{stageLabel(requirement.plantStage)}</Badge>
+                          </div>
+                        </div>
+                      ),
+                    },
+                    {
+                      id: 'estimatedDate',
+                      header: 'Thời gian dự kiến',
+                      render: (requirement) => (
+                        <p className="font-medium">
+                          {requirement.estimatedDate ? `${requirement.estimatedDate} ngày` : 'Chưa đặt'}
+                        </p>
+                      ),
+                    },
+                    {
+                      id: 'actions',
+                      header: '',
+                      render: (requirement) => (
+                        <RequirementActionMenu
+                          requirement={requirement}
+                          onView={openDetailsDialog}
+                          onEdit={openEditDialog}
+                          onDelete={openDeleteDialog}
+                        />
+                      ),
+                    },
+                  ] satisfies StaffDataTableColumn<CropRequirementView>[]}
+                />
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </div>
 
       <Dialog open={formDialogOpen} onOpenChange={open => {
@@ -583,11 +677,8 @@ export default function CropsPage() {
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>
-              {formMode === 'create' ? 'Thêm yêu cầu cây trồng' : 'Cập nhật yêu cầu cây trồng'}
+              {formMode === 'create' ? 'Tạo yêu cầu cây trồng mới' : 'Chỉnh sửa yêu cầu cây trồng'}
             </DialogTitle>
-            <DialogDescription>
-              Thiết lập chỉ số môi trường, thời gian dự kiến và ghi chú cho từng giai đoạn.
-            </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4">
@@ -716,7 +807,7 @@ export default function CropsPage() {
               Huỷ
             </Button>
             <Button onClick={handleSubmitForm} disabled={isSubmitting}>
-              {isSubmitting ? 'Đang lưu...' : 'Lưu thông tin'}
+              {isSubmitting ? 'Đang lưu...' : formMode === 'create' ? 'Tạo' : 'Cập nhật'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -726,9 +817,6 @@ export default function CropsPage() {
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Chi tiết chỉ số môi trường</DialogTitle>
-            <DialogDescription>
-              Thông tin chi tiết về các chỉ số môi trường và yêu cầu chăm sóc
-            </DialogDescription>
           </DialogHeader>
 
           {selectedRequirementForDetails && (
@@ -869,10 +957,29 @@ export default function CropsPage() {
               )}
             </div>
           )}
+        </DialogContent>
+      </Dialog>
 
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Xóa yêu cầu cây trồng</DialogTitle>
+            <DialogDescription>
+              Bạn có chắc muốn xóa yêu cầu cho "{selectedRequirementForDelete?.cropName ?? 'cây trồng'}" - {selectedRequirementForDelete ? stageLabel(selectedRequirementForDelete.plantStage) : ''}? Hành động này không thể hoàn tác.
+            </DialogDescription>
+          </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDetailsDialogOpen(false)}>
-              Đóng
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsDeleteDialogOpen(false)
+                setSelectedRequirementForDelete(null)
+              }}
+            >
+              Hủy
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteRequirement}>
+              Xóa yêu cầu
             </Button>
           </DialogFooter>
         </DialogContent>

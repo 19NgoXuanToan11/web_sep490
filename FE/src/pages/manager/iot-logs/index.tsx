@@ -7,9 +7,8 @@ import { Button } from '@/shared/ui/button'
 import { Badge } from '@/shared/ui/badge'
 import { Input } from '@/shared/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
-import { RefreshCw, Download } from 'lucide-react'
-import { Pagination } from '@/shared/ui/pagination'
+import { RefreshCw, Download, Search } from 'lucide-react'
+import { StaffFilterBar, StaffDataTable, type StaffDataTableColumn } from '@/shared/ui'
 
 const formatSensorValue = (value: number) => {
     if (Number.isNaN(value)) return '--'
@@ -224,7 +223,15 @@ const ManagerIoTLogsPage: React.FC = () => {
                 {aggregateBySensor.length > 0 && (
                     <Card>
                         <CardHeader>
-                            <CardTitle>Tổng hợp giá trị gần nhất</CardTitle>
+                            <div className="flex items-center justify-between">
+                                <CardTitle>Tổng hợp giá trị gần nhất</CardTitle>
+                                {filteredLogs.length > 0 && (
+                                    <Button variant="outline" onClick={handleExportToCSV} className="gap-2">
+                                        <Download className="h-4 w-4" />
+                                        Xuất CSV
+                                    </Button>
+                                )}
+                            </div>
                         </CardHeader>
                         <CardContent className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                             {aggregateBySensor.map(sensor => (
@@ -251,115 +258,90 @@ const ManagerIoTLogsPage: React.FC = () => {
                     </Card>
                 )}
 
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Bộ lọc & tìm kiếm</CardTitle>
-                    </CardHeader>
-                    <CardContent className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                        <div className="space-y-2">
-                            <label className="text-sm text-gray-600">Cảm biến</label>
-                            <Select value={sensorFilter} onValueChange={setSensorFilter}>
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Chọn cảm biến" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">Tất cả</SelectItem>
-                                    {sensors.map(sensor => (
-                                        <SelectItem key={sensor} value={sensor}>
-                                            {sensor}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
+                <StaffFilterBar>
+                    <div className="w-full sm:w-64">
+                        <Select value={sensorFilter} onValueChange={setSensorFilter}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Chọn cảm biến" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">Tất cả</SelectItem>
+                                {sensors.map(sensor => (
+                                    <SelectItem key={sensor} value={sensor}>
+                                        {sensor}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
 
-                        <div className="space-y-2 md:col-span-2">
-                            <label className="text-sm text-gray-600">Từ khóa</label>
+                    <div className="flex-1">
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                             <Input
                                 placeholder="Tìm theo tên cảm biến, mã thiết bị..."
                                 value={searchQuery}
                                 onChange={event => setSearchQuery(event.target.value)}
+                                className="pl-9"
                             />
                         </div>
-                    </CardContent>
-                </Card>
+                    </div>
+                </StaffFilterBar>
 
                 <Card>
-                    <CardHeader>
-                        <div className="flex items-center justify-between">
-                            <CardTitle>Nhật ký cảm biến</CardTitle>
-                            {filteredLogs.length > 0 && (
-                                <Button variant="outline" onClick={handleExportToCSV} className="gap-2">
-                                    <Download className="h-4 w-4" />
-                                    Xuất CSV
-                                </Button>
-                            )}
-                        </div>
-                    </CardHeader>
-                    <CardContent className="overflow-x-auto">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead className="w-16">STT</TableHead>
-                                    <TableHead>Cảm biến</TableHead>
-                                    <TableHead>Giá trị</TableHead>
-                                    <TableHead>Thời gian</TableHead>
-                                    <TableHead>Virtual Pin</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {loading ? (
-                                    <TableRow>
-                                        <TableCell colSpan={5} className="py-10 text-center text-gray-500">
-                                            <div className="flex items-center justify-center gap-2">
-                                                <RefreshCw className="h-4 w-4 animate-spin" />
-                                                Đang tải dữ liệu nhật ký...
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
-                                ) : filteredLogs.length === 0 ? (
-                                    <TableRow>
-                                        <TableCell colSpan={5} className="py-10 text-center text-gray-500">
-                                            Không có bản ghi phù hợp với bộ lọc hiện tại.
-                                        </TableCell>
-                                    </TableRow>
-                                ) : (
-                                    paginatedLogs.map((log, index) => {
-                                        const ordinalNumber = (currentPage - 1) * PAGE_SIZE + index + 1
-                                        return (
-                                            <TableRow key={`${log.iotLogId || log.variableId}-${log.timestamp}`}>
-                                                <TableCell className="text-center">{ordinalNumber}</TableCell>
-                                                <TableCell className="font-semibold">{log.sensorName}</TableCell>
-                                                <TableCell>
-                                                    <Badge variant="secondary" className="text-base">
-                                                        {formatSensorValue(Number(log.value))}
-                                                    </Badge>
-                                                </TableCell>
-                                                <TableCell>
-                                                    {new Date(log.timestamp).toLocaleString('vi-VN', {
-                                                        hour12: false,
-                                                    })}
-                                                </TableCell>
-                                                <TableCell>
-                                                    <span className="text-sm text-gray-600 uppercase">{log.variableId}</span>
-                                                </TableCell>
-                                            </TableRow>
-                                        )
-                                    })
-                                )}
-                            </TableBody>
-                        </Table>
-                    </CardContent>
-                    {filteredLogs.length > 0 && (
-                        <div className="border-t px-6 py-4">
-                            <Pagination
+                    <CardContent className="p-0">
+                        {loading ? (
+                            <div className="flex items-center justify-center py-12">
+                                <RefreshCw className="h-8 w-8 animate-spin text-green-600" />
+                                <span className="ml-2 text-gray-600">Đang tải dữ liệu nhật ký...</span>
+                            </div>
+                        ) : (
+                            <StaffDataTable<BlynkLogEntry>
+                                className="px-4 sm:px-6 pb-6"
+                                data={paginatedLogs}
+                                getRowKey={(log, index) => `${log.iotLogId || log.variableId}-${log.timestamp}-${index}`}
                                 currentPage={currentPage}
+                                pageSize={PAGE_SIZE}
                                 totalPages={totalPages}
                                 onPageChange={setCurrentPage}
-                                disabled={loading}
+                                emptyTitle="Không có bản ghi"
+                                emptyDescription="Không có bản ghi phù hợp với bộ lọc hiện tại"
+                                columns={[
+                                    {
+                                        id: 'sensor',
+                                        header: 'Cảm biến',
+                                        render: (log) => (
+                                            <div className="font-semibold">{log.sensorName}</div>
+                                        ),
+                                    },
+                                    {
+                                        id: 'value',
+                                        header: 'Giá trị',
+                                        render: (log) => (
+                                            <Badge variant="secondary" className="text-base">
+                                                {formatSensorValue(Number(log.value))}
+                                            </Badge>
+                                        ),
+                                    },
+                                    {
+                                        id: 'timestamp',
+                                        header: 'Thời gian',
+                                        render: (log) =>
+                                            new Date(log.timestamp).toLocaleString('vi-VN', {
+                                                hour12: false,
+                                            }),
+                                    },
+                                    {
+                                        id: 'virtualPin',
+                                        header: 'Virtual Pin',
+                                        render: (log) => (
+                                            <span className="text-sm text-gray-600 uppercase">{log.variableId}</span>
+                                        ),
+                                    },
+                                ] satisfies StaffDataTableColumn<BlynkLogEntry>[]}
                             />
-                        </div>
-                    )}
+                        )}
+                    </CardContent>
                 </Card>
             </div>
         </ManagerLayout>

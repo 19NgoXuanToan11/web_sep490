@@ -185,7 +185,7 @@ const AdminUsersPage: React.FC = () => {
 
         {/* Users Table */}
         <Card>
-          <CardContent>
+          <CardContent className="p-0">
             <UsersTable
               onEditUser={handleEditUser}
               onUpdatePassword={handleUpdatePassword}

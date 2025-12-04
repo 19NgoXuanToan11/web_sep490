@@ -1,10 +1,9 @@
-﻿import React, { useEffect, useMemo, useState } from 'react'
-import { RefreshCw, Plus, Eye, Pencil } from 'lucide-react'
+﻿import React, { useEffect, useMemo, useState, useCallback } from 'react'
+import { RefreshCw, MoreHorizontal, Search } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import { Card, CardContent } from '@/shared/ui/card'
 import { Badge } from '@/shared/ui/badge'
 import { Input } from '@/shared/ui/input'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
 import {
   Select,
   SelectContent,
@@ -12,13 +11,88 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/shared/ui/select'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/shared/ui/dropdown-menu'
 import { ManagerLayout } from '@/shared/layouts/ManagerLayout'
 import { useToast } from '@/shared/ui/use-toast'
 import { iotDeviceService, type IoTDevice } from '@/shared/api/iotDeviceService'
 import { CreateDeviceModal } from './components/CreateDeviceModal'
 import { DeviceDetailsModal } from './components/DeviceDetailsModal'
 import { UpdateDeviceModal } from './components/UpdateDeviceModal'
-import { ManagementPageHeader } from '@/shared/ui/management-page-header'
+import { ManagementPageHeader, StaffFilterBar, StaffDataTable, type StaffDataTableColumn } from '@/shared/ui'
+
+// Component riêng cho Action Menu để tránh re-render issues
+interface DeviceActionMenuProps {
+  device: IoTDevice
+  onViewDetails: (device: IoTDevice) => void
+  onEdit: (device: IoTDevice) => void
+}
+
+const DeviceActionMenu: React.FC<DeviceActionMenuProps> = React.memo(({ device, onViewDetails, onEdit }) => {
+  const [open, setOpen] = useState(false)
+
+  const handleViewDetails = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setOpen(false) // Đóng menu ngay lập tức
+    // Sử dụng setTimeout để tránh blocking UI
+    setTimeout(() => {
+      onViewDetails(device)
+    }, 0)
+  }, [device, onViewDetails])
+
+  const handleEdit = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setOpen(false) // Đóng menu ngay lập tức
+    // Sử dụng setTimeout để tránh blocking UI
+    setTimeout(() => {
+      onEdit(device)
+    }, 0)
+  }, [device, onEdit])
+
+  return (
+    <DropdownMenu open={open} onOpenChange={setOpen} modal={false}>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-8 w-8 p-0"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <MoreHorizontal className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align="end"
+        className="w-48"
+        sideOffset={5}
+        onCloseAutoFocus={(e) => e.preventDefault()}
+      >
+        <DropdownMenuItem
+          onClick={handleViewDetails}
+          className="cursor-pointer focus:bg-gray-100"
+          onSelect={(e) => e.preventDefault()}
+        >
+          Xem chi tiết
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={handleEdit}
+          className="cursor-pointer focus:bg-gray-100"
+          onSelect={(e) => e.preventDefault()}
+        >
+          Chỉnh sửa
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+})
+
+DeviceActionMenu.displayName = 'DeviceActionMenu'
 
 const ManagerIoTDevicesPage: React.FC = () => {
   const { toast } = useToast()
@@ -113,20 +187,20 @@ const ManagerIoTDevicesPage: React.FC = () => {
     fetchStatistics()
   }
 
-  const handleViewDetails = (device: IoTDevice) => {
+  const handleViewDetails = useCallback((device: IoTDevice) => {
     setSelectedDevice(device)
     setDetailsModalOpen(true)
-  }
+  }, [])
 
-  const handleUpdateSuccess = () => {
+  const handleUpdateSuccess = useCallback(() => {
     fetchDevices()
     fetchStatistics()
-  }
+  }, [])
 
-  const handleEditDevice = (device: IoTDevice) => {
+  const handleEditDevice = useCallback((device: IoTDevice) => {
     setSelectedDevice(device)
     setUpdateModalOpen(true)
-  }
+  }, [])
 
   const getStatusBadge = (status: number) => {
     if (status === 1) {
@@ -167,6 +241,11 @@ const ManagerIoTDevicesPage: React.FC = () => {
           <ManagementPageHeader
             title="Quản lý thiết bị IoT"
             description="Giám sát và điều khiển các thiết bị IoT trong nông trại"
+            actions={
+              <Button onClick={handleRefresh} variant="outline">
+                Làm mới
+              </Button>
+            }
           />
 
           { }
@@ -235,126 +314,103 @@ const ManagerIoTDevicesPage: React.FC = () => {
           </div>
 
           {/* Khu vực tìm kiếm và lọc */}
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="flex-1">
-                  <Input
-                    placeholder="Tìm kiếm thiết bị..."
-                    value={searchQuery}
-                    onChange={e => setSearchQuery(e.target.value)}
-                  />
-                </div>
-                <div className="w-full md:w-48">
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Tất cả trạng thái" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Tất cả trạng thái</SelectItem>
-                      <SelectItem value="1">Hoạt động</SelectItem>
-                      <SelectItem value="0">Khác</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="w-full md:w-48">
-                  <Select value={typeFilter} onValueChange={setTypeFilter}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Tất cả loại" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Tất cả loại</SelectItem>
-                      {deviceTypes.map(type => (
-                        <SelectItem key={type} value={type}>
-                          {type}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex gap-2 items-end">
-                  <Button onClick={handleRefresh} variant="outline">
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    Làm mới
-                  </Button>
-                  <Button onClick={() => setCreateModalOpen(true)}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Thêm thiết bị
-                  </Button>
-                </div>
+          <StaffFilterBar>
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Tìm kiếm thiết bị..."
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  className="pl-9"
+                />
               </div>
-            </CardContent>
-          </Card>
+            </div>
+
+            <div className="flex gap-2">
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-40">
+                  <SelectValue placeholder="Trạng thái" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả</SelectItem>
+                  <SelectItem value="1">Hoạt động</SelectItem>
+                  <SelectItem value="0">Khác</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={typeFilter} onValueChange={setTypeFilter}>
+                <SelectTrigger className="w-40">
+                  <SelectValue placeholder="Loại" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả</SelectItem>
+                  {deviceTypes.map(type => (
+                    <SelectItem key={type} value={type}>
+                      {type}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Button onClick={() => setCreateModalOpen(true)}>
+                Tạo
+              </Button>
+            </div>
+          </StaffFilterBar>
 
           {/* Bảng dữ liệu */}
-          <div className="border rounded-lg bg-white mt-8">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-16">STT</TableHead>
-                  <TableHead>Thiết bị</TableHead>
-                  <TableHead>Loại</TableHead>
-                  <TableHead>Trạng thái</TableHead>
-                  <TableHead className="text-right">Hành động</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loading ? (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8">
-                      <div className="flex items-center justify-center">
-                        <RefreshCw className="h-4 w-4 animate-spin mr-2" />
-                        Đang tải...
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ) : filteredDevices.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8">
-                      Không tìm thấy thiết bị nào
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredDevices.map((device, index) => (
-                    <TableRow key={device.ioTdevicesId}>
-                      <TableCell className="text-center">{index + 1}</TableCell>
-                      <TableCell>
+          <Card>
+            <CardContent className="p-0">
+              {loading ? (
+                <div className="flex items-center justify-center py-12">
+                  <RefreshCw className="h-8 w-8 animate-spin text-green-600" />
+                  <span className="ml-2 text-gray-600">Đang tải dữ liệu...</span>
+                </div>
+              ) : (
+                <StaffDataTable<IoTDevice>
+                  className="px-4 sm:px-6 pb-6"
+                  data={filteredDevices}
+                  getRowKey={(device, index) => device.ioTdevicesId ?? `device-${index}`}
+                  currentPage={1}
+                  pageSize={filteredDevices.length || 10}
+                  totalPages={1}
+                  emptyTitle="Không tìm thấy thiết bị nào"
+                  emptyDescription="Hãy thử điều chỉnh bộ lọc hoặc tìm kiếm"
+                  columns={[
+                    {
+                      id: 'device',
+                      header: 'Thiết bị',
+                      render: (device) => (
                         <div className="font-medium">{device.deviceName}</div>
-                      </TableCell>
-                      <TableCell>
-                        {device.deviceType}
-                      </TableCell>
-                      <TableCell>
-                        {getStatusBadge(Number(device.status))}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleViewDetails(device)}
-                            title="Xem chi tiết"
-                            className="hover:bg-blue-50 hover:border-blue-300"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleEditDevice(device)}
-                            title="Chỉnh sửa"
-                            className="hover:bg-green-50 hover:border-green-300"
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
+                      ),
+                    },
+                    {
+                      id: 'type',
+                      header: 'Loại',
+                      render: (device) => device.deviceType || '-',
+                    },
+                    {
+                      id: 'status',
+                      header: 'Trạng thái',
+                      render: (device) => getStatusBadge(Number(device.status)),
+                    },
+                    {
+                      id: 'actions',
+                      header: '',
+                      render: (device) => (
+                        <DeviceActionMenu
+                          device={device}
+                          onViewDetails={handleViewDetails}
+                          onEdit={handleEditDevice}
+                        />
+                      ),
+                    },
+                  ] satisfies StaffDataTableColumn<IoTDevice>[]}
+                />
+              )}
+            </CardContent>
+          </Card>
         </div>
       </div>
 

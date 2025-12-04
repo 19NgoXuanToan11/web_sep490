@@ -30,19 +30,6 @@ export function ProductModal({ isOpen, onClose, editingProduct, mode }: ProductM
     }
   }
 
-  const getDescription = () => {
-    switch (mode) {
-      case 'create':
-        return 'Điền thông tin để tạo sản phẩm mới'
-      case 'edit':
-        return 'Cập nhật thông tin sản phẩm'
-      case 'view':
-        return 'Xem thông tin chi tiết sản phẩm'
-      default:
-        return ''
-    }
-  }
-
   const handleSuccess = () => {
     onClose()
   }
@@ -53,7 +40,6 @@ export function ProductModal({ isOpen, onClose, editingProduct, mode }: ProductM
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{getTitle()}</DialogTitle>
-            <DialogDescription>{getDescription()}</DialogDescription>
           </DialogHeader>
 
           <ProductViewContent product={editingProduct} />
@@ -67,7 +53,6 @@ export function ProductModal({ isOpen, onClose, editingProduct, mode }: ProductM
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{getTitle()}</DialogTitle>
-          <DialogDescription>{getDescription()}</DialogDescription>
         </DialogHeader>
 
         <ProductForm editingProduct={editingProduct} onSuccess={handleSuccess} onCancel={onClose} />

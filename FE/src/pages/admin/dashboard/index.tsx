@@ -307,8 +307,7 @@ const AdminDashboard: React.FC = () => {
               disabled={isRefreshing}
               className="flex items-center gap-2"
             >
-              <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-              {isRefreshing ? 'Đang tải...' : 'Làm mới'}
+              Làm mới
             </Button>
           </div>
         </div>

@@ -1,12 +1,19 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Tabs, TabsContent } from '@/shared/ui/tabs'
 import { ManagerLayout } from '@/shared/layouts/ManagerLayout'
 import { BackendScheduleList } from '@/features/irrigation/ui/BackendScheduleList'
 import { Button } from '@/shared/ui/button'
 import { Card, CardContent } from '@/shared/ui/card'
-import { scheduleService, type PaginatedSchedules } from '@/shared/api/scheduleService'
+import { Input } from '@/shared/ui/input'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
+import { scheduleService, type PaginatedSchedules, type ScheduleListItem } from '@/shared/api/scheduleService'
 import { useToast } from '@/shared/ui/use-toast'
 import { ManagementPageHeader } from '@/shared/ui/management-page-header'
+import { StaffFilterBar } from '@/shared/ui'
+import { Search, Filter, Loader2 } from 'lucide-react'
+import { accountApi } from '@/shared/api/auth'
+
+const BULK_PAGE_SIZE = 50
 
 export default function IrrigationPage() {
   const selectedTab = 'calendar'
@@ -20,6 +27,83 @@ export default function IrrigationPage() {
     ongoing: 0,
   })
   const { toast } = useToast()
+
+  // Filter state
+  const [staffFilter, setStaffFilter] = useState<number | null>(null)
+  const [filteredItems, setFilteredItems] = useState<ScheduleListItem[] | null>(null)
+  const [staffs, setStaffs] = useState<{ id: number; name: string }[]>([])
+  const [allSchedules, setAllSchedules] = useState<ScheduleListItem[]>([])
+  const [allSchedulesLoading, setAllSchedulesLoading] = useState(false)
+
+  // Load staffs for filter
+  useEffect(() => {
+    const loadStaffs = async () => {
+      try {
+        const staffRes = await accountApi.getAll({ role: 'Staff', pageSize: 1000 })
+        setStaffs(staffRes.items.map(s => ({ id: s.accountId, name: s.email })))
+      } catch (error) {
+        // Silent fail for staff list
+      }
+    }
+    loadStaffs()
+  }, [])
+
+  // Load all schedules for filtering
+  const loadAllSchedules = useCallback(async (): Promise<ScheduleListItem[]> => {
+    setAllSchedulesLoading(true)
+    try {
+      const first = await scheduleService.getScheduleList(1, BULK_PAGE_SIZE)
+      let items = [...first.data.items]
+      const totalPages = first.data.totalPagesCount
+      if (totalPages > 1) {
+        const requests: Promise<PaginatedSchedules>[] = []
+        for (let page = 2; page <= totalPages; page++) {
+          requests.push(scheduleService.getScheduleList(page, BULK_PAGE_SIZE))
+        }
+        const results = await Promise.all(requests)
+        results.forEach(res => {
+          items = items.concat(res.data.items)
+        })
+      }
+      setAllSchedules(items)
+      return items
+    } catch (e) {
+      toast({
+        title: 'Không thể tải danh sách lịch',
+        description: (e as Error).message,
+        variant: 'destructive',
+      })
+      return []
+    } finally {
+      setAllSchedulesLoading(false)
+    }
+  }, [toast])
+
+  // Load all schedules in background
+  useEffect(() => {
+    loadAllSchedules()
+  }, [loadAllSchedules])
+
+  // Handle staff filter
+  const handleStaffFilter = useCallback(async () => {
+    if (!staffFilter) {
+      toast({ title: 'Chọn nhân viên trước khi lọc', variant: 'destructive' })
+      return
+    }
+    let source = allSchedules
+    if (!source.length && !allSchedulesLoading) {
+      source = await loadAllSchedules()
+    }
+    if (!source.length) {
+      toast({ title: 'Không thể tải danh sách lịch để lọc', variant: 'destructive' })
+      return
+    }
+    const filtered = source.filter(it => it.staffId === staffFilter)
+    setFilteredItems(filtered)
+    if (!filtered.length) {
+      toast({ title: 'Không tìm thấy lịch', description: 'Nhân viên này chưa có lịch nào trong hệ thống.', variant: 'destructive' })
+    }
+  }, [staffFilter, allSchedules, allSchedulesLoading, loadAllSchedules, toast])
 
   useEffect(() => {
     const loadStats = async () => {
@@ -67,17 +151,12 @@ export default function IrrigationPage() {
 
   return (
     <ManagerLayout>
-      <div className="px-4 sm:px-6 lg:px-8">
-        <div className="space-y-8">
+      <div className="container mx-auto px-4 py-8">
+        <div className="space-y-6">
           { }
           <ManagementPageHeader
             title="Quản lý lịch tưới"
             description="Quản lý và lập lịch tưới nước"
-            actions={
-              <Button size="sm" onClick={() => setShowCreate(true)}>
-                Tạo lịch mới
-              </Button>
-            }
           />
 
           { }
@@ -139,10 +218,92 @@ export default function IrrigationPage() {
             </Card>
           </div>
 
+          <StaffFilterBar>
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Tìm kiếm lịch tưới..."
+                  className="pl-9"
+                  disabled
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <Select
+                value={staffFilter ? String(staffFilter) : 'all'}
+                onValueChange={v => {
+                  if (v === 'all') {
+                    setStaffFilter(null)
+                    setFilteredItems(null)
+                  } else {
+                    setStaffFilter(Number(v))
+                  }
+                }}
+              >
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="Tất cả nhân viên" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả</SelectItem>
+                  {staffs.map(s => (
+                    <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Button onClick={() => setShowCreate(true)} className="bg-green-600 hover:bg-green-700">
+                Tạo
+              </Button>
+
+              {staffFilter && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleStaffFilter}
+                  disabled={allSchedulesLoading}
+                >
+                  {allSchedulesLoading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Đang lọc...
+                    </>
+                  ) : (
+                    <>
+                      <Filter className="h-4 w-4 mr-2" />
+                      Áp dụng
+                    </>
+                  )}
+                </Button>
+              )}
+
+              {staffFilter && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setStaffFilter(null)
+                    setFilteredItems(null)
+                  }}
+                >
+                  Xóa bộ lọc
+                </Button>
+              )}
+            </div>
+          </StaffFilterBar>
+
           { }
           <Tabs value={selectedTab} onValueChange={handleTabChange} className="space-y-6">
             <TabsContent value="calendar" className="space-y-6">
-              <BackendScheduleList showCreate={showCreate} onShowCreateChange={setShowCreate} />
+              <BackendScheduleList
+                showCreate={showCreate}
+                onShowCreateChange={setShowCreate}
+                staffFilter={staffFilter}
+                onStaffFilterChange={setStaffFilter}
+                filteredItems={filteredItems}
+                onFilteredItemsChange={setFilteredItems}
+              />
             </TabsContent>
           </Tabs>
         </div>

@@ -1,8 +1,8 @@
 import * as React from 'react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './table'
-import { Button } from './button'
-import { Package, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Package } from 'lucide-react'
 import { cn } from '@/shared/lib/utils'
+import { Pagination } from './pagination'
 
 export interface StaffDataTableColumn<T> {
     /** Unique column key */
@@ -60,11 +60,6 @@ export function StaffDataTable<T>({
         onPageChange(page)
     }
 
-    const pageNumbers = React.useMemo(
-        () => Array.from({ length: Math.min(5, totalPages) }, (_, i) => i + 1),
-        [totalPages],
-    )
-
     return (
         <div className={cn(className)}>
             <div className="border rounded-lg overflow-hidden mt-4">
@@ -106,42 +101,12 @@ export function StaffDataTable<T>({
             </div>
 
             {onPageChange && totalPages > 1 && (
-                <div className="flex items-center justify-end mt-6">
-                    <div className="flex items-center gap-2">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handlePageChange(currentPage - 1)}
-                            disabled={currentPage === 1}
-                        >
-                            <ChevronLeft className="h-4 w-4" />
-                            Trước
-                        </Button>
-
-                        <div className="flex items-center gap-1">
-                            {pageNumbers.map(page => (
-                                <Button
-                                    key={page}
-                                    variant={currentPage === page ? 'default' : 'outline'}
-                                    size="sm"
-                                    onClick={() => handlePageChange(page)}
-                                    className="w-10"
-                                >
-                                    {page}
-                                </Button>
-                            ))}
-                        </div>
-
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handlePageChange(currentPage + 1)}
-                            disabled={currentPage === totalPages}
-                        >
-                            Sau
-                            <ChevronRight className="h-4 w-4" />
-                        </Button>
-                    </div>
+                <div className="flex items-center justify-end mt-6 pr-4 sm:pr-6">
+                    <Pagination
+                        currentPage={currentPage}
+                        totalPages={totalPages}
+                        onPageChange={handlePageChange}
+                    />
                 </div>
             )}
         </div>

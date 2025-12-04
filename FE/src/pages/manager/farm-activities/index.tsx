@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useCallback } from 'react'
+﻿import React, { useState, useEffect, useCallback } from 'react'
 import { ManagerLayout } from '@/shared/layouts/ManagerLayout'
 import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/shared/ui/card'
 import { Badge } from '@/shared/ui/badge'
 import {
   Dialog,
+
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -14,17 +15,99 @@ import {
   DialogTitle,
 } from '@/shared/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
-import { Plus, Edit, RefreshCw, Eye } from 'lucide-react'
+import { Plus, RefreshCw, Search, MoreHorizontal } from 'lucide-react'
 import { useToast } from '@/shared/ui/use-toast'
-import { Pagination } from '@/shared/ui/pagination'
-import { ManagementPageHeader } from '@/shared/ui/management-page-header'
+import {
+  ManagementPageHeader,
+  StaffFilterBar,
+  StaffDataTable,
+  type StaffDataTableColumn,
+} from '@/shared/ui'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/shared/ui/dropdown-menu'
 import {
   farmActivityService,
   type FarmActivity,
   type FarmActivityRequest,
   type FarmActivityUpdate,
 } from '@/shared/api/farmActivityService'
+
+// Component riêng cho Action Menu
+interface ActivityActionMenuProps {
+  activity: FarmActivity
+  onView: (activity: FarmActivity) => void
+  onEdit: (activity: FarmActivity) => void
+}
+
+const ActivityActionMenu: React.FC<ActivityActionMenuProps> = React.memo(({ activity, onView, onEdit }) => {
+  const [open, setOpen] = useState(false)
+
+  const handleView = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault()
+      e.stopPropagation()
+      setOpen(false)
+      setTimeout(() => {
+        onView(activity)
+      }, 0)
+    },
+    [activity, onView]
+  )
+
+  const handleEdit = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault()
+      e.stopPropagation()
+      setOpen(false)
+      setTimeout(() => {
+        onEdit(activity)
+      }, 0)
+    },
+    [activity, onEdit]
+  )
+
+  return (
+    <DropdownMenu open={open} onOpenChange={setOpen} modal={false}>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-8 w-8 p-0"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <MoreHorizontal className="h-4 w-4" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        align="end"
+        className="w-48"
+        sideOffset={5}
+        onCloseAutoFocus={(e) => e.preventDefault()}
+      >
+        <DropdownMenuItem
+          onClick={handleView}
+          className="cursor-pointer focus:bg-gray-100"
+          onSelect={(e) => e.preventDefault()}
+        >
+          Xem chi tiết
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={handleEdit}
+          className="cursor-pointer focus:bg-gray-100"
+          onSelect={(e) => e.preventDefault()}
+        >
+          Chỉnh sửa
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+})
+
+ActivityActionMenu.displayName = 'ActivityActionMenu'
 
 export default function FarmActivitiesPage() {
   const [activities, setActivities] = useState<FarmActivity[]>([])
@@ -474,11 +557,23 @@ export default function FarmActivitiesPage() {
 
   return (
     <ManagerLayout>
-      <div className="p-6">
-        <div className="space-y-8">
+      <div className="container mx-auto px-4 py-8">
+        <div className="space-y-6">
           <ManagementPageHeader
             title="Quản lý hoạt động nông trại"
             description="Quản lý các hoạt động nông nghiệp, lập kế hoạch và theo dõi tiến độ thực hiện."
+            actions={
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  variant="outline"
+                  onClick={loadActivities}
+                  disabled={loading}
+                  className="flex items-center gap-2"
+                >
+                  Làm mới
+                </Button>
+              </div>
+            }
           />
 
           <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
@@ -491,7 +586,7 @@ export default function FarmActivitiesPage() {
                   </div>
                 </div>
                 <p className="text-xs text-gray-500 mt-2">
-                  Toàn bộ hoạt động nông trại trong hệ thống (không phụ thuộc bộ lọc)
+                  Toàn bộ hoạt động nông trại trong hệ thống 
                 </p>
               </CardContent>
             </Card>
@@ -515,141 +610,122 @@ export default function FarmActivitiesPage() {
             {/* Removed “Hoàn thành” & “Đã hủy” cards per request */}
           </div>
 
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex flex-col md:flex-row gap-4">
-                <div className="flex-1">
-                  <Input
-                    id="search"
-                    placeholder="Nhập loại hoạt động..."
-                    value={searchTerm}
-                    onChange={e => setSearchTerm(e.target.value)}
-                  />
-                </div>
-                <div className="w-full md:w-48">
-                  <Select value={activityTypeFilter} onValueChange={setActivityTypeFilter}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Tất cả loại" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Tất cả loại</SelectItem>
-                      {activityTypes.map(type => (
-                        <SelectItem key={type.value} value={type.value}>
-                          {type.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="w-full md:w-48">
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Tất cả trạng thái" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Tất cả trạng thái</SelectItem>
-                      {statusOptions.map(status => (
-                        <SelectItem key={status.value} value={status.value}>
-                          {status.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex gap-2 items-end">
-                  <Button onClick={loadActivities} variant="outline">
-                    <RefreshCw className="h-4 w-4 mr-2" />
-                    Làm mới
-                  </Button>
-                  <Button onClick={() => setCreateDialogOpen(true)}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Thêm hoạt động
-                  </Button>
-                </div>
+          <StaffFilterBar>
+            <div className="flex-1">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  id="search"
+                  placeholder="Nhập loại hoạt động..."
+                  value={searchTerm}
+                  onChange={e => setSearchTerm(e.target.value)}
+                  className="pl-9"
+                />
               </div>
+            </div>
+            <div className="w-full sm:w-48">
+              <Select value={activityTypeFilter} onValueChange={setActivityTypeFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Tất cả loại" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả</SelectItem>
+                  {activityTypes.map(type => (
+                    <SelectItem key={type.value} value={type.value}>
+                      {type.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="w-full sm:w-48">
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Tất cả trạng thái" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả</SelectItem>
+                  {statusOptions.map(status => (
+                    <SelectItem key={status.value} value={status.value}>
+                      {status.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={() => setCreateDialogOpen(true)} className="flex items-center gap-2 bg-green-600 hover:bg-green-700">
+                Tạo
+              </Button>
+            </div>
+          </StaffFilterBar>
+
+          <Card>
+            <CardContent className="p-0">
+              {loading ? (
+                <div className="flex items-center justify-center py-12">
+                  <RefreshCw className="h-8 w-8 animate-spin text-green-600" />
+                  <span className="ml-2 text-gray-600">Đang tải dữ liệu...</span>
+                </div>
+              ) : (
+                <StaffDataTable<FarmActivity>
+                  className="px-4 sm:px-6 pb-6"
+                  data={filteredActivities}
+                  getRowKey={(activity) => activity.farmActivitiesId}
+                  currentPage={pageIndex}
+                  pageSize={pageSize}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                  emptyTitle="Không tìm thấy hoạt động nào"
+                  emptyDescription={
+                    searchTerm || statusFilter !== 'all' || activityTypeFilter !== 'all'
+                      ? 'Không có hoạt động nào phù hợp với điều kiện lọc hiện tại.'
+                      : 'Hãy tạo hoạt động nông trại đầu tiên.'
+                  }
+                  columns={[
+                    {
+                      id: 'activityType',
+                      header: 'Loại hoạt động',
+                      render: (activity: FarmActivity) => (
+                        <div className="font-medium">{getActivityTypeLabel(activity.activityType)}</div>
+                      ),
+                    },
+                    {
+                      id: 'plantStage',
+                      header: 'Giai đoạn cây trồng',
+                      render: (activity: FarmActivity) => (
+                        <div>{getPlantStageLabel(activity.plantStage as any)}</div>
+                      ),
+                    },
+                    {
+                      id: 'status',
+                      header: 'Trạng thái',
+                      render: (activity: FarmActivity) => getStatusBadge(activity.status),
+                    },
+                    {
+                      id: 'actions',
+                      header: '',
+                      render: (activity: FarmActivity) => (
+                        <ActivityActionMenu
+                          activity={activity}
+                          onView={handleViewDetailsClick}
+                          onEdit={handleEditClick}
+                        />
+                      ),
+                    },
+                  ] satisfies StaffDataTableColumn<FarmActivity>[]}
+                />
+              )}
             </CardContent>
           </Card>
-
-          { }
-          <div className="border rounded-lg bg-white mt-8">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-16">STT</TableHead>
-                  <TableHead>Loại hoạt động</TableHead>
-                  <TableHead>Giai đoạn cây trồng</TableHead>
-                  <TableHead>Trạng thái</TableHead>
-                  <TableHead className="text-right">Hành động</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loading ? (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center py-4">
-                      Đang tải...
-                    </TableCell>
-                  </TableRow>
-                ) : filteredActivities.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={5} className="text-center py-4">
-                      Không có hoạt động nào
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  filteredActivities.map((activity, index) => (
-                    <TableRow key={activity.farmActivitiesId}>
-                      <TableCell className="text-center">
-                        {(pageIndex - 1) * pageSize + index + 1}
-                      </TableCell>
-                      <TableCell>{getActivityTypeLabel(activity.activityType)}</TableCell>
-                      <TableCell>{getPlantStageLabel(activity.plantStage as any)}</TableCell>
-                      <TableCell>{getStatusBadge(activity.status)}</TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleViewDetailsClick(activity)}
-                            title="Xem chi tiết"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleEditClick(activity)}
-                            title="Chỉnh sửa"
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="mt-4 px-2">
-              <Pagination
-                currentPage={pageIndex}
-                totalPages={totalPages}
-                onPageChange={handlePageChange}
-              />
-            </div>
-          )}
         </div>
       </div>
 
-      { }
+      {/* Dialogs */}
       <Dialog open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>Chi Tiết Hoạt Động Nông Trại</DialogTitle>
-            <DialogDescription>Thông tin chi tiết của hoạt động nông trại đã chọn</DialogDescription>
           </DialogHeader>
 
           {selectedActivityForDetails && (
@@ -688,12 +764,6 @@ export default function FarmActivitiesPage() {
               </div>
             </div>
           )}
-
-          <DialogFooter className="mt-6">
-            <Button variant="outline" onClick={() => setDetailsDialogOpen(false)}>
-              Đóng
-            </Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
 
@@ -701,8 +771,7 @@ export default function FarmActivitiesPage() {
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Thêm Hoạt Động Nông Trại Mới</DialogTitle>
-            <DialogDescription>Điền thông tin để tạo hoạt động nông trại mới</DialogDescription>
+            <DialogTitle>Tạo hoạt động nông trại mới</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -780,7 +849,7 @@ export default function FarmActivitiesPage() {
             <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
               Hủy
             </Button>
-            <Button onClick={handleCreateActivity}>Tạo hoạt động</Button>
+            <Button onClick={handleCreateActivity}>Tạo</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -790,7 +859,6 @@ export default function FarmActivitiesPage() {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Chỉnh Sửa Hoạt Động Nông Trại</DialogTitle>
-            <DialogDescription>Cập nhật thông tin hoạt động nông trại</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>

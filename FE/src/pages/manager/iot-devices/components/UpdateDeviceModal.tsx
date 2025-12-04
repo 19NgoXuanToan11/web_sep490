@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import { X, Save, Loader2 } from 'lucide-react'
+import { X, Loader2 } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
 import { Label } from '@/shared/ui/label'
@@ -136,19 +136,28 @@ export const UpdateDeviceModal: React.FC<UpdateDeviceModalProps> = ({
 
     if (!isOpen) return null
 
+    const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (e.target === e.currentTarget) {
+            onClose()
+        }
+    }
+
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div
+            className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+            onClick={handleOverlayClick}
+        >
             <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.95 }}
                 className="w-full max-w-md"
+                onClick={(e) => e.stopPropagation()}
             >
                 <Card className="w-full">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
                         <div>
-                            <CardTitle className="text-lg font-semibold">Cập nhật Thiết bị IoT</CardTitle>
-                            <CardDescription>Chỉnh sửa thông tin thiết bị IoT</CardDescription>
+                            <CardTitle className="text-lg font-semibold">Chỉnh sửa thiết bị IoT</CardTitle>
                         </div>
                         <Button variant="ghost" size="sm" onClick={onClose}>
                             <X className="h-4 w-4" />
@@ -215,7 +224,6 @@ export const UpdateDeviceModal: React.FC<UpdateDeviceModalProps> = ({
                                         </>
                                     ) : (
                                         <>
-                                            <Save className="h-4 w-4 mr-2" />
                                             Cập nhật
                                         </>
                                     )}

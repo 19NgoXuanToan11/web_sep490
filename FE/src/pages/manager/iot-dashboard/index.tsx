@@ -1,14 +1,8 @@
 ﻿import React, { useEffect, useState, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import {
-  Thermometer,
-  Droplets,
-  CloudRain,
-  Sprout,
-  Sun,
   AlertCircle,
   Loader2,
-  Lightbulb,
 } from 'lucide-react'
 import { ManagerLayout } from '@/shared/layouts/ManagerLayout'
 import { Button } from '@/shared/ui/button'
@@ -19,7 +13,6 @@ import { Input } from '@/shared/ui/input'
 import { blynkService, type SensorData } from '@/shared/api/blynkService'
 import Gauge from '@/components/iot-dashboard/Gauge'
 import { useToast } from '@/shared/ui/use-toast'
-import { Settings } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -466,7 +459,6 @@ const RealTimeIoTDashboard: React.FC = () => {
                 onClick={() => setIsThresholdModalOpen(true)}
                 className="bg-green-600 hover:bg-green-700 text-white"
               >
-                <Settings className="h-4 w-4 mr-2" />
                 Cấu hình ngưỡng thiết bị
               </Button>
             </div>
@@ -483,7 +475,6 @@ const RealTimeIoTDashboard: React.FC = () => {
             max={50}
             unit="°C"
             label="Nhiệt độ"
-            icon={<Thermometer />}
             isLoading={isLoading}
             dataQuality={sensorData.dataQuality}
             lastUpdated={sensorData.lastUpdated}
@@ -497,7 +488,6 @@ const RealTimeIoTDashboard: React.FC = () => {
             max={100}
             unit="%"
             label="Độ ẩm"
-            icon={<Droplets />}
             isLoading={isLoading}
             dataQuality={sensorData.dataQuality}
             lastUpdated={sensorData.lastUpdated}
@@ -509,7 +499,6 @@ const RealTimeIoTDashboard: React.FC = () => {
             max={100}
             unit="%"
             label="Lượng mưa"
-            icon={<CloudRain />}
             isLoading={isLoading}
             dataQuality={sensorData.dataQuality}
             lastUpdated={sensorData.lastUpdated}
@@ -521,7 +510,6 @@ const RealTimeIoTDashboard: React.FC = () => {
             max={100}
             unit="%"
             label="Độ ẩm đất"
-            icon={<Sprout />}
             isLoading={isLoading}
             dataQuality={sensorData.dataQuality}
             lastUpdated={sensorData.lastUpdated}
@@ -535,7 +523,6 @@ const RealTimeIoTDashboard: React.FC = () => {
             max={1100}
             unit="lux"
             label="Ánh sáng"
-            icon={<Sun />}
             isLoading={isLoading}
             dataQuality={sensorData.dataQuality}
             lastUpdated={sensorData.lastUpdated}
@@ -607,9 +594,6 @@ const RealTimeIoTDashboard: React.FC = () => {
               <div className="mb-4">
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="text-gray-900 font-semibold">Mái che</h3>
-                  <span className={`text-sm font-medium ${servoAngle[0] >= 90 ? 'text-green-600' : 'text-gray-600'}`}>
-                    {servoAngle[0] >= 90 ? 'Mở' : 'Đóng'}
-                  </span>
                 </div>
                 <div
                   className={`${!isOnline || isLoading || !manualControl ? 'opacity-50 pointer-events-none' : ''}`}
@@ -662,7 +646,6 @@ const RealTimeIoTDashboard: React.FC = () => {
           <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <div className="flex items-center gap-2">
-                <Settings className="h-5 w-5 text-green-600" />
                 <DialogTitle className="text-xl font-semibold text-gray-900">
                   Cấu hình Ngưỡng
                 </DialogTitle>
@@ -681,7 +664,6 @@ const RealTimeIoTDashboard: React.FC = () => {
               { }
               <div className="space-y-4">
                 <div className="flex items-center gap-2 mb-4">
-                  <Sprout className="h-5 w-5 text-green-600" />
                   <h3 className="text-lg font-semibold text-gray-900">Độ ẩm đất</h3>
                 </div>
 
@@ -783,7 +765,6 @@ const RealTimeIoTDashboard: React.FC = () => {
               { }
               <div className="space-y-4">
                 <div className="flex items-center gap-2 mb-4">
-                  <Sun className="h-5 w-5 text-yellow-500" />
                   <h3 className="text-lg font-semibold text-gray-900">Ánh sáng</h3>
                 </div>
 
@@ -885,7 +866,6 @@ const RealTimeIoTDashboard: React.FC = () => {
               { }
               <div className="space-y-4">
                 <div className="flex items-center gap-2 mb-4">
-                  <Lightbulb className="h-5 w-5 text-yellow-500" />
                   <h3 className="text-lg font-semibold text-gray-900">Đèn LED</h3>
                 </div>
 

@@ -125,19 +125,28 @@ export const CreateDeviceModal: React.FC<CreateDeviceModalProps> = ({
 
   if (!isOpen) return null
 
+  const handleOverlayClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (e.target === e.currentTarget) {
+      onClose()
+    }
+  }
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div 
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+      onClick={handleOverlayClick}
+    >
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0.95 }}
         className="w-full max-w-md"
+        onClick={(e) => e.stopPropagation()}
       >
         <Card className="w-full">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
             <div>
-              <CardTitle className="text-lg font-semibold">Thêm Thiết bị IoT</CardTitle>
-              <CardDescription>Tạo thiết bị IoT mới cho nông trại</CardDescription>
+              <CardTitle className="text-lg font-semibold">Tạo Thiết bị IoT mới</CardTitle>
             </div>
             <Button variant="ghost" size="sm" onClick={onClose}>
               <X className="h-4 w-4" />
@@ -235,8 +244,7 @@ export const CreateDeviceModal: React.FC<CreateDeviceModalProps> = ({
                     </>
                   ) : (
                     <>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Tạo thiết bị
+                      Tạo
                     </>
                   )}
                 </Button>

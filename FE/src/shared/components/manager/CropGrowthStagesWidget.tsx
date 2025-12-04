@@ -5,14 +5,28 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
 import { Badge } from '@/shared/ui/badge'
 import type { CropRequirementView, PlantStage } from '@/shared/api/cropRequirementService'
 
+// Config khớp với enum PlantStage ở backend (Germination, Seedling, Vegetative, Harvest)
 const PLANT_STAGE_CONFIG: Record<PlantStage, { label: string; color: string; description: string }> = {
-    Sowing: { label: 'Gieo hạt', color: 'bg-blue-500', description: 'Chuẩn bị đất và gieo giống' },
-    Germination: { label: 'Nảy mầm', color: 'bg-green-400', description: 'Theo dõi độ ẩm đất' },
-    CotyledonLeaves: { label: 'Ra lá mầm', color: 'bg-green-500', description: 'Bắt đầu bổ sung dinh dưỡng' },
-    TrueLeavesGrowth: { label: 'Phát triển lá thật', color: 'bg-green-600', description: 'Tăng cường ánh sáng' },
-    VigorousGrowth: { label: 'Tăng trưởng mạnh', color: 'bg-emerald-500', description: 'Theo dõi độ ẩm/ánh sáng' },
-    ReadyForHarvest: { label: 'Sẵn sàng thu hoạch', color: 'bg-yellow-500', description: 'Kiểm tra chất lượng' },
-    PostHarvest: { label: 'Sau thu hoạch', color: 'bg-gray-500', description: 'Chuẩn bị vụ mới' },
+    Germination: {
+        label: 'Gieo hạt',
+        color: 'bg-blue-500',
+        description: 'Chuẩn bị đất và gieo giống (0–7 ngày)',
+    },
+    Seedling: {
+        label: 'Nảy mầm',
+        color: 'bg-green-400',
+        description: 'Theo dõi độ ẩm và sự phát triển mầm (8–18 ngày)',
+    },
+    Vegetative: {
+        label: 'Tăng trưởng lá',
+        color: 'bg-emerald-500',
+        description: 'Phát triển thân lá, tăng cường ánh sáng và dinh dưỡng (19–35 ngày)',
+    },
+    Harvest: {
+        label: 'Thu hoạch',
+        color: 'bg-yellow-500',
+        description: 'Sẵn sàng thu hoạch và đánh giá chất lượng (36–37 ngày)',
+    },
 }
 
 interface CropGrowthStagesWidgetProps {

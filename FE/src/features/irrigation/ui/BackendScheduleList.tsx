@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useMemo } from 'react'
+import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react'
 import { scheduleService, type PaginatedSchedules, type CreateScheduleRequest, type ScheduleDetail, type ScheduleListItem } from '@/shared/api/scheduleService'
 import { Card, CardContent } from '@/shared/ui/card'
 import { Button } from '@/shared/ui/button'
@@ -285,6 +285,7 @@ export function BackendScheduleList({
     const todayString = useMemo(() => new Date().toISOString().split('T')[0], [])
     const displayItems = filteredItems ?? data?.data.items ?? []
     const isFiltered = filteredItems !== null
+    const lastAutoUpdatedScheduleId = useRef<number | null>(null)
 
     const load = useCallback(async () => {
         setLoading(true)
@@ -545,6 +546,38 @@ export function BackendScheduleList({
             setActionLoading({ [`detail-${schedule.scheduleId}`]: false })
         }
     }
+
+    // Automatically update schedule stage when detail modal opens
+    useEffect(() => {
+        if (showDetail && scheduleDetail?.scheduleId) {
+            const scheduleId = scheduleDetail.scheduleId
+            // Only auto-update if we haven't already updated this schedule
+            if (lastAutoUpdatedScheduleId.current !== scheduleId) {
+                lastAutoUpdatedScheduleId.current = scheduleId
+                    // Automatically call update API when modal opens to sync stage with current date
+                    // Call silently without showing success toast
+                    ; (async () => {
+                        try {
+                            setActionLoading(prev => ({ ...prev, [`update-today-${scheduleId}`]: true }))
+                            await scheduleService.updateToday(scheduleId)
+                            // Refresh schedule details after update
+                            const res = await scheduleService.getScheduleById(scheduleId)
+                            setScheduleDetail(res.data)
+                            await load()
+                            await loadAllSchedules()
+                        } catch (e) {
+                            // Silently handle errors - don't show toast for automatic updates
+                            console.error('Auto-update schedule stage failed:', e)
+                        } finally {
+                            setActionLoading(prev => ({ ...prev, [`update-today-${scheduleId}`]: false }))
+                        }
+                    })()
+            }
+        } else if (!showDetail) {
+            // Reset the ref when modal closes
+            lastAutoUpdatedScheduleId.current = null
+        }
+    }, [showDetail, scheduleDetail?.scheduleId, load, loadAllSchedules])
 
     const handleUpdateToday = async (customDate?: string) => {
         if (!scheduleDetail?.scheduleId) return
@@ -974,15 +1007,6 @@ export function BackendScheduleList({
                                 >
                                     Cập nhật giai đoạn theo ngày
                                 </Button>
-                                <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => handleUpdateToday()}
-                                    disabled={actionLoading[`update-today-${scheduleDetail.scheduleId}`]}
-                                    className="flex items-center gap-2"
-                                >
-                                    Đồng bộ giai đoạn
-                                </Button>
                             </div>
                         )}
                     </DialogHeader>
@@ -994,8 +1018,6 @@ export function BackendScheduleList({
                                 <div className="grid grid-cols-2 gap-4">
                                     <div><strong>Ngày bắt đầu:</strong> {formatDate(scheduleDetail.startDate)}</div>
                                     <div><strong>Ngày kết thúc:</strong> {formatDate(scheduleDetail.endDate)}</div>
-                                    <div><strong>Ngày gieo trồng:</strong> {formatDate(scheduleDetail.plantingDate)}</div>
-                                    <div><strong>Ngày thu hoạch:</strong> {formatDate(scheduleDetail.harvestDate)}</div>
                                     <div>
                                         <strong>Trạng thái:</strong>{' '}
                                         <Badge variant={typeof scheduleDetail.status === 'number' && scheduleDetail.status === 1 ? 'success' : 'secondary'}>

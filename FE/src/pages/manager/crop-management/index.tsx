@@ -712,7 +712,7 @@ export default function CropManagementPage() {
                 columns={[
                   {
                     id: 'cropName',
-                    header: 'Tên cây trồng',
+                    header: 'Cây trồng',
                     render: (crop) => (
                       <p className="font-semibold">{crop.cropName}</p>
                     ),

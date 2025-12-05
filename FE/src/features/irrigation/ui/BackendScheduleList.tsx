@@ -5,7 +5,7 @@ import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
 import { Label } from '@/shared/ui/label'
 import { useToast } from '@/shared/ui/use-toast'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/shared/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/shared/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { Badge } from '@/shared/ui/badge'
 import { Loader2, MoreHorizontal } from 'lucide-react'
@@ -273,6 +273,7 @@ export function BackendScheduleList({
     const [showDetail, setShowDetail] = useState(false)
     const [showEdit, setShowEdit] = useState(false)
     const [showAssignStaff, setShowAssignStaff] = useState(false)
+    const [showUpdateStageModal, setShowUpdateStageModal] = useState(false)
     const [selectedSchedule, setSelectedSchedule] = useState<ScheduleListItem | null>(null)
     const [scheduleDetail, setScheduleDetail] = useState<ScheduleDetail | null>(null)
     const [editForm, setEditForm] = useState<CreateScheduleRequest>(buildEmptyScheduleForm)
@@ -280,6 +281,7 @@ export function BackendScheduleList({
     const [actionLoading, setActionLoading] = useState<{ [key: string]: boolean }>({})
     const [editingScheduleId, setEditingScheduleId] = useState<number | null>(null)
     const [editLoading, setEditLoading] = useState(false)
+    const [customToday, setCustomToday] = useState<string>('')
     const todayString = useMemo(() => new Date().toISOString().split('T')[0], [])
     const displayItems = filteredItems ?? data?.data.items ?? []
     const isFiltered = filteredItems !== null
@@ -542,6 +544,46 @@ export function BackendScheduleList({
         } finally {
             setActionLoading({ [`detail-${schedule.scheduleId}`]: false })
         }
+    }
+
+    const handleUpdateToday = async (customDate?: string) => {
+        if (!scheduleDetail?.scheduleId) return
+        const scheduleId = scheduleDetail.scheduleId
+        setActionLoading({ [`update-today-${scheduleId}`]: true })
+        try {
+            await scheduleService.updateToday(scheduleId, customDate)
+            handleApiSuccess('Cập nhật giai đoạn theo ngày thành công', toast)
+            // Refresh schedule details after update
+            const res = await scheduleService.getScheduleById(scheduleId)
+            setScheduleDetail(res.data)
+            await load()
+            await loadAllSchedules()
+            // Close modal if it was open
+            if (customDate) {
+                setShowUpdateStageModal(false)
+                setCustomToday('')
+            }
+        } catch (e) {
+            toast({
+                title: 'Cập nhật giai đoạn thất bại',
+                description: (e as Error).message,
+                variant: 'destructive'
+            })
+        } finally {
+            setActionLoading({ [`update-today-${scheduleId}`]: false })
+        }
+    }
+
+    const handleUpdateStageByDate = () => {
+        if (!customToday) {
+            toast({
+                title: 'Vui lòng chọn ngày',
+                description: 'Bạn cần chọn một ngày để cập nhật giai đoạn.',
+                variant: 'destructive',
+            })
+            return
+        }
+        handleUpdateToday(customToday)
     }
 
     const handleEdit = (schedule: ScheduleListItem) => {
@@ -920,8 +962,29 @@ export function BackendScheduleList({
             {/* Detail View Modal */}
             <Dialog open={showDetail} onOpenChange={setShowDetail}>
                 <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
-                    <DialogHeader>
+                    <DialogHeader className="flex flex-row items-center justify-between gap-4 pr-8">
                         <DialogTitle>Chi tiết lịch tưới</DialogTitle>
+                        {scheduleDetail?.scheduleId && (
+                            <div className="flex items-center gap-2">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setShowUpdateStageModal(true)}
+                                    className="flex items-center gap-2"
+                                >
+                                    Cập nhật giai đoạn theo ngày
+                                </Button>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleUpdateToday()}
+                                    disabled={actionLoading[`update-today-${scheduleDetail.scheduleId}`]}
+                                    className="flex items-center gap-2"
+                                >
+                                    Đồng bộ giai đoạn
+                                </Button>
+                            </div>
+                        )}
                     </DialogHeader>
                     {scheduleDetail && (
                         <div className="space-y-6">
@@ -1036,7 +1099,6 @@ export function BackendScheduleList({
                 <DialogContent className="sm:max-w-2xl">
                     <DialogHeader>
                         <DialogTitle>Chỉnh sửa lịch tưới</DialogTitle>
-                        <DialogDescription>Cập nhật thông tin lịch tưới.</DialogDescription>
                     </DialogHeader>
                     <form onSubmit={handleUpdateSchedule}>
                         <fieldset className="grid grid-cols-2 md:grid-cols-3 gap-3" disabled={editLoading}>
@@ -1261,6 +1323,56 @@ export function BackendScheduleList({
                                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                             )}
                             Phân công
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Update Stage by Date Modal */}
+            <Dialog open={showUpdateStageModal} onOpenChange={setShowUpdateStageModal}>
+                <DialogContent className="max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="text-xl font-semibold text-gray-900">
+                            Cập nhật giai đoạn theo ngày
+                        </DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 mt-4">
+                        <div>
+                            <Input
+                                id="customToday"
+                                type="date"
+                                value={customToday}
+                                onChange={(e) => setCustomToday(e.target.value)}
+                                min={scheduleDetail?.startDate ? new Date(scheduleDetail.startDate).toISOString().split('T')[0] : undefined}
+                                max={scheduleDetail?.endDate ? new Date(scheduleDetail.endDate).toISOString().split('T')[0] : undefined}
+                                className="mt-2"
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter className="mt-6">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => {
+                                setShowUpdateStageModal(false)
+                                setCustomToday('')
+                            }}
+                        >
+                            Hủy
+                        </Button>
+                        <Button
+                            onClick={handleUpdateStageByDate}
+                            disabled={!customToday || actionLoading[`update-today-${scheduleDetail?.scheduleId}`]}
+                            className="bg-green-600 hover:bg-green-700"
+                        >
+                            {actionLoading[`update-today-${scheduleDetail?.scheduleId}`] ? (
+                                <>
+                                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                    Đang cập nhật...
+                                </>
+                            ) : (
+                                'Cập nhật giai đoạn'
+                            )}
                         </Button>
                     </DialogFooter>
                 </DialogContent>

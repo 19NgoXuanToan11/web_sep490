@@ -354,7 +354,7 @@ export default function CategoriesPage() {
                   columns={[
                     {
                       id: 'name',
-                      header: 'Tên danh mục',
+                      header: 'Danh mục',
                       render: (category) => (
                         <div className="font-medium">{category.categoryName}</div>
                       ),

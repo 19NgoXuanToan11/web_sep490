@@ -683,7 +683,7 @@ export default function FarmActivitiesPage() {
                   columns={[
                     {
                       id: 'activityType',
-                      header: 'Loại hoạt động',
+                      header: 'Hoạt động',
                       render: (activity: FarmActivity) => (
                         <div className="font-medium">{getActivityTypeLabel(activity.activityType)}</div>
                       ),
@@ -730,7 +730,7 @@ export default function FarmActivitiesPage() {
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-sm text-gray-600">Loại hoạt động</Label>
+                  <Label className="text-sm text-gray-600">Hoạt động</Label>
                   <p className="mt-1 text-base font-semibold text-gray-900">
                     {getActivityTypeLabel(selectedActivityForDetails.activityType)}
                   </p>

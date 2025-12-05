@@ -151,4 +151,11 @@ export const scheduleService = {
     const res = await http.get<BasicResponse<ScheduleListItem[]>>(url)
     return res.data
   },
+
+  async updateToday(scheduleId: number, customToday?: string): Promise<BasicResponse> {
+    const url = `/v1/Schedule/update-today/${scheduleId}`
+    const payload = customToday ? { customToday } : undefined
+    const res = await http.put<BasicResponse>(url, payload)
+    return res.data
+  },
 }

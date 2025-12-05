@@ -36,6 +36,7 @@ import {
   type CreateCropWithProductRequest,
   type PaginatedCrops,
   type CropResponse,
+  type CropRequirement,
 } from '@/shared/api/cropService'
 import { categoryService, type Category } from '@/shared/api/categoryService'
 import { uploadImageToCloudinary, CloudinaryUploadError } from '@/shared/lib/cloudinary'
@@ -67,6 +68,18 @@ const isActiveStatus = (status: string | undefined | null): boolean => {
   if (!status) return false
   const normalized = status.toUpperCase()
   return normalized === 'ACTIVE'
+}
+
+// Helper function to translate plant stage to Vietnamese
+const translatePlantStage = (stage: string | null | undefined): string => {
+  if (!stage) return ''
+  const stageMap: Record<string, string> = {
+    'Germination': 'Nảy mầm',
+    'Seedling': 'Cây con',
+    'Vegetative': 'Sinh trưởng',
+    'Harvest': 'Thu hoạch',
+  }
+  return stageMap[stage] || stage
 }
 
 // Component riêng cho Action Menu để tránh re-render issues
@@ -612,6 +625,90 @@ export default function CropManagementPage() {
                     ? 'Không có cây trồng nào phù hợp với điều kiện lọc hiện tại.'
                     : 'Hãy tạo cây trồng đầu tiên.'
                 }
+                canExpand={(crop) => {
+                  return !!(crop.cropRequirement && crop.cropRequirement.length > 0)
+                }}
+                renderExpandedContent={(crop) => {
+                  if (!crop.cropRequirement || crop.cropRequirement.length === 0) {
+                    return null
+                  }
+
+                  return (
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <h4 className="text-lg font-semibold text-gray-900">
+                          Yêu cầu cây trồng ({crop.cropRequirement.length})
+                        </h4>
+                      </div>
+                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                        {crop.cropRequirement.map((requirement: CropRequirement) => (
+                          <Card key={requirement.cropRequirementId} className="border-l-4 border-l-green-500">
+                            <CardContent className="p-4">
+                              <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                  <Badge variant="outline" className="font-semibold">
+                                    {translatePlantStage(requirement.plantStage)}
+                                  </Badge>
+                                  {requirement.estimatedDate && (
+                                    <div className="flex items-center gap-1 text-sm text-gray-600">
+                                      <span>Ước tính: {requirement.estimatedDate} ngày</span>
+                                    </div>
+                                  )}
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-2 text-sm">
+                                  {requirement.temperature !== undefined && requirement.temperature !== null && (
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-gray-600">Nhiệt độ:</span>
+                                      <span className="font-medium">{requirement.temperature}°C</span>
+                                    </div>
+                                  )}
+
+                                  {requirement.moisture !== undefined && requirement.moisture !== null && (
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-gray-600">Độ ẩm:</span>
+                                      <span className="font-medium">{requirement.moisture}</span>
+                                    </div>
+                                  )}
+
+                                  {requirement.lightRequirement !== undefined && requirement.lightRequirement !== null && (
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-gray-600">Ánh sáng:</span>
+                                      <span className="font-medium">{requirement.lightRequirement}</span>
+                                    </div>
+                                  )}
+
+                                  {requirement.wateringFrequency && (
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-gray-600">Tưới nước:</span>
+                                      <span className="font-medium">{requirement.wateringFrequency}</span>
+                                    </div>
+                                  )}
+                                </div>
+
+                                {requirement.fertilizer && (
+                                  <div className="pt-2 border-t">
+                                    <p className="text-sm text-gray-600">
+                                      <span className="font-medium">Phân bón:</span> {requirement.fertilizer}
+                                    </p>
+                                  </div>
+                                )}
+
+                                {requirement.notes && (
+                                  <div className="pt-2 border-t">
+                                    <p className="text-sm text-gray-600 italic">
+                                      <span className="font-medium">Ghi chú:</span> {requirement.notes}
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                }}
                 columns={[
                   {
                     id: 'cropName',

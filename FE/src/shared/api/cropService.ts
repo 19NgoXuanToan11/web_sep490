@@ -1,5 +1,19 @@
 import { http } from './client'
 
+// Crop requirement as returned in the GET /api/v1/crop/get-all response
+export interface CropRequirement {
+  cropRequirementId: number
+  cropId: number
+  plantStage: string
+  estimatedDate: number
+  moisture: number
+  temperature: number
+  fertilizer: string
+  lightRequirement: number
+  wateringFrequency: string
+  notes?: string
+}
+
 // View model returned from the backend crop endpoints
 export interface Crop {
   cropId: number
@@ -7,6 +21,7 @@ export interface Crop {
   description: string
   status: string
   origin?: string
+  cropRequirement?: CropRequirement[]
 }
 
 // Payload sent inside request1 when creating or updating a crop

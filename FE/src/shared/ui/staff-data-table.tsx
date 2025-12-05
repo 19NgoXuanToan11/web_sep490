@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './table'
-import { Package } from 'lucide-react'
+import { Package, ChevronDown, ChevronRight } from 'lucide-react'
 import { cn } from '@/shared/lib/utils'
 import { Pagination } from './pagination'
 
@@ -38,6 +38,10 @@ export interface StaffDataTableProps<T> {
     emptyTitle?: string
     /** Mô tả khi không có dữ liệu */
     emptyDescription?: string
+    /** Hàm render nội dung mở rộng cho mỗi dòng */
+    renderExpandedContent?: (item: T, index: number, ordinal: number) => React.ReactNode
+    /** Hàm kiểm tra xem dòng có thể mở rộng không */
+    canExpand?: (item: T) => boolean
 }
 
 export function StaffDataTable<T>({
@@ -51,8 +55,11 @@ export function StaffDataTable<T>({
     className,
     emptyTitle = 'Không có dữ liệu',
     emptyDescription = 'Không có bản ghi nào để hiển thị.',
+    renderExpandedContent,
+    canExpand,
 }: StaffDataTableProps<T>) {
     const ordinalBase = React.useMemo(() => (currentPage - 1) * pageSize, [currentPage, pageSize])
+    const [expandedRows, setExpandedRows] = React.useState<Set<React.Key>>(new Set())
 
     const handlePageChange = (page: number) => {
         if (!onPageChange) return
@@ -60,12 +67,29 @@ export function StaffDataTable<T>({
         onPageChange(page)
     }
 
+    const toggleRow = (key: React.Key) => {
+        setExpandedRows(prev => {
+            const next = new Set(prev)
+            if (next.has(key)) {
+                next.delete(key)
+            } else {
+                next.add(key)
+            }
+            return next
+        })
+    }
+
+    const isRowExpanded = (key: React.Key) => expandedRows.has(key)
+
     return (
         <div className={cn(className)}>
             <div className="border rounded-lg overflow-hidden mt-4">
                 <Table>
                     <TableHeader>
                         <TableRow className="bg-gray-50">
+                            {renderExpandedContent && (
+                                <TableHead className="w-12"></TableHead>
+                            )}
                             <TableHead className="w-16 text-center">STT</TableHead>
                             {columns.map(column => (
                                 <TableHead key={column.id} className={cn('font-semibold', column.headerClassName)}>
@@ -77,15 +101,47 @@ export function StaffDataTable<T>({
                     <TableBody>
                         {data.map((item, index) => {
                             const ordinal = ordinalBase + index + 1
+                            const rowKey = getRowKey(item, index)
+                            const isExpandable = canExpand ? canExpand(item) : false
+                            const isExpanded = isRowExpanded(rowKey)
+
                             return (
-                                <TableRow key={getRowKey(item, index)} className="hover:bg-gray-50">
-                                    <TableCell className="text-center">{ordinal}</TableCell>
-                                    {columns.map(column => (
-                                        <TableCell key={column.id} className={column.cellClassName}>
-                                            {column.render(item, index, ordinal)}
-                                        </TableCell>
-                                    ))}
-                                </TableRow>
+                                <React.Fragment key={rowKey}>
+                                    <TableRow className="hover:bg-gray-50">
+                                        {renderExpandedContent && (
+                                            <TableCell className="w-12">
+                                                {isExpandable ? (
+                                                    <button
+                                                        onClick={() => toggleRow(rowKey)}
+                                                        className="p-1 hover:bg-gray-200 rounded transition-colors"
+                                                        aria-label={isExpanded ? 'Thu gọn' : 'Mở rộng'}
+                                                    >
+                                                        {isExpanded ? (
+                                                            <ChevronDown className="h-4 w-4 text-gray-600" />
+                                                        ) : (
+                                                            <ChevronRight className="h-4 w-4 text-gray-600" />
+                                                        )}
+                                                    </button>
+                                                ) : null}
+                                            </TableCell>
+                                        )}
+                                        <TableCell className="text-center">{ordinal}</TableCell>
+                                        {columns.map(column => (
+                                            <TableCell key={column.id} className={column.cellClassName}>
+                                                {column.render(item, index, ordinal)}
+                                            </TableCell>
+                                        ))}
+                                    </TableRow>
+                                    {isExpandable && isExpanded && renderExpandedContent && (
+                                        <TableRow>
+                                            <TableCell colSpan={columns.length + 2} className="p-0 bg-gray-50">
+                                                <div className="p-4">
+                                                    {renderExpandedContent(item, index, ordinal)}
+                                                </div>
+                                            </TableCell>
+                                        </TableRow>
+                                    )}
+                                </React.Fragment>
                             )
                         })}
                     </TableBody>

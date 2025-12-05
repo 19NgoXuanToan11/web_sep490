@@ -30,6 +30,7 @@ const StaffDashboard = React.lazy(() => import('@/pages/staff/dashboard'))
 const StaffProductsPage = React.lazy(() => import('@/pages/staff/products'))
 const StaffOrdersPage = React.lazy(() => import('@/pages/staff/orders'))
 const StaffFeedbacksPage = React.lazy(() => import('@/pages/staff/feedbacks'))
+const StaffSchedulesPage = React.lazy(() => import('@/pages/staff/schedules'))
 
 const ProfilePage = React.lazy(() => import('@/pages/profile'))
 const PaymentResultPage = React.lazy(() => import('@/pages/payment/PaymentResultPage'))
@@ -250,6 +251,16 @@ const routerConfig = [
       <LazyWrapper>
         <RoleGuard allowed={['Staff']}>
           <StaffFeedbacksPage />
+        </RoleGuard>
+      </LazyWrapper>
+    ),
+  },
+  {
+    path: '/staff/schedules',
+    element: (
+      <LazyWrapper>
+        <RoleGuard allowed={['Staff']}>
+          <StaffSchedulesPage />
         </RoleGuard>
       </LazyWrapper>
     ),

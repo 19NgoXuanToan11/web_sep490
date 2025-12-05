@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Cpu, Menu, X, ChevronRight, Home, Package, ShoppingCart, MessageSquare, BarChart3 } from 'lucide-react'
+import { Cpu, Menu, X, ChevronRight, Home, Package, ShoppingCart, MessageSquare, BarChart3, Calendar } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import LogoutButton from '@/shared/ui/LogoutButton'
 import { Badge } from '@/shared/ui/badge'
@@ -44,6 +44,12 @@ const navigationItems: NavItem[] = [
     href: '/staff/feedbacks',
     icon: MessageSquare,
     description: 'Xem & quản lý đánh giá khách hàng',
+  },
+  {
+    name: 'Lịch làm việc',
+    href: '/staff/schedules',
+    icon: Calendar,
+    description: 'Xem & quản lý lịch làm việc',
   },
 ]
 

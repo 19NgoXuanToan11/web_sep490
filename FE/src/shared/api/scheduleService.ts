@@ -144,8 +144,11 @@ export const scheduleService = {
     return res.data
   },
 
-  async getSchedulesByStaff(): Promise<BasicResponse<ScheduleListItem[]>> {
-    const res = await http.get<BasicResponse<ScheduleListItem[]>>(`/v1/Schedule/schedule-by-staff`)
+  async getSchedulesByStaff(month?: number): Promise<BasicResponse<ScheduleListItem[]>> {
+    const url = month
+      ? `/v1/Schedule/schedule-by-staff?month=${month}`
+      : `/v1/Schedule/schedule-by-staff`
+    const res = await http.get<BasicResponse<ScheduleListItem[]>>(url)
     return res.data
   },
 }

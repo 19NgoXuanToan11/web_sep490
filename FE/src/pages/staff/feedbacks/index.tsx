@@ -69,17 +69,42 @@ const StaffFeedbacksPage: React.FC = () => {
                 pageSize,
             })
 
+            const items = response.items || []
             const totalItemsCount = response.totalItemCount || 0
-            const maxPage = Math.max(1, Math.ceil(totalItemsCount / pageSize))
+            const actualItemCount = items.length
+            const requestedPage = response.pageIndex || page
+
+            // Validate totalItemCount: Nếu đang ở trang 1 và items.length < pageSize,
+            // thì có nghĩa là không còn trang nào nữa, nên totalItems = items.length
+            // Điều này ngăn chặn việc hiển thị trang 2 khi không có đủ dữ liệu
+            let validatedTotalItems = totalItemsCount
+            if (requestedPage === 1 && actualItemCount < pageSize) {
+                // Trang 1 có ít hơn pageSize items => chỉ có 1 trang
+                validatedTotalItems = actualItemCount
+            } else if (totalItemsCount > 0) {
+                // Sử dụng totalItemCount từ API
+                validatedTotalItems = totalItemsCount
+            } else {
+                // Fallback về số items thực tế nếu không có totalItemCount
+                validatedTotalItems = actualItemCount
+            }
+
+            // Calculate maxPage using standard formula: ⌈Total Items / Page Size⌉
+            // Strictly follow the formula: ⌈validatedTotalItems / pageSize⌉
+            // If validatedTotalItems = 0, then maxPage = 0 (no pages)
+            const maxPage = validatedTotalItems > 0 ? Math.ceil(validatedTotalItems / pageSize) : 0
 
             // Đảm bảo page hợp lệ: nếu page > maxPage hoặc page < 1, reset về 1
             let validPage = response.pageIndex || page
-            if (validPage > maxPage || validPage < 1) {
+            if (maxPage === 0) {
+                // No items, always use page 1
+                validPage = 1
+            } else if (validPage > maxPage || validPage < 1) {
                 validPage = 1
             }
 
-            setFeedbacks(response.items || [])
-            setTotalItems(totalItemsCount)
+            setFeedbacks(items)
+            setTotalItems(validatedTotalItems)
             setCurrentPage(validPage)
         } catch (error) {
             toast({
@@ -97,13 +122,23 @@ const StaffFeedbacksPage: React.FC = () => {
     }, [fetchFeedbacks, currentPage])
 
     // Đảm bảo currentPage hợp lệ khi totalItems thay đổi
+    // Calculate totalPages using standard formula: ⌈Total Items / Page Size⌉
     useEffect(() => {
-        if (totalItems === 0) return
-        const maxPage = Math.max(1, Math.ceil(totalItems / pageSize))
-        if (currentPage > maxPage) {
-            setCurrentPage(1)
-        }
-    }, [totalItems, pageSize, currentPage])
+        // Use functional update to avoid dependency on currentPage
+        setCurrentPage(prevPage => {
+            if (totalItems === 0) {
+                // No items, always use page 1
+                return 1
+            }
+            // Calculate totalPages using standard formula: ⌈Total Items / Page Size⌉
+            const calculatedTotalPages = totalItems > 0 ? Math.ceil(totalItems / pageSize) : 0
+            // If current page is out of bounds, reset to page 1
+            if (prevPage > calculatedTotalPages || prevPage < 1) {
+                return 1
+            }
+            return prevPage
+        })
+    }, [totalItems, pageSize])
 
     const handleRefresh = async () => {
         setIsRefreshing(true)
@@ -203,7 +238,10 @@ const StaffFeedbacksPage: React.FC = () => {
     }
 
     const stats = {
-        total: totalItems,
+        // Hiển thị số items thực tế đang được load từ API response
+        // Vì backend có thể trả về totalItemCount không khớp với số items thực tế
+        // Nếu muốn hiển thị tổng số trong DB, dùng totalItems; nếu muốn hiển thị số items đang load, dùng feedbacks.length
+        total: feedbacks.length,
         active: feedbacks.filter(f => f.status === 'ACTIVE').length,
         inactive: feedbacks.filter(f => f.status === 'DEACTIVATED').length,
         avgRating: feedbacks.length > 0
@@ -211,7 +249,16 @@ const StaffFeedbacksPage: React.FC = () => {
             : '0.0',
     }
 
-    const totalPages = Math.ceil(totalItems / pageSize)
+    // Calculate totalPages using standard formula: ⌈Total Items / Page Size⌉
+    // Strictly follow the formula: if totalItems = 0, then totalPages = 0
+    // If totalItems > 0, then totalPages = ⌈totalItems / pageSize⌉
+    // Additional validation: Nếu đang ở trang 1 và feedbacks.length < pageSize,
+    // thì chỉ có 1 trang (ngăn chặn hiển thị trang 2 khi không có đủ dữ liệu)
+    let totalPages = totalItems > 0 ? Math.ceil(totalItems / pageSize) : 0
+    if (currentPage === 1 && feedbacks.length > 0 && feedbacks.length < pageSize) {
+        // Trang 1 có ít hơn pageSize items => chỉ có 1 trang
+        totalPages = 1
+    }
 
     return (
         <StaffLayout>
@@ -342,7 +389,24 @@ const StaffFeedbacksPage: React.FC = () => {
                                     currentPage={currentPage}
                                     pageSize={pageSize}
                                     totalPages={totalPages}
-                                    onPageChange={page => setCurrentPage(page)}
+                                    onPageChange={page => {
+                                        // Validate page number before changing
+                                        // Prevent navigation if no pages exist
+                                        if (totalPages === 0 || totalPages < 1) {
+                                            return
+                                        }
+                                        // Clamp page to valid range [1, totalPages]
+                                        const validPage = Math.max(1, Math.min(page, totalPages))
+                                        // Additional check: Nếu đang ở trang 1 và feedbacks.length < pageSize,
+                                        // thì không cho phép chuyển sang trang khác
+                                        if (currentPage === 1 && feedbacks.length < pageSize && page > 1) {
+                                            return
+                                        }
+                                        // Only update if page is valid and different from current
+                                        if (validPage >= 1 && validPage <= totalPages && validPage !== currentPage) {
+                                            setCurrentPage(validPage)
+                                        }
+                                    }}
                                     emptyTitle="Không có đánh giá"
                                     emptyDescription="Không tìm thấy đánh giá nào phù hợp điều kiện lọc."
                                     columns={[

@@ -12,7 +12,6 @@ import {
   DollarSign,
   Star,
   Package,
-  TrendingUp,
   Clock,
   CheckCircle,
   Truck,
@@ -55,7 +54,6 @@ import {
 import {
   CropGrowthStagesWidget,
   EnvironmentalMetricsWidget,
-  CropPlanningStatusWidget,
 } from '@/shared/components/manager'
 
 const WEATHER_DESCRIPTION_MAP: Record<string, string> = {
@@ -494,29 +492,25 @@ export default function ManagerDashboard() {
     }
   }
 
-  const getStatusBadge = (status: number) => {
-    const variant = getOrderStatusVariant(status)
-    const label = getOrderStatusLabel(status)
+  const getStatusBadge = (status: number, paymentStatus?: string) => {
+    // Nếu thanh toán thất bại, hiển thị "Thất bại" thay vì "Đang chuẩn bị"
+    let label = getOrderStatusLabel(status)
+    let variant = getOrderStatusVariant(status)
 
-    return (
-      <Badge variant={variant} className="flex items-center gap-1">
-        {getStatusIcon(status)}
-        {label}
-      </Badge>
-    )
+    if (paymentStatus === 'failed' && status === 2) {
+      label = 'Thất bại'
+      variant = 'destructive'
+    }
+
+    return <Badge variant={variant}>{label}</Badge>
   }
 
   const getDisplayStatusBadge = (order: Order) => {
+    // Luôn hiển thị trạng thái ĐƠN HÀNG (Đang giao, Đã xác nhận, Hoàn thành...)
+    // Trạng thái thanh toán đã có cột riêng "Thanh toán"
+    // Nhưng nếu thanh toán thất bại, hiển thị "Thất bại" thay vì "Đang chuẩn bị"
     const paymentStatus = mapPaymentStatus(order.status ?? 0)
-    if (paymentStatus === 'failed' || paymentStatus === 'pending') {
-      return (
-        <Badge variant="secondary" className="flex items-center gap-1">
-          {getStatusIcon(0)}
-          Chưa thanh toán
-        </Badge>
-      )
-    }
-    return getStatusBadge(order.status ?? 0)
+    return getStatusBadge(order.status ?? 0, paymentStatus)
   }
 
   // Use centralized date formatting utility
@@ -637,7 +631,6 @@ export default function ManagerDashboard() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-                <BarChart3 className="h-8 w-8 text-green-600" />
                 Bảng điều khiển quản lý nông trại
               </h1>
               <p className="mt-2 text-gray-600">
@@ -678,7 +671,6 @@ export default function ManagerDashboard() {
         {/* Section 1: Key Performance Indicators - Farm Operations */}
         <div className="mb-8">
           <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <Cpu className="h-5 w-5 text-green-600" />
             Hoạt động nông trại
           </h2>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
@@ -692,18 +684,16 @@ export default function ManagerDashboard() {
         <div className="mb-8">
           <div className="mb-6">
             <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-              <Sprout className="h-6 w-6 text-green-600" />
               Theo dõi cây trồng
             </h2>
             <p className="text-gray-600 mt-1">
-              Phân tích chi tiết về giai đoạn tăng trưởng, chỉ số môi trường và tình trạng kế hoạch
+              Phân tích chi tiết về giai đoạn tăng trưởng và chỉ số môi trường
             </p>
           </div>
 
-          {/* First Row: Growth Stages and Planning Status */}
-          <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2 mb-6">
+          {/* First Row: Growth Stages */}
+          <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-1 mb-6">
             <CropGrowthStagesWidget requirements={cropRequirements} />
-            <CropPlanningStatusWidget requirements={cropRequirements} />
           </div>
 
           {/* Second Row: Environmental Metrics - Full Width */}
@@ -722,7 +712,6 @@ export default function ManagerDashboard() {
         {/* Section 3: Business Analytics */}
         <div className="mb-8">
           <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <DollarSign className="h-5 w-5 text-green-600" />
             Phân tích kinh doanh
           </h2>
 
@@ -738,7 +727,6 @@ export default function ManagerDashboard() {
             <Card className="border-0 shadow-lg">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-green-600" />
                   Doanh thu {timeRange === 'week' ? 'theo ngày' : 'theo tuần'}
                 </CardTitle>
               </CardHeader>
@@ -764,7 +752,6 @@ export default function ManagerDashboard() {
             <Card className="border-0 shadow-lg">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <ShoppingCart className="h-5 w-5 text-green-600" />
                   Trạng thái đơn hàng
                 </CardTitle>
               </CardHeader>
@@ -811,7 +798,6 @@ export default function ManagerDashboard() {
         {/* Section 4: Customer Insights & Recent Activity */}
         <div className="mb-8">
           <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            <Star className="h-5 w-5 text-green-600" />
             Thông tin khách hàng & Hoạt động gần đây
           </h2>
 
@@ -822,7 +808,6 @@ export default function ManagerDashboard() {
                 <Card className="border-0 shadow-lg">
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <Star className="h-5 w-5 text-orange-500" />
                       Phân bố đánh giá
                     </CardTitle>
                   </CardHeader>
@@ -843,50 +828,52 @@ export default function ManagerDashboard() {
                   <CardHeader className="border-b border-gray-100">
                     <div className="flex items-center justify-between">
                       <CardTitle className="flex items-center gap-2">
-                        <Clock className="h-5 w-5 text-green-600" />
-                        Đơn hàng gần đây
+                        Đánh giá gần đây
                       </CardTitle>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => navigate('/manager/orders')}
-                        className="border-green-200 text-green-700 hover:bg-green-50"
-                      >
-                        Xem tất cả
-                      </Button>
                     </div>
                   </CardHeader>
                   <CardContent className="p-0">
                     <div className="space-y-1 max-h-80 overflow-y-auto">
-                      {recentOrdersSorted.length > 0 ? (
-                        recentOrdersSorted.map((order) => (
-                          <div
-                            key={order.orderId}
-                            className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors cursor-pointer"
-                            onClick={() => navigate('/manager/orders')}
-                          >
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-gray-900 truncate">
-                                Đơn hàng #{String(order.orderId ?? '').slice(0, 8)}
+                      {feedbacks.slice(0, 5).map((feedback) => (
+                        <div
+                          key={feedback.feedbackId}
+                          className="p-4 hover:bg-gray-50 transition-colors"
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="text-sm font-medium text-gray-900">
+                                  {feedback.fullName}
+                                </span>
+                                <div className="flex items-center">
+                                  {Array.from({ length: 5 }).map((_, i) => (
+                                    <Star
+                                      key={i}
+                                      className={`h-3 w-3 ${i < feedback.rating
+                                        ? 'text-orange-500 fill-orange-500'
+                                        : 'text-gray-300'
+                                        }`}
+                                    />
+                                  ))}
+                                </div>
+                              </div>
+                              <p className="text-sm text-gray-600 mb-1">
+                                {feedback.comment || 'Không có bình luận'}
                               </p>
                               <p className="text-xs text-gray-500">
-                                {order.createdAt
-                                  ? formatDateOnly(order.createdAt)
-                                  : 'Không xác định'}
+                                Sản phẩm: {feedback.orderDetail?.productName || 'N/A'}
                               </p>
                             </div>
-                            <div className="flex items-center gap-3">
-                              <span className="text-sm font-semibold text-gray-900">
-                                {(order.totalPrice ?? 0).toLocaleString('vi-VN')} đ
-                              </span>
-                              {getDisplayStatusBadge(order)}
-                            </div>
+                            <span className="text-xs text-gray-400">
+                              {formatDate(feedback.createdAt)}
+                            </span>
                           </div>
-                        ))
-                      ) : (
+                        </div>
+                      ))}
+                      {feedbacks.length === 0 && (
                         <div className="text-center py-8 text-gray-500">
-                          <ShoppingCart className="h-12 w-12 mx-auto mb-2 text-gray-400" />
-                          <p>Chưa có đơn hàng nào</p>
+                          <Star className="h-12 w-12 mx-auto mb-2 text-gray-400" />
+                          <p>Chưa có đánh giá nào</p>
                         </div>
                       )}
                     </div>
@@ -900,18 +887,8 @@ export default function ManagerDashboard() {
                 <CardHeader className="border-b">
                   <div className="flex items-center justify-between">
                     <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                      <Cloud className="h-5 w-5 text-green-600" />
                       Thời tiết
                     </CardTitle>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={fetchWeather}
-                      disabled={isLoadingWeather}
-                      className="hover:bg-green-100"
-                    >
-                      {isLoadingWeather ? '...' : '🔄'}
-                    </Button>
                   </div>
                 </CardHeader>
                 <CardContent className="p-6">
@@ -1017,7 +994,6 @@ export default function ManagerDashboard() {
                     </div>
                   ) : (
                     <div className="text-center py-8">
-                      <Cloud className="h-12 w-12 text-gray-400 mx-auto mb-2" />
                       <p className="text-sm text-gray-500">Không thể tải dữ liệu thời tiết</p>
                       <Button variant="outline" size="sm" onClick={fetchWeather} className="mt-3">
                         Thử lại
@@ -1031,53 +1007,49 @@ export default function ManagerDashboard() {
                 <CardHeader className="border-b border-gray-100">
                   <div className="flex items-center justify-between">
                     <CardTitle className="flex items-center gap-2">
-                      <Star className="h-5 w-5 text-orange-500" />
-                      Đánh giá gần đây
+                      Đơn hàng gần đây
                     </CardTitle>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigate('/manager/orders')}
+                      className="border-green-200 text-green-700 hover:bg-green-50"
+                    >
+                      Xem tất cả
+                    </Button>
                   </div>
                 </CardHeader>
                 <CardContent className="p-0">
                   <div className="space-y-1 max-h-80 overflow-y-auto">
-                    {feedbacks.slice(0, 5).map((feedback) => (
-                      <div
-                        key={feedback.feedbackId}
-                        className="p-4 hover:bg-gray-50 transition-colors"
-                      >
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className="text-sm font-medium text-gray-900">
-                                {feedback.fullName}
-                              </span>
-                              <div className="flex items-center">
-                                {Array.from({ length: 5 }).map((_, i) => (
-                                  <Star
-                                    key={i}
-                                    className={`h-3 w-3 ${i < feedback.rating
-                                      ? 'text-orange-500 fill-orange-500'
-                                      : 'text-gray-300'
-                                      }`}
-                                  />
-                                ))}
-                              </div>
-                            </div>
-                            <p className="text-sm text-gray-600 mb-1">
-                              {feedback.comment || 'Không có bình luận'}
+                    {recentOrdersSorted.length > 0 ? (
+                      recentOrdersSorted.map((order) => (
+                        <div
+                          key={order.orderId}
+                          className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors cursor-pointer"
+                          onClick={() => navigate('/manager/orders')}
+                        >
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900 truncate">
+                              Đơn hàng #{String(order.orderId ?? '').slice(0, 8)}
                             </p>
                             <p className="text-xs text-gray-500">
-                              Sản phẩm: {feedback.orderDetail?.productName || 'N/A'}
+                              {order.createdAt
+                                ? formatDateOnly(order.createdAt)
+                                : 'Không xác định'}
                             </p>
                           </div>
-                          <span className="text-xs text-gray-400">
-                            {formatDate(feedback.createdAt)}
-                          </span>
+                          <div className="flex items-center gap-3">
+                            <span className="text-sm font-semibold text-gray-900">
+                              {(order.totalPrice ?? 0).toLocaleString('vi-VN')} đ
+                            </span>
+                            {getDisplayStatusBadge(order)}
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                    {feedbacks.length === 0 && (
+                      ))
+                    ) : (
                       <div className="text-center py-8 text-gray-500">
-                        <Star className="h-12 w-12 mx-auto mb-2 text-gray-400" />
-                        <p>Chưa có đánh giá nào</p>
+                        <ShoppingCart className="h-12 w-12 mx-auto mb-2 text-gray-400" />
+                        <p>Chưa có đơn hàng nào</p>
                       </div>
                     )}
                   </div>

@@ -10,7 +10,6 @@ import {
 import { categoryService, type Category } from '@/shared/api/categoryService'
 
 interface ProductState {
-
   products: Product[]
   categories: Category[]
   selectedProduct: Product | null
@@ -57,7 +56,6 @@ interface ProductState {
 }
 
 export const useProductStore = create<ProductState>((set, get) => ({
-
   products: [],
   categories: [],
   selectedProduct: null,
@@ -82,14 +80,41 @@ export const useProductStore = create<ProductState>((set, get) => ({
     set({ isLoading: true })
     try {
       const { currentPage, pageSize, filters } = get()
-      const requestFilter: ProductFilter = {
+      const mergedFilters = {
         ...filters,
         ...filter,
         page: filter?.page || currentPage,
         pageSize: filter?.pageSize || pageSize,
       }
 
-      const response: ProductListResponse = await productService.getProductsList(requestFilter)
+      // Convert ProductFilter to product-filter API format
+      const apiFilter: {
+        pageIndex?: number
+        pageSize?: number
+        status?: 'ACTIVE' | 'DEACTIVATED'
+        categoryId?: number
+        sortByStockAsc?: boolean
+      } = {
+        pageIndex: mergedFilters.page ? mergedFilters.page - 1 : 0,
+        pageSize: mergedFilters.pageSize || pageSize,
+        sortByStockAsc: true,
+      }
+
+      // Map status: 'Active' -> 'ACTIVE', 'Inactive' -> 'DEACTIVATED'
+      if (mergedFilters.status) {
+        if (mergedFilters.status === 'Active' || mergedFilters.status === 'ACTIVE') {
+          apiFilter.status = 'ACTIVE'
+        } else if (mergedFilters.status === 'Inactive' || mergedFilters.status === 'DEACTIVATED') {
+          apiFilter.status = 'DEACTIVATED'
+        }
+      }
+
+      if (mergedFilters.categoryId) {
+        apiFilter.categoryId = mergedFilters.categoryId
+      }
+
+      // Use product-filter API for staff product management
+      const response: ProductListResponse = await productService.getProductFilter(apiFilter)
 
       set({
         products: response.products || [],
@@ -243,11 +268,8 @@ export const useProductStore = create<ProductState>((set, get) => ({
         .then(results => {
           set({ products: results || [], totalCount: (results || []).length })
         })
-        .catch(() => {
-
-        })
+        .catch(() => {})
     } else if (query.length === 0) {
-
       get().fetchProducts()
     }
   },
@@ -291,8 +313,11 @@ export const useProductStore = create<ProductState>((set, get) => ({
   fetchAllProducts: async () => {
     set({ isLoading: true })
     try {
-      const response: ProductListResponse = await productService.getProductsList({
+      // Use product-filter API for staff product management
+      const response: ProductListResponse = await productService.getProductFilter({
+        pageIndex: 1,
         pageSize: 1000,
+        sortByStockAsc: true,
       })
 
       set({

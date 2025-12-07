@@ -73,12 +73,8 @@ export const CropGrowthStagesWidget: React.FC<CropGrowthStagesWidgetProps> = ({
             <CardHeader className="border-b border-gray-100">
                 <div className="flex items-center justify-between">
                     <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-900">
-                        <Sprout className="h-5 w-5 text-green-600" />
                         Phân bố giai đoạn tăng trưởng
                     </CardTitle>
-                    <Badge variant="outline" className="text-xs">
-                        {stageDistribution.active} / {stageDistribution.total} đang hoạt động
-                    </Badge>
                 </div>
             </CardHeader>
             <CardContent className="p-6">
@@ -124,7 +120,6 @@ export const CropGrowthStagesWidget: React.FC<CropGrowthStagesWidgetProps> = ({
                     {topStages.length > 0 && (
                         <div className="pt-4 border-t border-gray-100">
                             <div className="flex items-center gap-2 mb-3">
-                                <TrendingUp className="h-4 w-4 text-green-600" />
                                 <span className="text-sm font-semibold text-gray-700">
                                     Giai đoạn phổ biến
                                 </span>

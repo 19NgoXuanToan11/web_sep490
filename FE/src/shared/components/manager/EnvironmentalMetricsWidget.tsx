@@ -215,7 +215,6 @@ export const EnvironmentalMetricsWidget: React.FC<EnvironmentalMetricsWidgetProp
         <Card className={`border-0 shadow-lg bg-white ${className}`}>
             <CardHeader className="border-b border-gray-100">
                 <CardTitle className="flex items-center gap-2 text-lg font-semibold text-gray-900">
-                    <Thermometer className="h-5 w-5 text-green-600" />
                     Chỉ số môi trường
                 </CardTitle>
             </CardHeader>

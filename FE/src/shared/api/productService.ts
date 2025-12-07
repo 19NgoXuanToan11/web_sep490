@@ -161,6 +161,65 @@ export const productService = {
     return response.data
   },
 
+  getProductFilter: async (filter?: {
+    pageIndex?: number
+    pageSize?: number
+    status?: 'ACTIVE' | 'DEACTIVATED'
+    categoryId?: number
+    sortByStockAsc?: boolean
+  }): Promise<ProductListResponse> => {
+    const queryParams = new URLSearchParams()
+
+    // Set defaults according to API spec
+    const pageIndex = filter?.pageIndex ?? 1
+    const pageSize = filter?.pageSize ?? 10
+    const sortByStockAsc = filter?.sortByStockAsc ?? true
+
+    queryParams.append('pageIndex', pageIndex.toString())
+    queryParams.append('pageSize', pageSize.toString())
+    queryParams.append('sortByStockAsc', sortByStockAsc.toString())
+
+    if (filter?.status) {
+      queryParams.append('status', filter.status)
+    }
+
+    if (filter?.categoryId) {
+      queryParams.append('categoryId', filter.categoryId.toString())
+    }
+
+    const url = `/v1/products/product-filter${queryParams.toString() ? '?' + queryParams.toString() : ''}`
+
+    const response = await http.get<any>(url)
+
+    if (!response.data || !response.data.data) {
+      return {
+        products: [],
+        totalCount: 0,
+        page: 1,
+        pageSize: 10,
+        totalPages: 0,
+      }
+    }
+
+    const apiData = response.data.data
+
+    // Calculate totalCount: use totalItemCount if available, otherwise estimate from totalPagesCount
+    const totalItemCount = apiData?.totalItemCount
+    const totalPagesCount = apiData?.totalPagesCount || 0
+    const responsePageSize = apiData?.pageSize || pageSize
+    const calculatedTotalCount = totalItemCount || totalPagesCount * responsePageSize
+
+    const transformedResponse: ProductListResponse = {
+      products: (apiData?.items || []).map(mapApiProductToProduct),
+      totalCount: calculatedTotalCount,
+      page: (apiData?.pageIndex || 0) + 1,
+      pageSize: responsePageSize,
+      totalPages: totalPagesCount || Math.ceil(calculatedTotalCount / responsePageSize),
+    }
+
+    return transformedResponse
+  },
+
   getProductById: async (productId: number): Promise<Product> => {
     const response = await http.get<any>(`/v1/products/get-product/${productId}`)
     const apiProduct = response.data?.data ?? response.data

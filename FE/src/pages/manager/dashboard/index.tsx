@@ -801,88 +801,86 @@ export default function ManagerDashboard() {
             Thông tin khách hàng & Hoạt động gần đây
           </h2>
 
-          <div className="grid gap-8 xl:grid-cols-3">
-            <div className="xl:col-span-2 space-y-8">
-
-              <div className="grid gap-8 lg:grid-cols-2">
-                <Card className="border-0 shadow-lg">
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      Phân bố đánh giá
+          <div className="grid gap-8 xl:grid-cols-5">
+            {/* Left Column: Extended width for Recent Orders prominence */}
+            <div className="xl:col-span-3 space-y-8">
+              {/* Recent Orders - Full width for maximum prominence */}
+              <Card className="border-0 shadow-lg">
+                <CardHeader className="border-b border-gray-100">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center gap-2 text-lg">
+                      Đơn hàng gần đây
                     </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ResponsiveContainer width="100%" height={300}>
-                      <BarChart data={ratingData} layout="vertical">
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis type="number" domain={[0, 5]} />
-                        <YAxis dataKey="name" type="category" />
-                        <Tooltip />
-                        <Bar dataKey="count" fill="#F59E0B" name="Số lượng" />
-                      </BarChart>
-                    </ResponsiveContainer>
-                  </CardContent>
-                </Card>
-
-                <Card className="border-0 shadow-lg">
-                  <CardHeader className="border-b border-gray-100">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="flex items-center gap-2">
-                        Đánh giá gần đây
-                      </CardTitle>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="p-0">
-                    <div className="space-y-1 max-h-80 overflow-y-auto">
-                      {feedbacks.slice(0, 5).map((feedback) => (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => navigate('/manager/orders')}
+                      className="border-green-200 text-green-700 hover:bg-green-50"
+                    >
+                      Xem tất cả
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <div className="space-y-1 max-h-96 overflow-y-auto">
+                    {recentOrdersSorted.length > 0 ? (
+                      recentOrdersSorted.map((order) => (
                         <div
-                          key={feedback.feedbackId}
-                          className="p-4 hover:bg-gray-50 transition-colors"
+                          key={order.orderId}
+                          className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors cursor-pointer border-b border-gray-100 last:border-b-0"
+                          onClick={() => navigate('/manager/orders')}
                         >
-                          <div className="flex items-start justify-between">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className="text-sm font-medium text-gray-900">
-                                  {feedback.fullName}
-                                </span>
-                                <div className="flex items-center">
-                                  {Array.from({ length: 5 }).map((_, i) => (
-                                    <Star
-                                      key={i}
-                                      className={`h-3 w-3 ${i < feedback.rating
-                                        ? 'text-orange-500 fill-orange-500'
-                                        : 'text-gray-300'
-                                        }`}
-                                    />
-                                  ))}
-                                </div>
-                              </div>
-                              <p className="text-sm text-gray-600 mb-1">
-                                {feedback.comment || 'Không có bình luận'}
-                              </p>
-                              <p className="text-xs text-gray-500">
-                                Sản phẩm: {feedback.orderDetail?.productName || 'N/A'}
-                              </p>
-                            </div>
-                            <span className="text-xs text-gray-400">
-                              {formatDate(feedback.createdAt)}
+                          <div className="flex-1 min-w-0 mr-4">
+                            <p className="text-sm font-medium text-gray-900 truncate">
+                              Đơn hàng #{String(order.orderId ?? '').slice(0, 8)}
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              {order.createdAt
+                                ? formatDateOnly(order.createdAt)
+                                : 'Không xác định'}
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-4 flex-shrink-0">
+                            <span className="text-sm font-semibold text-gray-900 whitespace-nowrap">
+                              {(order.totalPrice ?? 0).toLocaleString('vi-VN')} đ
                             </span>
+                            {getDisplayStatusBadge(order)}
                           </div>
                         </div>
-                      ))}
-                      {feedbacks.length === 0 && (
-                        <div className="text-center py-8 text-gray-500">
-                          <Star className="h-12 w-12 mx-auto mb-2 text-gray-400" />
-                          <p>Chưa có đánh giá nào</p>
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-8 text-gray-500">
+                        <ShoppingCart className="h-12 w-12 mx-auto mb-2 text-gray-400" />
+                        <p>Chưa có đơn hàng nào</p>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Rating Distribution - Below Recent Orders */}
+              <Card className="border-0 shadow-lg">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    Phân bố đánh giá
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={ratingData} layout="vertical">
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis type="number" domain={[0, 5]} />
+                      <YAxis dataKey="name" type="category" />
+                      <Tooltip />
+                      <Bar dataKey="count" fill="#F59E0B" name="Số lượng" />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
             </div>
 
-            <div className="space-y-8">
+            {/* Right Column: Weather and Recent Reviews */}
+            <div className="xl:col-span-2 space-y-8">
               <Card className="border-0 shadow-lg overflow-hidden bg-white">
                 <CardHeader className="border-b">
                   <div className="flex items-center justify-between">
@@ -1007,49 +1005,52 @@ export default function ManagerDashboard() {
                 <CardHeader className="border-b border-gray-100">
                   <div className="flex items-center justify-between">
                     <CardTitle className="flex items-center gap-2">
-                      Đơn hàng gần đây
+                      Đánh giá gần đây
                     </CardTitle>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => navigate('/manager/orders')}
-                      className="border-green-200 text-green-700 hover:bg-green-50"
-                    >
-                      Xem tất cả
-                    </Button>
                   </div>
                 </CardHeader>
                 <CardContent className="p-0">
                   <div className="space-y-1 max-h-80 overflow-y-auto">
-                    {recentOrdersSorted.length > 0 ? (
-                      recentOrdersSorted.map((order) => (
-                        <div
-                          key={order.orderId}
-                          className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors cursor-pointer"
-                          onClick={() => navigate('/manager/orders')}
-                        >
-                          <div className="flex-1 min-w-0">
-                            <p className="text-sm font-medium text-gray-900 truncate">
-                              Đơn hàng #{String(order.orderId ?? '').slice(0, 8)}
+                    {feedbacks.slice(0, 5).map((feedback) => (
+                      <div
+                        key={feedback.feedbackId}
+                        className="p-4 hover:bg-gray-50 transition-colors"
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-sm font-medium text-gray-900">
+                                {feedback.fullName}
+                              </span>
+                              <div className="flex items-center">
+                                {Array.from({ length: 5 }).map((_, i) => (
+                                  <Star
+                                    key={i}
+                                    className={`h-3 w-3 ${i < feedback.rating
+                                      ? 'text-orange-500 fill-orange-500'
+                                      : 'text-gray-300'
+                                      }`}
+                                  />
+                                ))}
+                              </div>
+                            </div>
+                            <p className="text-sm text-gray-600 mb-1">
+                              {feedback.comment || 'Không có bình luận'}
                             </p>
                             <p className="text-xs text-gray-500">
-                              {order.createdAt
-                                ? formatDateOnly(order.createdAt)
-                                : 'Không xác định'}
+                              Sản phẩm: {feedback.orderDetail?.productName || 'N/A'}
                             </p>
                           </div>
-                          <div className="flex items-center gap-3">
-                            <span className="text-sm font-semibold text-gray-900">
-                              {(order.totalPrice ?? 0).toLocaleString('vi-VN')} đ
-                            </span>
-                            {getDisplayStatusBadge(order)}
-                          </div>
+                          <span className="text-xs text-gray-400">
+                            {formatDate(feedback.createdAt)}
+                          </span>
                         </div>
-                      ))
-                    ) : (
+                      </div>
+                    ))}
+                    {feedbacks.length === 0 && (
                       <div className="text-center py-8 text-gray-500">
-                        <ShoppingCart className="h-12 w-12 mx-auto mb-2 text-gray-400" />
-                        <p>Chưa có đơn hàng nào</p>
+                        <Star className="h-12 w-12 mx-auto mb-2 text-gray-400" />
+                        <p>Chưa có đánh giá nào</p>
                       </div>
                     )}
                   </div>

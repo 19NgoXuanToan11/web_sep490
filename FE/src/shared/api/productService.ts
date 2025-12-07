@@ -89,6 +89,12 @@ export interface ChangeQuantityRequest {
 }
 
 const mapApiProductToProduct = (apiProduct: any): Product => {
+  // Handle status: backend returns "ACTIVE" (string) or 1 (number)
+  let status: 'Active' | 'Inactive' = 'Inactive'
+  if (apiProduct.status === 1 || apiProduct.status === 'ACTIVE' || apiProduct.status === 'Active') {
+    status = 'Active'
+  }
+
   return {
     productId: apiProduct.productId || 0,
     productName: apiProduct.productName || '',
@@ -98,7 +104,7 @@ const mapApiProductToProduct = (apiProduct: any): Product => {
     categoryId: apiProduct.categoryId || 1,
     categoryName: apiProduct.categoryname,
     imageUrl: apiProduct.images,
-    status: apiProduct.status === 1 ? 'Active' : 'Inactive',
+    status,
     quantity: Number(apiProduct.stockQuantity || 0),
     createdAt: apiProduct.createdAt || new Date().toISOString(),
     updatedAt: apiProduct.updatedAt || new Date().toISOString(),

@@ -1,8 +1,7 @@
 import React from 'react'
 import { motion } from 'framer-motion'
-import { Sprout, TrendingUp } from 'lucide-react'
+import { Sprout } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
-import { Badge } from '@/shared/ui/badge'
 import type { CropRequirementView, PlantStage } from '@/shared/api/cropRequirementService'
 
 // Config khớp với enum PlantStage ở backend (Germination, Seedling, Vegetative, Harvest)

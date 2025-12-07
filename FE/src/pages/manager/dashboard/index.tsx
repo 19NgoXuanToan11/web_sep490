@@ -1,22 +1,12 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import {
-  Sprout,
   Thermometer,
   ArrowUpRight,
   ArrowDownRight,
-  Cpu,
-  Cloud,
   CloudRain,
   ShoppingCart,
-  DollarSign,
   Star,
-  Package,
-  Clock,
-  CheckCircle,
-  Truck,
-  XCircle,
-  BarChart3,
   Wind,
   Gauge,
   Droplets,
@@ -468,27 +458,6 @@ export default function ManagerDashboard() {
         return 'refunded'
       default:
         return 'pending'
-    }
-  }
-
-  const getStatusIcon = (status: number) => {
-    switch (status) {
-      case 0:
-        return <Clock className="h-4 w-4 text-yellow-500" />
-      case 1:
-        return <CheckCircle className="h-4 w-4 text-blue-500" />
-      case 2:
-        return <Package className="h-4 w-4 text-purple-500" />
-      case 3:
-        return <Truck className="h-4 w-4 text-orange-500" />
-      case 4:
-        return <XCircle className="h-4 w-4 text-red-500" />
-      case 5:
-        return <CheckCircle className="h-4 w-4 text-green-500" />
-      case 6:
-        return <Truck className="h-4 w-4 text-blue-500" />
-      default:
-        return <ShoppingCart className="h-4 w-4 text-gray-500" />
     }
   }
 

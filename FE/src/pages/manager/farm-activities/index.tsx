@@ -193,7 +193,7 @@ export default function FarmActivitiesPage() {
   }
 
   const statusOptions = [
-    { value: 'ACTIVE', label: 'Hoạt động', variant: 'default' as const },
+    { value: 'ACTIVE', label: 'Hoạt động', variant: 'success' as const },
     { value: 'COMPLETED', label: 'Hoàn thành', variant: 'completed' as const },
     { value: 'CANCELLED', label: 'Đã hủy', variant: 'failed' as const },
     { value: 'PENDING', label: 'Chờ thực hiện', variant: 'pending' as const },

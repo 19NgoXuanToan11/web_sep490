@@ -204,7 +204,7 @@ export function ScheduleCalendar({ className, showScheduleForm: externalShowSche
                         {formatTime(schedule.nextRun)} • {schedule.recurrenceText}
                       </p>
                     </div>
-                    <Badge variant={schedule.enabled ? 'success' : 'secondary'} className="text-xs">
+                    <Badge variant={schedule.enabled ? 'success' : 'destructive'} className="text-xs">
                       {schedule.status === 'Running'
                         ? 'Đang chạy'
                         : schedule.status === 'Scheduled'
@@ -328,7 +328,7 @@ function ScheduleCard({
             Thiết bị: {schedule.deviceId}
           </p>
         </div>
-        <Badge variant={schedule.enabled ? 'success' : 'secondary'} className="text-xs">
+        <Badge variant={schedule.enabled ? 'success' : 'destructive'} className="text-xs">
           {schedule.status === 'Running'
             ? 'Đang chạy'
             : schedule.status === 'Scheduled'

@@ -892,26 +892,6 @@ export function BackendScheduleList({
                             />
                         </div>
                         <div>
-                            <Label>Ngày gieo trồng</Label>
-                            <Input
-                                type="date"
-                                min={form.startDate || todayString}
-                                max={form.endDate || undefined}
-                                value={form.plantingDate}
-                                onChange={e => setForm({ ...form, plantingDate: e.target.value })}
-                            />
-                        </div>
-                        <div>
-                            <Label>Ngày thu hoạch</Label>
-                            <Input
-                                type="date"
-                                min={form.plantingDate || form.startDate || todayString}
-                                max={form.endDate || undefined}
-                                value={form.harvestDate}
-                                onChange={e => setForm({ ...form, harvestDate: e.target.value })}
-                            />
-                        </div>
-                        <div>
                             <Label>Số lượng</Label>
                             <Input
                                 type="number"

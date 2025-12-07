@@ -180,6 +180,7 @@ export default function ManagerDashboard() {
   const [totalOrdersCount, setTotalOrdersCount] = useState<number>(0)
   const [feedbacks, setFeedbacks] = useState<Feedback[]>([])
   const [products, setProducts] = useState<any[]>([])
+  const [totalProductsCount, setTotalProductsCount] = useState<number>(0)
   const [isLoadingDashboard, setIsLoadingDashboard] = useState(false)
   const [dashboardError, setDashboardError] = useState<string | null>(null)
   const [timeRange, setTimeRange] = useState<'week' | 'month'>('week')
@@ -265,7 +266,9 @@ export default function ManagerDashboard() {
       }
 
       if (productResult.status === 'fulfilled') {
-        setProducts(productResult.value?.products ?? [])
+        const productData = productResult.value
+        setProducts(productData?.products ?? [])
+        setTotalProductsCount(productData?.totalCount ?? productData?.products?.length ?? 0)
       } else {
         errors.push('sản phẩm')
       }
@@ -338,9 +341,9 @@ export default function ManagerDashboard() {
       avgRating: avgRating.toFixed(1),
       totalFeedbacks: feedbacks.length,
       activeProducts,
-      totalProducts: products.length,
+      totalProducts: totalProductsCount || products.length,
     }
-  }, [orders, feedbacks, products, timeRange, totalOrdersCount])
+  }, [orders, feedbacks, products, timeRange, totalOrdersCount, totalProductsCount])
 
   const revenueData = useMemo(() => {
     const now = new Date()

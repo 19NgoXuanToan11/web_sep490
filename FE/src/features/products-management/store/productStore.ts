@@ -315,13 +315,14 @@ export const useProductStore = create<ProductState>((set, get) => ({
     try {
       // Use product-filter API for staff product management
       const response: ProductListResponse = await productService.getProductFilter({
-        pageIndex: 1,
+        pageIndex: 0,
         pageSize: 1000,
         sortByStockAsc: true,
       })
 
       set({
         allProducts: response.products || [],
+        totalCount: response.totalCount || response.products?.length || 0,
         isLoading: false,
       })
 

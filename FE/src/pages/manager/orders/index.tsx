@@ -372,7 +372,7 @@ const ManagerOrdersPage: React.FC = () => {
 
   const orderStats = useMemo(
     () => ({
-      total: orders.length,
+      total: totalItems || orders.length,
       pending: orders.filter(o => o.status === 0).length, // Chưa thanh toán
       confirmed: orders.filter(o => o.status === 1).length, // Đã thanh toán
       preparing: orders.filter(o => o.status === 2).length, // Chưa thanh toán
@@ -385,7 +385,7 @@ const ManagerOrdersPage: React.FC = () => {
         .reduce((sum, o) => sum + o.totalAmount, 0),
       pendingPayments: orders.filter(o => o.paymentStatus === 'pending').length,
     }),
-    [orders]
+    [orders, totalItems]
   )
 
   const handleRefresh = async () => {

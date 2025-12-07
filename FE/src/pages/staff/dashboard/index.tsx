@@ -95,6 +95,7 @@ export default function StaffDashboard() {
     const [totalOrdersCount, setTotalOrdersCount] = useState<number>(0)
     const [feedbacks, setFeedbacks] = useState<Feedback[]>([])
     const [products, setProducts] = useState<Product[]>([])
+    const [totalProductsCount, setTotalProductsCount] = useState<number>(0)
     const [categories, setCategories] = useState<Category[]>([])
     const [isLoading, setIsLoading] = useState(true)
     const [dashboardError, setDashboardError] = useState<string | null>(null)
@@ -129,7 +130,9 @@ export default function StaffDashboard() {
             }
 
             if (productResult.status === 'fulfilled') {
-                setProducts(productResult.value?.products ?? [])
+                const productData = productResult.value
+                setProducts(productData?.products ?? [])
+                setTotalProductsCount(productData?.totalCount ?? productData?.products?.length ?? 0)
             } else {
                 errors.push('sản phẩm')
             }
@@ -195,9 +198,9 @@ export default function StaffDashboard() {
             avgRating: avgRating.toFixed(1),
             totalFeedbacks: feedbacks.length,
             activeProducts,
-            totalProducts: products.length,
+            totalProducts: totalProductsCount || products.length,
         }
-    }, [orders, feedbacks, products, timeRange, totalOrdersCount])
+    }, [orders, feedbacks, products, timeRange, totalOrdersCount, totalProductsCount])
 
     const orderStatusData = useMemo(() => {
         const statusMap: Record<number, { label: string; color: string }> = {

@@ -69,9 +69,18 @@ const StaffFeedbacksPage: React.FC = () => {
                 pageSize,
             })
 
+            const totalItemsCount = response.totalItemCount || 0
+            const maxPage = Math.max(1, Math.ceil(totalItemsCount / pageSize))
+
+            // Đảm bảo page hợp lệ: nếu page > maxPage hoặc page < 1, reset về 1
+            let validPage = response.pageIndex || page
+            if (validPage > maxPage || validPage < 1) {
+                validPage = 1
+            }
+
             setFeedbacks(response.items || [])
-            setTotalItems(response.totalItemCount || 0)
-            setCurrentPage(response.pageIndex || 1)
+            setTotalItems(totalItemsCount)
+            setCurrentPage(validPage)
         } catch (error) {
             toast({
                 title: 'Lỗi tải dữ liệu',
@@ -86,6 +95,15 @@ const StaffFeedbacksPage: React.FC = () => {
     useEffect(() => {
         fetchFeedbacks(currentPage)
     }, [fetchFeedbacks, currentPage])
+
+    // Đảm bảo currentPage hợp lệ khi totalItems thay đổi
+    useEffect(() => {
+        if (totalItems === 0) return
+        const maxPage = Math.max(1, Math.ceil(totalItems / pageSize))
+        if (currentPage > maxPage) {
+            setCurrentPage(1)
+        }
+    }, [totalItems, pageSize, currentPage])
 
     const handleRefresh = async () => {
         setIsRefreshing(true)
@@ -185,7 +203,7 @@ const StaffFeedbacksPage: React.FC = () => {
     }
 
     const stats = {
-        total: feedbacks.length,
+        total: totalItems,
         active: feedbacks.filter(f => f.status === 'ACTIVE').length,
         inactive: feedbacks.filter(f => f.status === 'DEACTIVATED').length,
         avgRating: feedbacks.length > 0

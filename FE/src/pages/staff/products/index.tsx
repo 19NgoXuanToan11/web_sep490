@@ -12,7 +12,7 @@ import type { Product } from '@/shared/api/productService'
 import { ManagementPageHeader } from '@/shared/ui/management-page-header'
 
 export function StaffProductsPage() {
-    const { products = [], filteredProducts = [], fetchAllProducts, isLoading, filters } =
+    const { products = [], filteredProducts = [], allProducts = [], totalCount = 0, fetchAllProducts, isLoading, filters } =
         useProductStore()
 
     const { toast } = useToast()
@@ -28,11 +28,13 @@ export function StaffProductsPage() {
     }
 
     const getFilteredStats = () => {
-        const baseProducts = hasActiveFilters() ? filteredProducts : products
+        // Use allProducts for accurate counts when no filters are active
+        const baseProductsForStats = hasActiveFilters() ? filteredProducts : allProducts
+        const baseProducts = hasActiveFilters() ? filteredProducts : allProducts
         return {
-            total: hasActiveFilters() ? filteredProducts.length : products.length,
-            active: baseProducts.filter(p => p.status === 'Active').length,
-            outOfStock: baseProducts.filter(p => p.quantity === 0).length,
+            total: hasActiveFilters() ? filteredProducts.length : (totalCount || allProducts.length),
+            active: baseProductsForStats.filter(p => p.status === 'Active').length,
+            outOfStock: baseProductsForStats.filter(p => p.quantity === 0).length,
         }
     }
 

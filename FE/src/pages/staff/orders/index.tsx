@@ -57,7 +57,7 @@ const StaffOrdersPage: React.FC = () => {
   const [loading, setLoading] = useState(true)
   const [totalPages, setTotalPages] = useState(0)
   const [currentPage, setCurrentPage] = useState(1)
-  const [, setTotalItems] = useState(0)
+  const [totalItems, setTotalItems] = useState(0)
   // Sử dụng cùng kích thước trang với các màn quản lý khác để pagination đồng nhất
   const pageSize = 10
 
@@ -349,7 +349,7 @@ const StaffOrdersPage: React.FC = () => {
 
   const orderStats = useMemo(
     () => ({
-      total: orders.length,
+      total: totalItems || orders.length,
       pending: orders.filter(o => o.status === 0).length,
       confirmed: orders.filter(o => o.status === 1).length,
       preparing: orders.filter(o => o.status === 2).length,
@@ -361,7 +361,7 @@ const StaffOrdersPage: React.FC = () => {
         .reduce((sum, o) => sum + o.totalAmount, 0),
       pendingPayments: orders.filter(o => o.paymentStatus === 'pending').length,
     }),
-    [orders]
+    [orders, totalItems]
   )
 
   const handleRefresh = async () => {

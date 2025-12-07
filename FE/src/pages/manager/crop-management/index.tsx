@@ -740,7 +740,7 @@ export default function CropManagementPage() {
                     header: 'Trạng thái',
                     render: (crop) => (
                       <Badge
-                        variant={isActiveStatus(crop.status) ? 'default' : 'secondary'}
+                        variant={isActiveStatus(crop.status) ? 'success' : 'destructive'}
                       >
                         {isActiveStatus(crop.status) ? 'Hoạt động' : 'Tạm dừng'}
                       </Badge>
@@ -986,7 +986,7 @@ export default function CropManagementPage() {
                 <div>
                   <h3 className="text-sm font-medium text-gray-500 mb-2">Trạng thái</h3>
                   <Badge
-                    variant={isActiveStatus(selectedCropForDetails.status) ? 'default' : 'secondary'}
+                    variant={isActiveStatus(selectedCropForDetails.status) ? 'success' : 'destructive'}
                     className="text-base"
                   >
                     {isActiveStatus(selectedCropForDetails.status) ? 'Hoạt động' : 'Tạm dừng'}

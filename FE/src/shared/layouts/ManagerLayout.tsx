@@ -190,7 +190,7 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
     <div className="min-h-screen bg-gray-50 flex flex-col">
       { }
       <motion.div
-        className={`hidden lg:fixed lg:inset-y-0 lg:flex lg:flex-col bg-white shadow-lg border-r border-gray-200 h-screen overflow-hidden ${isSidebarOpen ? 'lg:w-72' : 'lg:w-20'
+        className={`hidden lg:fixed lg:inset-y-0 lg:flex lg:flex-col bg-white shadow-lg border-r border-gray-200 h-screen ${isSidebarOpen ? 'lg:w-72' : 'lg:w-20'
           }`}
         animate={{ width: isSidebarOpen ? 288 : 80 }}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
@@ -243,7 +243,7 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
         </div>
 
         { }
-        <nav className="flex-1 px-4 py-6 space-y-1 overflow-hidden">
+        <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
           <div className="space-y-1">
             {navigationItems.map(item => (
               <NavLink key={item.href} item={item} />

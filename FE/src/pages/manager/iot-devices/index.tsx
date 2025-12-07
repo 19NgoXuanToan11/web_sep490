@@ -209,12 +209,12 @@ const ManagerIoTDevicesPage: React.FC = () => {
       : String(status)
 
     if (normalizedStatus === 'ACTIVE' || normalizedStatus === '1') {
-      return <Badge variant="default">Hoạt động</Badge>
+      return <Badge variant="success">Hoạt động</Badge>
     }
     if (normalizedStatus === 'DEACTIVATED' || normalizedStatus === '0') {
-      return <Badge variant="secondary">Tạm dừng</Badge>
+      return <Badge variant="destructive">Vô hiệu hóa</Badge>
     }
-    return <Badge variant="secondary">Không xác định</Badge>
+    return <Badge variant="outline">Không xác định</Badge>
   }
 
   const isActiveStatus = (status: number | string): boolean => {

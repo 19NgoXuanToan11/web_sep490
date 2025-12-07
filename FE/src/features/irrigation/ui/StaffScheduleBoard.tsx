@@ -142,7 +142,7 @@ export function StaffScheduleBoard({ className }: StaffScheduleBoardProps) {
                                     <td className="py-2 pr-3">{formatDate(schedule.harvestDate)}</td>
                                     <td className="py-2 pr-3">{schedule.farmActivityView?.activityType ?? (schedule.farmActivitiesId ? `#${schedule.farmActivitiesId}` : '-')}</td>
                                     <td className="py-2 pr-3">
-                                        <Badge variant={isActiveStatus(schedule.status) ? 'success' : 'secondary'}>{getStatusLabel(schedule.status)}</Badge>
+                                        <Badge variant={isActiveStatus(schedule.status) ? 'success' : 'destructive'}>{getStatusLabel(schedule.status)}</Badge>
                                     </td>
                                 </tr>
                             ))}

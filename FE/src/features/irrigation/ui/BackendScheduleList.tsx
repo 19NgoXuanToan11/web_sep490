@@ -750,8 +750,8 @@ export function BackendScheduleList({
                                     id: 'status',
                                     header: 'Trạng thái',
                                     render: (schedule: ScheduleListItem) => {
-                                        const isActive = typeof schedule.status === 'number' 
-                                            ? schedule.status === 1 
+                                        const isActive = typeof schedule.status === 'number'
+                                            ? schedule.status === 1
                                             : schedule.status === 'ACTIVE'
                                         return (
                                             <Badge variant={isActive ? 'success' : 'destructive'}>

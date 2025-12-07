@@ -647,7 +647,7 @@ export default function CropsPage() {
                         <div>
                           <p className="font-semibold">{requirement.cropName ?? 'Không xác định'}</p>
                           <div className="flex items-center gap-2 mt-1">
-                            <Badge variant={requirement.isActive ? 'default' : 'secondary'}>
+                            <Badge variant={requirement.isActive ? 'success' : 'destructive'}>
                               {requirement.isActive ? 'Hoạt động' : 'Tạm dừng'}
                             </Badge>
                             <Badge variant="outline">{stageLabel(requirement.plantStage)}</Badge>
@@ -946,7 +946,7 @@ export default function CropsPage() {
                   </div>
                   <div>
                     <h4 className="text-sm font-medium text-gray-500 mb-2">Trạng thái</h4>
-                    <Badge variant={selectedRequirementForDetails.isActive ? 'default' : 'secondary'}>
+                    <Badge variant={selectedRequirementForDetails.isActive ? 'success' : 'destructive'}>
                       {selectedRequirementForDetails.isActive ? 'Hoạt động' : 'Tạm dừng'}
                     </Badge>
                   </div>

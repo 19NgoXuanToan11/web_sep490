@@ -2,7 +2,9 @@ import { http } from './client'
 
 export interface IoTDevice {
   ioTdevicesId?: number
+  devicesId?: number // Backend returns this field
   deviceName: string
+  pinCode?: string
   deviceType: string
   status: number | string
   lastUpdate?: string
@@ -89,10 +91,15 @@ export const iotDeviceService = {
       const response = await iotDeviceService.getAllDevices(1, 1000)
       const devices = response.items
 
+      const isActiveStatus = (status: number | string): boolean => {
+        const normalizedStatus = typeof status === 'string' ? status.toUpperCase() : String(status)
+        return normalizedStatus === 'ACTIVE' || normalizedStatus === '1'
+      }
+
       return {
         total: devices.length,
-        active: devices.filter(d => d.status === 1).length,
-        inactive: devices.filter(d => d.status !== 1).length,
+        active: devices.filter(d => isActiveStatus(d.status)).length,
+        inactive: devices.filter(d => !isActiveStatus(d.status)).length,
         maintenance: 0,
         error: 0,
       }

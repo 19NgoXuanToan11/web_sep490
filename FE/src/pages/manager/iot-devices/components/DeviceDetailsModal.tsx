@@ -22,9 +22,17 @@ export const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({
 }) => {
     if (!device) return null
 
-    const getStatusBadge = (status: number) => {
-        if (status === 1) {
+    const getStatusBadge = (status: number | string) => {
+        // Xử lý cả string và number
+        const normalizedStatus = typeof status === 'string'
+            ? status.toUpperCase()
+            : String(status)
+
+        if (normalizedStatus === 'ACTIVE' || normalizedStatus === '1') {
             return <Badge variant="default">Hoạt động</Badge>
+        }
+        if (normalizedStatus === 'DEACTIVATED' || normalizedStatus === '0') {
+            return <Badge variant="secondary">Tạm dừng</Badge>
         }
         return <Badge variant="secondary">Không xác định</Badge>
     }
@@ -111,9 +119,14 @@ export const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({
                                 </div>
                                 <div className="border-t border-gray-200" />
                                 <div>
+                                    <p className="text-sm font-medium text-gray-500 mb-1">Mã PIN</p>
+                                    <p className="text-base">{device.pinCode || 'N/A'}</p>
+                                </div>
+                                <div className="border-t border-gray-200" />
+                                <div>
                                     <p className="text-sm font-medium text-gray-500 mb-1">Trạng thái</p>
                                     <div className="flex items-center gap-2">
-                                        {getStatusBadge(Number(device.status))}
+                                        {getStatusBadge(device.status)}
                                     </div>
                                 </div>
                             </CardContent>

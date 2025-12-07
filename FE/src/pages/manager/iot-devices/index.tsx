@@ -132,7 +132,7 @@ const ManagerIoTDevicesPage: React.FC = () => {
     }
 
     const total = devices.length
-    const active = devices.filter(d => Number(d.status) === 1).length
+    const active = devices.filter(d => isActiveStatus(d.status)).length
     const inactive = total - active
 
     return {
@@ -202,11 +202,26 @@ const ManagerIoTDevicesPage: React.FC = () => {
     setUpdateModalOpen(true)
   }, [])
 
-  const getStatusBadge = (status: number) => {
-    if (status === 1) {
+  const getStatusBadge = (status: number | string) => {
+    // Xử lý cả string và number
+    const normalizedStatus = typeof status === 'string'
+      ? status.toUpperCase()
+      : String(status)
+
+    if (normalizedStatus === 'ACTIVE' || normalizedStatus === '1') {
       return <Badge variant="default">Hoạt động</Badge>
     }
+    if (normalizedStatus === 'DEACTIVATED' || normalizedStatus === '0') {
+      return <Badge variant="secondary">Tạm dừng</Badge>
+    }
     return <Badge variant="secondary">Không xác định</Badge>
+  }
+
+  const isActiveStatus = (status: number | string): boolean => {
+    const normalizedStatus = typeof status === 'string'
+      ? status.toUpperCase()
+      : String(status)
+    return normalizedStatus === 'ACTIVE' || normalizedStatus === '1'
   }
 
 
@@ -219,13 +234,11 @@ const ManagerIoTDevicesPage: React.FC = () => {
     const selectedStatus =
       statusFilter === 'all' ? null : Number.isNaN(Number(statusFilter)) ? null : Number(statusFilter)
 
-    // Normalize possibly-string status coming from backend
-    const deviceStatus = Number(device.status)
-
+    // Check status match - handle both string "ACTIVE"/"DEACTIVATED" and number 1/0
     const matchesStatus =
       selectedStatus === null ||
-      (selectedStatus === 1 && deviceStatus === 1) ||
-      (selectedStatus === 0 && deviceStatus !== 1)
+      (selectedStatus === 1 && isActiveStatus(device.status)) ||
+      (selectedStatus === 0 && !isActiveStatus(device.status))
 
     const matchesType = typeFilter === 'all' || device.deviceType === typeFilter
     return matchesSearch && matchesStatus && matchesType
@@ -371,7 +384,7 @@ const ManagerIoTDevicesPage: React.FC = () => {
                 <StaffDataTable<IoTDevice>
                   className="px-4 sm:px-6 pb-6"
                   data={filteredDevices}
-                  getRowKey={(device, index) => device.ioTdevicesId ?? `device-${index}`}
+                  getRowKey={(device, index) => device.ioTdevicesId ?? device.devicesId ?? `device-${index}`}
                   currentPage={1}
                   pageSize={filteredDevices.length || 10}
                   totalPages={1}
@@ -391,9 +404,48 @@ const ManagerIoTDevicesPage: React.FC = () => {
                       render: (device) => device.deviceType || '-',
                     },
                     {
+                      id: 'pinCode',
+                      header: 'Mã PIN',
+                      render: (device) => device.pinCode || '-',
+                    },
+                    {
                       id: 'status',
                       header: 'Trạng thái',
-                      render: (device) => getStatusBadge(Number(device.status)),
+                      render: (device) => getStatusBadge(device.status),
+                    },
+                    {
+                      id: 'lastUpdate',
+                      header: 'Cập nhật lần cuối',
+                      render: (device) => {
+                        if (!device.lastUpdate) return '-'
+                        try {
+                          const date = new Date(device.lastUpdate)
+                          return date.toLocaleDateString('vi-VN', {
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit',
+                          })
+                        } catch {
+                          return device.lastUpdate
+                        }
+                      },
+                    },
+                    {
+                      id: 'expiryDate',
+                      header: 'Ngày hết hạn',
+                      render: (device) => {
+                        if (!device.expiryDate) return '-'
+                        try {
+                          const date = new Date(device.expiryDate)
+                          return date.toLocaleDateString('vi-VN', {
+                            year: 'numeric',
+                            month: '2-digit',
+                            day: '2-digit',
+                          })
+                        } catch {
+                          return device.expiryDate
+                        }
+                      },
                     },
                     {
                       id: 'actions',

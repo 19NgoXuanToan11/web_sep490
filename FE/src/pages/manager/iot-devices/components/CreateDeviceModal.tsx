@@ -17,6 +17,7 @@ interface CreateDeviceModalProps {
 
 interface CreateDeviceFormState {
   deviceName: string
+  pinCode: string
   deviceType: string
   sensorValue: string
   unit: string
@@ -58,6 +59,7 @@ export const CreateDeviceModal: React.FC<CreateDeviceModalProps> = ({
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState<CreateDeviceFormState>({
     deviceName: '',
+    pinCode: '',
     deviceType: '',
     sensorValue: '',
     unit: '',
@@ -83,6 +85,7 @@ export const CreateDeviceModal: React.FC<CreateDeviceModalProps> = ({
       // Only send fields the backend expects
       const payload: IoTDeviceRequest = {
         deviceName: formData.deviceName,
+        pinCode: formData.pinCode,
         deviceType: formData.deviceType,
         expiryDate: formData.expiryDate,
         farmDetailsId: formData.farmDetailsId,
@@ -96,6 +99,7 @@ export const CreateDeviceModal: React.FC<CreateDeviceModalProps> = ({
 
       setFormData({
         deviceName: '',
+        pinCode: '',
         deviceType: '',
         sensorValue: '',
         unit: '',
@@ -163,6 +167,16 @@ export const CreateDeviceModal: React.FC<CreateDeviceModalProps> = ({
                   value={formData.deviceName}
                   onChange={e => handleInputChange('deviceName', e.target.value)}
                   required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="pinCode">Mã PIN</Label>
+                <Input
+                  id="pinCode"
+                  placeholder="Nhập mã PIN"
+                  value={formData.pinCode}
+                  onChange={e => handleInputChange('pinCode', e.target.value)}
                 />
               </div>
 

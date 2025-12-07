@@ -14,6 +14,7 @@ export interface IoTDevice {
 
 export interface IoTDeviceRequest {
   deviceName: string
+  pinCode?: string
   deviceType: string
   expiryDate?: string
   farmDetailsId: number

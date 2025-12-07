@@ -41,8 +41,9 @@ export const CropGrowthStagesWidget: React.FC<CropGrowthStagesWidgetProps> = ({
     const stageDistribution = React.useMemo(() => {
         const total = requirements.length
         const distribution = Object.keys(PLANT_STAGE_CONFIG).map((stage) => {
+            // Đếm tất cả requirements (không chỉ active) để đồng bộ với trang crops
             const count = requirements.filter(
-                (req) => req.plantStage === stage && req.isActive
+                (req) => req.plantStage === stage
             ).length
             const percent = total > 0 ? Math.round((count / total) * 100) : 0
             return {

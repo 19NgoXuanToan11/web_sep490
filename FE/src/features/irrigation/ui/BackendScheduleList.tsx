@@ -341,8 +341,7 @@ export function BackendScheduleList({
         if (!payload.quantity || payload.quantity <= 0) errors.push('Số lượng phải lớn hơn 0.')
         if (!start) errors.push('Ngày bắt đầu không hợp lệ.')
         if (!end) errors.push('Ngày kết thúc không hợp lệ.')
-        if (!planting) errors.push('Ngày gieo trồng không hợp lệ.')
-        if (!harvest) errors.push('Ngày thu hoạch không hợp lệ.')
+        // plantingDate and harvestDate are optional, no validation required
 
         const ensureFuture = (date: Date | null, label: string) => {
             if (date && date < today) {
@@ -352,8 +351,9 @@ export function BackendScheduleList({
 
         ensureFuture(start, 'Ngày bắt đầu')
         ensureFuture(end, 'Ngày kết thúc')
-        ensureFuture(planting, 'Ngày gieo trồng')
-        ensureFuture(harvest, 'Ngày thu hoạch')
+        // plantingDate and harvestDate are optional, only validate if provided
+        if (planting) ensureFuture(planting, 'Ngày gieo trồng')
+        if (harvest) ensureFuture(harvest, 'Ngày thu hoạch')
 
         if (start && end && start >= end) {
             errors.push('Ngày bắt đầu phải trước ngày kết thúc và không trùng nhau.')
@@ -379,6 +379,7 @@ export function BackendScheduleList({
             errors.push('Ngày thu hoạch phải nằm trong khoảng của lịch.')
         }
 
+        // Only validate uniqueness if all dates are provided
         if (payload.startDate && payload.endDate && payload.plantingDate && payload.harvestDate) {
             const unique = new Set([
                 payload.startDate,
@@ -749,16 +750,11 @@ export function BackendScheduleList({
                                 {
                                     id: 'status',
                                     header: 'Trạng thái',
-                                    render: (schedule: ScheduleListItem) => {
-                                        const isActive = typeof schedule.status === 'number'
-                                            ? schedule.status === 1
-                                            : schedule.status === 'ACTIVE'
-                                        return (
-                                            <Badge variant={isActive ? 'success' : 'destructive'}>
-                                                {getStatusLabel(schedule.status)}
-                                            </Badge>
-                                        )
-                                    },
+                                    render: (schedule: ScheduleListItem) => (
+                                        <Badge variant={typeof schedule.status === 'number' && schedule.status === 1 ? 'default' : 'secondary'}>
+                                            {getStatusLabel(schedule.status)}
+                                        </Badge>
+                                    ),
                                 },
                                 {
                                     id: 'staff',
@@ -1025,7 +1021,7 @@ export function BackendScheduleList({
                                     <div><strong>Ngày kết thúc:</strong> {formatDate(scheduleDetail.endDate)}</div>
                                     <div>
                                         <strong>Trạng thái:</strong>{' '}
-                                        <Badge variant={typeof scheduleDetail.status === 'number' && scheduleDetail.status === 1 ? 'success' : 'destructive'}>
+                                        <Badge variant={typeof scheduleDetail.status === 'number' && scheduleDetail.status === 1 ? 'success' : 'secondary'}>
                                             {getStatusLabel(scheduleDetail.status)}
                                         </Badge>
                                     </div>
@@ -1108,7 +1104,7 @@ export function BackendScheduleList({
                                         {scheduleDetail.farmActivityView.status && (
                                             <div>
                                                 <strong>Trạng thái:</strong>{' '}
-                                                <Badge variant={scheduleDetail.farmActivityView.status === 'ACTIVE' ? 'success' : 'destructive'}>
+                                                <Badge variant={scheduleDetail.farmActivityView.status === 'ACTIVE' ? 'success' : 'secondary'}>
                                                     {scheduleDetail.farmActivityView.status === 'ACTIVE' ? 'Hoạt động' : 'Vô hiệu hóa'}
                                                 </Badge>
                                             </div>

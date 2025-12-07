@@ -749,11 +749,16 @@ export function BackendScheduleList({
                                 {
                                     id: 'status',
                                     header: 'Trạng thái',
-                                    render: (schedule: ScheduleListItem) => (
-                                        <Badge variant={typeof schedule.status === 'number' && schedule.status === 1 ? 'default' : 'secondary'}>
-                                            {getStatusLabel(schedule.status)}
-                                        </Badge>
-                                    ),
+                                    render: (schedule: ScheduleListItem) => {
+                                        const isActive = typeof schedule.status === 'number' 
+                                            ? schedule.status === 1 
+                                            : schedule.status === 'ACTIVE'
+                                        return (
+                                            <Badge variant={isActive ? 'success' : 'destructive'}>
+                                                {getStatusLabel(schedule.status)}
+                                            </Badge>
+                                        )
+                                    },
                                 },
                                 {
                                     id: 'staff',
@@ -1020,7 +1025,7 @@ export function BackendScheduleList({
                                     <div><strong>Ngày kết thúc:</strong> {formatDate(scheduleDetail.endDate)}</div>
                                     <div>
                                         <strong>Trạng thái:</strong>{' '}
-                                        <Badge variant={typeof scheduleDetail.status === 'number' && scheduleDetail.status === 1 ? 'success' : 'secondary'}>
+                                        <Badge variant={typeof scheduleDetail.status === 'number' && scheduleDetail.status === 1 ? 'success' : 'destructive'}>
                                             {getStatusLabel(scheduleDetail.status)}
                                         </Badge>
                                     </div>
@@ -1103,7 +1108,7 @@ export function BackendScheduleList({
                                         {scheduleDetail.farmActivityView.status && (
                                             <div>
                                                 <strong>Trạng thái:</strong>{' '}
-                                                <Badge variant={scheduleDetail.farmActivityView.status === 'ACTIVE' ? 'success' : 'secondary'}>
+                                                <Badge variant={scheduleDetail.farmActivityView.status === 'ACTIVE' ? 'success' : 'destructive'}>
                                                     {scheduleDetail.farmActivityView.status === 'ACTIVE' ? 'Hoạt động' : 'Vô hiệu hóa'}
                                                 </Badge>
                                             </div>
@@ -1197,26 +1202,6 @@ export function BackendScheduleList({
                                     min={editForm.startDate || todayString}
                                     value={editForm.endDate}
                                     onChange={e => setEditForm({ ...editForm, endDate: e.target.value })}
-                                />
-                            </div>
-                            <div>
-                                <Label>Ngày gieo trồng</Label>
-                                <Input
-                                    type="date"
-                                    min={editForm.startDate || todayString}
-                                    max={editForm.endDate || undefined}
-                                    value={editForm.plantingDate}
-                                    onChange={e => setEditForm({ ...editForm, plantingDate: e.target.value })}
-                                />
-                            </div>
-                            <div>
-                                <Label>Ngày thu hoạch</Label>
-                                <Input
-                                    type="date"
-                                    min={editForm.plantingDate || editForm.startDate || todayString}
-                                    max={editForm.endDate || undefined}
-                                    value={editForm.harvestDate}
-                                    onChange={e => setEditForm({ ...editForm, harvestDate: e.target.value })}
                                 />
                             </div>
                             <div>

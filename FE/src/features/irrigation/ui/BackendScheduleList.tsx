@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react'
-import { scheduleService, type PaginatedSchedules, type CreateScheduleRequest, type ScheduleDetail, type ScheduleListItem } from '@/shared/api/scheduleService'
+import { scheduleService, type PaginatedSchedules, type CreateScheduleRequest, type ScheduleDetail, type ScheduleListItem, type ScheduleStatusString } from '@/shared/api/scheduleService'
 import { Card, CardContent } from '@/shared/ui/card'
 import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
@@ -50,12 +50,17 @@ const toDateOnly = (value?: string) => {
 
 const rangesOverlap = (startA: Date, endA: Date, startB: Date, endB: Date) => startA <= endB && startB <= endA
 
+// Keep the labels in sync with the farm-activities management page
 const activityTypeLabels: Record<string, string> = {
-    Sowing: 'Gieo trồng',
-    Irrigation: 'Tưới tiêu',
+    SoilPreparation: 'Chuẩn bị đất trước gieo',
+    Sowing: 'Gieo hạt',
+    Thinning: 'Tỉa cây con cho đều',
+    FertilizingDiluted: 'Bón phân pha loãng (NPK 20–30%)',
+    Weeding: 'Nhổ cỏ nhỏ',
+    PestControl: 'Phòng trừ sâu bằng thuốc sinh học',
+    FertilizingLeaf: 'Bón phân cho lá (N, hữu cơ)',
     Harvesting: 'Thu hoạch',
-    Fertilization: 'Bón phân',
-    Protection: 'Bảo vệ thực vật',
+    CleaningFarmArea: 'Dọn dẹp đồng ruộng',
 }
 
 const plantStageLabels: Record<string, string> = {
@@ -107,6 +112,14 @@ const getStatusLabel = (value: number | string | null | undefined) => {
     return statusOptions.find(option => option.value === value)?.label ?? String(value)
 }
 
+const isActiveStatus = (status: number | string | null | undefined) => {
+    if (status === null || status === undefined) return false
+    if (typeof status === 'string') {
+        return status === 'ACTIVE'
+    }
+    return status === 1
+}
+
 const getDiseaseLabel = (value: number | null | undefined) => {
     if (value === null || value === undefined || value === -1) return 'Không có bệnh'
     return diseaseOptions.find(option => option.value === value)?.label ?? String(value)
@@ -138,6 +151,7 @@ interface ScheduleActionMenuProps {
     onView: (schedule: ScheduleListItem) => void
     onEdit: (schedule: ScheduleListItem) => void
     onAssignStaff: (schedule: ScheduleListItem) => void
+    onUpdateStatus: (schedule: ScheduleListItem, nextStatus: ScheduleStatusString) => void
     actionLoading: { [key: string]: boolean }
 }
 
@@ -146,6 +160,7 @@ const ScheduleActionMenu: React.FC<ScheduleActionMenuProps> = React.memo(({
     onView,
     onEdit,
     onAssignStaff,
+    onUpdateStatus,
     actionLoading,
 }) => {
     const [open, setOpen] = useState(false)
@@ -188,6 +203,20 @@ const ScheduleActionMenu: React.FC<ScheduleActionMenuProps> = React.memo(({
         },
         [schedule, onAssignStaff]
     )
+
+    const handleUpdateStatus = useCallback(
+        (nextStatus: ScheduleStatusString) => (e: React.MouseEvent) => {
+            e.preventDefault()
+            e.stopPropagation()
+            setOpen(false)
+            setTimeout(() => {
+                onUpdateStatus(schedule, nextStatus)
+            }, 0)
+        },
+        [schedule, onUpdateStatus]
+    )
+
+    const nextStatus: ScheduleStatusString = isActiveStatus(schedule.status) ? 'DEACTIVATED' : 'ACTIVE'
 
 
     return (
@@ -235,6 +264,14 @@ const ScheduleActionMenu: React.FC<ScheduleActionMenuProps> = React.memo(({
                     onSelect={(e) => e.preventDefault()}
                 >
                     Phân công nhân viên
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                    onClick={handleUpdateStatus(nextStatus)}
+                    className="cursor-pointer focus:bg-gray-100"
+                    onSelect={(e) => e.preventDefault()}
+                    disabled={actionLoading[`status-${schedule.scheduleId}`]}
+                >
+                    {isActiveStatus(schedule.status) ? 'Vô hiệu hóa lịch' : 'Kích hoạt lịch'}
                 </DropdownMenuItem>
             </DropdownMenuContent>
         </DropdownMenu>
@@ -381,19 +418,6 @@ export function BackendScheduleList({
             errors.push('Ngày thu hoạch phải nằm trong khoảng của lịch.')
         }
 
-        // Only validate uniqueness if all dates are provided
-        if (payload.startDate && payload.endDate && payload.plantingDate && payload.harvestDate) {
-            const unique = new Set([
-                payload.startDate,
-                payload.endDate,
-                payload.plantingDate,
-                payload.harvestDate,
-            ])
-            if (unique.size < 4) {
-                errors.push('Các mốc thời gian không được trùng nhau.')
-            }
-        }
-
         if (start && end && payload.farmId && payload.cropId && allSchedules.length) {
             const hasOverlap = allSchedules.some(s => {
                 if (!s.startDate || !s.endDate) return false
@@ -455,17 +479,44 @@ export function BackendScheduleList({
             farmService.getAllFarms(),
             cropService.getAllCropsList(),
             accountApi.getAll({ role: 'Staff', pageSize: 1000 }),
-            farmActivityService.getAllFarmActivities({ pageIndex: 1, pageSize: 1000 })
+            // Chỉ lấy các hoạt động nông trại từ trang quản lý (đang hoạt động) để người dùng chọn
+            farmActivityService.getActiveFarmActivities(0, 1, 1000),
         ])
+
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+
+        const validActivities = (fa.items || []).filter((a: FarmActivity) => {
+            const end = a.endDate ? new Date(a.endDate) : null
+            if (end && !Number.isNaN(end.getTime())) {
+                return end >= today
+            }
+            // nếu không có endDate, vẫn cho hiển thị
+            return true
+        })
+
+        const formatDateSafe = (value?: string) => {
+            if (!value) return ''
+            try {
+                return formatDate(value)
+            } catch {
+                return value
+            }
+        }
 
         return {
             farmOptions: farmRes.map(f => ({ id: f.farmId, name: f.farmName })),
             cropOptions: cropRes.map(c => ({ id: c.cropId, name: c.cropName })),
             staffOptions: staffRes.items.map(s => ({ id: s.accountId, name: s.email })),
-            activityOptions: (fa.items || []).map((a: FarmActivity) => ({
-                id: a.farmActivitiesId,
-                name: `#${a.farmActivitiesId} • ${translateActivityType(a.activityType)}`,
-            })),
+            activityOptions: validActivities.map((a: FarmActivity) => {
+                const start = formatDateSafe(a.startDate)
+                const end = formatDateSafe(a.endDate)
+                const dateLabel = start || end ? ` (${start || '...'} → ${end || '...'})` : ''
+                return {
+                    id: a.farmActivitiesId,
+                    name: `${translateActivityType(a.activityType)}${dateLabel}`,
+                }
+            }),
         }
     }, [translateActivityType])
 
@@ -522,9 +573,15 @@ export function BackendScheduleList({
 
     const submit = async (ev: React.FormEvent) => {
         ev.preventDefault()
-        if (!ensureScheduleValidity(form)) return
+        // Backend yêu cầu plantingDate/harvestDate, dùng fallback nếu người dùng chưa nhập
+        const payload: CreateScheduleRequest = {
+            ...form,
+            plantingDate: form.plantingDate || form.startDate,
+            harvestDate: form.harvestDate || form.endDate,
+        }
+        if (!ensureScheduleValidity(payload)) return
         try {
-            await scheduleService.createSchedule(form)
+            await scheduleService.createSchedule(payload)
             handleApiSuccess('Tạo lịch thành công', toast)
             handleCreateDialogChange(false)
             await load()
@@ -710,6 +767,26 @@ export function BackendScheduleList({
         }
     }
 
+    const handleUpdateStatus = async (schedule: ScheduleListItem, nextStatus: ScheduleStatusString) => {
+        if (!schedule.scheduleId) return
+        setActionLoading({ [`status-${schedule.scheduleId}`]: true })
+        try {
+            await scheduleService.updateScheduleStatus(schedule.scheduleId, nextStatus)
+            toast({ title: 'Cập nhật trạng thái lịch thành công', variant: 'success' })
+            // Refresh detail if the modal is open for this schedule
+            if (showDetail && scheduleDetail?.scheduleId === schedule.scheduleId) {
+                const res = await scheduleService.getScheduleById(schedule.scheduleId)
+                setScheduleDetail(res.data)
+            }
+            await load()
+            await loadAllSchedules()
+        } catch (e) {
+            toast({ title: 'Cập nhật trạng thái thất bại', description: (e as Error).message, variant: 'destructive' })
+        } finally {
+            setActionLoading({ [`status-${schedule.scheduleId}`]: false })
+        }
+    }
+
     return (
         <>
             <Card>
@@ -813,6 +890,7 @@ export function BackendScheduleList({
                                                 setSelectedSchedule(s)
                                                 handleAssignStaffDialogChange(true)
                                             }}
+                                            onUpdateStatus={handleUpdateStatus}
                                             actionLoading={actionLoading}
                                         />
                                     ),
@@ -830,7 +908,7 @@ export function BackendScheduleList({
                     </DialogHeader>
                     <form className="grid grid-cols-2 md:grid-cols-3 gap-3" onSubmit={submit}>
                         <div>
-                            <Label>Farm</Label>
+                            <Label>Nông trại</Label>
                             <Select
                                 value={form.farmId ? String(form.farmId) : ''}
                                 onValueChange={v => setForm({ ...form, farmId: Number(v) })}
@@ -847,7 +925,7 @@ export function BackendScheduleList({
                             </Select>
                         </div>
                         <div>
-                            <Label>Crop</Label>
+                            <Label>Cây trồng</Label>
                             <Select
                                 value={form.cropId ? String(form.cropId) : ''}
                                 onValueChange={v => setForm({ ...form, cropId: Number(v) })}
@@ -864,7 +942,7 @@ export function BackendScheduleList({
                             </Select>
                         </div>
                         <div>
-                            <Label>Staff</Label>
+                            <Label>Nhân viên</Label>
                             <Select
                                 value={form.staffId ? String(form.staffId) : ''}
                                 onValueChange={v => setForm({ ...form, staffId: Number(v) })}
@@ -945,7 +1023,7 @@ export function BackendScheduleList({
                             </Select>
                         </div>
                         <div>
-                            <Label>Mã hoạt động nông trại</Label>
+                            <Label>Hoạt động nông trại</Label>
                             <Select
                                 value={form.farmActivitiesId ? String(form.farmActivitiesId) : ''}
                                 onValueChange={v => setForm({ ...form, farmActivitiesId: Number(v) })}

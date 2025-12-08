@@ -87,9 +87,10 @@ interface CropActionMenuProps {
   crop: Crop
   onViewDetails: (crop: Crop) => void
   onEdit: (crop: Crop) => void
+  onChangeStatus: (crop: Crop) => void
 }
 
-const CropActionMenu: React.FC<CropActionMenuProps> = React.memo(({ crop, onViewDetails, onEdit }) => {
+const CropActionMenu: React.FC<CropActionMenuProps> = React.memo(({ crop, onViewDetails, onEdit, onChangeStatus }) => {
   const [open, setOpen] = useState(false)
 
   const handleViewDetails = useCallback((e: React.MouseEvent) => {
@@ -110,6 +111,16 @@ const CropActionMenu: React.FC<CropActionMenuProps> = React.memo(({ crop, onView
     }, 0)
   }, [crop, onEdit])
 
+  const handleChangeStatus = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setOpen(false)
+    setTimeout(() => {
+      onChangeStatus(crop)
+    }, 0)
+  }, [crop, onChangeStatus])
+
+  const isActive = isActiveStatus(crop.status)
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen} modal={false}>
@@ -142,6 +153,13 @@ const CropActionMenu: React.FC<CropActionMenuProps> = React.memo(({ crop, onView
           onSelect={(e) => e.preventDefault()}
         >
           Chỉnh sửa
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={handleChangeStatus}
+          className={`cursor-pointer focus:bg-gray-100 ${isActive ? 'text-red-600' : 'text-green-600'}`}
+          onSelect={(e) => e.preventDefault()}
+        >
+          {isActive ? 'Tạm dừng' : 'Kích hoạt'}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -381,6 +399,31 @@ export default function CropManagementPage() {
     setFormDialogOpen(true)
   }, [])
 
+  const handleChangeStatus = useCallback(async (crop: Crop) => {
+    try {
+      // Determine new status: 
+      // CropStatus enum: ACTIVE = 0, INACTIVE = 1
+      // If currently ACTIVE (0), change to INACTIVE (1), otherwise change to ACTIVE (0)
+      const currentIsActive = isActiveStatus(crop.status)
+      const newStatus = currentIsActive ? 1 : 0 // 0 = ACTIVE, 1 = INACTIVE
+
+      await cropService.changeStatus(crop.cropId, newStatus)
+
+      toast({
+        title: 'Thành công',
+        description: `Đã ${currentIsActive ? 'tạm dừng' : 'kích hoạt'} cây trồng "${crop.cropName}"`,
+      })
+
+      // Reload crops to reflect the status change
+      await loadCrops(currentPage, isSearchMode)
+    } catch (error: any) {
+      toast({
+        title: 'Lỗi',
+        description: error?.response?.data?.message || 'Không thể cập nhật trạng thái cây trồng',
+        variant: 'destructive',
+      })
+    }
+  }, [currentPage, isSearchMode, toast])
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -754,6 +797,7 @@ export default function CropManagementPage() {
                         crop={crop}
                         onViewDetails={openDetailsDialog}
                         onEdit={openEditDialog}
+                        onChangeStatus={handleChangeStatus}
                       />
                     ),
                   },

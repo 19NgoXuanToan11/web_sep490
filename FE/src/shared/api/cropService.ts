@@ -55,7 +55,10 @@ export interface CropResponse {
 export interface PaginatedCrops {
   totalItemCount: number
   pageSize: number
+  totalPagesCount: number
   pageIndex: number
+  next: boolean
+  previous: boolean
   items: Crop[]
 }
 
@@ -80,8 +83,8 @@ export const cropService = {
     return response.data
   },
 
-  changeStatus: async (cropId: number): Promise<CropResponse> => {
-    const response = await http.put<CropResponse>(`/v1/crop/chang-status?cropId=${cropId}`)
+  changeStatus: async (cropId: number, status: number): Promise<CropResponse> => {
+    const response = await http.put<CropResponse>(`/v1/crop/chang-status?cropId=${cropId}&status=${status}`)
     return response.data
   },
 

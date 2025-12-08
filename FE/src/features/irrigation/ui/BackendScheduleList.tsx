@@ -103,6 +103,28 @@ const translatePlantStage = (stage?: string | null) => {
     return plantStageLabels[stage] ?? stage
 }
 
+// Helper function to get farm activity status label and variant
+const getFarmActivityStatusInfo = (status: string | null | undefined): { label: string; variant: 'success' | 'processing' | 'completed' | 'destructive' | 'outline' } => {
+    if (!status) {
+        return { label: 'Không xác định', variant: 'outline' }
+    }
+
+    const normalizedStatus = status.toUpperCase()
+
+    switch (normalizedStatus) {
+        case 'ACTIVE':
+            return { label: 'Hoạt động', variant: 'success' }
+        case 'IN_PROGRESS':
+            return { label: 'Đang thực hiện', variant: 'processing' }
+        case 'COMPLETED':
+            return { label: 'Hoàn thành', variant: 'completed' }
+        case 'DEACTIVATED':
+            return { label: 'Tạm dừng', variant: 'destructive' }
+        default:
+            return { label: status, variant: 'outline' }
+    }
+}
+
 const getStatusLabel = (value: number | string | null | undefined) => {
     if (value === null || value === undefined) return '-'
     if (typeof value === 'string') {
@@ -1229,14 +1251,17 @@ export function BackendScheduleList({
                                                 ? translateActivityType(scheduleDetail.farmActivityView.activityType)
                                                 : `#${scheduleDetail.farmActivityView.farmActivitiesId}`}
                                         </div>
-                                        {scheduleDetail.farmActivityView.status && (
-                                            <div>
-                                                <strong>Trạng thái:</strong>{' '}
-                                                <Badge variant={scheduleDetail.farmActivityView.status === 'ACTIVE' ? 'success' : 'destructive'}>
-                                                    {scheduleDetail.farmActivityView.status === 'ACTIVE' ? 'Hoạt động' : 'Vô hiệu hóa'}
-                                                </Badge>
-                                            </div>
-                                        )}
+                                        {scheduleDetail.farmActivityView.status && (() => {
+                                            const statusInfo = getFarmActivityStatusInfo(scheduleDetail.farmActivityView.status)
+                                            return (
+                                                <div>
+                                                    <strong>Trạng thái:</strong>{' '}
+                                                    <Badge variant={statusInfo.variant}>
+                                                        {statusInfo.label}
+                                                    </Badge>
+                                                </div>
+                                            )
+                                        })()}
                                     </div>
                                 </div>
                             )}
@@ -1475,7 +1500,6 @@ export function BackendScheduleList({
                                 value={customToday}
                                 onChange={(e) => setCustomToday(e.target.value)}
                                 min={scheduleDetail?.startDate ? new Date(scheduleDetail.startDate).toISOString().split('T')[0] : undefined}
-                                max={scheduleDetail?.endDate ? new Date(scheduleDetail.endDate).toISOString().split('T')[0] : undefined}
                                 className="mt-2"
                             />
                         </div>

@@ -14,7 +14,13 @@ import { Badge } from '@/shared/ui/badge'
 import { Tabs, TabsList, TabsTrigger } from '@/shared/ui/tabs'
 import { useNavigate } from 'react-router-dom'
 import { StaffLayout } from '@/shared/layouts/StaffLayout'
-import { orderService, getOrderStatusLabel, getOrderStatusVariant } from '@/shared/api/orderService'
+import {
+    orderService,
+    getOrderStatusLabel,
+    getOrderStatusVariant,
+    normalizeOrderStatus,
+    derivePaymentStatus,
+} from '@/shared/api/orderService'
 import type { Order } from '@/shared/api/orderService'
 import { feedbackService } from '@/shared/api/feedbackService'
 import type { Feedback } from '@/shared/api/feedbackService'
@@ -331,24 +337,6 @@ export default function StaffDashboard() {
             .sort((a, b) => b.count - a.count)
     }, [products, categories])
 
-    const mapPaymentStatus = (status: number): 'pending' | 'paid' | 'failed' | 'refunded' => {
-        switch (status) {
-            case 1:
-            case 5:
-            case 6:
-                return 'paid'
-            case 0:
-            case 3:
-                return 'pending'
-            case 2:
-                return 'failed'
-            case 4:
-                return 'refunded'
-            default:
-                return 'pending'
-        }
-    }
-
     const getStatusBadge = (status: number, paymentStatus?: string) => {
         // Nếu thanh toán thất bại, hiển thị "Thất bại" thay vì "Đang chuẩn bị"
         let label = getOrderStatusLabel(status)
@@ -366,8 +354,12 @@ export default function StaffDashboard() {
         // Luôn hiển thị trạng thái ĐƠN HÀNG (Đang giao, Đã xác nhận, Hoàn thành...)
         // Trạng thái thanh toán đã có cột riêng "Thanh toán"
         // Nhưng nếu thanh toán thất bại, hiển thị "Thất bại" thay vì "Đang chuẩn bị"
-        const paymentStatus = mapPaymentStatus(order.status ?? 0)
-        return getStatusBadge(order.status ?? 0, paymentStatus)
+        const normalizedStatus = normalizeOrderStatus(order.status)
+        const paymentStatus = derivePaymentStatus({
+            status: normalizedStatus,
+            payments: order.payments,
+        })
+        return getStatusBadge(normalizedStatus, paymentStatus)
     }
 
     // Use centralized date formatting utility

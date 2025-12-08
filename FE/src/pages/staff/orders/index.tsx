@@ -23,7 +23,13 @@ import { Tabs, TabsContent } from '@/shared/ui/tabs'
 import { StaffLayout } from '@/shared/layouts/StaffLayout'
 import { ManagementPageHeader, StaffFilterBar } from '@/shared/ui'
 import { useToast } from '@/shared/ui/use-toast'
-import { orderService, getOrderStatusLabel, getOrderStatusVariant } from '@/shared/api/orderService'
+import {
+  orderService,
+  getOrderStatusLabel,
+  getOrderStatusVariant,
+  normalizeOrderStatus,
+  derivePaymentStatus,
+} from '@/shared/api/orderService'
 import type { Order as ApiOrder, OrderItem } from '@/shared/api/orderService'
 
 interface DisplayOrder {
@@ -73,26 +79,13 @@ const StaffOrdersPage: React.FC = () => {
   const [loadingOrderDetail, setLoadingOrderDetail] = useState(false)
   const [maxOrderId, setMaxOrderId] = useState<number>(0)
 
-  const mapPaymentStatus = (status: number): 'pending' | 'paid' | 'failed' | 'refunded' => {
-    switch (status) {
-      case 1:
-      case 5:
-      case 6:
-        return 'paid'
-      case 0:
-      case 3:
-        return 'pending'
-      case 2:
-        return 'failed'
-      case 4:
-        return 'refunded'
-      default:
-        return 'pending'
-    }
-  }
-
   const transformApiOrder = (apiOrder: ApiOrderWithFullname): DisplayOrder => {
     const email = apiOrder.customer?.email || apiOrder.email || 'N/A'
+    const normalizedStatus = normalizeOrderStatus(apiOrder.status)
+    const paymentStatus = derivePaymentStatus({
+      status: normalizedStatus,
+      payments: apiOrder.payments,
+    })
 
     // Ưu tiên hiển thị đúng fullname trả về từ API,
     // nếu không có thì fallback như cũ từ email
@@ -111,10 +104,10 @@ const StaffOrdersPage: React.FC = () => {
       },
       items: apiOrder.orderItems || [],
       orderDetails: apiOrder.orderItems || apiOrder.orderDetails || [],
-      status: apiOrder.status ?? 0,
+      status: normalizedStatus,
       orderDate: apiOrder.createdAt || new Date().toISOString(),
       totalAmount: apiOrder.totalPrice || 0,
-      paymentStatus: mapPaymentStatus(apiOrder.status ?? 0),
+      paymentStatus,
       paymentMethod: 'N/A',
       updatedAt: apiOrder.updatedAt,
     }
@@ -958,8 +951,11 @@ const StaffOrdersPage: React.FC = () => {
                   <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
                     <span className="font-medium">Trạng thái:</span>
                     {getStatusBadge(
-                      selectedOrderDetail.status,
-                      mapPaymentStatus(selectedOrderDetail.status ?? 0)
+                      normalizeOrderStatus(selectedOrderDetail.status),
+                      derivePaymentStatus({
+                        status: normalizeOrderStatus(selectedOrderDetail.status),
+                        payments: selectedOrderDetail.payments,
+                      })
                     )}
                   </div>
                   <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">

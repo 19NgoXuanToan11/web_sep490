@@ -178,6 +178,96 @@ export const orderService = {
   },
 }
 
+// Chuẩn hóa trạng thái đơn hàng từ backend (có thể trả về số hoặc chuỗi)
+export const normalizeOrderStatus = (status: any): number => {
+  if (typeof status === 'number' && !Number.isNaN(status)) {
+    return status
+  }
+
+  const raw = String(status || '')
+    .trim()
+    .toUpperCase()
+
+  switch (raw) {
+    case 'ACTIVE':
+    case 'PAID':
+    case 'CONFIRMED':
+    case 'CONFIRM':
+    case 'PAYMENT_SUCCESS':
+      return 1
+    case 'PROCESSING':
+    case 'PROCESS':
+    case 'PREPARING':
+    case 'PACKING':
+      return 2
+    case 'PENDING':
+    case 'WAITING':
+    case 'UNPAID':
+      return 0
+    case 'SHIPPING':
+    case 'DELIVERING':
+    case 'DELIVERED':
+    case 'IN_DELIVERY':
+      return 6
+    case 'COMPLETED':
+    case 'DONE':
+      return 5
+    case 'CANCELLED':
+    case 'CANCELED':
+    case 'CANCEL':
+      return 4
+    case 'FAILED':
+    case 'FAIL':
+    case 'PAYMENT_FAILED':
+      return 2
+    case 'REFUNDED':
+      return 4
+    default:
+      return 0
+  }
+}
+
+// Suy ra trạng thái thanh toán từ payments hoặc từ status đã chuẩn hóa
+export const derivePaymentStatus = (
+  order: Partial<Order> & { status?: number }
+): 'pending' | 'paid' | 'failed' | 'refunded' => {
+  const paymentStatusRaw = order.payments?.find(p => p.status)?.status
+  const paymentStatus = paymentStatusRaw ? String(paymentStatusRaw).toUpperCase() : undefined
+
+  switch (paymentStatus) {
+    case 'SUCCESS':
+    case 'PAID':
+    case 'COMPLETED':
+    case 'DONE':
+      return 'paid'
+    case 'FAILED':
+    case 'FAIL':
+    case 'CANCELLED':
+    case 'CANCELED':
+    case 'DECLINED':
+      return 'failed'
+    case 'REFUNDED':
+      return 'refunded'
+    default:
+      break
+  }
+
+  const status = order.status ?? 0
+
+  switch (status) {
+    case 1:
+    case 5:
+    case 6:
+      return 'paid'
+    case 4:
+      return 'refunded'
+    case 2:
+      return 'failed'
+    default:
+      return 'pending'
+  }
+}
+
 export const getOrderStatusLabel = (status: number): string => {
   const statusMap: Record<number, string> = {
     0: 'Chờ xử lý', // UNPAID - Đơn hàng mới, chờ xử lý

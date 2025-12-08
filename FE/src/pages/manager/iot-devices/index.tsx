@@ -28,11 +28,21 @@ import { ManagementPageHeader, StaffFilterBar, StaffDataTable, type StaffDataTab
 // Component riêng cho Action Menu để tránh re-render issues
 interface DeviceActionMenuProps {
   device: IoTDevice
+  isActive: boolean
+  isUpdatingStatus: boolean
   onViewDetails: (device: IoTDevice) => void
   onEdit: (device: IoTDevice) => void
+  onToggleStatus: (device: IoTDevice) => void
 }
 
-const DeviceActionMenu: React.FC<DeviceActionMenuProps> = React.memo(({ device, onViewDetails, onEdit }) => {
+const DeviceActionMenu: React.FC<DeviceActionMenuProps> = React.memo(({
+  device,
+  isActive,
+  isUpdatingStatus,
+  onViewDetails,
+  onEdit,
+  onToggleStatus,
+}) => {
   const [open, setOpen] = useState(false)
 
   const handleViewDetails = useCallback((e: React.MouseEvent) => {
@@ -54,6 +64,15 @@ const DeviceActionMenu: React.FC<DeviceActionMenuProps> = React.memo(({ device, 
       onEdit(device)
     }, 0)
   }, [device, onEdit])
+
+  const handleToggleStatus = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setOpen(false)
+    setTimeout(() => {
+      onToggleStatus(device)
+    }, 0)
+  }, [device, onToggleStatus])
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen} modal={false}>
@@ -81,6 +100,14 @@ const DeviceActionMenu: React.FC<DeviceActionMenuProps> = React.memo(({ device, 
           Xem chi tiết
         </DropdownMenuItem>
         <DropdownMenuItem
+          onClick={handleToggleStatus}
+          className="cursor-pointer focus:bg-gray-100"
+          onSelect={(e) => e.preventDefault()}
+          disabled={isUpdatingStatus}
+        >
+          {isActive ? 'Vô hiệu hóa' : 'Kích hoạt'}
+        </DropdownMenuItem>
+        <DropdownMenuItem
           onClick={handleEdit}
           className="cursor-pointer focus:bg-gray-100"
           onSelect={(e) => e.preventDefault()}
@@ -98,6 +125,7 @@ const ManagerIoTDevicesPage: React.FC = () => {
   const { toast } = useToast()
   const [devices, setDevices] = useState<IoTDevice[]>([])
   const [loading, setLoading] = useState(true)
+  const [statusUpdatingId, setStatusUpdatingId] = useState<number | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [typeFilter, setTypeFilter] = useState<string>('all')
@@ -208,6 +236,48 @@ const ManagerIoTDevicesPage: React.FC = () => {
     setSelectedDevice(device)
     setUpdateModalOpen(true)
   }, [])
+
+  const handleToggleDeviceStatus = async (device: IoTDevice) => {
+    const deviceId = device.ioTdevicesId ?? device.devicesId
+    if (deviceId === undefined || deviceId === null) {
+      toast({
+        title: 'Lỗi',
+        description: 'Không tìm thấy thiết bị để cập nhật trạng thái',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    const normalizedId = Number(deviceId)
+    const nextStatus = isActiveStatus(device.status) ? 0 : 1
+
+    try {
+      setStatusUpdatingId(normalizedId)
+      await iotDeviceService.updateDeviceStatus(normalizedId, nextStatus)
+
+      setDevices(prev => prev.map(d => {
+        const currentId = Number(d.ioTdevicesId ?? d.devicesId)
+        if (currentId === normalizedId) {
+          return { ...d, status: nextStatus }
+        }
+        return d
+      }))
+
+      fetchStatistics()
+      toast({
+        title: 'Thành công',
+        description: nextStatus === 1 ? 'Đã kích hoạt thiết bị' : 'Đã vô hiệu hóa thiết bị',
+      })
+    } catch (error) {
+      toast({
+        title: 'Lỗi',
+        description: 'Không thể cập nhật trạng thái thiết bị',
+        variant: 'destructive',
+      })
+    } finally {
+      setStatusUpdatingId(null)
+    }
+  }
 
   const getStatusBadge = (status: number | string) => {
     // Xử lý cả string và number
@@ -452,8 +522,11 @@ const ManagerIoTDevicesPage: React.FC = () => {
                       render: (device) => (
                         <DeviceActionMenu
                           device={device}
+                          isActive={isActiveStatus(device.status)}
+                          isUpdatingStatus={statusUpdatingId === Number(device.ioTdevicesId ?? device.devicesId)}
                           onViewDetails={handleViewDetails}
                           onEdit={handleEditDevice}
+                          onToggleStatus={handleToggleDeviceStatus}
                         />
                       ),
                     },

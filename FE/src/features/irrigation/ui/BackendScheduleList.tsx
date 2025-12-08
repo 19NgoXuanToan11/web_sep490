@@ -67,6 +67,7 @@ const plantStageLabels: Record<string, string> = {
     Sowing: 'Gieo hạt',
     Germination: 'Nảy mầm',
     Seedling: 'Cây con',
+    Vegetative: 'Sinh trưởng',
     CotyledonLeaves: 'Ra lá mầm',
     TrueLeavesGrowth: 'Phát triển lá thật',
     VigorousGrowth: 'Tăng trưởng mạnh',
@@ -1086,7 +1087,7 @@ export function BackendScheduleList({
                                     <div><strong>Ngày kết thúc:</strong> {formatDate(scheduleDetail.endDate)}</div>
                                     <div>
                                         <strong>Trạng thái:</strong>{' '}
-                                        <Badge variant={typeof scheduleDetail.status === 'number' && scheduleDetail.status === 1 ? 'success' : 'destructive'}>
+                                        <Badge variant={isActiveStatus(scheduleDetail.status) ? 'success' : 'destructive'}>
                                             {getStatusLabel(scheduleDetail.status)}
                                         </Badge>
                                     </div>

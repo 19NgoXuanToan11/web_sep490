@@ -8,7 +8,6 @@ import { Badge } from '@/shared/ui/badge'
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -132,12 +131,11 @@ interface RequirementActionMenuProps {
   isUpdatingStatus: boolean
   onToggleStatus: (requirement: CropRequirementView | CropRequirement | CropRequirementRow) => void
   onEdit: (requirement: CropRequirementView | CropRequirement | CropRequirementRow) => void
-  onDelete: (requirement: CropRequirementView | CropRequirement | CropRequirementRow) => void
   onView: (requirement: CropRequirementRow) => void
 }
 
 const RequirementActionMenu: React.FC<RequirementActionMenuProps> = React.memo(
-  ({ requirement, isUpdatingStatus, onToggleStatus, onEdit, onDelete, onView }) => {
+  ({ requirement, isUpdatingStatus, onToggleStatus, onEdit, onView }) => {
     const [open, setOpen] = useState(false)
     const isActive = requirement.isActive ?? true
 
@@ -175,18 +173,6 @@ const RequirementActionMenu: React.FC<RequirementActionMenuProps> = React.memo(
         }, 0)
       },
       [requirement, onEdit]
-    )
-
-    const handleDelete = useCallback(
-      (e: React.MouseEvent) => {
-        e.preventDefault()
-        e.stopPropagation()
-        setOpen(false)
-        setTimeout(() => {
-          onDelete(requirement)
-        }, 0)
-      },
-      [requirement, onDelete]
     )
 
     return (
@@ -257,9 +243,6 @@ export default function CropsPage() {
   const [availableCrops, setAvailableCrops] = useState<Crop[]>([])
   const [loadingCrops, setLoadingCrops] = useState(false)
   const [statusUpdatingId, setStatusUpdatingId] = useState<number | null>(null)
-  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [selectedRequirementForDelete, setSelectedRequirementForDelete] =
-    useState<CropRequirementView | CropRequirementRow | null>(null)
   const [detailDialogOpen, setDetailDialogOpen] = useState(false)
   const [detailRequirement, setDetailRequirement] = useState<CropRequirementRow | null>(null)
   const [detailCrop, setDetailCrop] = useState<Crop | null>(null)
@@ -551,19 +534,6 @@ export default function CropsPage() {
     setFormDialogOpen(true)
   }
 
-  const confirmDeleteRequirement = (requirement: CropRequirementView | CropRequirement | CropRequirementRow) => {
-    if (!requirement.cropRequirementId) {
-      toast({
-        title: 'Chưa có yêu cầu',
-        description: 'Không thể xoá vì chưa có yêu cầu.',
-        variant: 'destructive',
-      })
-      return
-    }
-    setSelectedRequirementForDelete(requirement as CropRequirementView)
-    setIsDeleteDialogOpen(true)
-  }
-
   const handleToggleRequirementStatus = async (requirement: CropRequirementView | CropRequirement | CropRequirementRow) => {
     if (!requirement.cropRequirementId) {
       toast({
@@ -598,32 +568,6 @@ export default function CropsPage() {
     const crop = crops.find(c => c.cropId === requirement.cropId) || null
     setDetailCrop(crop)
     setDetailDialogOpen(true)
-  }
-
-  const handleDeleteRequirement = async () => {
-    if (!selectedRequirementForDelete) return
-    if (!selectedRequirementForDelete.cropRequirementId) {
-      toast({
-        title: 'Chưa có yêu cầu',
-        description: 'Không thể xoá vì chưa có yêu cầu.',
-        variant: 'destructive',
-      })
-      return
-    }
-
-    try {
-      await cropRequirementService.remove(selectedRequirementForDelete.cropRequirementId)
-      toast({ title: 'Đã xoá', description: 'Yêu cầu cây trồng đã bị xoá' })
-      setIsDeleteDialogOpen(false)
-      setSelectedRequirementForDelete(null)
-      loadRequirements()
-    } catch (error) {
-      toast({
-        title: 'Lỗi',
-        description: 'Không thể xoá yêu cầu cây trồng',
-        variant: 'destructive',
-      })
-    }
   }
 
   const handleRefresh = async () => {
@@ -813,7 +757,6 @@ export default function CropsPage() {
                                 isUpdatingStatus={statusUpdatingId === req.cropRequirementId}
                                 onToggleStatus={handleToggleRequirementStatus}
                                 onEdit={openEditRequirement}
-                                onDelete={confirmDeleteRequirement}
                                 onView={openDetail}
                               />
                             ) : (

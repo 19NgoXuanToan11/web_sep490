@@ -18,7 +18,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from '@/shared/ui/dialog'
 
 const RealTimeIoTDashboard: React.FC = () => {

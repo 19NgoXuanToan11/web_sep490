@@ -18,7 +18,6 @@ import {
   Search,
   RefreshCw,
   MoreHorizontal,
-  Plus,
 } from 'lucide-react'
 import { useToast } from '@/shared/ui/use-toast'
 import {

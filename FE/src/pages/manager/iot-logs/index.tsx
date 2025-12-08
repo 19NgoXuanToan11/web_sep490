@@ -340,13 +340,6 @@ const ManagerIoTLogsPage: React.FC = () => {
                                                 hour12: false,
                                             }),
                                     },
-                                    {
-                                        id: 'virtualPin',
-                                        header: 'Virtual Pin',
-                                        render: (log) => (
-                                            <span className="text-sm text-gray-600 uppercase">{log.variableId}</span>
-                                        ),
-                                    },
                                 ] satisfies StaffDataTableColumn<BlynkLogEntry>[]}
                             />
                         )}

@@ -299,7 +299,7 @@ export function BackendScheduleList({
     const [form, setForm] = useState<CreateScheduleRequest>(buildEmptyScheduleForm)
 
     const [farms, setFarms] = useState<{ id: number; name: string }[]>([])
-    const [crops, setCrops] = useState<{ id: number; name: string }[]>([])
+    const [crops, setCrops] = useState<{ id: number; name: string; status?: string }[]>([])
     const [staffs, setStaffs] = useState<{ id: number; name: string }[]>([])
     const [activities, setActivities] = useState<ActivityOption[]>([])
     const [metaLoading, setMetaLoading] = useState(false)
@@ -505,9 +505,11 @@ export function BackendScheduleList({
             }
         }
 
-        return {
-            farmOptions: farmRes.map(f => ({ id: f.farmId, name: f.farmName })),
-            cropOptions: cropRes.map(c => ({ id: c.cropId, name: c.cropName })),
+         return {
+             farmOptions: farmRes.map(f => ({ id: f.farmId, name: f.farmName })),
+             cropOptions: cropRes
+                 .filter(c => c.status === 'ACTIVE')
+                 .map(c => ({ id: c.cropId, name: c.cropName, status: c.status })),
             staffOptions: staffRes.items.map(s => ({ id: s.accountId, name: s.email })),
             activityOptions: validActivities.map((a: FarmActivity) => {
                 const start = formatDateSafe(a.startDate)

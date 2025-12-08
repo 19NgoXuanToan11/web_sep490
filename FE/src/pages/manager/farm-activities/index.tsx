@@ -39,9 +39,10 @@ interface ActivityActionMenuProps {
   activity: FarmActivity
   onView: (activity: FarmActivity) => void
   onEdit: (activity: FarmActivity) => void
+  onToggleStatus: (activity: FarmActivity) => void
 }
 
-const ActivityActionMenu: React.FC<ActivityActionMenuProps> = React.memo(({ activity, onView, onEdit }) => {
+const ActivityActionMenu: React.FC<ActivityActionMenuProps> = React.memo(({ activity, onView, onEdit, onToggleStatus }) => {
   const [open, setOpen] = useState(false)
 
   const handleView = useCallback(
@@ -67,6 +68,25 @@ const ActivityActionMenu: React.FC<ActivityActionMenuProps> = React.memo(({ acti
     },
     [activity, onEdit]
   )
+
+  const handleToggle = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault()
+      e.stopPropagation()
+      setOpen(false)
+      setTimeout(() => {
+        onToggleStatus(activity)
+      }, 0)
+    },
+    [activity, onToggleStatus]
+  )
+
+  const toggleLabel =
+    activity.status === 'ACTIVE'
+      ? 'Tạm dừng'
+      : activity.status === 'DEACTIVATED'
+        ? 'Kích hoạt'
+        : 'Đổi trạng thái'
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen} modal={false}>
@@ -99,6 +119,13 @@ const ActivityActionMenu: React.FC<ActivityActionMenuProps> = React.memo(({ acti
           onSelect={(e) => e.preventDefault()}
         >
           Chỉnh sửa
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={handleToggle}
+          className="cursor-pointer focus:bg-gray-100"
+          onSelect={(e) => e.preventDefault()}
+        >
+          {toggleLabel}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -140,9 +167,9 @@ export default function FarmActivitiesPage() {
   const [activityStats, setActivityStats] = useState({
     total: 0,
     active: 0,
+    inProgress: 0,
     completed: 0,
-    pending: 0,
-    cancelled: 0,
+    deactivated: 0,
   })
 
   // Get today's date in YYYY-MM-DD format for date input min attribute
@@ -196,9 +223,9 @@ export default function FarmActivitiesPage() {
 
   const statusOptions = [
     { value: 'ACTIVE', label: 'Hoạt động', variant: 'success' as const },
+    { value: 'IN_PROGRESS', label: 'Đang thực hiện', variant: 'processing' as const },
     { value: 'COMPLETED', label: 'Hoàn thành', variant: 'completed' as const },
-    { value: 'CANCELLED', label: 'Đã hủy', variant: 'failed' as const },
-    { value: 'PENDING', label: 'Chờ thực hiện', variant: 'pending' as const },
+    { value: 'DEACTIVATED', label: 'Tạm dừng', variant: 'destructive' as const },
   ]
 
   const loadActivities = useCallback(async () => {
@@ -251,17 +278,17 @@ export default function FarmActivitiesPage() {
           const status = (activity.status || '').toUpperCase()
           acc.total += 1
           if (status === 'ACTIVE') acc.active += 1
+          else if (status === 'IN_PROGRESS') acc.inProgress += 1
           else if (status === 'COMPLETED') acc.completed += 1
-          else if (status === 'CANCELLED') acc.cancelled += 1
-          else acc.pending += 1
+          else if (status === 'DEACTIVATED') acc.deactivated += 1
           return acc
         },
         {
           total: 0,
           active: 0,
+          inProgress: 0,
           completed: 0,
-          pending: 0,
-          cancelled: 0,
+          deactivated: 0,
         }
       )
 
@@ -484,6 +511,39 @@ export default function FarmActivitiesPage() {
     }
   }
 
+  const handleToggleStatus = async (activity: FarmActivity) => {
+    const currentStatus = (activity.status || '').toUpperCase()
+    if (currentStatus !== 'ACTIVE' && currentStatus !== 'DEACTIVATED') {
+      toast({
+        title: 'Không thể đổi trạng thái',
+        description: 'Chỉ có thể bật/tắt các hoạt động đang hoạt động hoặc tạm dừng.',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    const nextStatusLabel = currentStatus === 'ACTIVE' ? 'đã tạm dừng' : 'đã kích hoạt'
+
+    try {
+      setLoading(true)
+      await farmActivityService.changeStatus(activity.farmActivitiesId)
+      toast({
+        title: 'Thành công',
+        description: `Hoạt động ${nextStatusLabel}`,
+      })
+      await loadActivities()
+      await loadActivityStats()
+    } catch (error: any) {
+      toast({
+        title: 'Lỗi',
+        description: error?.message || 'Không thể đổi trạng thái hoạt động',
+        variant: 'destructive',
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const getActivityTypeLabel = (type: string | null | undefined) => {
     if (!type) return 'Không có dữ liệu'
     const activityType = activityTypes.find(at => at.value === type)
@@ -610,12 +670,12 @@ export default function FarmActivitiesPage() {
                   <div>
                     <p className="text-sm text-gray-500">Đang hoạt động</p>
                     <p className="text-2xl font-semibold mt-1 text-green-600">
-                      {activityStats.active + activityStats.pending}
+                      {activityStats.active + activityStats.inProgress}
                     </p>
                   </div>
                 </div>
                 <p className="text-xs text-gray-500 mt-2">
-                  Bao gồm hoạt động đang chạy và chờ thực hiện
+                  Bao gồm hoạt động đang chạy và đang thực hiện
                 </p>
               </CardContent>
             </Card>
@@ -730,6 +790,7 @@ export default function FarmActivitiesPage() {
                           activity={activity}
                           onView={handleViewDetailsClick}
                           onEdit={handleEditClick}
+                          onToggleStatus={handleToggleStatus}
                         />
                       ),
                     },

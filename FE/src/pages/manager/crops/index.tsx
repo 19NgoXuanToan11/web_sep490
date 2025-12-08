@@ -103,8 +103,8 @@ const toNullableNumber = (value: string | number | '') =>
   value === '' ? null : Number(value)
 
 const getStatusBadge = (isActive: boolean | undefined | null) => {
-  if (!isActive) return <Badge variant="destructive">Tạm dừng</Badge>
-  return <Badge variant="success">Hoạt động</Badge>
+  if (!isActive) return <Badge className="h-7 items-center whitespace-nowrap" variant="destructive">Tạm dừng</Badge>
+  return <Badge className="h-7 items-center whitespace-nowrap" variant="success">Hoạt động</Badge>
 }
 
 type CropRequirementRow = {
@@ -746,8 +746,10 @@ export default function CropsPage() {
                       header: 'Giai đoạn & Trạng thái',
                       render: (req: CropRequirementRow) => (
                         <div className="flex items-center justify-between gap-2">
-                          <div className="flex flex-wrap items-center gap-2 text-sm">
-                            <Badge variant="outline">{stageLabel(req.plantStage)}</Badge>
+                          <div className="flex items-center gap-2 text-sm">
+                            <Badge className="h-7 items-center whitespace-nowrap" variant="outline">
+                              {stageLabel(req.plantStage)}
+                            </Badge>
                             {getStatusBadge(req.isActive)}
                           </div>
                           <div className="flex items-center">
@@ -947,7 +949,9 @@ export default function CropsPage() {
                 <div>
                   <Label className="text-sm text-gray-600">Giai đoạn hiện tại</Label>
                   <div className="mt-1 flex items-center gap-2">
-                    <Badge variant="outline">{stageLabel(detailRequirement.plantStage)}</Badge>
+                    <Badge className="h-7 items-center whitespace-nowrap" variant="outline">
+                      {stageLabel(detailRequirement.plantStage)}
+                    </Badge>
                     {getStatusBadge(detailRequirement.isActive)}
                   </div>
                 </div>

@@ -10,6 +10,7 @@ export interface CropRequirement {
   fertilizer: string
   lightRequirement: number
   wateringFrequency: string
+  isActive?: boolean
   notes?: string
 }
 

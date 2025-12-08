@@ -113,6 +113,13 @@ const ManagerIoTDevicesPage: React.FC = () => {
     error: 0,
   })
 
+  const isActiveStatus = (status: number | string): boolean => {
+    const normalizedStatus = typeof status === 'string'
+      ? status.toUpperCase()
+      : String(status)
+    return normalizedStatus === 'ACTIVE' || normalizedStatus === '1'
+  }
+
   const computedStats = useMemo(() => {
     // Ưu tiên số liệu từ API thống kê, fallback sang tính toán từ danh sách thiết bị nếu cần
     const apiTotal = statistics.total || 0
@@ -216,14 +223,6 @@ const ManagerIoTDevicesPage: React.FC = () => {
     }
     return <Badge variant="outline">Không xác định</Badge>
   }
-
-  const isActiveStatus = (status: number | string): boolean => {
-    const normalizedStatus = typeof status === 'string'
-      ? status.toUpperCase()
-      : String(status)
-    return normalizedStatus === 'ACTIVE' || normalizedStatus === '1'
-  }
-
 
   const filteredDevices = devices.filter(device => {
     const matchesSearch =

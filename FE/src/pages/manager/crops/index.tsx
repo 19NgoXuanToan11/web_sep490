@@ -18,6 +18,7 @@ import {
   Search,
   RefreshCw,
   MoreHorizontal,
+  Plus,
 } from 'lucide-react'
 import { useToast } from '@/shared/ui/use-toast'
 import {
@@ -696,6 +697,15 @@ export default function CropsPage() {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+            <div className="w-full sm:w-auto flex justify-end">
+              <Button
+                size="sm"
+                className="w-full sm:w-auto bg-green-600 hover:bg-green-700 flex items-center gap-2"
+                onClick={() => openCreateDialog()}
+              >
+                Tạo
+              </Button>
             </div>
           </StaffFilterBar>
 

@@ -105,49 +105,58 @@ export default function IrrigationPage() {
     }
   }, [staffFilter, allSchedules, allSchedulesLoading, loadAllSchedules, toast])
 
-  useEffect(() => {
-    const loadStats = async () => {
-      try {
-        // Lấy một trang lớn để có cái nhìn tổng quan chính xác nhất có thể
-        const res: PaginatedSchedules = await scheduleService.getScheduleList(1, 1000)
-        const items = res.data.items || []
-        const now = new Date()
-        now.setHours(0, 0, 0, 0)
+  const loadStats = useCallback(async () => {
+    try {
+      // Lấy một trang lớn để có cái nhìn tổng quan chính xác nhất có thể
+      const res: PaginatedSchedules = await scheduleService.getScheduleList(1, 1000)
+      const items = res.data.items || []
+      const now = new Date()
+      now.setHours(0, 0, 0, 0)
 
-        const total = res.data.totalItemCount || items.length
-        const activeItems = items.filter(it => it.status === 1 || it.status === 'ACTIVE')
-        const inactiveItems = items.filter(it => it.status === 0 || it.status === 'DEACTIVATED')
+      const total = res.data.totalItemCount || items.length
+      const activeItems = items.filter(it => it.status === 1 || it.status === 'ACTIVE')
+      const inactiveItems = items.filter(it => it.status === 0 || it.status === 'DEACTIVATED')
 
-        const upcoming = items.filter(it => {
-          const start = new Date(it.startDate)
-          return !Number.isNaN(start.getTime()) && start > now
-        }).length
+      const upcoming = items.filter(it => {
+        const start = new Date(it.startDate)
+        return !Number.isNaN(start.getTime()) && start > now
+      }).length
 
-        const ongoing = items.filter(it => {
-          const start = new Date(it.startDate)
-          const end = new Date(it.endDate)
-          if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return false
-          return start <= now && now <= end
-        }).length
+      const ongoing = items.filter(it => {
+        const start = new Date(it.startDate)
+        const end = new Date(it.endDate)
+        if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return false
+        return start <= now && now <= end
+      }).length
 
-        setStats({
-          total,
-          active: activeItems.length,
-          inactive: inactiveItems.length,
-          upcoming,
-          ongoing,
-        })
-      } catch (error) {
-        toast({
-          title: 'Không thể tải thống kê lịch tưới',
-          description: 'Vẫn có thể sử dụng danh sách lịch, nhưng số liệu tổng quan chưa được cập nhật.',
-          variant: 'destructive',
-        })
-      }
+      setStats({
+        total,
+        active: activeItems.length,
+        inactive: inactiveItems.length,
+        upcoming,
+        ongoing,
+      })
+    } catch (error) {
+      toast({
+        title: 'Không thể tải thống kê lịch tưới',
+        description: 'Vẫn có thể sử dụng danh sách lịch, nhưng số liệu tổng quan chưa được cập nhật.',
+        variant: 'destructive',
+      })
     }
-
-    loadStats()
   }, [toast])
+
+  useEffect(() => {
+    loadStats()
+  }, [loadStats])
+
+  const handleRefresh = useCallback(async () => {
+    await loadStats()
+    await loadAllSchedules()
+    toast({
+      title: 'Đã làm mới',
+      description: 'Dữ liệu lịch tưới đã được cập nhật',
+    })
+  }, [loadStats, loadAllSchedules, toast])
 
   return (
     <ManagerLayout>
@@ -157,6 +166,11 @@ export default function IrrigationPage() {
           <ManagementPageHeader
             title="Quản lý lịch tưới"
             description="Quản lý và lập lịch tưới nước"
+            actions={
+              <Button onClick={handleRefresh} variant="outline">
+                Làm mới
+              </Button>
+            }
           />
 
           { }

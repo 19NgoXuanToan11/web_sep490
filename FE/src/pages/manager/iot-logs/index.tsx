@@ -8,7 +8,7 @@ import { Badge } from '@/shared/ui/badge'
 import { Input } from '@/shared/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { RefreshCw, Download, Search } from 'lucide-react'
-import { StaffFilterBar, StaffDataTable, type StaffDataTableColumn } from '@/shared/ui'
+import { StaffFilterBar, StaffDataTable, type StaffDataTableColumn, ManagementPageHeader } from '@/shared/ui'
 
 const formatSensorValue = (value: number) => {
     if (Number.isNaN(value)) return '--'
@@ -122,6 +122,14 @@ const ManagerIoTLogsPage: React.FC = () => {
         }))
     }, [filteredLogs])
 
+    const handleRefresh = useCallback(async () => {
+        await fetchLogs()
+        toast({
+            title: 'Đã làm mới',
+            description: 'Dữ liệu nhật ký đã được cập nhật',
+        })
+    }, [fetchLogs, toast])
+
     const handleExportToCSV = async () => {
         try {
             // Call backend endpoint to export CSV
@@ -155,14 +163,15 @@ const ManagerIoTLogsPage: React.FC = () => {
     return (
         <ManagerLayout>
             <div className="p-6 space-y-8">
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                    <div>
-                        <h1 className="text-3xl font-bold text-gray-900">Nhật ký hệ thống IoT</h1>
-                        <p className="text-gray-600 mt-2">
-                            Theo dõi lịch sử đo đạc và đồng bộ trạng thái.
-                        </p>
-                    </div>
-                </div>
+                <ManagementPageHeader
+                    title="Nhật ký hệ thống IoT"
+                    description="Theo dõi lịch sử đo đạc và đồng bộ trạng thái."
+                    actions={
+                        <Button onClick={handleRefresh} variant="outline">
+                            Làm mới
+                        </Button>
+                    }
+                />
 
                 <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                     <Card>

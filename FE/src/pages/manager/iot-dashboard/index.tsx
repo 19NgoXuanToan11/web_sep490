@@ -650,9 +650,6 @@ const RealTimeIoTDashboard: React.FC = () => {
                   Cấu hình Ngưỡng
                 </DialogTitle>
               </div>
-              <DialogDescription className="text-sm text-gray-600 mt-1">
-                Thiết lập ngưỡng cho Độ ẩm đất, Ánh sáng và Đèn LED để điều khiển tự động
-              </DialogDescription>
             </DialogHeader>
             {isLoadingThresholds && (
               <div className="flex items-center justify-center py-8">

@@ -14,6 +14,9 @@ import {
   Package,
   ToggleLeft,
   ToggleRight,
+  Info,
+  PackageCheck,
+  RefreshCw,
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -63,6 +66,9 @@ interface ProductRowProps {
   onViewProduct?: (product: Product) => void
   onEditProduct?: (product: Product) => void
   onDeleteProduct?: (product: Product) => void
+  onUpdateProductInfo?: (product: Product) => void
+  onChangeProductStatus?: (product: Product) => void
+  onUpdateProductQuantity?: (product: Product) => void
   openDropdownId: number | null
   setOpenDropdownId: React.Dispatch<React.SetStateAction<number | null>>
 }
@@ -78,6 +84,9 @@ const ProductRow = React.memo(
     onViewProduct,
     onEditProduct,
     onDeleteProduct,
+    onUpdateProductInfo,
+    onChangeProductStatus,
+    onUpdateProductQuantity,
     openDropdownId,
     setOpenDropdownId,
   }: ProductRowProps) => {
@@ -158,7 +167,6 @@ const ProductRow = React.memo(
                     onViewProduct?.(product)
                   }}
                 >
-                  <Eye className="h-4 w-4 mr-2" />
                   Xem chi tiết
                 </DropdownMenuItem>
                 <DropdownMenuItem
@@ -210,6 +218,39 @@ const ProductRow = React.memo(
                 >
                   Xem chi tiết
                 </DropdownMenuItem>
+                {onUpdateProductInfo && (
+                  <DropdownMenuItem
+                    onClick={e => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      onUpdateProductInfo(product)
+                    }}
+                  >
+                    Cập nhật thông tin
+                  </DropdownMenuItem>
+                )}
+                {onChangeProductStatus && (
+                  <DropdownMenuItem
+                    onClick={e => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      onChangeProductStatus(product)
+                    }}
+                  >
+                    Thay đổi trạng thái
+                  </DropdownMenuItem>
+                )}
+                {onUpdateProductQuantity && (
+                  <DropdownMenuItem
+                    onClick={e => {
+                      e.preventDefault()
+                      e.stopPropagation()
+                      onUpdateProductQuantity(product)
+                    }}
+                  >
+                    Cập nhật số lượng
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           </TableCell>
@@ -223,6 +264,9 @@ interface ProductTableProps {
   onEditProduct?: (product: Product) => void
   onViewProduct?: (product: Product) => void
   onDeleteProduct?: (product: Product) => void
+  onUpdateProductInfo?: (product: Product) => void
+  onChangeProductStatus?: (product: Product) => void
+  onUpdateProductQuantity?: (product: Product) => void
   className?: string
   mode?: ProductTableMode
 }
@@ -231,6 +275,9 @@ export function ProductTable({
   onEditProduct,
   onViewProduct,
   onDeleteProduct,
+  onUpdateProductInfo,
+  onChangeProductStatus,
+  onUpdateProductQuantity,
   className,
   mode = 'manager',
 }: ProductTableProps) {
@@ -273,7 +320,7 @@ export function ProductTable({
 
       try {
         const newStatus = product.status === 'Active' ? 'Inactive' : 'Active'
-        await changeProductStatus(product.productId, newStatus)
+        await changeProductStatus(product.productId)
 
         toast({
           title: 'Cập nhật thành công',
@@ -313,6 +360,18 @@ export function ProductTable({
   const deleteProductHandler = useMemo(
     () => handleDropdownAction(onDeleteProduct),
     [handleDropdownAction, onDeleteProduct],
+  )
+  const updateProductInfoHandler = useMemo(
+    () => handleDropdownAction(onUpdateProductInfo),
+    [handleDropdownAction, onUpdateProductInfo],
+  )
+  const changeProductStatusHandler = useMemo(
+    () => handleDropdownAction(onChangeProductStatus),
+    [handleDropdownAction, onChangeProductStatus],
+  )
+  const updateProductQuantityHandler = useMemo(
+    () => handleDropdownAction(onUpdateProductQuantity),
+    [handleDropdownAction, onUpdateProductQuantity],
   )
 
   const handleSelectAll = useCallback(() => {
@@ -396,6 +455,9 @@ export function ProductTable({
                   onViewProduct={viewProductHandler}
                   onEditProduct={editProductHandler}
                   onDeleteProduct={deleteProductHandler}
+                  onUpdateProductInfo={updateProductInfoHandler}
+                  onChangeProductStatus={changeProductStatusHandler}
+                  onUpdateProductQuantity={updateProductQuantityHandler}
                   openDropdownId={openDropdownId}
                   setOpenDropdownId={setOpenDropdownId}
                 />

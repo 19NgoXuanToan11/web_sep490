@@ -85,7 +85,7 @@ export interface ChangeStatusRequest {
 }
 
 export interface ChangeQuantityRequest {
-  quantity: number
+  stockQuantity: number
 }
 
 const mapApiProductToProduct = (apiProduct: any): Product => {
@@ -240,24 +240,66 @@ export const productService = {
   },
 
   updateProduct: async (id: number, product: UpdateProductRequest): Promise<Product> => {
-    const response = await http.put<Product>(`/v1/products/update/${id}`, product)
-    return response.data
+    // Map frontend field names to backend DTO field names (PascalCase)
+    // Backend expects: ProductName, Description, Price, CategoryId, Images
+    const backendPayload: any = {
+      ProductName: product.productName,
+      Price: product.price,
+      CategoryId: product.categoryId,
+    }
+
+    // Include Description only if provided (can be empty string, null, or undefined)
+    // Backend accepts null/empty for optional Description field
+    if (product.productDescription !== undefined) {
+      backendPayload.Description = product.productDescription || null
+    }
+
+    // Include Images only if provided
+    if (product.imageUrl !== undefined) {
+      backendPayload.Images = product.imageUrl || null
+    }
+
+    const response = await http.put<any>(`/v1/products/update/${id}`, backendPayload)
+    // Backend returns ResponseDTO with Data field containing ProductDetailDTO
+    // ProductDetailDTO doesn't have productId, so we fetch the full product
+    const updatedProduct = await productService.getProductById(id)
+
+    // Always prioritize imageUrl from request if it was provided
+    // This ensures the image is included even if the backend response doesn't have it yet
+    // or if getProductById returns stale data
+    if (product.imageUrl !== undefined) {
+      // If imageUrl was explicitly provided (including empty string to remove image)
+      updatedProduct.imageUrl = product.imageUrl || undefined
+    } else {
+      // Otherwise, try to use from response
+      const responseData = response.data?.data
+      if (
+        responseData?.Images !== undefined &&
+        responseData.Images !== null &&
+        responseData.Images !== ''
+      ) {
+        updatedProduct.imageUrl = responseData.Images
+      }
+    }
+
+    return updatedProduct
   },
 
-  changeProductStatus: async (id: number, statusData: ChangeStatusRequest): Promise<Product> => {
-    const response = await http.put<Product>(`/v1/products/change-product-status/${id}`, statusData)
-    return response.data
+  changeProductStatus: async (id: number): Promise<Product> => {
+    await http.put<any>(`/v1/products/change-product-status/${id}`)
+    // Backend returns ResponseDTO with message only, not full product data
+    // Fetch the updated product
+    return await productService.getProductById(id)
   },
 
   changeProductQuantity: async (
     id: number,
     quantityData: ChangeQuantityRequest
   ): Promise<Product> => {
-    const response = await http.put<Product>(
-      `/v1/products/change-product-quantity/${id}`,
-      quantityData
-    )
-    return response.data
+    await http.put<any>(`/v1/products/change-product-Quantity/${id}`, quantityData)
+    // Backend returns ResponseDTO with message only, not full product data
+    // Fetch the updated product
+    return await productService.getProductById(id)
   },
 
   deleteProduct: async (id: number): Promise<void> => {

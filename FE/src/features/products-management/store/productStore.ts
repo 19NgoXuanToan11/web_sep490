@@ -40,7 +40,7 @@ interface ProductState {
   createProduct: (product: CreateProductRequest) => Promise<Product>
   updateProduct: (id: number, product: UpdateProductRequest) => Promise<Product>
   deleteProduct: (id: number) => Promise<void>
-  changeProductStatus: (id: number, status: 'Active' | 'Inactive') => Promise<Product>
+  changeProductStatus: (id: number) => Promise<Product>
   changeProductQuantity: (id: number, quantity: number) => Promise<Product>
 
   setSearchQuery: (query: string) => void
@@ -183,16 +183,38 @@ export const useProductStore = create<ProductState>((set, get) => ({
     try {
       const updatedProduct = await productService.updateProduct(id, productData)
 
+      // Save imageUrl before refresh, as it might not be in the refreshed data yet
+      const savedImageUrl = updatedProduct.imageUrl
+
+      // Refresh products list to get updated data
+      await get().fetchAllProducts()
+
       set(state => ({
-        products: state.products.map(product =>
-          product.productId === id ? updatedProduct : product
-        ),
+        products: state.products.map(product => {
+          if (product.productId === id) {
+            // Merge updated product, ensuring imageUrl is preserved
+            return {
+              ...updatedProduct,
+              imageUrl: savedImageUrl || updatedProduct.imageUrl || product.imageUrl,
+            }
+          }
+          return product
+        }),
         selectedProduct:
-          state.selectedProduct?.productId === id ? updatedProduct : state.selectedProduct,
+          state.selectedProduct?.productId === id
+            ? {
+                ...updatedProduct,
+                imageUrl:
+                  savedImageUrl || updatedProduct.imageUrl || state.selectedProduct.imageUrl,
+              }
+            : state.selectedProduct,
         isUpdating: false,
       }))
 
-      return updatedProduct
+      return {
+        ...updatedProduct,
+        imageUrl: savedImageUrl || updatedProduct.imageUrl,
+      }
     } catch (error) {
       set({ isUpdating: false })
       throw error
@@ -217,10 +239,13 @@ export const useProductStore = create<ProductState>((set, get) => ({
     }
   },
 
-  changeProductStatus: async (id: number, status: 'Active' | 'Inactive') => {
+  changeProductStatus: async (id: number) => {
     set({ isUpdating: true })
     try {
-      const updatedProduct = await productService.changeProductStatus(id, { status })
+      const updatedProduct = await productService.changeProductStatus(id)
+
+      // Refresh products list to get updated data
+      await get().fetchAllProducts()
 
       set(state => ({
         products: state.products.map(product =>
@@ -241,7 +266,12 @@ export const useProductStore = create<ProductState>((set, get) => ({
   changeProductQuantity: async (id: number, quantity: number) => {
     set({ isUpdating: true })
     try {
-      const updatedProduct = await productService.changeProductQuantity(id, { quantity })
+      const updatedProduct = await productService.changeProductQuantity(id, {
+        stockQuantity: quantity,
+      })
+
+      // Refresh products list to get updated data
+      await get().fetchAllProducts()
 
       set(state => ({
         products: state.products.map(product =>

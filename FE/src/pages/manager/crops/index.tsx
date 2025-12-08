@@ -24,6 +24,8 @@ import { useToast } from '@/shared/ui/use-toast'
 import {
   ManagementPageHeader,
   StaffFilterBar,
+  StaffDataTable,
+  type StaffDataTableColumn,
 } from '@/shared/ui'
 import {
   DropdownMenu,
@@ -37,7 +39,7 @@ import {
   type CropRequirementPayload,
   type PlantStage,
 } from '@/shared/api/cropRequirementService'
-import { cropService, type Crop } from '@/shared/api/cropService'
+import { cropService, type Crop, type CropRequirement } from '@/shared/api/cropService'
 
 type RequirementFormState = {
   cropId: number | ''
@@ -98,28 +100,46 @@ const stageLabel = (stage?: string | null) => {
   return match ? match.label : stage
 }
 
-const statusLabel = (status?: string | null) => {
-  if (!status) return 'N/A'
-  const normalized = status.toUpperCase()
-  if (normalized === 'ACTIVE') return 'Hoạt động'
-  if (normalized === 'INACTIVE') return 'Tạm dừng'
-  return status
-}
-
 const toNullableNumber = (value: string | number | '') =>
   value === '' ? null : Number(value)
 
+const getStatusBadge = (isActive: boolean | undefined | null) => {
+  if (!isActive) return <Badge variant="destructive">Tạm dừng</Badge>
+  return <Badge variant="success">Hoạt động</Badge>
+}
+
+type CropRequirementRow = {
+  cropId: number
+  cropName: string
+  description?: string | null
+  origin?: string | null
+  cropStatus?: string | null
+  cropRequirementId?: number
+  plantStage?: string | null
+  estimatedDate?: number | null
+  moisture?: number | null
+  temperature?: number | null
+  fertilizer?: string | null
+  lightRequirement?: number | null
+  wateringFrequency?: string | null
+  notes?: string | null
+  isActive?: boolean | null
+}
+
 // Component riêng cho Action Menu
 interface RequirementActionMenuProps {
-  requirement: CropRequirementView
-  onView: (requirement: CropRequirementView) => void
-  onEdit: (requirement: CropRequirementView) => void
-  onDelete: (requirement: CropRequirementView) => void
+  requirement: CropRequirementView | CropRequirement | CropRequirementRow
+  isUpdatingStatus: boolean
+  onToggleStatus: (requirement: CropRequirementView | CropRequirement | CropRequirementRow) => void
+  onEdit: (requirement: CropRequirementView | CropRequirement | CropRequirementRow) => void
+  onDelete: (requirement: CropRequirementView | CropRequirement | CropRequirementRow) => void
+  onView: (requirement: CropRequirementRow) => void
 }
 
 const RequirementActionMenu: React.FC<RequirementActionMenuProps> = React.memo(
-  ({ requirement, onView, onEdit, onDelete }) => {
+  ({ requirement, isUpdatingStatus, onToggleStatus, onEdit, onDelete, onView }) => {
     const [open, setOpen] = useState(false)
+    const isActive = requirement.isActive ?? true
 
     const handleView = useCallback(
       (e: React.MouseEvent) => {
@@ -127,10 +147,22 @@ const RequirementActionMenu: React.FC<RequirementActionMenuProps> = React.memo(
         e.stopPropagation()
         setOpen(false)
         setTimeout(() => {
-          onView(requirement)
+          onView(requirement as CropRequirementRow)
         }, 0)
       },
       [requirement, onView]
+    )
+
+    const handleToggleStatus = useCallback(
+      (e: React.MouseEvent) => {
+        e.preventDefault()
+        e.stopPropagation()
+        setOpen(false)
+        setTimeout(() => {
+          onToggleStatus(requirement)
+        }, 0)
+      },
+      [requirement, onToggleStatus]
     )
 
     const handleEdit = useCallback(
@@ -183,18 +215,19 @@ const RequirementActionMenu: React.FC<RequirementActionMenuProps> = React.memo(
             Xem chi tiết
           </DropdownMenuItem>
           <DropdownMenuItem
+            onClick={handleToggleStatus}
+            className="cursor-pointer focus:bg-gray-100"
+            onSelect={(e) => e.preventDefault()}
+            disabled={isUpdatingStatus}
+          >
+            {isActive ? 'Tạm dừng' : 'Kích hoạt'}
+          </DropdownMenuItem>
+          <DropdownMenuItem
             onClick={handleEdit}
             className="cursor-pointer focus:bg-gray-100"
             onSelect={(e) => e.preventDefault()}
           >
             Chỉnh sửa
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            onClick={handleDelete}
-            className="cursor-pointer focus:bg-gray-100 text-red-600 focus:text-red-600"
-            onSelect={(e) => e.preventDefault()}
-          >
-            Xóa
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -210,78 +243,91 @@ export default function CropsPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all')
   const [stageFilter, setStageFilter] = useState<'all' | PlantStage>('all')
+  const [pageIndex, setPageIndex] = useState(1)
+  const pageSize = 10
 
-  // New state for crops data
   const [crops, setCrops] = useState<Crop[]>([])
   const [cropsLoading, setCropsLoading] = useState(false)
-  const [paginationData, setPaginationData] = useState<{
-    totalItemCount: number
-    pageSize: number
-    totalPagesCount: number
-    pageIndex: number
-    next: boolean
-    previous: boolean
-  } | null>(null)
 
   const [formDialogOpen, setFormDialogOpen] = useState(false)
   const [formMode, setFormMode] = useState<'create' | 'edit'>('create')
   const [formData, setFormData] = useState<RequirementFormState>(INITIAL_FORM_STATE)
-  const [selectedRequirement, setSelectedRequirement] = useState<CropRequirementView | null>(null)
+  const [selectedRequirement, setSelectedRequirement] = useState<CropRequirementView | CropRequirementRow | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [availableCrops, setAvailableCrops] = useState<Crop[]>([])
   const [loadingCrops, setLoadingCrops] = useState(false)
+  const [statusUpdatingId, setStatusUpdatingId] = useState<number | null>(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [selectedRequirementForDelete, setSelectedRequirementForDelete] =
-    useState<CropRequirementView | null>(null)
-  const [selectedCropForDetails, setSelectedCropForDetails] = useState<Crop | null>(null)
-  const [cropDetailsDialogOpen, setCropDetailsDialogOpen] = useState(false)
+    useState<CropRequirementView | CropRequirementRow | null>(null)
+  const [detailDialogOpen, setDetailDialogOpen] = useState(false)
+  const [detailRequirement, setDetailRequirement] = useState<CropRequirementRow | null>(null)
+  const [detailCrop, setDetailCrop] = useState<Crop | null>(null)
 
   const { toast } = useToast()
 
-  // Helper function to check if crop is active (handles all case variations)
-  const isActiveStatus = (status: string | undefined | null): boolean => {
-    if (!status) return false
-    const normalized = status.toUpperCase()
-    return normalized === 'ACTIVE'
-  }
+  // Đồng bộ crop + requirement để hiển thị đầy đủ dữ liệu (kể cả crop chưa có requirement)
+  const requirementRows: CropRequirementRow[] = useMemo(() => {
+    const cropMap = new Map<number, Crop>()
+    crops.forEach(crop => cropMap.set(crop.cropId, crop))
 
-  // Merge cropName and cropStatus from availableCrops into requirements based on cropId
-  const requirementsWithCropName = useMemo(() => {
-    if (!availableCrops.length) return requirements
-
-    // Create maps for quick lookup
-    const cropMap = new Map<number, { name: string; status: string }>()
-    availableCrops.forEach(crop => {
-      cropMap.set(crop.cropId, { name: crop.cropName, status: crop.status || '' })
-    })
-
-    // Merge cropName and use crop status to determine isActive
-    return requirements.map(requirement => {
-      const cropInfo = cropMap.get(requirement.cropId)
-      const cropStatus = cropInfo?.status || ''
-      // Use crop status if available, otherwise fall back to requirement.isActive
-      const effectiveIsActive = cropInfo ? isActiveStatus(cropStatus) : requirement.isActive
-
+    const rowsFromReq = requirements.map(req => {
+      const crop = cropMap.get(req.cropId)
       return {
-        ...requirement,
-        cropName: requirement.cropName || cropInfo?.name || null,
-        isActive: effectiveIsActive,
-      }
+        cropId: req.cropId,
+        cropName: crop?.cropName || req.cropName || 'Chưa có tên',
+        description: crop?.description,
+        origin: crop?.origin,
+        cropStatus: crop?.status || null,
+        cropRequirementId: req.cropRequirementId,
+        plantStage: req.plantStage,
+        estimatedDate: req.estimatedDate,
+        moisture: req.moisture,
+        temperature: req.temperature,
+        fertilizer: req.fertilizer,
+        lightRequirement: req.lightRequirement,
+        wateringFrequency: req.wateringFrequency,
+        notes: req.notes,
+        isActive: req.isActive ?? true,
+      } as CropRequirementRow
     })
-  }, [requirements, availableCrops])
+
+    // Thêm dòng placeholder cho crop chưa có requirement
+    const rowsFromCrops: CropRequirementRow[] = crops
+      .filter(crop => !crop.cropRequirement || crop.cropRequirement.length === 0)
+      .map(crop => ({
+        cropId: crop.cropId,
+        cropName: crop.cropName,
+        description: crop.description,
+        origin: crop.origin,
+        cropStatus: crop.status,
+        cropRequirementId: undefined,
+        plantStage: null,
+        estimatedDate: null,
+        moisture: null,
+        temperature: null,
+        fertilizer: null,
+        lightRequirement: null,
+        wateringFrequency: null,
+        notes: null,
+        isActive: crop.status?.toUpperCase() === 'ACTIVE',
+      }))
+
+    return [...rowsFromReq, ...rowsFromCrops]
+  }, [crops, requirements])
 
   const stats = useMemo(() => {
-    const total = requirementsWithCropName.length
-    const active = requirementsWithCropName.filter(item => item.isActive).length
-    const average = (key: keyof CropRequirementView) => {
-      const values = requirementsWithCropName
+    const total = requirementRows.length
+    const active = requirementRows.filter(item => item.isActive).length
+    const average = (key: keyof CropRequirementRow) => {
+      const values = requirementRows
         .map(item => item[key] as number | null | undefined)
         .filter((value): value is number => typeof value === 'number')
       if (!values.length) return null
       return values.reduce((sum, value) => sum + value, 0) / values.length
     }
     const stageDistribution = PLANT_STAGE_OPTIONS.map(option => {
-      const count = requirementsWithCropName.filter(item => item.plantStage === option.value).length
+      const count = requirementRows.filter(item => item.plantStage === option.value).length
       return { ...option, count, percent: total ? Math.round((count / total) * 100) : 0 }
     })
 
@@ -294,11 +340,50 @@ export default function CropsPage() {
       light: average('lightRequirement'),
       stageDistribution,
     }
-  }, [requirementsWithCropName])
+  }, [requirementRows])
+
+  const filteredRequirements = useMemo(() => {
+    const normalizedSearch = searchTerm.trim().toLowerCase()
+
+    return requirementRows.filter(req => {
+      if (!req) return false
+
+      if (statusFilter !== 'all') {
+        const active = req.isActive ?? false
+        if (statusFilter === 'active' && !active) return false
+        if (statusFilter === 'inactive' && active) return false
+      }
+
+      if (stageFilter !== 'all' && req.plantStage !== stageFilter) return false
+
+      if (normalizedSearch) {
+        const cropName = (req.cropName || '').toLowerCase()
+        const notes = (req.notes || '').toLowerCase()
+        if (!cropName.includes(normalizedSearch) && !notes.includes(normalizedSearch)) {
+          return false
+        }
+      }
+
+      return true
+    })
+  }, [requirementRows, searchTerm, statusFilter, stageFilter])
+
+  const totalPages = useMemo(() => {
+    return Math.max(1, Math.ceil(filteredRequirements.length / pageSize))
+  }, [filteredRequirements.length, pageSize])
+
+  const paginatedRequirements = useMemo(() => {
+    const start = (pageIndex - 1) * pageSize
+    return filteredRequirements.slice(start, start + pageSize)
+  }, [filteredRequirements, pageIndex, pageSize])
 
   const handleResetForm = () => {
     setFormData(INITIAL_FORM_STATE)
     setSelectedRequirement(null)
+  }
+
+  const handlePageChange = (page: number) => {
+    setPageIndex(page)
   }
 
   const loadRequirements = async () => {
@@ -315,6 +400,22 @@ export default function CropsPage() {
       })
     } finally {
       setLoading(false)
+    }
+  }
+
+  const loadCrops = async () => {
+    try {
+      setCropsLoading(true)
+      const response = await cropService.getAllCrops(1, 1000)
+      setCrops(response.items || [])
+    } catch (error) {
+      toast({
+        title: 'Lỗi',
+        description: 'Không thể tải danh sách cây trồng',
+        variant: 'destructive',
+      })
+    } finally {
+      setCropsLoading(false)
     }
   }
 
@@ -335,32 +436,6 @@ export default function CropsPage() {
     }
   }
 
-  const loadCrops = async (page: number = 1) => {
-    try {
-      setCropsLoading(true)
-      const response = await cropService.getAllCrops(page, 100) // Use pageSize 100 to get all crops
-      setCrops(response.items || [])
-      setPaginationData({
-        totalItemCount: response.totalItemCount,
-        pageSize: response.pageSize,
-        totalPagesCount: response.totalPagesCount,
-        pageIndex: response.pageIndex,
-        next: response.next,
-        previous: response.previous,
-      })
-    } catch (error) {
-      toast({
-        title: 'Lỗi',
-        description: 'Không thể tải danh sách cây trồng',
-        variant: 'destructive',
-      })
-      setCrops([])
-      setPaginationData(null)
-    } finally {
-      setCropsLoading(false)
-    }
-  }
-
   const openCreateDialog = () => {
     handleResetForm()
     setFormMode('create')
@@ -376,6 +451,30 @@ export default function CropsPage() {
     lightRequirement: toNullableNumber(formData.lightRequirement),
     wateringFrequency: formData.wateringFrequency || null,
     notes: formData.notes || null,
+  })
+
+  const mapRequirementToForm = (requirement: CropRequirementView | CropRequirement | CropRequirementRow): RequirementFormState => ({
+    cropId: requirement.cropId,
+    plantStage: (requirement.plantStage as PlantStage) || '',
+    estimatedDate:
+      requirement.estimatedDate === null || requirement.estimatedDate === undefined
+        ? ''
+        : String(requirement.estimatedDate),
+    moisture:
+      requirement.moisture === null || requirement.moisture === undefined
+        ? ''
+        : String(requirement.moisture),
+    temperature:
+      requirement.temperature === null || requirement.temperature === undefined
+        ? ''
+        : String(requirement.temperature),
+    fertilizer: requirement.fertilizer || '',
+    lightRequirement:
+      requirement.lightRequirement === null || requirement.lightRequirement === undefined
+        ? ''
+        : String(requirement.lightRequirement),
+    wateringFrequency: requirement.wateringFrequency || '',
+    notes: requirement.notes || '',
   })
 
   const handleSubmitForm = async () => {
@@ -407,9 +506,18 @@ export default function CropsPage() {
         handleResetForm()
         loadRequirements()
       } else if (selectedRequirement) {
+        const requirementId = selectedRequirement.cropRequirementId
+        if (!requirementId) {
+          toast({
+            title: 'Thiếu ID',
+            description: 'Không tìm thấy ID yêu cầu để cập nhật',
+            variant: 'destructive',
+          })
+          return
+        }
         // For edit mode, use the cropId from the selected requirement implicitly
         await cropRequirementService.update(
-          selectedRequirement.cropRequirementId,
+          requirementId,
           payload,
           formData.plantStage
         )
@@ -429,8 +537,79 @@ export default function CropsPage() {
     }
   }
 
+  const openEditRequirement = (requirement: CropRequirementView | CropRequirement | CropRequirementRow) => {
+    if (!requirement.cropRequirementId) {
+      toast({
+        title: 'Chưa có yêu cầu',
+        description: 'Vui lòng tạo yêu cầu trước khi chỉnh sửa.',
+      })
+      return
+    }
+    setFormMode('edit')
+    setSelectedRequirement(requirement as CropRequirementView)
+    setFormData(mapRequirementToForm(requirement))
+    setFormDialogOpen(true)
+  }
+
+  const confirmDeleteRequirement = (requirement: CropRequirementView | CropRequirement | CropRequirementRow) => {
+    if (!requirement.cropRequirementId) {
+      toast({
+        title: 'Chưa có yêu cầu',
+        description: 'Không thể xoá vì chưa có yêu cầu.',
+        variant: 'destructive',
+      })
+      return
+    }
+    setSelectedRequirementForDelete(requirement as CropRequirementView)
+    setIsDeleteDialogOpen(true)
+  }
+
+  const handleToggleRequirementStatus = async (requirement: CropRequirementView | CropRequirement | CropRequirementRow) => {
+    if (!requirement.cropRequirementId) {
+      toast({
+        title: 'Chưa có yêu cầu',
+        description: 'Không thể đổi trạng thái vì chưa có yêu cầu.',
+        variant: 'destructive',
+      })
+      return
+    }
+    const isActive = requirement.isActive ?? true
+    try {
+      setStatusUpdatingId(requirement.cropRequirementId ?? null)
+      await cropRequirementService.updateStatus(requirement.cropRequirementId as number)
+      toast({
+        title: 'Thành công',
+        description: isActive ? 'Đã tạm dừng yêu cầu cây trồng' : 'Đã kích hoạt yêu cầu cây trồng',
+      })
+      await loadRequirements()
+    } catch (error) {
+      toast({
+        title: 'Lỗi',
+        description: 'Không thể cập nhật trạng thái yêu cầu cây trồng',
+        variant: 'destructive',
+      })
+    } finally {
+      setStatusUpdatingId(null)
+    }
+  }
+
+  const openDetail = (requirement: CropRequirementRow) => {
+    setDetailRequirement(requirement)
+    const crop = crops.find(c => c.cropId === requirement.cropId) || null
+    setDetailCrop(crop)
+    setDetailDialogOpen(true)
+  }
+
   const handleDeleteRequirement = async () => {
     if (!selectedRequirementForDelete) return
+    if (!selectedRequirementForDelete.cropRequirementId) {
+      toast({
+        title: 'Chưa có yêu cầu',
+        description: 'Không thể xoá vì chưa có yêu cầu.',
+        variant: 'destructive',
+      })
+      return
+    }
 
     try {
       await cropRequirementService.remove(selectedRequirementForDelete.cropRequirementId)
@@ -451,16 +630,15 @@ export default function CropsPage() {
     await Promise.all([loadRequirements(), loadAvailableCrops(), loadCrops()])
   }
 
-  const openCropDetailsDialog = (crop: Crop) => {
-    setSelectedCropForDetails(crop)
-    setCropDetailsDialogOpen(true)
-  }
-
   useEffect(() => {
     loadRequirements()
     loadAvailableCrops()
     loadCrops()
   }, [])
+
+  useEffect(() => {
+    setPageIndex(1)
+  }, [searchTerm, statusFilter, stageFilter])
 
   return (
     <ManagerLayout>
@@ -582,147 +760,73 @@ export default function CropsPage() {
           </StaffFilterBar>
 
           <Card>
-            <CardContent className="p-4">
-              <h3 className="text-lg font-semibold mb-4">Theo dõi giai đoạn</h3>
-              <div className="space-y-3">
-                {stats.stageDistribution.map(stage => (
-                  <div key={stage.value}>
-                    <div className="flex justify-between text-sm">
-                      <span className="font-medium">{stage.label}</span>
-                      <span className="text-gray-500">{stage.count} ({stage.percent}%)</span>
-                    </div>
-                    <div className="h-2 rounded-full bg-gray-100 mt-1 overflow-hidden">
-                      <div
-                        className="h-full rounded-full bg-green-500 transition-all"
-                        style={{ width: `${stage.percent}%` }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Display All Crops Data */}
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <div>
-                  <h3 className="text-lg font-semibold">Danh sách cây trồng</h3>
-
-                </div>
-                {paginationData && (
-                  <div className="text-sm text-gray-500">
-                    Tổng: {paginationData.totalItemCount} • Trang {paginationData.pageIndex + 1}/{paginationData.totalPagesCount}
-                  </div>
-                )}
-              </div>
-
-              {cropsLoading ? (
+            <CardContent className="p-0">
+              {loading || cropsLoading ? (
                 <div className="flex items-center justify-center py-12">
                   <RefreshCw className="h-8 w-8 animate-spin text-green-600" />
                   <span className="ml-2 text-gray-600">Đang tải dữ liệu...</span>
                 </div>
-              ) : crops.length === 0 ? (
-                <div className="text-center py-12 text-gray-500">
-                  Không có dữ liệu cây trồng
-                </div>
               ) : (
-                <div className="space-y-4">
-                  {crops.map((crop) => (
-                    <Card key={crop.cropId} className="border-l-4 border-l-green-500">
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-2">
-                              <h4 className="text-lg font-semibold">{crop.cropName}</h4>
-                              <Badge variant={isActiveStatus(crop.status) ? 'success' : 'destructive'}>
-                                {statusLabel(crop.status)}
-                              </Badge>
-                            </div>
-                            {crop.description && (
-                              <p className="text-sm text-gray-600 mb-2">{crop.description}</p>
-                            )}
-                            {crop.origin && (
-                              <p className="text-sm text-gray-500 mb-2">
-                                <span className="font-medium">Xuất xứ:</span> {crop.origin}
-                              </p>
-                            )}
-                            {crop.cropRequirement && crop.cropRequirement.length > 0 ? (
-                              <div className="mt-3 space-y-2">
-                                <p className="text-sm font-medium text-gray-700">Yêu cầu cây trồng:</p>
-                                <div className="grid gap-2 md:grid-cols-2 lg:grid-cols-3">
-                                  {crop.cropRequirement.map((req) => (
-                                    <Card key={req.cropRequirementId} className="bg-gray-50">
-                                      <CardContent className="p-3">
-                                        <div className="space-y-1">
-                                          <div className="flex items-center justify-between">
-                                            <Badge variant="outline">{stageLabel(req.plantStage)}</Badge>
-                                          </div>
-                                          <div className="grid grid-cols-2 gap-1 text-xs">
-                                            {req.estimatedDate && (
-                                              <div>
-                                                <span className="text-gray-500">Thời gian:</span>{' '}
-                                                <span className="font-medium">{req.estimatedDate} ngày</span>
-                                              </div>
-                                            )}
-                                            {req.moisture !== undefined && (
-                                              <div>
-                                                <span className="text-gray-500">Độ ẩm:</span>{' '}
-                                                <span className="font-medium">{req.moisture}%</span>
-                                              </div>
-                                            )}
-                                            {req.temperature !== undefined && (
-                                              <div>
-                                                <span className="text-gray-500">Nhiệt độ:</span>{' '}
-                                                <span className="font-medium">{req.temperature}°C</span>
-                                              </div>
-                                            )}
-                                            {req.lightRequirement !== undefined && (
-                                              <div>
-                                                <span className="text-gray-500">Ánh sáng:</span>{' '}
-                                                <span className="font-medium">{req.lightRequirement} lux</span>
-                                              </div>
-                                            )}
-                                            {req.fertilizer && (
-                                              <div>
-                                                <span className="text-gray-500">Phân bón:</span>{' '}
-                                                <span className="font-medium">{req.fertilizer}</span>
-                                              </div>
-                                            )}
-                                            {req.wateringFrequency && (
-                                              <div>
-                                                <span className="text-gray-500">Tưới:</span>{' '}
-                                                <span className="font-medium">{req.wateringFrequency}</span>
-                                              </div>
-                                            )}
-                                          </div>
-                                          {req.notes && (
-                                            <p className="text-xs text-gray-600 mt-1 italic">{req.notes}</p>
-                                          )}
-                                        </div>
-                                      </CardContent>
-                                    </Card>
-                                  ))}
-                                </div>
-                              </div>
+                <StaffDataTable<CropRequirementRow>
+                  className="px-4 sm:px-6 pb-6"
+                  data={paginatedRequirements}
+                  getRowKey={(req) => `${req.cropId}-${req.cropRequirementId ?? 'na'}`}
+                  currentPage={pageIndex}
+                  pageSize={pageSize}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                  emptyTitle="Không tìm thấy yêu cầu nào"
+                  emptyDescription={
+                    searchTerm || statusFilter !== 'all' || stageFilter !== 'all'
+                      ? 'Không có yêu cầu phù hợp với điều kiện lọc hiện tại.'
+                      : 'Hãy tạo yêu cầu cây trồng đầu tiên.'
+                  }
+                  columns={[
+                    {
+                      id: 'cropName',
+                      header: 'Cây trồng',
+                      render: (req: CropRequirementRow) => (
+                        <div>
+                          <div className="font-semibold text-gray-900">{req.cropName || 'Chưa có tên'}</div>
+                          <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-gray-600">
+                            {req.origin && <span>Xuất xứ: <span className="font-medium text-gray-800">{req.origin}</span></span>}
+                          </div>
+                          {req.description && (
+                            <div className="mt-1 text-sm text-gray-700 line-clamp-2">{req.description}</div>
+                          )}
+                        </div>
+                      ),
+                    },
+                    {
+                      id: 'stage',
+                      header: 'Giai đoạn & Trạng thái',
+                      render: (req: CropRequirementRow) => (
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex flex-wrap items-center gap-2 text-sm">
+                            <Badge variant="outline">{stageLabel(req.plantStage)}</Badge>
+                            {getStatusBadge(req.isActive)}
+                          </div>
+                          <div className="flex items-center">
+                            {req.cropRequirementId ? (
+                              <RequirementActionMenu
+                                requirement={req}
+                                isUpdatingStatus={statusUpdatingId === req.cropRequirementId}
+                                onToggleStatus={handleToggleRequirementStatus}
+                                onEdit={openEditRequirement}
+                                onDelete={confirmDeleteRequirement}
+                                onView={openDetail}
+                              />
                             ) : (
-                              <p className="text-sm text-gray-400 italic mt-2">Chưa có yêu cầu cây trồng</p>
+                              <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => openCreateDialog()}>
+                                Tạo
+                              </Button>
                             )}
                           </div>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => openCropDetailsDialog(crop)}
-                            className="ml-4"
-                          >
-                            Chi tiết
-                          </Button>
                         </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
+                      ),
+                    },
+                  ] satisfies StaffDataTableColumn<CropRequirementRow>[]}
+                />
               )}
             </CardContent>
           </Card>
@@ -872,140 +976,77 @@ export default function CropsPage() {
         </DialogContent>
       </Dialog>
 
-      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+      <Dialog open={detailDialogOpen} onOpenChange={setDetailDialogOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Xóa yêu cầu cây trồng</DialogTitle>
-            <DialogDescription>
-              Bạn có chắc muốn xóa yêu cầu cho "{selectedRequirementForDelete?.cropName ?? 'cây trồng'}" - {selectedRequirementForDelete ? stageLabel(selectedRequirementForDelete.plantStage) : ''}? Hành động này không thể hoàn tác.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setIsDeleteDialogOpen(false)
-                setSelectedRequirementForDelete(null)
-              }}
-            >
-              Hủy
-            </Button>
-            <Button variant="destructive" onClick={handleDeleteRequirement}>
-              Xóa yêu cầu
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Crop Details Dialog */}
-      <Dialog open={cropDetailsDialogOpen} onOpenChange={setCropDetailsDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Chi tiết cây trồng</DialogTitle>
-            <DialogDescription>Thông tin đầy đủ về cây trồng từ backend</DialogDescription>
+            <DialogTitle>Chi tiết yêu cầu cây trồng</DialogTitle>
           </DialogHeader>
 
-          {selectedCropForDetails && (
-            <div className="space-y-6">
-              {/* Basic Information */}
-              <div className="grid gap-4 md:grid-cols-2">
+          {detailRequirement && (
+            <div className="space-y-4">
+              <div className="grid md:grid-cols-2 gap-4">
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500 mb-2">Tên cây trồng</h3>
-                  <p className="text-lg font-semibold text-gray-900">{selectedCropForDetails.cropName}</p>
+                  <Label className="text-sm text-gray-600">Cây trồng</Label>
+                  <p className="mt-1 text-base font-semibold text-gray-900">
+                    {detailRequirement.cropName}
+                  </p>
+                  {detailCrop?.origin && (
+                    <p className="text-sm text-gray-600 mt-1">Xuất xứ: {detailCrop.origin}</p>
+                  )}
+                  {detailCrop?.status && (
+                    <div className="mt-1">
+                      <Badge variant={detailCrop.status.toUpperCase() === 'ACTIVE' ? 'success' : 'destructive'}>
+                        {detailCrop.status.toUpperCase() === 'ACTIVE' ? 'Hoạt động' : 'Tạm dừng'}
+                      </Badge>
+                    </div>
+                  )}
                 </div>
                 <div>
-                  <h3 className="text-sm font-medium text-gray-500 mb-2">Trạng thái</h3>
-                  <Badge variant={isActiveStatus(selectedCropForDetails.status) ? 'success' : 'destructive'}>
-                    {statusLabel(selectedCropForDetails.status)}
-                  </Badge>
-                </div>
-                {selectedCropForDetails.origin && (
-                  <div>
-                    <h3 className="text-sm font-medium text-gray-500 mb-2">Xuất xứ</h3>
-                    <p className="text-gray-900">{selectedCropForDetails.origin}</p>
+                  <Label className="text-sm text-gray-600">Giai đoạn hiện tại</Label>
+                  <div className="mt-1 flex items-center gap-2">
+                    <Badge variant="outline">{stageLabel(detailRequirement.plantStage)}</Badge>
+                    {getStatusBadge(detailRequirement.isActive)}
                   </div>
-                )}
+                </div>
               </div>
 
-              {/* Description */}
-              {selectedCropForDetails.description && (
-                <div className="border-t pt-4">
-                  <h3 className="text-sm font-medium text-gray-500 mb-2">Mô tả</h3>
-                  <p className="text-gray-900 whitespace-pre-wrap">{selectedCropForDetails.description}</p>
+              {detailCrop?.description && (
+                <div>
+                  <Label className="text-sm text-gray-600">Mô tả cây trồng</Label>
+                  <p className="mt-1 text-sm text-gray-800 whitespace-pre-wrap">{detailCrop.description}</p>
                 </div>
               )}
 
-              {/* Crop Requirements */}
-              <div className="border-t pt-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  Yêu cầu cây trồng ({selectedCropForDetails.cropRequirement?.length || 0})
-                </h3>
-                {selectedCropForDetails.cropRequirement && selectedCropForDetails.cropRequirement.length > 0 ? (
-                  <div className="space-y-4">
-                    {selectedCropForDetails.cropRequirement.map((req) => (
-                      <Card key={req.cropRequirementId} className="border-l-4 border-l-blue-500">
-                        <CardContent className="p-4">
-                          <div className="flex items-center justify-between mb-3">
-                            <Badge variant="outline" className="text-base">
-                              {stageLabel(req.plantStage)}
-                            </Badge>
-                          </div>
-                          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                            {req.estimatedDate !== undefined && (
-                              <div>
-                                <h4 className="text-sm font-medium text-gray-500 mb-1">Thời gian dự kiến</h4>
-                                <p className="text-gray-900 font-medium">{req.estimatedDate} ngày</p>
-                              </div>
-                            )}
-                            {req.moisture !== undefined && (
-                              <div>
-                                <h4 className="text-sm font-medium text-gray-500 mb-1">Độ ẩm</h4>
-                                <p className="text-gray-900 font-medium">{req.moisture}%</p>
-                              </div>
-                            )}
-                            {req.temperature !== undefined && (
-                              <div>
-                                <h4 className="text-sm font-medium text-gray-500 mb-1">Nhiệt độ</h4>
-                                <p className="text-gray-900 font-medium">{req.temperature}°C</p>
-                              </div>
-                            )}
-                            {req.lightRequirement !== undefined && (
-                              <div>
-                                <h4 className="text-sm font-medium text-gray-500 mb-1">Ánh sáng</h4>
-                                <p className="text-gray-900 font-medium">{req.lightRequirement} lux</p>
-                              </div>
-                            )}
-                            {req.fertilizer && (
-                              <div>
-                                <h4 className="text-sm font-medium text-gray-500 mb-1">Phân bón</h4>
-                                <p className="text-gray-900 font-medium">{req.fertilizer}</p>
-                              </div>
-                            )}
-                            {req.wateringFrequency && (
-                              <div>
-                                <h4 className="text-sm font-medium text-gray-500 mb-1">Tần suất tưới</h4>
-                                <p className="text-gray-900 font-medium">{req.wateringFrequency}</p>
-                              </div>
-                            )}
-                          </div>
-                          {req.notes && (
-                            <div className="mt-3 pt-3 border-t">
-                              <h4 className="text-sm font-medium text-gray-500 mb-1">Ghi chú</h4>
-                              <p className="text-gray-700 whitespace-pre-wrap text-sm">{req.notes}</p>
-                            </div>
-                          )}
-                        </CardContent>
-                      </Card>
-                    ))}
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-sm text-gray-600">Yêu cầu môi trường</Label>
+                  <div className="text-sm text-gray-800 space-y-1">
+                    <div>Độ ẩm: <span className="font-semibold">{detailRequirement.moisture ?? '—'}%</span></div>
+                    <div>Nhiệt độ: <span className="font-semibold">{detailRequirement.temperature ?? '—'}°C</span></div>
+                    <div>Ánh sáng: <span className="font-semibold">{detailRequirement.lightRequirement ?? '—'} lux</span></div>
                   </div>
-                ) : (
-                  <p className="text-gray-400 italic">Chưa có yêu cầu cây trồng</p>
-                )}
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm text-gray-600">Chăm sóc</Label>
+                  <div className="text-sm text-gray-800 space-y-1">
+                    <div>Tần suất tưới (ngày): <span className="font-semibold">{detailRequirement.wateringFrequency || '—'}</span></div>
+                    <div>Phân bón: <span className="font-semibold">{detailRequirement.fertilizer || '—'}</span></div>
+                    <div>Thời gian dự kiến: <span className="font-semibold">{detailRequirement.estimatedDate ?? '—'} ngày</span></div>
+                  </div>
+                </div>
               </div>
+
+              {detailRequirement.notes && (
+                <div>
+                  <Label className="text-sm text-gray-600">Ghi chú</Label>
+                  <p className="mt-1 text-sm text-gray-800 whitespace-pre-wrap">{detailRequirement.notes}</p>
+                </div>
+              )}
             </div>
           )}
         </DialogContent>
       </Dialog>
+
     </ManagerLayout>
   )
 }

@@ -12,6 +12,9 @@ export interface CropRequirement {
   lightRequirement: number
   wateringFrequency: string
   notes?: string
+  isActive?: boolean
+  createdDate?: string
+  updatedDate?: string | null
 }
 
 // View model returned from the backend crop endpoints
@@ -84,7 +87,9 @@ export const cropService = {
   },
 
   changeStatus: async (cropId: number, status: number): Promise<CropResponse> => {
-    const response = await http.put<CropResponse>(`/v1/crop/chang-status?cropId=${cropId}&status=${status}`)
+    const response = await http.put<CropResponse>(
+      `/v1/crop/chang-status?cropId=${cropId}&status=${status}`
+    )
     return response.data
   },
 

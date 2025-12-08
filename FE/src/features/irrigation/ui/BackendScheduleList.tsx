@@ -480,7 +480,7 @@ export function BackendScheduleList({
             cropService.getAllCropsList(),
             accountApi.getAll({ role: 'Staff', pageSize: 1000 }),
             // Chỉ lấy các hoạt động nông trại từ trang quản lý (đang hoạt động) để người dùng chọn
-            farmActivityService.getActiveFarmActivities(0, 1, 1000),
+            farmActivityService.getActiveFarmActivities({ pageIndex: 1, pageSize: 1000 }),
         ])
 
         const today = new Date()

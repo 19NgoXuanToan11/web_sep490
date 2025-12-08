@@ -68,14 +68,14 @@ export const farmActivityService = {
   },
 
   getActiveFarmActivities: async (
-    scheduleId: number = 0,
-    pageIndex: number = 1,
-    pageSize: number = 10
+    params: { scheduleId?: number; pageIndex?: number; pageSize?: number } = {}
   ): Promise<PaginationData<FarmActivity>> => {
     const queryParams = new URLSearchParams()
-    queryParams.append('pageIndex', pageIndex.toString())
-    queryParams.append('pageSize', pageSize.toString())
-    const url = `/v1/farm-activity/get-active?scheduleId=${scheduleId}&${queryParams.toString()}`
+    if (params.scheduleId !== undefined) queryParams.append('scheduleId', params.scheduleId.toString())
+    if (params.pageIndex) queryParams.append('pageIndex', params.pageIndex.toString())
+    if (params.pageSize) queryParams.append('pageSize', params.pageSize.toString())
+
+    const url = `/v1/farm-activity/get-active${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
     const response = await http.get<ApiResponse<PaginationData<FarmActivity>>>(url)
     return response.data.data
   },

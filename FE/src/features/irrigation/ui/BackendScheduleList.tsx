@@ -1092,6 +1092,14 @@ export function BackendScheduleList({
                                     </div>
                                     <div><strong>Thuốc BVTV:</strong> {scheduleDetail.pesticideUsed ? 'Có' : 'Không'}</div>
                                     <div><strong>Tình trạng bệnh:</strong> {getDiseaseLabel(scheduleDetail.diseaseStatus)}</div>
+                                    <div>
+                                        <strong>Giai đoạn hiện tại:</strong>{' '}
+                                        {scheduleDetail.currentPlantStage
+                                            ? translatePlantStage(scheduleDetail.currentPlantStage)
+                                            : scheduleDetail.cropView?.plantStage
+                                                ? translatePlantStage(scheduleDetail.cropView.plantStage)
+                                                : '-'}
+                                    </div>
                                     <div><strong>Tạo lúc:</strong> {formatDateTime(scheduleDetail.createdAt)}</div>
                                 </div>
                             </div>
@@ -1137,7 +1145,6 @@ export function BackendScheduleList({
                                         {scheduleDetail.cropView.origin && (
                                             <div><strong>Nguồn gốc:</strong> {scheduleDetail.cropView.origin}</div>
                                         )}
-                                        <div><strong>Giai đoạn cây:</strong> {scheduleDetail.currentPlantStage ? translatePlantStage(scheduleDetail.currentPlantStage) : (scheduleDetail.cropView.plantStage ? translatePlantStage(scheduleDetail.cropView.plantStage) : '-')}</div>
                                         {scheduleDetail.cropView.description && (
                                             <div className="col-span-2">
                                                 <strong>Mô tả:</strong>

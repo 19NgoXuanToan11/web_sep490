@@ -18,15 +18,10 @@ import { Textarea } from '@/shared/ui/textarea'
 import {
   Search,
   RefreshCw,
-  Droplets,
-  Sun,
-  Thermometer,
   MoreHorizontal,
 } from 'lucide-react'
 import { useToast } from '@/shared/ui/use-toast'
 import {
-  StaffDataTable,
-  type StaffDataTableColumn,
   ManagementPageHeader,
   StaffFilterBar,
 } from '@/shared/ui'
@@ -215,8 +210,6 @@ export default function CropsPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all')
   const [stageFilter, setStageFilter] = useState<'all' | PlantStage>('all')
-  const [currentPage, setCurrentPage] = useState(1)
-  const pageSize = 8
 
   // New state for crops data
   const [crops, setCrops] = useState<Crop[]>([])
@@ -237,9 +230,6 @@ export default function CropsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [availableCrops, setAvailableCrops] = useState<Crop[]>([])
   const [loadingCrops, setLoadingCrops] = useState(false)
-  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false)
-  const [selectedRequirementForDetails, setSelectedRequirementForDetails] =
-    useState<CropRequirementView | null>(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [selectedRequirementForDelete, setSelectedRequirementForDelete] =
     useState<CropRequirementView | null>(null)
@@ -280,29 +270,6 @@ export default function CropsPage() {
     })
   }, [requirements, availableCrops])
 
-  const filteredRequirements = useMemo(() => {
-    return requirementsWithCropName.filter(item => {
-      const matchesSearch =
-        !searchTerm ||
-        item.cropName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.notes?.toLowerCase().includes(searchTerm.toLowerCase())
-
-      const matchesStatus =
-        statusFilter === 'all' || (statusFilter === 'active' ? item.isActive : !item.isActive)
-
-      const matchesStage = stageFilter === 'all' || item.plantStage === stageFilter
-
-      return matchesSearch && matchesStatus && matchesStage
-    })
-  }, [requirementsWithCropName, searchTerm, statusFilter, stageFilter])
-
-  const totalPages = Math.max(1, Math.ceil(filteredRequirements.length / pageSize))
-
-  const paginatedRequirements = useMemo(() => {
-    const start = (currentPage - 1) * pageSize
-    return filteredRequirements.slice(start, start + pageSize)
-  }, [filteredRequirements, currentPage])
-
   const stats = useMemo(() => {
     const total = requirementsWithCropName.length
     const active = requirementsWithCropName.filter(item => item.isActive).length
@@ -332,20 +299,6 @@ export default function CropsPage() {
   const handleResetForm = () => {
     setFormData(INITIAL_FORM_STATE)
     setSelectedRequirement(null)
-  }
-
-  const populateForm = (requirement: CropRequirementView) => {
-    setFormData({
-      cropId: requirement.cropId,
-      plantStage: (requirement.plantStage as PlantStage) || '',
-      estimatedDate: requirement.estimatedDate?.toString() ?? '',
-      moisture: requirement.moisture?.toString() ?? '',
-      temperature: requirement.temperature?.toString() ?? '',
-      fertilizer: requirement.fertilizer ?? '',
-      lightRequirement: requirement.lightRequirement?.toString() ?? '',
-      wateringFrequency: requirement.wateringFrequency ?? '',
-      notes: requirement.notes ?? '',
-    })
   }
 
   const loadRequirements = async () => {
@@ -415,13 +368,6 @@ export default function CropsPage() {
     setFormDialogOpen(true)
   }
 
-  const openEditDialog = (requirement: CropRequirementView) => {
-    setSelectedRequirement(requirement)
-    populateForm(requirement)
-    setFormMode('edit')
-    setFormDialogOpen(true)
-  }
-
   const mapFormToPayload = (): CropRequirementPayload => ({
     estimatedDate: toNullableNumber(formData.estimatedDate),
     moisture: toNullableNumber(formData.moisture),
@@ -483,11 +429,6 @@ export default function CropsPage() {
     }
   }
 
-  const openDeleteDialog = useCallback((requirement: CropRequirementView) => {
-    setSelectedRequirementForDelete(requirement)
-    setIsDeleteDialogOpen(true)
-  }, [])
-
   const handleDeleteRequirement = async () => {
     if (!selectedRequirementForDelete) return
 
@@ -506,11 +447,6 @@ export default function CropsPage() {
     }
   }
 
-  const openDetailsDialog = (requirement: CropRequirementView) => {
-    setSelectedRequirementForDetails(requirement)
-    setDetailsDialogOpen(true)
-  }
-
   const handleRefresh = async () => {
     await Promise.all([loadRequirements(), loadAvailableCrops(), loadCrops()])
   }
@@ -525,10 +461,6 @@ export default function CropsPage() {
     loadAvailableCrops()
     loadCrops()
   }, [])
-
-  useEffect(() => {
-    setCurrentPage(1)
-  }, [searchTerm, statusFilter, stageFilter])
 
   return (
     <ManagerLayout>
@@ -937,153 +869,6 @@ export default function CropsPage() {
               {isSubmitting ? 'Đang lưu...' : formMode === 'create' ? 'Tạo' : 'Cập nhật'}
             </Button>
           </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Chi tiết chỉ số môi trường</DialogTitle>
-          </DialogHeader>
-
-          {selectedRequirementForDetails && (
-            <div className="space-y-6">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500 mb-2">Cây trồng</h3>
-                  <p className="text-lg font-semibold text-gray-900">
-                    {selectedRequirementForDetails.cropName ?? 'Không xác định'}
-                  </p>
-                </div>
-                <div>
-                  <h3 className="text-sm font-medium text-gray-500 mb-2">Giai đoạn</h3>
-                  <Badge variant="outline" className="text-base">
-                    {stageLabel(selectedRequirementForDetails.plantStage)}
-                  </Badge>
-                </div>
-              </div>
-
-              <div className="border-t pt-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Chỉ số môi trường</h3>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <Card>
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="rounded-full bg-blue-100 p-2 text-blue-600">
-                            <Droplets className="h-5 w-5" />
-                          </div>
-                          <div>
-                            <p className="text-sm text-gray-500">Độ ẩm</p>
-                            <p className="text-xl font-semibold text-gray-900">
-                              {formatNumber(selectedRequirementForDetails.moisture, '%')}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="rounded-full bg-yellow-100 p-2 text-yellow-600">
-                            <Sun className="h-5 w-5" />
-                          </div>
-                          <div>
-                            <p className="text-sm text-gray-500">Ánh sáng</p>
-                            <p className="text-xl font-semibold text-gray-900">
-                              {formatNumber(selectedRequirementForDetails.lightRequirement, 'lux')}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="rounded-full bg-orange-100 p-2 text-orange-600">
-                            <Thermometer className="h-5 w-5" />
-                          </div>
-                          <div>
-                            <p className="text-sm text-gray-500">Nhiệt độ</p>
-                            <p className="text-xl font-semibold text-gray-900">
-                              {formatNumber(selectedRequirementForDetails.temperature, '°C')}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-
-                  <Card>
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="rounded-full bg-green-100 p-2 text-green-600">
-                            <Droplets className="h-5 w-5" />
-                          </div>
-                          <div>
-                            <p className="text-sm text-gray-500">Tần suất tưới</p>
-                            <p className="text-xl font-semibold text-gray-900">
-                              {selectedRequirementForDetails.wateringFrequency || 'Chưa đặt'}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
-
-              <div className="border-t pt-4">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Thông tin bổ sung</h3>
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-500 mb-2">Thời gian dự kiến</h4>
-                    <p className="text-gray-900">
-                      {selectedRequirementForDetails.estimatedDate
-                        ? `${selectedRequirementForDetails.estimatedDate} ngày`
-                        : 'Chưa đặt'}
-                    </p>
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-500 mb-2">Phân bón</h4>
-                    <p className="text-gray-900">
-                      {selectedRequirementForDetails.fertilizer || 'Chưa đặt'}
-                    </p>
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-500 mb-2">Trạng thái</h4>
-                    <Badge variant={selectedRequirementForDetails.isActive ? 'success' : 'destructive'}>
-                      {selectedRequirementForDetails.isActive ? 'Hoạt động' : 'Tạm dừng'}
-                    </Badge>
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-500 mb-2">Cập nhật lần cuối</h4>
-                    <p className="text-gray-900">
-                      {selectedRequirementForDetails.updatedDate || selectedRequirementForDetails.createdDate || 'N/A'}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {selectedRequirementForDetails.notes && (
-                <div className="border-t pt-4">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Ghi chú</h3>
-                  <div className="bg-gray-50 rounded-lg p-4">
-                    <p className="text-gray-700 whitespace-pre-wrap">
-                      {selectedRequirementForDetails.notes}
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
         </DialogContent>
       </Dialog>
 

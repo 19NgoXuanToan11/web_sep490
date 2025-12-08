@@ -419,9 +419,10 @@ export default function CropsPage() {
     }
   }
 
-  const openCreateDialog = () => {
+  const openCreateDialog = (crop?: CropRequirementRow) => {
     handleResetForm()
     setFormMode('create')
+    setFormData(prev => ({ ...prev, cropId: crop?.cropId ?? '' }))
     loadAvailableCrops()
     setFormDialogOpen(true)
   }
@@ -696,11 +697,6 @@ export default function CropsPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="flex gap-2">
-              <Button onClick={openCreateDialog} className="flex items-center gap-2 bg-green-600 hover:bg-green-700">
-                Tạo
-              </Button>
-            </div>
           </StaffFilterBar>
 
           <Card>
@@ -762,9 +758,36 @@ export default function CropsPage() {
                                 onView={openDetail}
                               />
                             ) : (
-                              <Button size="sm" variant="ghost" className="h-7 px-2" onClick={() => openCreateDialog()}>
-                                Tạo
-                              </Button>
+                              <DropdownMenu modal={false}>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-8 w-8 p-0"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <MoreHorizontal className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent
+                                  align="end"
+                                  className="w-48"
+                                  sideOffset={5}
+                                  onCloseAutoFocus={(e) => e.preventDefault()}
+                                >
+                                  <DropdownMenuItem
+                                    onClick={(e) => {
+                                      e.preventDefault()
+                                      e.stopPropagation()
+                                      openCreateDialog(req)
+                                    }}
+                                    className="cursor-pointer focus:bg-gray-100"
+                                    onSelect={(e) => e.preventDefault()}
+                                  >
+                                    Tạo yêu cầu
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
                             )}
                           </div>
                         </div>

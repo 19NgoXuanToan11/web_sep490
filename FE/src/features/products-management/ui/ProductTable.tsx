@@ -7,16 +7,12 @@ import { useToast } from '@/shared/ui/use-toast'
 import {
   Edit,
   Trash2,
-  Eye,
   MoreHorizontal,
   ChevronLeft,
   ChevronRight,
   Package,
   ToggleLeft,
   ToggleRight,
-  Info,
-  PackageCheck,
-  RefreshCw,
 } from 'lucide-react'
 import {
   DropdownMenu,

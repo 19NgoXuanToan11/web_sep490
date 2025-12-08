@@ -492,28 +492,6 @@ export default function FarmActivitiesPage() {
     return activityTypeMap[type] || type
   }
 
-  const getPlantStageLabel = (stage: string | null | undefined) => {
-    if (!stage) return 'Không có dữ liệu'
-    switch (stage) {
-      case 'Sowing':
-        return 'Gieo hạt'
-      case 'Germination':
-        return 'Nảy mầm'
-      case 'CotyledonLeaves':
-        return 'Ra lá mầm'
-      case 'TrueLeavesGrowth':
-        return 'Phát triển lá thật'
-      case 'VigorousGrowth':
-        return 'Tăng trưởng mạnh'
-      case 'ReadyForHarvest':
-        return 'Sẵn sàng thu hoạch'
-      case 'PostHarvest':
-        return 'Sau thu hoạch'
-      default:
-        return stage
-    }
-  }
-
   const getStatusBadge = (status: string) => {
     const statusOption = statusOptions.find(s => s.value === status)
     if (!statusOption) return <Badge variant="outline">{status}</Badge>

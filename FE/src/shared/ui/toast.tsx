@@ -53,7 +53,7 @@ interface ExtendedToastProps extends ToastRootProps, ToastVariantProps {
   status?: ToastStatus
 }
 
-const DEFAULT_TOAST_DURATION = 5000
+const DEFAULT_TOAST_DURATION = 3000
 
 const Toast = React.forwardRef<React.ElementRef<typeof ToastPrimitives.Root>, ExtendedToastProps>(
   ({ className, variant, status, duration, ...props }, ref) => {

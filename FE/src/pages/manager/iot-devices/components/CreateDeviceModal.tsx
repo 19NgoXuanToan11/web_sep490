@@ -26,16 +26,16 @@ interface CreateDeviceFormState {
 }
 
 const deviceTypes = [
-  'Temperature Sensor',
-  'Humidity Sensor',
-  'Soil Moisture Sensor',
-  'pH Sensor',
-  'Light Sensor',
-  'Water Level Sensor',
-  'Irrigation Controller',
-  'Weather Station',
+  'Cảm biến nhiệt độ',
+  'Cảm biến độ ẩm',
+  'Cảm biến độ ẩm đất',
+  'Cảm biến pH',
+  'Cảm biến ánh sáng',
+  'Cảm biến mực nước',
+  'Bộ điều khiển tưới tiêu',
+  'Trạm thời tiết',
   'Camera',
-  'Other',
+  'Khác',
 ]
 
 const units = [

@@ -50,8 +50,8 @@ export function Toaster() {
   const { toasts } = useToast()
 
   return (
-    <ToastProvider duration={Number.POSITIVE_INFINITY}>
-      {toasts.map(function ({ id, title, description, action, status = 'info', className, ...props }) {
+    <ToastProvider duration={3000}>
+      {toasts.map(function ({ id, title, description, action, status = 'info', className, duration = 3000, ...props }) {
         const config = STATUS_VISUAL_CONFIG[status]
         const Icon = config.icon
         const fallbackTitle = TOAST_STATUS_FALLBACKS[status].title
@@ -59,7 +59,7 @@ export function Toaster() {
         const resolvedDescription = description ?? fallbackDescription
 
         return (
-          <Toast key={id} status={status} className={cn(config.body, className)} {...props}>
+          <Toast key={id} status={status} className={cn(config.body, className)} duration={duration} {...props}>
             <div className="flex items-start gap-3">
               <span className={cn('mt-0.5 flex h-10 w-10 items-center justify-center rounded-full', config.iconWrapper)}>
                 <Icon className="h-5 w-5" />

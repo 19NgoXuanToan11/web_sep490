@@ -157,14 +157,30 @@ export default function FarmActivitiesPage() {
   const todayDateString = getTodayDateString()
 
   // Enum ActivityType từ backend (C#):
-  // 0: Sowing, 1: Protection, 2: Irrigation, 3: Fertilization, 4: Harvesting
-  // Frontend sẽ dùng trực tiếp giá trị 0–4 (string) cho dropdown "Loại hoạt động"
+  // Mapping tất cả các loại hoạt động từ backend
+  const activityTypeMap: Record<string, string> = {
+    SoilPreparation: 'Chuẩn bị đất trước gieo',
+    Sowing: 'Gieo hạt',
+    Thinning: 'Tỉa cây con cho đều',
+    FertilizingDiluted: 'Bón phân pha loãng (NPK 20–30%)',
+    Weeding: 'Nhổ cỏ nhỏ',
+    PestControl: 'Phòng trừ sâu bằng thuốc sinh học',
+    FertilizingLeaf: 'Bón phân cho lá (N, hữu cơ)',
+    Harvesting: 'Thu hoạch',
+    CleaningFarmArea: 'Dọn dẹp đồng ruộng',
+  }
+
+  // Danh sách activity types cho dropdown (giữ nguyên format cũ cho tương thích)
   const activityTypes = [
-    { value: '0', label: 'Gieo hạt' },
-    { value: '1', label: 'Trừ sâu bệnh' },
-    { value: '2', label: 'Tưới tiêu' },
-    { value: '3', label: 'Bón phân' },
-    { value: '4', label: 'Thu hoạch' },
+    { value: 'SoilPreparation', label: 'Chuẩn bị đất trước gieo' },
+    { value: 'Sowing', label: 'Gieo hạt' },
+    { value: 'Thinning', label: 'Tỉa cây con cho đều' },
+    { value: 'FertilizingDiluted', label: 'Bón phân pha loãng (NPK 20–30%)' },
+    { value: 'Weeding', label: 'Nhổ cỏ nhỏ' },
+    { value: 'PestControl', label: 'Phòng trừ sâu bằng thuốc sinh học' },
+    { value: 'FertilizingLeaf', label: 'Bón phân cho lá (N, hữu cơ)' },
+    { value: 'Harvesting', label: 'Thu hoạch' },
+    { value: 'CleaningFarmArea', label: 'Dọn dẹp đồng ruộng' },
   ]
 
   const normalizeBackendActivityType = (backendType: any): string => {
@@ -175,21 +191,7 @@ export default function FarmActivitiesPage() {
     }
 
     const raw = String(backendType)
-
-    const numValue = parseInt(raw, 10)
-    if (!isNaN(numValue)) {
-      return String(numValue)
-    }
-
-    const nameToEnum: Record<string, string> = {
-      Sowing: '0',
-      Protection: '1',
-      Irrigation: '2',
-      Fertilization: '3',
-      Harvesting: '4',
-    }
-
-    return nameToEnum[raw] ?? ''
+    return raw
   }
 
   const statusOptions = [
@@ -217,7 +219,8 @@ export default function FarmActivitiesPage() {
       const normalizedActivities = Array.isArray(response.items)
         ? response.items.map(activity => ({
           ...activity,
-          activityType: normalizeBackendActivityType(activity.activityType),
+          // Giữ nguyên activityType từ backend (string như "Weeding", "Harvesting", etc.)
+          activityType: activity.activityType || '',
         }))
         : []
       setActivities(normalizedActivities)
@@ -481,9 +484,12 @@ export default function FarmActivitiesPage() {
     }
   }
 
-  const getActivityTypeLabel = (type: string) => {
+  const getActivityTypeLabel = (type: string | null | undefined) => {
+    if (!type) return 'Không có dữ liệu'
     const activityType = activityTypes.find(at => at.value === type)
-    return activityType ? activityType.label : type
+    if (activityType) return activityType.label
+    // Fallback: nếu type là string từ backend, thử map trực tiếp
+    return activityTypeMap[type] || type
   }
 
   const getPlantStageLabel = (stage: string | null | undefined) => {
@@ -518,9 +524,27 @@ export default function FarmActivitiesPage() {
   const formatDisplayDate = (dateString: string | undefined | null): string => {
     if (!dateString) return 'Không có dữ liệu'
     try {
+      // Xử lý định dạng MM/DD/YYYY từ backend
+      if (dateString.includes('/')) {
+        const parts = dateString.split('/')
+        if (parts.length === 3) {
+          // MM/DD/YYYY -> YYYY-MM-DD để parse
+          const month = parts[0].padStart(2, '0')
+          const day = parts[1].padStart(2, '0')
+          const year = parts[2]
+          const isoDate = `${year}-${month}-${day}`
+          const date = new Date(isoDate)
+          if (!isNaN(date.getTime())) {
+            return date.toLocaleDateString('vi-VN')
+          }
+        }
+      }
+      // Thử parse trực tiếp nếu là ISO format hoặc format khác
       const date = new Date(dateString)
-      if (isNaN(date.getTime())) return dateString
-      return date.toLocaleDateString('vi-VN')
+      if (!isNaN(date.getTime())) {
+        return date.toLocaleDateString('vi-VN')
+      }
+      return dateString
     } catch {
       return dateString
     }
@@ -528,7 +552,20 @@ export default function FarmActivitiesPage() {
 
   const formatDateForInput = (dateString: string | undefined | null): string => {
     if (!dateString) return ''
+    // Xử lý định dạng MM/DD/YYYY từ backend
+    if (dateString.includes('/')) {
+      const parts = dateString.split('/')
+      if (parts.length === 3) {
+        // MM/DD/YYYY -> YYYY-MM-DD
+        const month = parts[0].padStart(2, '0')
+        const day = parts[1].padStart(2, '0')
+        const year = parts[2]
+        return `${year}-${month}-${day}`
+      }
+    }
+    // Đã là format YYYY-MM-DD
     if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) return dateString
+    // ISO format với T
     if (dateString.includes('T')) return dateString.split('T')[0]
     return dateString
   }
@@ -689,10 +726,17 @@ export default function FarmActivitiesPage() {
                       ),
                     },
                     {
-                      id: 'plantStage',
-                      header: 'Giai đoạn cây trồng',
+                      id: 'startDate',
+                      header: 'Ngày bắt đầu',
                       render: (activity: FarmActivity) => (
-                        <div>{getPlantStageLabel(activity.plantStage as any)}</div>
+                        <div className="text-sm">{formatDisplayDate(activity.startDate)}</div>
+                      ),
+                    },
+                    {
+                      id: 'endDate',
+                      header: 'Ngày kết thúc',
+                      render: (activity: FarmActivity) => (
+                        <div className="text-sm">{formatDisplayDate(activity.endDate)}</div>
                       ),
                     },
                     {
@@ -733,12 +777,6 @@ export default function FarmActivitiesPage() {
                   <Label className="text-sm text-gray-600">Hoạt động</Label>
                   <p className="mt-1 text-base font-semibold text-gray-900">
                     {getActivityTypeLabel(selectedActivityForDetails.activityType)}
-                  </p>
-                </div>
-                <div>
-                  <Label className="text-sm text-gray-600">Giai đoạn cây trồng</Label>
-                  <p className="mt-1 text-base text-gray-900">
-                    {getPlantStageLabel(selectedActivityForDetails.plantStage as any)}
                   </p>
                 </div>
               </div>

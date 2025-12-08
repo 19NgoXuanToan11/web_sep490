@@ -28,9 +28,21 @@ const ManagerIoTLogsPage: React.FC = () => {
 
     const PAGE_SIZE = 25 // Items per page
 
+    const syncLatestBlynkData = useCallback(async () => {
+        try {
+            // Trigger backend sync with Blynk; silent on UI
+            await blynkService.getBlynkData()
+        } catch (error) {
+            // Run in background without surfacing errors to users
+            console.error('Không thể đồng bộ dữ liệu Blynk nền', error)
+        }
+    }, [])
+
     const fetchLogs = useCallback(async () => {
         try {
             setLoading(true)
+            // Ensure backend pulls latest Blynk data before reading logs
+            await syncLatestBlynkData()
             const data = await blynkService.getLogs()
             setLogs(data)
         } catch (error) {
@@ -42,12 +54,21 @@ const ManagerIoTLogsPage: React.FC = () => {
         } finally {
             setLoading(false)
         }
-    }, [toast])
+    }, [syncLatestBlynkData, toast])
 
     // Initial fetch
     useEffect(() => {
         fetchLogs()
     }, [fetchLogs])
+
+    // Background sync to keep logs updated without changing UI
+    useEffect(() => {
+        const interval = setInterval(() => {
+            syncLatestBlynkData()
+        }, 60_000)
+
+        return () => clearInterval(interval)
+    }, [syncLatestBlynkData])
 
     const sensors = useMemo(() => {
         const unique = new Set(logs.map(log => log.sensorName))

@@ -1,5 +1,18 @@
 import { http } from '@/shared/api/client'
 
+export interface CropRequirement {
+  cropRequirementId: number
+  cropId: number
+  plantStage: string
+  estimatedDate: number
+  moisture: number
+  temperature: number
+  fertilizer: string
+  lightRequirement: number
+  wateringFrequency: string
+  notes?: string
+}
+
 export interface ScheduleListItem {
   scheduleId?: number
   farmId?: number
@@ -18,6 +31,8 @@ export interface ScheduleListItem {
   updatedAt?: string
   managerName?: string
   staffName?: string
+  currentPlantStage?: string
+  cropRequirement?: CropRequirement[]
   farmView?: {
     farmId: number
     farmName?: string
@@ -34,6 +49,7 @@ export interface ScheduleListItem {
     plantingDate?: string
     harvestDate?: string
     plantStage?: string
+    cropRequirement?: CropRequirement[]
   }
   farmActivityView?: {
     farmActivitiesId: number

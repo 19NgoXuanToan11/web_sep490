@@ -505,11 +505,11 @@ export function BackendScheduleList({
             }
         }
 
-         return {
-             farmOptions: farmRes.map(f => ({ id: f.farmId, name: f.farmName })),
-             cropOptions: cropRes
-                 .filter(c => c.status === 'ACTIVE')
-                 .map(c => ({ id: c.cropId, name: c.cropName, status: c.status })),
+        return {
+            farmOptions: farmRes.map(f => ({ id: f.farmId, name: f.farmName })),
+            cropOptions: cropRes
+                .filter(c => c.status === 'ACTIVE')
+                .map(c => ({ id: c.cropId, name: c.cropName, status: c.status })),
             staffOptions: staffRes.items.map(s => ({ id: s.accountId, name: s.email })),
             activityOptions: validActivities.map((a: FarmActivity) => {
                 const start = formatDateSafe(a.startDate)

@@ -10,7 +10,7 @@ import { scheduleService, type PaginatedSchedules, type ScheduleListItem } from 
 import { useToast } from '@/shared/ui/use-toast'
 import { ManagementPageHeader } from '@/shared/ui/management-page-header'
 import { StaffFilterBar } from '@/shared/ui'
-import { Search, Filter, Loader2 } from 'lucide-react'
+import { Search } from 'lucide-react'
 import { accountApi } from '@/shared/api/auth'
 
 const BULK_PAGE_SIZE = 50
@@ -83,27 +83,6 @@ export default function IrrigationPage() {
   useEffect(() => {
     loadAllSchedules()
   }, [loadAllSchedules])
-
-  // Handle staff filter
-  const handleStaffFilter = useCallback(async () => {
-    if (!staffFilter) {
-      toast({ title: 'Chọn nhân viên trước khi lọc', variant: 'destructive' })
-      return
-    }
-    let source = allSchedules
-    if (!source.length && !allSchedulesLoading) {
-      source = await loadAllSchedules()
-    }
-    if (!source.length) {
-      toast({ title: 'Không thể tải danh sách lịch để lọc', variant: 'destructive' })
-      return
-    }
-    const filtered = source.filter(it => it.staffId === staffFilter)
-    setFilteredItems(filtered)
-    if (!filtered.length) {
-      toast({ title: 'Không tìm thấy lịch', description: 'Nhân viên này chưa có lịch nào trong hệ thống.', variant: 'destructive' })
-    }
-  }, [staffFilter, allSchedules, allSchedulesLoading, loadAllSchedules, toast])
 
   const loadStats = useCallback(async () => {
     try {

@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react'
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { ManagerLayout } from '@/shared/layouts/ManagerLayout'
 import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
 import { Label } from '@/shared/ui/label'
-import { Card, CardContent } from '@/shared/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
 import { Badge } from '@/shared/ui/badge'
+import { cn } from '@/shared/lib/utils'
 import {
   Dialog,
   DialogContent,
@@ -14,6 +15,7 @@ import {
 } from '@/shared/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { Textarea } from '@/shared/ui/textarea'
+import { Pagination } from '@/shared/ui/pagination'
 import {
   Search,
   RefreshCw,
@@ -23,8 +25,6 @@ import { useToast } from '@/shared/ui/use-toast'
 import {
   ManagementPageHeader,
   StaffFilterBar,
-  StaffDataTable,
-  type StaffDataTableColumn,
 } from '@/shared/ui'
 import {
   DropdownMenu,
@@ -223,13 +223,18 @@ const RequirementActionMenu: React.FC<RequirementActionMenuProps> = React.memo(
 
 RequirementActionMenu.displayName = 'RequirementActionMenu'
 
+type SortOption = 'newest' | 'cropName' | 'stage'
+
 export default function CropsPage() {
   const [requirements, setRequirements] = useState<CropRequirementView[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all')
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('active') // Mặc định chỉ hiển thị Active
   const [stageFilter, setStageFilter] = useState<'all' | PlantStage>('all')
+  const [sortBy, setSortBy] = useState<SortOption>('newest') // Mặc định sắp xếp mới nhất
   const [pageIndex, setPageIndex] = useState(1)
+  const [newlyCreatedIds, setNewlyCreatedIds] = useState<Set<number>>(new Set()) // Track items mới tạo
+  const previousMaxIdRef = useRef<number>(0) // Track max ID trước khi reload
   const pageSize = 10
 
   const [crops, setCrops] = useState<Crop[]>([])
@@ -351,14 +356,90 @@ export default function CropsPage() {
     })
   }, [requirementRows, searchTerm, statusFilter, stageFilter])
 
+  // Sắp xếp requirements theo tùy chọn của user
+  const sortedRequirements = useMemo(() => {
+    const sorted = [...filteredRequirements]
+
+    switch (sortBy) {
+      case 'newest':
+        // Mới nhất lên đầu: Active trước, sau đó sort theo ID giảm dần
+        return sorted.sort((a, b) => {
+          // Ưu tiên Active trước
+          if (a.isActive !== b.isActive) {
+            return a.isActive ? -1 : 1
+          }
+          // Sau đó sort theo ID giảm dần (mới nhất lên đầu)
+          const aId = a.cropRequirementId || 0
+          const bId = b.cropRequirementId || 0
+          return bId - aId
+        })
+
+      case 'cropName':
+        // Sắp xếp theo tên cây trồng (A-Z)
+        return sorted.sort((a, b) => {
+          const nameA = (a.cropName || '').toLowerCase()
+          const nameB = (b.cropName || '').toLowerCase()
+          // Nếu cùng tên, ưu tiên Active và mới nhất
+          if (nameA === nameB) {
+            if (a.isActive !== b.isActive) return a.isActive ? -1 : 1
+            return (b.cropRequirementId || 0) - (a.cropRequirementId || 0)
+          }
+          return nameA.localeCompare(nameB, 'vi')
+        })
+
+      case 'stage':
+        // Sắp xếp theo giai đoạn (theo thứ tự phát triển)
+        const stageOrder = ['Germination', 'Seedling', 'Vegetative', 'Harvest']
+        return sorted.sort((a, b) => {
+          const aStage = a.plantStage || ''
+          const bStage = b.plantStage || ''
+          const aIndex = stageOrder.indexOf(aStage)
+          const bIndex = stageOrder.indexOf(bStage)
+
+          // Nếu cùng giai đoạn, ưu tiên Active và mới nhất
+          if (aIndex === bIndex) {
+            if (a.isActive !== b.isActive) return a.isActive ? -1 : 1
+            return (b.cropRequirementId || 0) - (a.cropRequirementId || 0)
+          }
+
+          // Nếu không có trong order, đẩy xuống cuối
+          if (aIndex === -1) return 1
+          if (bIndex === -1) return -1
+          return aIndex - bIndex
+        })
+
+      default:
+        return sorted
+    }
+  }, [filteredRequirements, sortBy])
+
   const totalPages = useMemo(() => {
-    return Math.max(1, Math.ceil(filteredRequirements.length / pageSize))
-  }, [filteredRequirements.length, pageSize])
+    return Math.max(1, Math.ceil(sortedRequirements.length / pageSize))
+  }, [sortedRequirements.length, pageSize])
 
   const paginatedRequirements = useMemo(() => {
     const start = (pageIndex - 1) * pageSize
-    return filteredRequirements.slice(start, start + pageSize)
-  }, [filteredRequirements, pageIndex, pageSize])
+    return sortedRequirements.slice(start, start + pageSize)
+  }, [sortedRequirements, pageIndex, pageSize])
+
+  // Nhóm requirements theo crop name (sau khi đã paginate để giữ nguyên pagination logic)
+  // Giữ nguyên thứ tự xuất hiện đầu tiên của mỗi crop trong sorted list
+  const groupedRequirements = useMemo(() => {
+    const groups = new Map<string, CropRequirementRow[]>()
+    const groupOrder: string[] = [] // Lưu thứ tự xuất hiện đầu tiên của mỗi crop
+
+    paginatedRequirements.forEach(req => {
+      const key = req.cropName || 'Khác'
+      if (!groups.has(key)) {
+        groups.set(key, [])
+        groupOrder.push(key) // Lưu thứ tự xuất hiện đầu tiên
+      }
+      groups.get(key)!.push(req)
+    })
+
+    // Giữ nguyên thứ tự xuất hiện đầu tiên, không sort lại
+    return groupOrder.map(key => [key, groups.get(key)!] as [string, CropRequirementRow[]])
+  }, [paginatedRequirements])
 
   const handleResetForm = () => {
     setFormData(INITIAL_FORM_STATE)
@@ -374,6 +455,22 @@ export default function CropsPage() {
       setLoading(true)
       const response = await cropRequirementService.getAll()
       const data = Array.isArray(response.data) ? response.data : []
+
+      // Tìm max ID mới sau khi reload
+      const currentMaxId = Math.max(...data.map(r => r.cropRequirementId || 0), 0)
+
+      // Nếu có ID mới lớn hơn ID trước đó, highlight nó
+      if (currentMaxId > previousMaxIdRef.current && previousMaxIdRef.current > 0) {
+        setNewlyCreatedIds(new Set([currentMaxId]))
+        // Scroll to top để user thấy item mới
+        setTimeout(() => {
+          window.scrollTo({ top: 0, behavior: 'smooth' })
+        }, 100)
+      }
+
+      // Cập nhật max ID reference
+      previousMaxIdRef.current = currentMaxId
+
       setRequirements(data)
     } catch (error) {
       toast({
@@ -483,12 +580,18 @@ export default function CropsPage() {
       setIsSubmitting(true)
       const payload = mapFormToPayload()
       if (formMode === 'create') {
+        // Lưu max ID hiện tại trước khi tạo mới
+        const currentMaxId = Math.max(...requirements.map(r => r.cropRequirementId || 0), 0)
+        previousMaxIdRef.current = currentMaxId
+
         // For create mode, use the selected cropId from dropdown
         await cropRequirementService.create(formData.cropId as number, payload, formData.plantStage)
         toast({ title: 'Thành công', description: 'Đã thêm yêu cầu cây trồng mới' })
         setFormDialogOpen(false)
         handleResetForm()
-        loadRequirements()
+
+        // Reload - loadRequirements sẽ tự động highlight item mới
+        await loadRequirements()
       } else if (selectedRequirement) {
         const requirementId = selectedRequirement.cropRequirementId
         if (!requirementId) {
@@ -583,7 +686,17 @@ export default function CropsPage() {
 
   useEffect(() => {
     setPageIndex(1)
-  }, [searchTerm, statusFilter, stageFilter])
+  }, [searchTerm, statusFilter, stageFilter, sortBy])
+
+  // Auto-remove highlight sau 5 giây
+  useEffect(() => {
+    if (newlyCreatedIds.size > 0) {
+      const timer = setTimeout(() => {
+        setNewlyCreatedIds(new Set())
+      }, 5000)
+      return () => clearTimeout(timer)
+    }
+  }, [newlyCreatedIds])
 
   return (
     <ManagerLayout>
@@ -697,6 +810,18 @@ export default function CropsPage() {
                 </SelectContent>
               </Select>
             </div>
+            <div className="w-full sm:w-48">
+              <Select value={sortBy} onValueChange={value => setSortBy(value as SortOption)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Sắp xếp" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="newest">Mới nhất</SelectItem>
+                  <SelectItem value="cropName">Tên cây trồng</SelectItem>
+                  <SelectItem value="stage">Giai đoạn</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             <div className="w-full sm:w-auto flex justify-end">
               <Button
                 size="sm"
@@ -708,105 +833,150 @@ export default function CropsPage() {
             </div>
           </StaffFilterBar>
 
-          <Card>
-            <CardContent className="p-0">
-              {loading || cropsLoading ? (
-                <div className="flex items-center justify-center py-12">
+          {/* Simplified Crop List - Card-based Layout with Progressive Disclosure */}
+          {loading || cropsLoading ? (
+            <Card>
+              <CardContent className="p-12">
+                <div className="flex items-center justify-center">
                   <RefreshCw className="h-8 w-8 animate-spin text-green-600" />
                   <span className="ml-2 text-gray-600">Đang tải dữ liệu...</span>
                 </div>
-              ) : (
-                <StaffDataTable<CropRequirementRow>
-                  className="px-4 sm:px-6 pb-6"
-                  data={paginatedRequirements}
-                  getRowKey={(req) => `${req.cropId}-${req.cropRequirementId ?? 'na'}`}
-                  currentPage={pageIndex}
-                  pageSize={pageSize}
-                  totalPages={totalPages}
-                  onPageChange={handlePageChange}
-                  emptyTitle="Không tìm thấy yêu cầu nào"
-                  emptyDescription={
-                    searchTerm || statusFilter !== 'all' || stageFilter !== 'all'
-                      ? 'Không có yêu cầu phù hợp với điều kiện lọc hiện tại.'
-                      : 'Hãy tạo yêu cầu cây trồng đầu tiên.'
-                  }
-                  columns={[
-                    {
-                      id: 'cropName',
-                      header: 'Cây trồng',
-                      render: (req: CropRequirementRow) => (
-                        <div>
-                          <div className="font-semibold text-gray-900">{req.cropName || 'Chưa có tên'}</div>
-                          <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-gray-600">
-                            {req.origin && <span>Xuất xứ: <span className="font-medium text-gray-800">{req.origin}</span></span>}
-                          </div>
-                          {req.description && (
-                            <div className="mt-1 text-sm text-gray-700 line-clamp-2">{req.description}</div>
-                          )}
-                        </div>
-                      ),
-                    },
-                    {
-                      id: 'stage',
-                      header: 'Giai đoạn & Trạng thái',
-                      render: (req: CropRequirementRow) => (
-                        <div className="flex items-center justify-between gap-2">
-                          <div className="flex items-center gap-2 text-sm">
-                            <Badge className="h-7 items-center whitespace-nowrap" variant="outline">
-                              {stageLabel(req.plantStage)}
-                            </Badge>
-                            {getStatusBadge(req.isActive)}
-                          </div>
-                          <div className="flex items-center">
-                            {req.cropRequirementId ? (
-                              <RequirementActionMenu
-                                requirement={req}
-                                isUpdatingStatus={statusUpdatingId === req.cropRequirementId}
-                                onToggleStatus={handleToggleRequirementStatus}
-                                onEdit={openEditRequirement}
-                                onView={openDetail}
-                              />
-                            ) : (
-                              <DropdownMenu modal={false}>
-                                <DropdownMenuTrigger asChild>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-8 w-8 p-0"
-                                    onClick={(e) => e.stopPropagation()}
-                                  >
-                                    <MoreHorizontal className="h-4 w-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent
-                                  align="end"
-                                  className="w-48"
-                                  sideOffset={5}
-                                  onCloseAutoFocus={(e) => e.preventDefault()}
-                                >
-                                  <DropdownMenuItem
-                                    onClick={(e) => {
-                                      e.preventDefault()
-                                      e.stopPropagation()
-                                      openCreateDialog(req)
-                                    }}
-                                    className="cursor-pointer focus:bg-gray-100"
-                                    onSelect={(e) => e.preventDefault()}
-                                  >
-                                    Tạo yêu cầu
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            )}
-                          </div>
-                        </div>
-                      ),
-                    },
-                  ] satisfies StaffDataTableColumn<CropRequirementRow>[]}
-                />
+              </CardContent>
+            </Card>
+          ) : paginatedRequirements.length === 0 ? (
+            <Card>
+              <CardContent className="p-12 text-center">
+                <p className="text-lg font-semibold text-gray-900">
+                  {searchTerm || stageFilter !== 'all'
+                    ? 'Không tìm thấy yêu cầu nào'
+                    : statusFilter === 'active'
+                      ? 'Chưa có kế hoạch đang hoạt động'
+                      : statusFilter === 'inactive'
+                        ? 'Chưa có kế hoạch tạm dừng'
+                        : 'Chưa có yêu cầu cây trồng'}
+                </p>
+                <p className="text-sm text-gray-600 mt-2">
+                  {searchTerm || stageFilter !== 'all'
+                    ? 'Không có yêu cầu phù hợp với điều kiện lọc hiện tại.'
+                    : statusFilter === 'active'
+                      ? 'Hãy tạo kế hoạch cây trồng mới hoặc kích hoạt các kế hoạch đã tạm dừng.'
+                      : statusFilter === 'inactive'
+                        ? 'Hãy tạm dừng một số kế hoạch để thấy chúng ở đây.'
+                        : 'Hãy tạo yêu cầu cây trồng đầu tiên.'}
+                </p>
+              </CardContent>
+            </Card>
+          ) : (
+            <>
+              {/* Grouped Card Layout - Grouped by Crop Name */}
+              <div className="space-y-6">
+                {groupedRequirements.map(([cropName, items]) => {
+                  return (
+                    <div key={cropName} className="space-y-3">
+                      {/* Section Header */}
+                      <div className="flex items-center justify-between px-2 py-2 border-b border-gray-200">
+                        <h3 className="text-lg font-semibold text-gray-900">{cropName}</h3>
+                      </div>
+
+                      {/* Cards Grid for this Crop */}
+                      <div className="grid gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                        {items.map((req) => {
+                          const isNewlyCreated = req.cropRequirementId ? newlyCreatedIds.has(req.cropRequirementId) : false
+                          return (
+                            <Card
+                              key={`${req.cropId}-${req.cropRequirementId ?? 'na'}`}
+                              className={cn(
+                                "hover:shadow-md transition-all cursor-pointer",
+                                isNewlyCreated && "ring-2 ring-green-500 bg-green-50/50 shadow-lg"
+                              )}
+                              onClick={() => {
+                                if (req.cropRequirementId) {
+                                  openDetail(req)
+                                } else {
+                                  openCreateDialog(req)
+                                }
+                              }}
+                            >
+                              <CardContent className="p-4">
+                                {/* Stage & Status - Primary Information (Crop name đã ở header) */}
+                                <div className="flex items-start justify-between">
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                      <Badge className="h-6 items-center whitespace-nowrap text-xs" variant="outline">
+                                        {stageLabel(req.plantStage)}
+                                      </Badge>
+                                      {getStatusBadge(req.isActive)}
+                                      {isNewlyCreated && (
+                                        <Badge className="h-6 items-center whitespace-nowrap text-xs bg-green-500 text-white">
+                                          Mới
+                                        </Badge>
+                                      )}
+                                    </div>
+                                  </div>
+                                  {req.cropRequirementId ? (
+                                    <div onClick={(e) => e.stopPropagation()}>
+                                      <RequirementActionMenu
+                                        requirement={req}
+                                        isUpdatingStatus={statusUpdatingId === req.cropRequirementId}
+                                        onToggleStatus={handleToggleRequirementStatus}
+                                        onEdit={openEditRequirement}
+                                        onView={openDetail}
+                                      />
+                                    </div>
+                                  ) : (
+                                    <DropdownMenu modal={false}>
+                                      <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          className="h-8 w-8 p-0"
+                                        >
+                                          <MoreHorizontal className="h-4 w-4" />
+                                        </Button>
+                                      </DropdownMenuTrigger>
+                                      <DropdownMenuContent
+                                        align="end"
+                                        className="w-48"
+                                        sideOffset={5}
+                                        onCloseAutoFocus={(e) => e.preventDefault()}
+                                      >
+                                        <DropdownMenuItem
+                                          onClick={(e) => {
+                                            e.preventDefault()
+                                            e.stopPropagation()
+                                            openCreateDialog(req)
+                                          }}
+                                          className="cursor-pointer focus:bg-gray-100"
+                                          onSelect={(e) => e.preventDefault()}
+                                        >
+                                          Tạo yêu cầu
+                                        </DropdownMenuItem>
+                                      </DropdownMenuContent>
+                                    </DropdownMenu>
+                                  )}
+                                </div>
+                              </CardContent>
+                            </Card>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="mt-6">
+                  <Pagination
+                    currentPage={pageIndex}
+                    totalPages={totalPages}
+                    onPageChange={handlePageChange}
+                  />
+                </div>
               )}
-            </CardContent>
-          </Card>
+            </>
+          )}
         </div>
       </div>
 
@@ -954,72 +1124,153 @@ export default function CropsPage() {
       </Dialog>
 
       <Dialog open={detailDialogOpen} onOpenChange={setDetailDialogOpen}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Chi tiết yêu cầu cây trồng</DialogTitle>
+            <DialogTitle className="text-xl">Chi tiết yêu cầu cây trồng</DialogTitle>
           </DialogHeader>
 
           {detailRequirement && (
-            <div className="space-y-4">
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
-                  <Label className="text-sm text-gray-600">Cây trồng</Label>
-                  <p className="mt-1 text-base font-semibold text-gray-900">
-                    {detailRequirement.cropName}
-                  </p>
-                  {detailCrop?.origin && (
-                    <p className="text-sm text-gray-600 mt-1">Xuất xứ: {detailCrop.origin}</p>
-                  )}
-                  {detailCrop?.status && (
-                    <div className="mt-1">
-                      <Badge variant={detailCrop.status.toUpperCase() === 'ACTIVE' ? 'success' : 'destructive'}>
-                        {detailCrop.status.toUpperCase() === 'ACTIVE' ? 'Hoạt động' : 'Tạm dừng'}
-                      </Badge>
+            <div className="space-y-6">
+              {/* Cluster 1: Basic Crop Information */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Thông tin cây trồng</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700">Tên cây trồng</Label>
+                      <p className="mt-1 text-base font-semibold text-gray-900">
+                        {detailRequirement.cropName}
+                      </p>
+                    </div>
+                    {detailCrop?.origin && (
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Xuất xứ</Label>
+                        <p className="mt-1 text-sm text-gray-800">{detailCrop.origin}</p>
+                      </div>
+                    )}
+                  </div>
+                  {detailCrop?.description && (
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700">Mô tả</Label>
+                      <p className="mt-1 text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">
+                        {detailCrop.description}
+                      </p>
                     </div>
                   )}
-                </div>
-                <div>
-                  <Label className="text-sm text-gray-600">Giai đoạn hiện tại</Label>
-                  <div className="mt-1 flex items-center gap-2">
-                    <Badge className="h-7 items-center whitespace-nowrap" variant="outline">
-                      {stageLabel(detailRequirement.plantStage)}
-                    </Badge>
-                    {getStatusBadge(detailRequirement.isActive)}
+                  <div className="flex items-center gap-3 pt-2 border-t">
+                    <div>
+                      <Label className="text-xs text-gray-500">Trạng thái cây trồng</Label>
+                      <div className="mt-1">
+                        {detailCrop?.status && (
+                          <Badge variant={detailCrop.status.toUpperCase() === 'ACTIVE' ? 'success' : 'destructive'}>
+                            {detailCrop.status.toUpperCase() === 'ACTIVE' ? 'Hoạt động' : 'Tạm dừng'}
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
 
-              {detailCrop?.description && (
-                <div>
-                  <Label className="text-sm text-gray-600">Mô tả cây trồng</Label>
-                  <p className="mt-1 text-sm text-gray-800 whitespace-pre-wrap">{detailCrop.description}</p>
-                </div>
-              )}
-
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-sm text-gray-600">Yêu cầu môi trường</Label>
-                  <div className="text-sm text-gray-800 space-y-1">
-                    <div>Độ ẩm: <span className="font-semibold">{detailRequirement.moisture ?? '—'}%</span></div>
-                    <div>Nhiệt độ: <span className="font-semibold">{detailRequirement.temperature ?? '—'}°C</span></div>
-                    <div>Ánh sáng: <span className="font-semibold">{detailRequirement.lightRequirement ?? '—'} lux</span></div>
+              {/* Cluster 2: Growth Stage & Status */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Giai đoạn phát triển</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700">Giai đoạn hiện tại</Label>
+                      <div className="mt-2">
+                        <Badge className="h-8 px-3 text-sm" variant="outline">
+                          {stageLabel(detailRequirement.plantStage)}
+                        </Badge>
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700">Trạng thái kế hoạch</Label>
+                      <div className="mt-2">
+                        {getStatusBadge(detailRequirement.isActive)}
+                      </div>
+                    </div>
+                    {detailRequirement.estimatedDate && (
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Thời gian dự kiến</Label>
+                        <p className="mt-2 text-sm font-semibold text-gray-900">
+                          {detailRequirement.estimatedDate} ngày
+                        </p>
+                      </div>
+                    )}
                   </div>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-sm text-gray-600">Chăm sóc</Label>
-                  <div className="text-sm text-gray-800 space-y-1">
-                    <div>Tần suất tưới (ngày): <span className="font-semibold">{detailRequirement.wateringFrequency || '—'}</span></div>
-                    <div>Phân bón: <span className="font-semibold">{detailRequirement.fertilizer || '—'}</span></div>
-                    <div>Thời gian dự kiến: <span className="font-semibold">{detailRequirement.estimatedDate ?? '—'} ngày</span></div>
-                  </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
 
+              {/* Cluster 3: Environmental Requirements */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Yêu cầu môi trường</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid md:grid-cols-3 gap-4">
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                      <Label className="text-xs text-gray-500">Độ ẩm</Label>
+                      <p className="mt-1 text-2xl font-semibold text-gray-900">
+                        {formatNumber(detailRequirement.moisture, '%')}
+                      </p>
+                    </div>
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                      <Label className="text-xs text-gray-500">Nhiệt độ</Label>
+                      <p className="mt-1 text-2xl font-semibold text-gray-900">
+                        {formatNumber(detailRequirement.temperature, '°C')}
+                      </p>
+                    </div>
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                      <Label className="text-xs text-gray-500">Ánh sáng</Label>
+                      <p className="mt-1 text-2xl font-semibold text-gray-900">
+                        {formatNumber(detailRequirement.lightRequirement, 'lux')}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Cluster 4: Care & Maintenance */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Chăm sóc & Bảo dưỡng</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    {detailRequirement.wateringFrequency && (
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Tần suất tưới</Label>
+                        <p className="mt-1 text-sm text-gray-800">{detailRequirement.wateringFrequency} lần/ngày</p>
+                      </div>
+                    )}
+                    {detailRequirement.fertilizer && (
+                      <div>
+                        <Label className="text-sm font-medium text-gray-700">Phân bón</Label>
+                        <p className="mt-1 text-sm text-gray-800">{detailRequirement.fertilizer}</p>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Cluster 5: Additional Notes */}
               {detailRequirement.notes && (
-                <div>
-                  <Label className="text-sm text-gray-600">Ghi chú</Label>
-                  <p className="mt-1 text-sm text-gray-800 whitespace-pre-wrap">{detailRequirement.notes}</p>
-                </div>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-lg">Ghi chú & Lưu ý</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">
+                      {detailRequirement.notes}
+                    </p>
+                  </CardContent>
+                </Card>
               )}
             </div>
           )}

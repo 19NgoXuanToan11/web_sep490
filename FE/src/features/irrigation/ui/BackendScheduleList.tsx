@@ -8,11 +8,9 @@ import { useToast } from '@/shared/ui/use-toast'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/shared/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { Badge } from '@/shared/ui/badge'
-import { Loader2, MoreHorizontal } from 'lucide-react'
-import {
-    StaffDataTable,
-    type StaffDataTableColumn,
-} from '@/shared/ui'
+import { Pagination } from '@/shared/ui/pagination'
+import { cn } from '@/shared/lib/utils'
+import { Loader2, MoreHorizontal, RefreshCw, Search } from 'lucide-react'
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -303,6 +301,8 @@ const ScheduleActionMenu: React.FC<ScheduleActionMenuProps> = React.memo(({
 
 ScheduleActionMenu.displayName = 'ScheduleActionMenu'
 
+type SortOption = 'newest' | 'startDate' | 'cropName' | 'farmName'
+
 export function BackendScheduleList({
     showCreate: externalShowCreate,
     onShowCreateChange,
@@ -315,6 +315,11 @@ export function BackendScheduleList({
     const [data, setData] = useState<PaginatedSchedules | null>(null)
     const [loading, setLoading] = useState(false)
     const [internalShowCreate, setInternalShowCreate] = useState(false)
+    const [searchTerm, setSearchTerm] = useState('')
+    const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all') // Mặc định hiển thị tất cả
+    const [sortBy, setSortBy] = useState<SortOption>('newest') // Mặc định sắp xếp mới nhất
+    const [newlyCreatedIds, setNewlyCreatedIds] = useState<Set<number>>(new Set())
+    const previousMaxIdRef = useRef<number>(0)
 
     const showCreate = externalShowCreate ?? internalShowCreate
     const setShowCreate = onShowCreateChange ?? setInternalShowCreate
@@ -346,13 +351,150 @@ export function BackendScheduleList({
     const [customToday, setCustomToday] = useState<string>('')
     const todayString = useMemo(() => new Date().toISOString().split('T')[0], [])
     const displayItems = filteredItems ?? data?.data.items ?? []
-    const isFiltered = filteredItems !== null
     const lastAutoUpdatedScheduleId = useRef<number | null>(null)
+
+    // Filter và sort schedules
+    const filteredSchedules = useMemo(() => {
+        const normalizedSearch = searchTerm.trim().toLowerCase()
+
+        return displayItems.filter(schedule => {
+            // Filter by status
+            if (statusFilter !== 'all') {
+                const isActive = typeof schedule.status === 'number'
+                    ? schedule.status === 1
+                    : schedule.status === 'ACTIVE'
+                if (statusFilter === 'active' && !isActive) return false
+                if (statusFilter === 'inactive' && isActive) return false
+            }
+
+            // Filter by search term
+            if (normalizedSearch) {
+                const cropName = (schedule.cropView?.cropName || '').toLowerCase()
+                const farmName = (schedule.farmView?.farmName || '').toLowerCase()
+                const staffName = (schedule.staff?.fullname || schedule.staffName || '').toLowerCase()
+                if (!cropName.includes(normalizedSearch) &&
+                    !farmName.includes(normalizedSearch) &&
+                    !staffName.includes(normalizedSearch)) {
+                    return false
+                }
+            }
+
+            return true
+        })
+    }, [displayItems, searchTerm, statusFilter])
+
+    // Sort schedules
+    const sortedSchedules = useMemo(() => {
+        const sorted = [...filteredSchedules]
+
+        switch (sortBy) {
+            case 'newest':
+                // Mới nhất lên đầu: Active trước, sau đó sort theo scheduleId giảm dần
+                return sorted.sort((a, b) => {
+                    const aActive = typeof a.status === 'number' ? a.status === 1 : a.status === 'ACTIVE'
+                    const bActive = typeof b.status === 'number' ? b.status === 1 : b.status === 'ACTIVE'
+                    if (aActive !== bActive) {
+                        return aActive ? -1 : 1
+                    }
+                    const aId = a.scheduleId || 0
+                    const bId = b.scheduleId || 0
+                    return bId - aId
+                })
+
+            case 'startDate':
+                // Sắp xếp theo ngày bắt đầu (sớm nhất trước)
+                return sorted.sort((a, b) => {
+                    const aDate = new Date(a.startDate).getTime()
+                    const bDate = new Date(b.startDate).getTime()
+                    if (aDate === bDate) {
+                        const aActive = typeof a.status === 'number' ? a.status === 1 : a.status === 'ACTIVE'
+                        const bActive = typeof b.status === 'number' ? b.status === 1 : b.status === 'ACTIVE'
+                        if (aActive !== bActive) return aActive ? -1 : 1
+                        return (b.scheduleId || 0) - (a.scheduleId || 0)
+                    }
+                    return aDate - bDate
+                })
+
+            case 'cropName':
+                // Sắp xếp theo tên cây trồng
+                return sorted.sort((a, b) => {
+                    const nameA = (a.cropView?.cropName || '').toLowerCase()
+                    const nameB = (b.cropView?.cropName || '').toLowerCase()
+                    if (nameA === nameB) {
+                        const aActive = typeof a.status === 'number' ? a.status === 1 : a.status === 'ACTIVE'
+                        const bActive = typeof b.status === 'number' ? b.status === 1 : b.status === 'ACTIVE'
+                        if (aActive !== bActive) return aActive ? -1 : 1
+                        return (b.scheduleId || 0) - (a.scheduleId || 0)
+                    }
+                    return nameA.localeCompare(nameB, 'vi')
+                })
+
+            case 'farmName':
+                // Sắp xếp theo tên nông trại
+                return sorted.sort((a, b) => {
+                    const nameA = (a.farmView?.farmName || '').toLowerCase()
+                    const nameB = (b.farmView?.farmName || '').toLowerCase()
+                    if (nameA === nameB) {
+                        const aActive = typeof a.status === 'number' ? a.status === 1 : a.status === 'ACTIVE'
+                        const bActive = typeof b.status === 'number' ? b.status === 1 : b.status === 'ACTIVE'
+                        if (aActive !== bActive) return aActive ? -1 : 1
+                        return (b.scheduleId || 0) - (a.scheduleId || 0)
+                    }
+                    return nameA.localeCompare(nameB, 'vi')
+                })
+
+            default:
+                return sorted
+        }
+    }, [filteredSchedules, sortBy])
+
+    // Pagination
+    const totalPages = useMemo(() => {
+        return Math.max(1, Math.ceil(sortedSchedules.length / pageSize))
+    }, [sortedSchedules.length, pageSize])
+
+    const paginatedSchedules = useMemo(() => {
+        const start = (pageIndex - 1) * pageSize
+        return sortedSchedules.slice(start, start + pageSize)
+    }, [sortedSchedules, pageIndex, pageSize])
+
+    // Group by crop name
+    const groupedSchedules = useMemo(() => {
+        const groups = new Map<string, ScheduleListItem[]>()
+        const groupOrder: string[] = []
+
+        paginatedSchedules.forEach(schedule => {
+            const key = schedule.cropView?.cropName || 'Khác'
+            if (!groups.has(key)) {
+                groups.set(key, [])
+                groupOrder.push(key)
+            }
+            groups.get(key)!.push(schedule)
+        })
+
+        return groupOrder.map(key => [key, groups.get(key)!] as [string, ScheduleListItem[]])
+    }, [paginatedSchedules])
 
     const load = useCallback(async () => {
         setLoading(true)
         try {
             const res = await scheduleService.getScheduleList(pageIndex, pageSize)
+
+            // Tìm max ID mới sau khi reload
+            const currentMaxId = Math.max(...res.data.items.map(s => s.scheduleId || 0), 0)
+
+            // Nếu có ID mới lớn hơn ID trước đó, highlight nó
+            if (currentMaxId > previousMaxIdRef.current && previousMaxIdRef.current > 0) {
+                setNewlyCreatedIds(new Set([currentMaxId]))
+                // Scroll to top để user thấy item mới
+                setTimeout(() => {
+                    window.scrollTo({ top: 0, behavior: 'smooth' })
+                }, 100)
+            }
+
+            // Cập nhật max ID reference
+            previousMaxIdRef.current = currentMaxId
+
             setData(res)
             setFilteredItems(null)
         } catch (e) {
@@ -598,6 +740,10 @@ export function BackendScheduleList({
 
     const submit = async (ev: React.FormEvent) => {
         ev.preventDefault()
+        // Lưu max ID hiện tại trước khi tạo mới
+        const currentMaxId = Math.max(...displayItems.map(s => s.scheduleId || 0), 0)
+        previousMaxIdRef.current = currentMaxId
+
         // Backend yêu cầu plantingDate/harvestDate, dùng fallback nếu người dùng chưa nhập
         const payload: CreateScheduleRequest = {
             ...form,
@@ -609,6 +755,7 @@ export function BackendScheduleList({
             await scheduleService.createSchedule(payload)
             handleApiSuccess('Tạo lịch thành công', toast)
             handleCreateDialogChange(false)
+            // Reload - load() sẽ tự động highlight item mới
             await load()
             await loadAllSchedules()
         } catch (e) {
@@ -812,119 +959,183 @@ export function BackendScheduleList({
         }
     }
 
+    // Auto-remove highlight sau 5 giây
+    useEffect(() => {
+        if (newlyCreatedIds.size > 0) {
+            const timer = setTimeout(() => {
+                setNewlyCreatedIds(new Set())
+            }, 5000)
+            return () => clearTimeout(timer)
+        }
+    }, [newlyCreatedIds])
+
+    useEffect(() => {
+        setPageIndex(1)
+    }, [searchTerm, statusFilter, sortBy])
+
     return (
         <>
-            <Card>
-                <CardContent className="p-0">
-                    {loading ? (
-                        <div className="flex items-center justify-center py-12">
-                            <Loader2 className="h-8 w-8 animate-spin text-green-600" />
+            {/* Filter Bar */}
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
+                <div className="flex flex-col sm:flex-row gap-4">
+                    <div className="flex-1">
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <Input
+                                placeholder="Tìm kiếm theo cây trồng, nông trại, nhân viên..."
+                                value={searchTerm}
+                                onChange={e => setSearchTerm(e.target.value)}
+                                className="pl-9"
+                            />
+                        </div>
+                    </div>
+                    <div className="w-full sm:w-48">
+                        <Select value={statusFilter} onValueChange={value => setStatusFilter(value as typeof statusFilter)}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Tất cả trạng thái" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="all">Tất cả</SelectItem>
+                                <SelectItem value="active">Hoạt động</SelectItem>
+                                <SelectItem value="inactive">Tạm dừng</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div className="w-full sm:w-48">
+                        <Select value={sortBy} onValueChange={value => setSortBy(value as SortOption)}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Sắp xếp" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="newest">Mới nhất</SelectItem>
+                                <SelectItem value="startDate">Ngày bắt đầu</SelectItem>
+                                <SelectItem value="cropName">Tên cây trồng</SelectItem>
+                                <SelectItem value="farmName">Tên nông trại</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                </div>
+            </div>
+
+            {/* Card-based Layout */}
+            {loading ? (
+                <Card>
+                    <CardContent className="p-12">
+                        <div className="flex items-center justify-center">
+                            <RefreshCw className="h-8 w-8 animate-spin text-green-600" />
                             <span className="ml-2 text-gray-600">Đang tải dữ liệu...</span>
                         </div>
-                    ) : (
-                        <StaffDataTable<ScheduleListItem>
-                            className="px-4 sm:px-6 pb-6"
-                            data={displayItems}
-                            getRowKey={(schedule, index) => schedule.scheduleId ?? `schedule-${index}`}
-                            currentPage={isFiltered ? 1 : pageIndex}
-                            pageSize={isFiltered ? displayItems.length : pageSize}
-                            totalPages={isFiltered ? 1 : (data?.data.totalPagesCount ?? 1)}
-                            onPageChange={isFiltered ? undefined : setPageIndex}
-                            emptyTitle="Không tìm thấy lịch tưới nào"
-                            emptyDescription={
-                                isFiltered
-                                    ? 'Không có lịch tưới nào phù hợp với điều kiện lọc hiện tại.'
-                                    : 'Hãy tạo lịch tưới đầu tiên.'
-                            }
-                            columns={[
-                                {
-                                    id: 'startDate',
-                                    header: 'Ngày bắt đầu',
-                                    render: (schedule: ScheduleListItem) => (
-                                        <div className="font-medium">{formatDate(schedule.startDate)}</div>
-                                    ),
-                                },
-                                {
-                                    id: 'endDate',
-                                    header: 'Ngày kết thúc',
-                                    render: (schedule: ScheduleListItem) => (
-                                        <div>{formatDate(schedule.endDate)}</div>
-                                    ),
-                                },
-                                {
-                                    id: 'status',
-                                    header: 'Trạng thái',
-                                    render: (schedule: ScheduleListItem) => {
-                                        const isActive = typeof schedule.status === 'number'
-                                            ? schedule.status === 1
-                                            : schedule.status === 'ACTIVE'
-                                        return (
-                                            <Badge variant={isActive ? 'success' : 'destructive'}>
-                                                {getStatusLabel(schedule.status)}
-                                            </Badge>
-                                        )
-                                    },
-                                },
-                                {
-                                    id: 'staff',
-                                    header: 'Nhân viên',
-                                    render: (schedule: ScheduleListItem) => (
-                                        <div className="flex flex-col">
-                                            <span className="font-medium">{schedule.staff?.fullname ?? schedule.staffName ?? '-'}</span>
-                                            {schedule.staff?.phone && (
-                                                <span className="text-xs text-muted-foreground">{schedule.staff.phone}</span>
-                                            )}
-                                        </div>
-                                    ),
-                                },
-                                {
-                                    id: 'farm',
-                                    header: 'Nông trại',
-                                    render: (schedule: ScheduleListItem) => (
-                                        <div className="flex flex-col">
-                                            <span className="font-medium">{schedule.farmView?.farmName ?? `#${schedule.farmId ?? '-'}`}</span>
-                                            {schedule.farmView?.location && (
-                                                <span className="text-xs text-muted-foreground">{schedule.farmView.location}</span>
-                                            )}
-                                        </div>
-                                    ),
-                                },
-                                {
-                                    id: 'crop',
-                                    header: 'Cây trồng',
-                                    render: (schedule: ScheduleListItem) => (
-                                        <div className="flex flex-col">
-                                            <span className="font-medium">{schedule.cropView?.cropName ?? `#${schedule.cropId ?? '-'}`}</span>
-                                            {schedule.cropView?.description && (
-                                                <span className="text-xs text-muted-foreground line-clamp-1" title={schedule.cropView.description}>
-                                                    {schedule.cropView.description}
-                                                </span>
-                                            )}
-                                        </div>
-                                    ),
-                                },
-                                {
-                                    id: 'actions',
-                                    header: '',
-                                    render: (schedule: ScheduleListItem) => (
-                                        <ScheduleActionMenu
-                                            schedule={schedule}
-                                            onView={handleViewDetail}
-                                            onEdit={handleEdit}
-                                            onAssignStaff={(s) => {
-                                                setSelectedSchedule(s)
-                                                handleAssignStaffDialogChange(true)
-                                            }}
-                                            onUpdateStatus={handleUpdateStatus}
-                                            actionLoading={actionLoading}
-                                        />
-                                    ),
-                                },
-                            ] satisfies StaffDataTableColumn<ScheduleListItem>[]}
-                        />
+                    </CardContent>
+                </Card>
+            ) : paginatedSchedules.length === 0 ? (
+                <Card>
+                    <CardContent className="p-12 text-center">
+                        <p className="text-lg font-semibold text-gray-900">
+                            {(() => {
+                                if (searchTerm) return 'Không tìm thấy lịch tưới nào'
+                                if (statusFilter === 'active') return 'Chưa có lịch tưới đang hoạt động'
+                                if (statusFilter === 'inactive') return 'Chưa có lịch tưới đã tạm dừng'
+                                return 'Chưa có lịch tưới'
+                            })()}
+                        </p>
+                        <p className="text-sm text-gray-600 mt-2">
+                            {(() => {
+                                if (searchTerm) return 'Không có lịch tưới nào phù hợp với điều kiện lọc hiện tại.'
+                                if (statusFilter === 'active') return 'Hãy tạo lịch tưới mới hoặc kích hoạt các lịch đã tạm dừng.'
+                                if (statusFilter === 'inactive') return 'Hãy tạo lịch tưới mới hoặc kích hoạt các lịch đã tạm dừng.'
+                                return 'Hãy tạo lịch tưới đầu tiên.'
+                            })()}
+                        </p>
+                    </CardContent>
+                </Card>
+            ) : (
+                <>
+                    {/* Grouped Card Layout - Grouped by Crop Name */}
+                    <div className="space-y-6">
+                        {groupedSchedules.map(([cropName, items]) => {
+                            return (
+                                <div key={cropName} className="space-y-3">
+                                    {/* Section Header */}
+                                    <div className="flex items-center justify-between px-2 py-2 border-b border-gray-200">
+                                        <h3 className="text-lg font-semibold text-gray-900">{cropName}</h3>
+                                    </div>
+
+                                    {/* Cards Grid for this Crop */}
+                                    <div className="grid gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                                        {items.map((schedule) => {
+                                            const isNewlyCreated = schedule.scheduleId ? newlyCreatedIds.has(schedule.scheduleId) : false
+                                            const isActive = typeof schedule.status === 'number'
+                                                ? schedule.status === 1
+                                                : schedule.status === 'ACTIVE'
+
+                                            return (
+                                                <Card
+                                                    key={schedule.scheduleId ?? `schedule-${schedule.farmId}-${schedule.cropId}`}
+                                                    className={cn(
+                                                        "hover:shadow-md transition-all cursor-pointer",
+                                                        isNewlyCreated && "ring-2 ring-green-500 bg-green-50/50 shadow-lg"
+                                                    )}
+                                                    onClick={() => handleViewDetail(schedule)}
+                                                >
+                                                    <CardContent className="p-4">
+                                                        {/* Status & Date - Only Essential Information */}
+                                                        <div className="flex items-start justify-between">
+                                                            <div className="flex-1">
+                                                                <div className="flex items-center gap-2 flex-wrap mb-3">
+                                                                    <Badge className={cn(
+                                                                        "h-6 items-center whitespace-nowrap text-xs",
+                                                                        isActive ? "bg-green-500 text-white" : "bg-red-500 text-white"
+                                                                    )}>
+                                                                        {getStatusLabel(schedule.status)}
+                                                                    </Badge>
+                                                                    {isNewlyCreated && (
+                                                                        <Badge className="h-6 items-center whitespace-nowrap text-xs bg-green-500 text-white">
+                                                                            Mới
+                                                                        </Badge>
+                                                                    )}
+                                                                </div>
+                                                                <p className="text-sm text-gray-900 font-medium">
+                                                                    {formatDate(schedule.startDate)} - {formatDate(schedule.endDate)}
+                                                                </p>
+                                                            </div>
+                                                            {schedule.scheduleId && (
+                                                                <div onClick={(e) => e.stopPropagation()}>
+                                                                    <ScheduleActionMenu
+                                                                        schedule={schedule}
+                                                                        onView={handleViewDetail}
+                                                                        onEdit={handleEdit}
+                                                                        onAssignStaff={(s) => {
+                                                                            setSelectedSchedule(s)
+                                                                            handleAssignStaffDialogChange(true)
+                                                                        }}
+                                                                        onUpdateStatus={handleUpdateStatus}
+                                                                        actionLoading={actionLoading}
+                                                                    />
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </CardContent>
+                                                </Card>
+                                            )
+                                        })}
+                                    </div>
+                                </div>
+                            )
+                        })}
+                    </div>
+
+                    {/* Pagination Controls */}
+                    {totalPages > 1 && (
+                        <div className="mt-6">
+                            <Pagination
+                                currentPage={pageIndex}
+                                totalPages={totalPages}
+                                onPageChange={setPageIndex}
+                            />
+                        </div>
                     )}
-                </CardContent>
-            </Card>
+                </>
+            )}
 
             <Dialog open={showCreate} onOpenChange={handleCreateDialogChange}>
                 <DialogContent className="sm:max-w-2xl">
@@ -1196,7 +1407,7 @@ export function BackendScheduleList({
                                                                 return (
                                                                     <div key={req.cropRequirementId ?? idx} className="p-4 bg-muted/30 rounded-lg border border-muted">
                                                                         <div className="flex items-center gap-2 mb-3">
-                                                                            <Badge variant="success" className="text-xs">
+                                                                            <Badge variant="outline" className="text-xs bg-white">
                                                                                 {translatePlantStage(req.plantStage)}
                                                                             </Badge>
                                                                             <Badge

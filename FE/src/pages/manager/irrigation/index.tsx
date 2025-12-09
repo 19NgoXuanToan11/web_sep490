@@ -239,12 +239,11 @@ export default function IrrigationPage() {
                 <Input
                   placeholder="Tìm kiếm lịch tưới..."
                   className="pl-9"
-                  disabled
                 />
               </div>
             </div>
 
-            <div className="flex gap-2">
+            <div className="w-full sm:w-48">
               <Select
                 value={staffFilter ? String(staffFilter) : 'all'}
                 onValueChange={v => {
@@ -256,7 +255,7 @@ export default function IrrigationPage() {
                   }
                 }}
               >
-                <SelectTrigger className="w-48">
+                <SelectTrigger>
                   <SelectValue placeholder="Tất cả nhân viên" />
                 </SelectTrigger>
                 <SelectContent>
@@ -266,44 +265,12 @@ export default function IrrigationPage() {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
 
+            <div className="w-full sm:w-auto flex justify-end">
               <Button onClick={() => setShowCreate(true)} className="bg-green-600 hover:bg-green-700">
                 Tạo
               </Button>
-
-              {staffFilter && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleStaffFilter}
-                  disabled={allSchedulesLoading}
-                >
-                  {allSchedulesLoading ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Đang lọc...
-                    </>
-                  ) : (
-                    <>
-                      <Filter className="h-4 w-4 mr-2" />
-                      Áp dụng
-                    </>
-                  )}
-                </Button>
-              )}
-
-              {staffFilter && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setStaffFilter(null)
-                    setFilteredItems(null)
-                  }}
-                >
-                  Xóa bộ lọc
-                </Button>
-              )}
             </div>
           </StaffFilterBar>
 

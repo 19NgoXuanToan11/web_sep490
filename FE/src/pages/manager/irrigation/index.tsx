@@ -32,8 +32,8 @@ export default function IrrigationPage() {
   const [staffFilter, setStaffFilter] = useState<number | null>(null)
   const [filteredItems, setFilteredItems] = useState<ScheduleListItem[] | null>(null)
   const [staffs, setStaffs] = useState<{ id: number; name: string }[]>([])
-  const [allSchedules, setAllSchedules] = useState<ScheduleListItem[]>([])
-  const [allSchedulesLoading, setAllSchedulesLoading] = useState(false)
+  const [, setAllSchedules] = useState<ScheduleListItem[]>([])
+  const [, setAllSchedulesLoading] = useState(false)
 
   // Load staffs for filter
   useEffect(() => {

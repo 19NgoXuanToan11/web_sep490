@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback } from 'react'
+﻿import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { ManagerLayout } from '@/shared/layouts/ManagerLayout'
 import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
@@ -18,9 +18,8 @@ import { useToast } from '@/shared/ui/use-toast'
 import {
   ManagementPageHeader,
   StaffFilterBar,
-  StaffDataTable,
-  type StaffDataTableColumn,
 } from '@/shared/ui'
+import { Pagination } from '@/shared/ui/pagination'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -140,6 +139,7 @@ export default function FarmActivitiesPage() {
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [activityTypeFilter, setActivityTypeFilter] = useState<string>('all')
+  const [sortBy, setSortBy] = useState<'newest' | 'startDate' | 'status'>('newest')
 
   // Pagination state
   const [pageIndex, setPageIndex] = useState(1)
@@ -228,6 +228,20 @@ export default function FarmActivitiesPage() {
     { value: 'DEACTIVATED', label: 'Tạm dừng', variant: 'destructive' as const },
   ]
 
+  function getActivityTypeLabel(type: string | null | undefined) {
+    if (!type) return 'Không có dữ liệu'
+    const activityType = activityTypes.find(at => at.value === type)
+    if (activityType) return activityType.label
+    // Fallback: nếu type là string từ backend, thử map trực tiếp
+    return activityTypeMap[type] || type
+  }
+
+  function getStatusBadge(status: string) {
+    const statusOption = statusOptions.find(s => s.value === status)
+    if (!statusOption) return <Badge variant="outline">{status}</Badge>
+    return <Badge variant={statusOption.variant}>{statusOption.label}</Badge>
+  }
+
   const loadActivities = useCallback(async () => {
     try {
       setLoading(true)
@@ -300,14 +314,61 @@ export default function FarmActivitiesPage() {
     }
   }, [])
 
-  const filteredActivities = (Array.isArray(activities) ? activities : []).filter(activity => {
-    if (!activity || typeof activity !== 'object') return false
+  const filteredActivities = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase()
-    if (!normalizedSearch) return true
-    const rawType = (activity.activityType || '').toLowerCase()
-    const localizedType = getActivityTypeLabel(activity.activityType).toLowerCase()
-    return rawType.includes(normalizedSearch) || localizedType.includes(normalizedSearch)
-  })
+    return (Array.isArray(activities) ? activities : []).filter(activity => {
+      if (!activity || typeof activity !== 'object') return false
+      if (!normalizedSearch) return true
+      const rawType = (activity.activityType || '').toLowerCase()
+      const localizedType = getActivityTypeLabel(activity.activityType).toLowerCase()
+      return rawType.includes(normalizedSearch) || localizedType.includes(normalizedSearch)
+    })
+  }, [activities, searchTerm])
+
+  const sortedActivities = useMemo(() => {
+    const sorted = [...filteredActivities]
+    const statusOrder: Record<string, number> = {
+      ACTIVE: 0,
+      IN_PROGRESS: 1,
+      COMPLETED: 2,
+      DEACTIVATED: 3,
+    }
+
+    switch (sortBy) {
+      case 'newest':
+        return sorted.sort((a, b) => (b.farmActivitiesId || 0) - (a.farmActivitiesId || 0))
+      case 'startDate': {
+        const parseDate = (v?: string | null) => {
+          const d = v ? new Date(v) : null
+          return d && !Number.isNaN(d.getTime()) ? d.getTime() : 0
+        }
+        return sorted.sort((a, b) => parseDate(a.startDate) - parseDate(b.startDate))
+      }
+      case 'status':
+        return sorted.sort((a, b) => {
+          const aOrder = statusOrder[(a.status || '').toUpperCase()] ?? 99
+          const bOrder = statusOrder[(b.status || '').toUpperCase()] ?? 99
+          if (aOrder === bOrder) return (b.farmActivitiesId || 0) - (a.farmActivitiesId || 0)
+          return aOrder - bOrder
+        })
+      default:
+        return sorted
+    }
+  }, [filteredActivities, sortBy])
+
+  const groupedActivities = useMemo(() => {
+    const groups = new Map<string, FarmActivity[]>()
+    const order: string[] = []
+    sortedActivities.forEach(activity => {
+      const label = getActivityTypeLabel(activity.activityType)
+      if (!groups.has(label)) {
+        groups.set(label, [])
+        order.push(label)
+      }
+      groups.get(label)!.push(activity)
+    })
+    return order.map(key => [key, groups.get(key)!] as [string, FarmActivity[]])
+  }, [sortedActivities])
 
   const handleCreateActivity = async () => {
     try {
@@ -544,21 +605,6 @@ export default function FarmActivitiesPage() {
     }
   }
 
-  const getActivityTypeLabel = (type: string | null | undefined) => {
-    if (!type) return 'Không có dữ liệu'
-    const activityType = activityTypes.find(at => at.value === type)
-    if (activityType) return activityType.label
-    // Fallback: nếu type là string từ backend, thử map trực tiếp
-    return activityTypeMap[type] || type
-  }
-
-  const getStatusBadge = (status: string) => {
-    const statusOption = statusOptions.find(s => s.value === status)
-    if (!statusOption) return <Badge variant="outline">{status}</Badge>
-
-    return <Badge variant={statusOption.variant}>{statusOption.label}</Badge>
-  }
-
   const formatDisplayDate = (dateString: string | undefined | null): string => {
     if (!dateString) return 'Không có dữ liệu'
     try {
@@ -615,7 +661,7 @@ export default function FarmActivitiesPage() {
 
   useEffect(() => {
     setPageIndex(1)
-  }, [statusFilter, activityTypeFilter])
+  }, [statusFilter, activityTypeFilter, searchTerm, sortBy])
 
   useEffect(() => {
     loadActivities()
@@ -726,6 +772,18 @@ export default function FarmActivitiesPage() {
                 </SelectContent>
               </Select>
             </div>
+            <div className="w-full sm:w-48">
+              <Select value={sortBy} onValueChange={(value) => setSortBy(value as typeof sortBy)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Sắp xếp" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="newest">Mới nhất</SelectItem>
+                  <SelectItem value="startDate">Ngày bắt đầu</SelectItem>
+                  <SelectItem value="status">Trạng thái</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             <div className="flex gap-2">
               <Button onClick={() => setCreateDialogOpen(true)} className="flex items-center gap-2 bg-green-600 hover:bg-green-700">
                 Tạo
@@ -740,62 +798,73 @@ export default function FarmActivitiesPage() {
                   <RefreshCw className="h-8 w-8 animate-spin text-green-600" />
                   <span className="ml-2 text-gray-600">Đang tải dữ liệu...</span>
                 </div>
+              ) : sortedActivities.length === 0 ? (
+                <div className="py-12 text-center space-y-2">
+                  <p className="text-lg font-semibold text-gray-900">
+                    {(() => {
+                      if (searchTerm) return 'Không tìm thấy hoạt động nào'
+                      if (statusFilter !== 'all' || activityTypeFilter !== 'all') {
+                        return 'Không tìm thấy hoạt động nào'
+                      }
+                      return 'Chưa có hoạt động nông trại'
+                    })()}
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    {(() => {
+                      if (searchTerm) return 'Không có hoạt động nào phù hợp với điều kiện lọc hiện tại.'
+                      if (statusFilter !== 'all' || activityTypeFilter !== 'all') {
+                        return 'Không có hoạt động nào phù hợp với điều kiện lọc hiện tại.'
+                      }
+                      return 'Hãy tạo hoạt động nông trại đầu tiên.'
+                    })()}
+                  </p>
+                </div>
               ) : (
-                <StaffDataTable<FarmActivity>
-                  className="px-4 sm:px-6 pb-6"
-                  data={filteredActivities}
-                  getRowKey={(activity) => activity.farmActivitiesId}
-                  currentPage={pageIndex}
-                  pageSize={pageSize}
-                  totalPages={totalPages}
-                  onPageChange={handlePageChange}
-                  emptyTitle="Không tìm thấy hoạt động nào"
-                  emptyDescription={
-                    searchTerm || statusFilter !== 'all' || activityTypeFilter !== 'all'
-                      ? 'Không có hoạt động nào phù hợp với điều kiện lọc hiện tại.'
-                      : 'Hãy tạo hoạt động nông trại đầu tiên.'
-                  }
-                  columns={[
-                    {
-                      id: 'activityType',
-                      header: 'Hoạt động',
-                      render: (activity: FarmActivity) => (
-                        <div className="font-medium">{getActivityTypeLabel(activity.activityType)}</div>
-                      ),
-                    },
-                    {
-                      id: 'startDate',
-                      header: 'Ngày bắt đầu',
-                      render: (activity: FarmActivity) => (
-                        <div className="text-sm">{formatDisplayDate(activity.startDate)}</div>
-                      ),
-                    },
-                    {
-                      id: 'endDate',
-                      header: 'Ngày kết thúc',
-                      render: (activity: FarmActivity) => (
-                        <div className="text-sm">{formatDisplayDate(activity.endDate)}</div>
-                      ),
-                    },
-                    {
-                      id: 'status',
-                      header: 'Trạng thái',
-                      render: (activity: FarmActivity) => getStatusBadge(activity.status),
-                    },
-                    {
-                      id: 'actions',
-                      header: '',
-                      render: (activity: FarmActivity) => (
-                        <ActivityActionMenu
-                          activity={activity}
-                          onView={handleViewDetailsClick}
-                          onEdit={handleEditClick}
-                          onToggleStatus={handleToggleStatus}
-                        />
-                      ),
-                    },
-                  ] satisfies StaffDataTableColumn<FarmActivity>[]}
-                />
+                <div className="space-y-6">
+                  {groupedActivities.map(([typeLabel, items]) => (
+                    <div key={typeLabel} className="space-y-3">
+                      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
+                        <h3 className="text-lg font-semibold text-gray-900">{typeLabel}</h3>
+                      </div>
+                      <div className="grid gap-3 px-4 pb-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                        {items.map(activity => (
+                          <Card
+                            key={activity.farmActivitiesId ?? `${activity.activityType}-${activity.startDate}`}
+                            className="hover:shadow-md transition-all cursor-pointer"
+                            onClick={() => handleViewDetailsClick(activity)}
+                          >
+                            <CardContent className="p-4">
+                              <div className="flex items-start justify-between">
+                                <div className="space-y-3">
+                                  <p className="text-sm font-medium text-gray-900">
+                                    {formatDisplayDate(activity.startDate)} - {formatDisplayDate(activity.endDate)}
+                                  </p>
+                                  <div className="flex items-center gap-2">
+                                    {getStatusBadge(activity.status)}
+                                  </div>
+                                </div>
+                                <div onClick={(e) => e.stopPropagation()}>
+                                  <ActivityActionMenu
+                                    activity={activity}
+                                    onView={handleViewDetailsClick}
+                                    onEdit={handleEditClick}
+                                    onToggleStatus={handleToggleStatus}
+                                  />
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+
+                  {totalPages > 1 && (
+                    <div className="px-4 pb-4">
+                      <Pagination currentPage={pageIndex} totalPages={totalPages} onPageChange={handlePageChange} />
+                    </div>
+                  )}
+                </div>
               )}
             </CardContent>
           </Card>

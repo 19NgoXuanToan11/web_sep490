@@ -20,7 +20,6 @@ interface UpdateDeviceFormState {
     deviceName: string
     deviceType: string
     expiryDate?: string
-    farmDetailsId: number
 }
 
 const deviceTypes = [
@@ -48,7 +47,6 @@ export const UpdateDeviceModal: React.FC<UpdateDeviceModalProps> = ({
         deviceName: '',
         deviceType: '',
         expiryDate: '',
-        farmDetailsId: 1,
     })
 
     useEffect(() => {
@@ -71,7 +69,6 @@ export const UpdateDeviceModal: React.FC<UpdateDeviceModalProps> = ({
                 deviceName: device.deviceName || '',
                 deviceType: device.deviceType || '',
                 expiryDate: formattedExpiryDate,
-                farmDetailsId: device.farmDetailsId || 1,
             })
         }
     }, [device, isOpen])
@@ -79,7 +76,9 @@ export const UpdateDeviceModal: React.FC<UpdateDeviceModalProps> = ({
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
 
-        if (!device?.ioTdevicesId) {
+        // Use devicesId (from backend) or ioTdevicesId (legacy) for device ID
+        const deviceId = device?.devicesId || device?.ioTdevicesId
+        if (!deviceId) {
             toast({
                 title: 'Lỗi',
                 description: 'Không tìm thấy thiết bị để cập nhật',
@@ -100,26 +99,40 @@ export const UpdateDeviceModal: React.FC<UpdateDeviceModalProps> = ({
         try {
             setLoading(true)
 
+            // Format expiryDate to YYYY-MM-DD format if provided
+            let formattedExpiryDate: string | undefined = undefined
+            if (formData.expiryDate) {
+                const date = new Date(formData.expiryDate)
+                if (!isNaN(date.getTime())) {
+                    formattedExpiryDate = date.toISOString().split('T')[0]
+                }
+            }
+
+            // Only send fields the backend expects (matching IOTRequest)
             const payload: IoTDeviceRequest = {
                 deviceName: formData.deviceName,
                 deviceType: formData.deviceType,
-                expiryDate: formData.expiryDate,
-                farmDetailsId: formData.farmDetailsId,
+                expiryDate: formattedExpiryDate,
+                // Note: farmDetailsId is not sent as backend doesn't accept it
             }
 
-            await iotDeviceService.updateDevice(device.ioTdevicesId, payload)
+            // Use devicesId (from backend) or ioTdevicesId (legacy)
+            const deviceId = device?.devicesId || device?.ioTdevicesId
+            const updatedDevice = await iotDeviceService.updateDevice(deviceId!, payload)
 
             toast({
                 title: 'Thành công',
-                description: 'Đã cập nhật thiết bị IoT',
+                description: `Đã cập nhật thiết bị IoT "${updatedDevice.deviceName || formData.deviceName}" thành công`,
             })
 
             onSuccess()
             onClose()
-        } catch (error) {
+        } catch (error: any) {
+            console.error('Error updating IoT device:', error)
+            const errorMessage = error?.response?.data?.message || error?.message || 'Không thể cập nhật thiết bị IoT'
             toast({
                 title: 'Lỗi',
-                description: 'Không thể cập nhật thiết bị IoT',
+                description: errorMessage,
                 variant: 'destructive',
             })
         } finally {

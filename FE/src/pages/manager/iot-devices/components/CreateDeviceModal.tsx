@@ -19,10 +19,9 @@ interface CreateDeviceFormState {
   deviceName: string
   pinCode: string
   deviceType: string
-  sensorValue: string
-  unit: string
+  sensorValue: string // UI-only field, not sent to backend
+  unit: string // UI-only field, not sent to backend
   expiryDate?: string
-  farmDetailsId: number
 }
 
 const deviceTypes = [
@@ -64,7 +63,6 @@ export const CreateDeviceModal: React.FC<CreateDeviceModalProps> = ({
     sensorValue: '',
     unit: '',
     expiryDate: '',
-    farmDetailsId: 1,
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -82,21 +80,35 @@ export const CreateDeviceModal: React.FC<CreateDeviceModalProps> = ({
     try {
       setLoading(true)
 
-      // Only send fields the backend expects
+      // Format expiryDate to YYYY-MM-DD format if provided
+      let formattedExpiryDate: string | undefined = undefined
+      if (formData.expiryDate) {
+        // Ensure date is in YYYY-MM-DD format
+        const date = new Date(formData.expiryDate)
+        if (!isNaN(date.getTime())) {
+          formattedExpiryDate = date.toISOString().split('T')[0]
+        }
+      }
+
+      // Only send fields the backend expects (matching IOTRequest)
       const payload: IoTDeviceRequest = {
         deviceName: formData.deviceName,
-        pinCode: formData.pinCode,
+        pinCode: formData.pinCode || undefined, // Send undefined if empty
         deviceType: formData.deviceType,
-        expiryDate: formData.expiryDate,
-        farmDetailsId: formData.farmDetailsId,
+        expiryDate: formattedExpiryDate,
+        // Note: farmDetailsId is not sent as backend doesn't accept it
+        // Note: sensorValue and unit are UI-only fields, not sent to backend
       }
-      await iotDeviceService.createDevice(payload)
+
+      // Call API and get response with all mapped fields
+      const createdDevice = await iotDeviceService.createDevice(payload)
 
       toast({
         title: 'Thành công',
-        description: 'Đã tạo thiết bị IoT mới',
+        description: `Đã tạo thiết bị IoT "${createdDevice.deviceName || formData.deviceName}" thành công`,
       })
 
+      // Reset form
       setFormData({
         deviceName: '',
         pinCode: '',
@@ -104,15 +116,16 @@ export const CreateDeviceModal: React.FC<CreateDeviceModalProps> = ({
         sensorValue: '',
         unit: '',
         expiryDate: '',
-        farmDetailsId: 1,
       })
 
       onSuccess()
       onClose()
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Error creating IoT device:', error)
+      const errorMessage = error?.response?.data?.message || error?.message || 'Không thể tạo thiết bị IoT'
       toast({
         title: 'Lỗi',
-        description: 'Không thể tạo thiết bị IoT',
+        description: errorMessage,
         variant: 'destructive',
       })
     } finally {

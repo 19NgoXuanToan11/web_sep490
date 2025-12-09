@@ -1,15 +1,17 @@
 import { http } from './client'
 
 export interface IoTDevice {
-  ioTdevicesId?: number
-  devicesId?: number // Backend returns this field
-  deviceName: string
+  devicesId?: number // Backend returns this field (DevicesId)
+  deviceName?: string
   pinCode?: string
-  deviceType: string
-  status: number | string
-  lastUpdate?: string
-  expiryDate?: string
-  farmDetailsId: number
+  deviceType?: string
+  status?: number | string // Status enum from backend
+  unit?: string // Unit field from backend response
+  lastUpdate?: string // DateOnly from backend
+  expiryDate?: string // DateOnly from backend
+  // Legacy field for backward compatibility
+  ioTdevicesId?: number
+  farmDetailsId?: number
 }
 
 export interface IoTDeviceRequest {
@@ -17,7 +19,7 @@ export interface IoTDeviceRequest {
   pinCode?: string
   deviceType: string
   expiryDate?: string
-  farmDetailsId: number
+  // Note: farmDetailsId is not accepted by backend (commented out in IOTRequest)
 }
 
 export interface IoTDeviceResponse {
@@ -36,6 +38,32 @@ export interface PaginatedIoTDevices {
   items: IoTDevice[]
 }
 
+// Helper function to map API response to IoTDevice interface
+// Handles both PascalCase (from backend) and camelCase (from serialization)
+const mapApiDeviceToDevice = (apiDevice: any): IoTDevice => {
+  return {
+    devicesId:
+      apiDevice.devicesId ||
+      apiDevice.DevicesId ||
+      apiDevice.ioTdevicesId ||
+      apiDevice.IoTdevicesId,
+    deviceName: apiDevice.deviceName || apiDevice.DeviceName,
+    pinCode: apiDevice.pinCode || apiDevice.PinCode,
+    deviceType: apiDevice.deviceType || apiDevice.DeviceType,
+    status: apiDevice.status || apiDevice.Status,
+    unit: apiDevice.unit || apiDevice.Unit,
+    lastUpdate: apiDevice.lastUpdate || apiDevice.LastUpdate,
+    expiryDate: apiDevice.expiryDate || apiDevice.ExpiryDate,
+    // Legacy fields for backward compatibility
+    ioTdevicesId:
+      apiDevice.devicesId ||
+      apiDevice.DevicesId ||
+      apiDevice.ioTdevicesId ||
+      apiDevice.IoTdevicesId,
+    farmDetailsId: apiDevice.farmDetailsId || apiDevice.FarmDetailsId,
+  }
+}
+
 export const iotDeviceService = {
   getAllDevices: async (
     pageIndex: number = 1,
@@ -44,14 +72,31 @@ export const iotDeviceService = {
     const response = await http.get<IoTDeviceResponse>(
       `/v1/iotDevices/iotDevices-list?pageIndex=${pageIndex}&pageSize=${pageSize}`
     )
-    return response.data.data
+    const apiData = response.data.data
+    if (!apiData) {
+      return {
+        totalItemCount: 0,
+        pageSize,
+        pageIndex,
+        items: [],
+      }
+    }
+    return {
+      totalItemCount: apiData.totalItemCount || 0,
+      pageSize: apiData.pageSize || pageSize,
+      totalPagesCount: apiData.totalPagesCount,
+      pageIndex: apiData.pageIndex || pageIndex,
+      next: apiData.next,
+      previous: apiData.previous,
+      items: (apiData.items || []).map(mapApiDeviceToDevice),
+    }
   },
 
   getDeviceById: async (deviceId: number): Promise<IoTDevice> => {
     const response = await http.get<IoTDeviceResponse>(
       `/v1/iotDevices/iotDevices-byId?id=${deviceId}`
     )
-    return response.data.data
+    return mapApiDeviceToDevice(response.data.data)
   },
 
   createDevice: async (deviceData: IoTDeviceRequest): Promise<IoTDevice> => {
@@ -59,7 +104,7 @@ export const iotDeviceService = {
       '/v1/iotDevices/iotDevices-create',
       deviceData
     )
-    return response.data.data
+    return mapApiDeviceToDevice(response.data.data)
   },
 
   updateDeviceStatus: async (
@@ -70,7 +115,7 @@ export const iotDeviceService = {
       `/v1/iotDevices/iotDevices-update-status?iotDevicesId=${Number(deviceId)}`,
       String(Number(status))
     )
-    return response.data.data
+    return mapApiDeviceToDevice(response.data.data)
   },
 
   updateDevice: async (deviceId: number, deviceData: IoTDeviceRequest): Promise<IoTDevice> => {
@@ -78,7 +123,7 @@ export const iotDeviceService = {
       `/v1/iotDevices/iotDevices-update?iotDevicesId=${deviceId}`,
       deviceData
     )
-    return response.data.data
+    return mapApiDeviceToDevice(response.data.data)
   },
 
   getDeviceStatistics: async (): Promise<{
@@ -92,7 +137,8 @@ export const iotDeviceService = {
       const response = await iotDeviceService.getAllDevices(1, 1000)
       const devices = response.items
 
-      const isActiveStatus = (status: number | string): boolean => {
+      const isActiveStatus = (status: number | string | undefined): boolean => {
+        if (status === undefined) return false
         const normalizedStatus = typeof status === 'string' ? status.toUpperCase() : String(status)
         return normalizedStatus === 'ACTIVE' || normalizedStatus === '1'
       }

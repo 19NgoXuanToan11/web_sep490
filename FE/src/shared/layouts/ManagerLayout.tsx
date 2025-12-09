@@ -3,17 +3,18 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   LayoutDashboard,
-  Droplets,
+  Calendar,
   Menu,
   X,
-  Sprout,
-  Trees,
+  FolderTree,
+  Wheat,
+  ScanLine,
   User,
   Activity,
   Cpu,
   Monitor,
   History,
-  Package,
+  Sprout,
 } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import LogoutButton from '@/shared/ui/LogoutButton'
@@ -43,19 +44,19 @@ const navigationItems: NavItem[] = [
   {
     name: 'Danh mục',
     href: '/manager/categories',
-    icon: Sprout,
+    icon: FolderTree,
     description: 'Quản lý danh mục sản phẩm',
   },
   {
     name: 'Cây trồng',
     href: '/manager/crop-management',
-    icon: Package,
+    icon: Wheat,
     description: 'Quản lý cây trồng',
   },
   {
     name: 'Theo dõi cây trồng',
     href: '/manager/crops',
-    icon: Trees,
+    icon: ScanLine,
     description: 'Lập kế hoạch & theo dõi',
   },
   {
@@ -67,7 +68,7 @@ const navigationItems: NavItem[] = [
   {
     name: 'Lịch',
     href: '/manager/irrigation',
-    icon: Droplets,
+    icon: Calendar,
     description: 'Quản lý lịch tưới',
   },
   {

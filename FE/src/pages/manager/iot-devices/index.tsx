@@ -141,7 +141,8 @@ const ManagerIoTDevicesPage: React.FC = () => {
     error: 0,
   })
 
-  const isActiveStatus = (status: number | string): boolean => {
+  const isActiveStatus = (status: number | string | undefined): boolean => {
+    if (status === undefined) return false
     const normalizedStatus = typeof status === 'string'
       ? status.toUpperCase()
       : String(status)
@@ -279,7 +280,10 @@ const ManagerIoTDevicesPage: React.FC = () => {
     }
   }
 
-  const getStatusBadge = (status: number | string) => {
+  const getStatusBadge = (status: number | string | undefined) => {
+    if (status === undefined) {
+      return <Badge variant="outline">Không xác định</Badge>
+    }
     // Xử lý cả string và number
     const normalizedStatus = typeof status === 'string'
       ? status.toUpperCase()
@@ -313,7 +317,7 @@ const ManagerIoTDevicesPage: React.FC = () => {
     return matchesSearch && matchesStatus && matchesType
   })
 
-  const deviceTypes = [...new Set(devices.map(device => device.deviceType).filter(Boolean))]
+  const deviceTypes = [...new Set(devices.map(device => device.deviceType).filter((type): type is string => Boolean(type)))]
 
   return (
     <ManagerLayout>

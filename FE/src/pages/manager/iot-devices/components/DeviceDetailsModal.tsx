@@ -22,7 +22,10 @@ export const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({
 }) => {
     if (!device) return null
 
-    const getStatusBadge = (status: number | string) => {
+    const getStatusBadge = (status: number | string | undefined) => {
+        if (status === undefined) {
+            return <Badge variant="outline">Không xác định</Badge>
+        }
         // Xử lý cả string và number
         const normalizedStatus = typeof status === 'string'
             ? status.toUpperCase()

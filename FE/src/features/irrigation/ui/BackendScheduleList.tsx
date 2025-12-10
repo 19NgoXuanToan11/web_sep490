@@ -1018,7 +1018,7 @@ export function BackendScheduleList({
             </div>
 
             {/* Card-based Layout */}
-                    {loading ? (
+            {loading ? (
                 <Card>
                     <CardContent className="p-12">
                         <div className="flex items-center justify-center">
@@ -1064,11 +1064,11 @@ export function BackendScheduleList({
                                     <div className="grid gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                                         {items.map((schedule) => {
                                             const isNewlyCreated = schedule.scheduleId ? newlyCreatedIds.has(schedule.scheduleId) : false
-                                        const isActive = typeof schedule.status === 'number'
-                                            ? schedule.status === 1
-                                            : schedule.status === 'ACTIVE'
+                                            const isActive = typeof schedule.status === 'number'
+                                                ? schedule.status === 1
+                                                : schedule.status === 'ACTIVE'
 
-                                        return (
+                                            return (
                                                 <Card
                                                     key={schedule.scheduleId ?? `schedule-${schedule.farmId}-${schedule.cropId}`}
                                                     className={cn(
@@ -1080,42 +1080,64 @@ export function BackendScheduleList({
                                                     <CardContent className="p-4">
                                                         {/* Status & Date - Only Essential Information */}
                                                         <div className="flex items-start justify-between">
-                                                            <div className="flex-1">
-                                                                <div className="flex items-center gap-2 flex-wrap mb-3">
+                                                            <div className="flex-1 min-w-0">
+                                                                <div className="flex items-center gap-2 flex-wrap mb-2">
                                                                     <Badge className={cn(
                                                                         "h-6 items-center whitespace-nowrap text-xs",
                                                                         isActive ? "bg-green-500 text-white" : "bg-red-500 text-white"
                                                                     )}>
-                                                {getStatusLabel(schedule.status)}
-                                            </Badge>
+                                                                        {getStatusLabel(schedule.status)}
+                                                                    </Badge>
                                                                     {isNewlyCreated && (
                                                                         <Badge className="h-6 items-center whitespace-nowrap text-xs bg-green-500 text-white">
                                                                             Mới
                                                                         </Badge>
-                                            )}
-                                        </div>
-                                                                <p className="text-sm text-gray-900 font-medium">
+                                                                    )}
+                                                                </div>
+                                                                <p className="text-sm text-gray-900 font-medium mb-2">
                                                                     {formatDate(schedule.startDate)} - {formatDate(schedule.endDate)}
                                                                 </p>
-                                        </div>
+
+                                                                {/* Additional Information */}
+                                                                {schedule.farmView?.farmName && (
+                                                                    <p className="text-xs text-gray-600 mb-1 truncate" title={schedule.farmView.farmName}>
+                                                                        Nông trại: {schedule.farmView.farmName}
+                                                                    </p>
+                                                                )}
+                                                                {schedule.staffName && (
+                                                                    <p className="text-xs text-gray-600 mb-1 truncate" title={schedule.staffName}>
+                                                                        Nhân viên: {schedule.staffName}
+                                                                    </p>
+                                                                )}
+                                                                {schedule.quantity && (
+                                                                    <p className="text-xs text-gray-600 mb-1">
+                                                                        Số lượng cây trồng: {schedule.quantity}
+                                                                    </p>
+                                                                )}
+                                                                {schedule.currentPlantStage && (
+                                                                    <p className="text-xs text-gray-600">
+                                                                        Giai đoạn hiện tại: {translatePlantStage(schedule.currentPlantStage)}
+                                                                    </p>
+                                                                )}
+                                                            </div>
                                                             {schedule.scheduleId && (
                                                                 <div onClick={(e) => e.stopPropagation()}>
-                                        <ScheduleActionMenu
-                                            schedule={schedule}
-                                            onView={handleViewDetail}
-                                            onEdit={handleEdit}
-                                            onAssignStaff={(s) => {
-                                                setSelectedSchedule(s)
-                                                handleAssignStaffDialogChange(true)
-                                            }}
-                                            onUpdateStatus={handleUpdateStatus}
-                                            actionLoading={actionLoading}
-                                        />
+                                                                    <ScheduleActionMenu
+                                                                        schedule={schedule}
+                                                                        onView={handleViewDetail}
+                                                                        onEdit={handleEdit}
+                                                                        onAssignStaff={(s) => {
+                                                                            setSelectedSchedule(s)
+                                                                            handleAssignStaffDialogChange(true)
+                                                                        }}
+                                                                        onUpdateStatus={handleUpdateStatus}
+                                                                        actionLoading={actionLoading}
+                                                                    />
                                                                 </div>
-                    )}
+                                                            )}
                                                         </div>
-                </CardContent>
-            </Card>
+                                                    </CardContent>
+                                                </Card>
                                             )
                                         })}
                                     </div>
@@ -1377,7 +1399,7 @@ export function BackendScheduleList({
                                     <h3 className="text-lg font-semibold mb-3">Thông tin cây trồng</h3>
                                     <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
                                         <div><strong>Tên cây trồng:</strong> {scheduleDetail.cropView.cropName ?? `#${scheduleDetail.cropView.cropId}`}</div>
-                                        <div><strong>Số lượng:</strong> {scheduleDetail.quantity}</div>
+                                        <div><strong>Số lượng cây trồng:</strong> {scheduleDetail.quantity}</div>
                                         {scheduleDetail.cropView.origin && (
                                             <div><strong>Nguồn gốc:</strong> {scheduleDetail.cropView.origin}</div>
                                         )}

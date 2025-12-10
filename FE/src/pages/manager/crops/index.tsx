@@ -834,7 +834,7 @@ export default function CropsPage() {
           </StaffFilterBar>
 
           {/* Simplified Crop List - Card-based Layout with Progressive Disclosure */}
-              {loading || cropsLoading ? (
+          {loading || cropsLoading ? (
             <Card>
               <CardContent className="p-12">
                 <div className="flex items-center justify-center">
@@ -857,7 +857,7 @@ export default function CropsPage() {
                 </p>
                 <p className="text-sm text-gray-600 mt-2">
                   {searchTerm || stageFilter !== 'all'
-                      ? 'Không có yêu cầu phù hợp với điều kiện lọc hiện tại.'
+                    ? 'Không có yêu cầu phù hợp với điều kiện lọc hiện tại.'
                     : statusFilter === 'active'
                       ? 'Hãy tạo kế hoạch cây trồng mới hoặc kích hoạt các kế hoạch đã tạm dừng.'
                       : statusFilter === 'inactive'
@@ -876,7 +876,7 @@ export default function CropsPage() {
                       {/* Section Header */}
                       <div className="flex items-center justify-between px-2 py-2 border-b border-gray-200">
                         <h3 className="text-lg font-semibold text-gray-900">{cropName}</h3>
-                          </div>
+                      </div>
 
                       {/* Cards Grid for this Crop */}
                       <div className="grid gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
@@ -900,66 +900,88 @@ export default function CropsPage() {
                               <CardContent className="p-4">
                                 {/* Stage & Status - Primary Information (Crop name đã ở header) */}
                                 <div className="flex items-start justify-between">
-                                  <div className="flex-1">
-                                    <div className="flex items-center gap-2 flex-wrap">
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 flex-wrap mb-2">
                                       <Badge className="h-6 items-center whitespace-nowrap text-xs" variant="outline">
-                              {stageLabel(req.plantStage)}
-                            </Badge>
-                            {getStatusBadge(req.isActive)}
+                                        {stageLabel(req.plantStage)}
+                                      </Badge>
+                                      {getStatusBadge(req.isActive)}
                                       {isNewlyCreated && (
                                         <Badge className="h-6 items-center whitespace-nowrap text-xs bg-green-500 text-white">
                                           Mới
                                         </Badge>
                                       )}
-                          </div>
-                                  </div>
-                            {req.cropRequirementId ? (
-                                    <div onClick={(e) => e.stopPropagation()}>
-                              <RequirementActionMenu
-                                requirement={req}
-                                isUpdatingStatus={statusUpdatingId === req.cropRequirementId}
-                                onToggleStatus={handleToggleRequirementStatus}
-                                onEdit={openEditRequirement}
-                                onView={openDetail}
-                              />
                                     </div>
-                            ) : (
-                              <DropdownMenu modal={false}>
+
+                                    {/* Additional Information */}
+                                    {req.estimatedDate && (
+                                      <p className="text-xs text-gray-600 mb-1">
+                                        Thời gian ước tính: {req.estimatedDate} ngày
+                                      </p>
+                                    )}
+                                    {req.moisture !== null && req.moisture !== undefined && (
+                                      <p className="text-xs text-gray-600 mb-1">
+                                        Độ ẩm: {formatNumber(req.moisture, '%')}
+                                      </p>
+                                    )}
+                                    {req.temperature !== null && req.temperature !== undefined && (
+                                      <p className="text-xs text-gray-600 mb-1">
+                                        Nhiệt độ: {formatNumber(req.temperature, '°C')}
+                                      </p>
+                                    )}
+                                    {req.wateringFrequency && (
+                                      <p className="text-xs text-gray-600 mb-1">
+                                        Tần suất tưới: {req.wateringFrequency}
+                                      </p>
+                                    )}
+                                  </div>
+                                  {req.cropRequirementId ? (
+                                    <div onClick={(e) => e.stopPropagation()}>
+                                      <RequirementActionMenu
+                                        requirement={req}
+                                        isUpdatingStatus={statusUpdatingId === req.cropRequirementId}
+                                        onToggleStatus={handleToggleRequirementStatus}
+                                        onEdit={openEditRequirement}
+                                        onView={openDetail}
+                                      />
+                                    </div>
+                                  ) : (
+                                    <DropdownMenu modal={false}>
                                       <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    className="h-8 w-8 p-0"
-                                  >
-                                    <MoreHorizontal className="h-4 w-4" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent
-                                  align="end"
-                                  className="w-48"
-                                  sideOffset={5}
-                                  onCloseAutoFocus={(e) => e.preventDefault()}
-                                >
-                                  <DropdownMenuItem
-                                    onClick={(e) => {
-                                      e.preventDefault()
-                                      e.stopPropagation()
-                                      openCreateDialog(req)
-                                    }}
-                                    className="cursor-pointer focus:bg-gray-100"
-                                    onSelect={(e) => e.preventDefault()}
-                                  >
-                                    Tạo yêu cầu
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            )}
-                          </div>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          className="h-8 w-8 p-0"
+                                        >
+                                          <MoreHorizontal className="h-4 w-4" />
+                                        </Button>
+                                      </DropdownMenuTrigger>
+                                      <DropdownMenuContent
+                                        align="end"
+                                        className="w-48"
+                                        sideOffset={5}
+                                        onCloseAutoFocus={(e) => e.preventDefault()}
+                                      >
+                                        <DropdownMenuItem
+                                          onClick={(e) => {
+                                            e.preventDefault()
+                                            e.stopPropagation()
+                                            openCreateDialog(req)
+                                          }}
+                                          className="cursor-pointer focus:bg-gray-100"
+                                          onSelect={(e) => e.preventDefault()}
+                                        >
+                                          Tạo yêu cầu
+                                        </DropdownMenuItem>
+                                      </DropdownMenuContent>
+                                    </DropdownMenu>
+                                  )}
+                                </div>
                               </CardContent>
                             </Card>
                           )
                         })}
-                        </div>
+                      </div>
                     </div>
                   )
                 })}
@@ -972,7 +994,7 @@ export default function CropsPage() {
                     currentPage={pageIndex}
                     totalPages={totalPages}
                     onPageChange={handlePageChange}
-                />
+                  />
                 </div>
               )}
             </>
@@ -1137,19 +1159,19 @@ export default function CropsPage() {
                   <CardTitle className="text-lg">Thông tin cây trồng</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-              <div className="grid md:grid-cols-2 gap-4">
-                <div>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <div>
                       <Label className="text-sm font-medium text-gray-700">Tên cây trồng</Label>
-                  <p className="mt-1 text-base font-semibold text-gray-900">
-                    {detailRequirement.cropName}
-                  </p>
+                      <p className="mt-1 text-base font-semibold text-gray-900">
+                        {detailRequirement.cropName}
+                      </p>
                     </div>
-                  {detailCrop?.origin && (
+                    {detailCrop?.origin && (
                       <div>
                         <Label className="text-sm font-medium text-gray-700">Xuất xứ</Label>
                         <p className="mt-1 text-sm text-gray-800">{detailCrop.origin}</p>
                       </div>
-                  )}
+                    )}
                   </div>
                   {detailCrop?.description && (
                     <div>
@@ -1162,13 +1184,13 @@ export default function CropsPage() {
                   <div className="flex items-center gap-3 pt-2 border-t">
                     <div>
                       <Label className="text-xs text-gray-500">Trạng thái cây trồng</Label>
-                    <div className="mt-1">
+                      <div className="mt-1">
                         {detailCrop?.status && (
-                      <Badge variant={detailCrop.status.toUpperCase() === 'ACTIVE' ? 'success' : 'destructive'}>
-                        {detailCrop.status.toUpperCase() === 'ACTIVE' ? 'Hoạt động' : 'Tạm dừng'}
-                      </Badge>
-                  )}
-                </div>
+                          <Badge variant={detailCrop.status.toUpperCase() === 'ACTIVE' ? 'success' : 'destructive'}>
+                            {detailCrop.status.toUpperCase() === 'ACTIVE' ? 'Hoạt động' : 'Tạm dừng'}
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </CardContent>
@@ -1181,28 +1203,28 @@ export default function CropsPage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex items-center gap-3">
-                <div>
+                    <div>
                       <Label className="text-sm font-medium text-gray-700">Giai đoạn hiện tại</Label>
                       <div className="mt-2">
                         <Badge className="h-8 px-3 text-sm" variant="outline">
-                      {stageLabel(detailRequirement.plantStage)}
-                    </Badge>
-                  </div>
-                </div>
+                          {stageLabel(detailRequirement.plantStage)}
+                        </Badge>
+                      </div>
+                    </div>
                     <div>
                       <Label className="text-sm font-medium text-gray-700">Trạng thái kế hoạch</Label>
                       <div className="mt-2">
                         {getStatusBadge(detailRequirement.isActive)}
-              </div>
+                      </div>
                     </div>
                     {detailRequirement.estimatedDate && (
-                <div>
+                      <div>
                         <Label className="text-sm font-medium text-gray-700">Thời gian dự kiến</Label>
                         <p className="mt-2 text-sm font-semibold text-gray-900">
                           {detailRequirement.estimatedDate} ngày
                         </p>
-                </div>
-              )}
+                      </div>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -1219,20 +1241,20 @@ export default function CropsPage() {
                       <p className="mt-1 text-2xl font-semibold text-gray-900">
                         {formatNumber(detailRequirement.moisture, '%')}
                       </p>
-                  </div>
+                    </div>
                     <div className="p-4 bg-gray-50 rounded-lg">
                       <Label className="text-xs text-gray-500">Nhiệt độ</Label>
                       <p className="mt-1 text-2xl font-semibold text-gray-900">
                         {formatNumber(detailRequirement.temperature, '°C')}
                       </p>
-                </div>
+                    </div>
                     <div className="p-4 bg-gray-50 rounded-lg">
                       <Label className="text-xs text-gray-500">Ánh sáng</Label>
                       <p className="mt-1 text-2xl font-semibold text-gray-900">
                         {formatNumber(detailRequirement.lightRequirement, 'lux')}
                       </p>
+                    </div>
                   </div>
-                </div>
                 </CardContent>
               </Card>
 
@@ -1244,10 +1266,10 @@ export default function CropsPage() {
                 <CardContent>
                   <div className="grid md:grid-cols-2 gap-4">
                     {detailRequirement.wateringFrequency && (
-                <div>
+                      <div>
                         <Label className="text-sm font-medium text-gray-700">Tần suất tưới</Label>
                         <p className="mt-1 text-sm text-gray-800">{detailRequirement.wateringFrequency} lần/ngày</p>
-                </div>
+                      </div>
                     )}
                     {detailRequirement.fertilizer && (
                       <div>

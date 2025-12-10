@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/shared/ui/card'
 import { Badge } from '@/shared/ui/badge'
 import { Input } from '@/shared/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
-import { StaffDataTable, type StaffDataTableColumn } from '@/shared/ui/staff-data-table'
+import { Pagination } from '@/shared/ui/pagination'
 import { formatDate } from '@/shared/lib/date-utils'
 import {
     DropdownMenu,
@@ -47,9 +47,9 @@ const getStatusLabel = (status: ScheduleListItem['status']) => {
 
 const getStatusVariant = (status: ScheduleListItem['status']): 'default' | 'secondary' | 'destructive' => {
     if (typeof status === 'string') {
-        return status === 'ACTIVE' ? 'default' : 'secondary'
+        return status === 'ACTIVE' ? 'default' : 'destructive'
     }
-    return status === 1 ? 'default' : 'secondary'
+    return status === 1 ? 'default' : 'destructive'
 }
 
 const getDiseaseStatusLabel = (diseaseStatus?: string | number) => {
@@ -77,6 +77,8 @@ const getPlantStageLabel = (stage?: string) => {
     return labels[stage] || stage
 }
 
+type SortOption = 'newest' | 'cropName' | 'farmName' | 'status' | 'date'
+
 const StaffSchedulesPage: React.FC = () => {
     const { toast } = useToast()
     const [schedules, setSchedules] = useState<DisplaySchedule[]>([])
@@ -84,6 +86,9 @@ const StaffSchedulesPage: React.FC = () => {
     const [isRefreshing, setIsRefreshing] = useState(false)
     const [statusFilter, setStatusFilter] = useState<string>('all')
     const [searchQuery, setSearchQuery] = useState('')
+    const [sortBy, setSortBy] = useState<SortOption>('newest')
+    const [pageIndex, setPageIndex] = useState(1)
+    const [pageSize] = useState(10)
 
     const [isScheduleDetailOpen, setIsScheduleDetailOpen] = useState(false)
     const [selectedScheduleDetail, setSelectedScheduleDetail] = useState<DisplaySchedule | null>(null)
@@ -132,6 +137,10 @@ const StaffSchedulesPage: React.FC = () => {
     useEffect(() => {
         fetchSchedules()
     }, [fetchSchedules])
+
+    useEffect(() => {
+        setPageIndex(1)
+    }, [searchQuery, statusFilter, sortBy])
 
     const handleRefresh = async () => {
         setIsRefreshing(true)
@@ -186,6 +195,57 @@ const StaffSchedulesPage: React.FC = () => {
         })
     }, [schedules, searchQuery, statusFilter])
 
+    // Client-side sorting
+    const sortedSchedules = useMemo(() => {
+        const sorted = [...filteredSchedules]
+
+        switch (sortBy) {
+            case 'newest':
+                return sorted.sort((a, b) => (b.scheduleId || 0) - (a.scheduleId || 0))
+            case 'cropName':
+                return sorted.sort((a, b) => {
+                    const aName = a.cropView?.cropName || ''
+                    const bName = b.cropView?.cropName || ''
+                    return aName.localeCompare(bName)
+                })
+            case 'farmName':
+                return sorted.sort((a, b) => {
+                    const aName = a.farmView?.farmName || ''
+                    const bName = b.farmView?.farmName || ''
+                    return aName.localeCompare(bName)
+                })
+            case 'status':
+                return sorted.sort((a, b) => {
+                    const aActive = typeof a.status === 'string' ? a.status === 'ACTIVE' : a.status === 1
+                    const bActive = typeof b.status === 'string' ? b.status === 'ACTIVE' : b.status === 1
+                    if (aActive !== bActive) return aActive ? -1 : 1
+                    return (a.cropView?.cropName || '').localeCompare(b.cropView?.cropName || '')
+                })
+            case 'date':
+                return sorted.sort((a, b) => {
+                    const aDate = new Date(a.startDate).getTime()
+                    const bDate = new Date(b.startDate).getTime()
+                    return bDate - aDate
+                })
+            default:
+                return sorted
+        }
+    }, [filteredSchedules, sortBy])
+
+    // Pagination
+    const totalPages = useMemo(() => {
+        return Math.max(1, Math.ceil(sortedSchedules.length / pageSize))
+    }, [sortedSchedules.length, pageSize])
+
+    const paginatedSchedules = useMemo(() => {
+        const start = (pageIndex - 1) * pageSize
+        return sortedSchedules.slice(start, start + pageSize)
+    }, [sortedSchedules, pageIndex, pageSize])
+
+    const handlePageChange = (page: number) => {
+        setPageIndex(page)
+    }
+
     const scheduleStats = useMemo(
         () => ({
             total: schedules.length,
@@ -233,128 +293,6 @@ const StaffSchedulesPage: React.FC = () => {
         if (!selectedScheduleDetail?.cropRequirement) return []
         return selectedScheduleDetail.cropRequirement
     }, [selectedScheduleDetail?.cropRequirement])
-
-    // Memoize getRowKey function
-    const getRowKey = useCallback((schedule: DisplaySchedule) => schedule.id, [])
-
-    // Memoize columns to prevent StaffDataTable from re-rendering on every render
-    const tableColumns = useMemo<StaffDataTableColumn<DisplaySchedule>[]>(
-        () => [
-            {
-                id: 'farm',
-                header: 'Nông trại',
-                render: schedule => (
-                    <div>
-                        <div className="font-medium">
-                            {schedule.farmView?.farmName || `Nông trại #${schedule.farmId || 'N/A'}`}
-                        </div>
-                        {schedule.farmView?.location && (
-                            <div className="text-sm text-gray-500">
-                                {schedule.farmView.location}
-                            </div>
-                        )}
-                    </div>
-                ),
-            },
-            {
-                id: 'crop',
-                header: 'Cây trồng',
-                render: schedule => (
-                    <div>
-                        <div className="font-medium">
-                            {schedule.cropView?.cropName || `Cây trồng #${schedule.cropId || 'N/A'}`}
-                        </div>
-                        {schedule.cropView?.description && (
-                            <div className="text-sm text-gray-500 line-clamp-1" title={schedule.cropView.description}>
-                                {schedule.cropView.description}
-                            </div>
-                        )}
-                    </div>
-                ),
-            },
-            {
-                id: 'dates',
-                header: 'Thời gian',
-                render: schedule => (
-                    <div className="text-sm">
-                        <div className="font-medium">Bắt đầu: {formatDateOnly(schedule.startDate)}</div>
-                        <div className="text-gray-500">Kết thúc: {formatDateOnly(schedule.endDate)}</div>
-                    </div>
-                ),
-            },
-            {
-                id: 'quantity',
-                header: 'Số lượng',
-                render: schedule => (
-                    <div className="font-medium">{schedule.quantity || 0}</div>
-                ),
-            },
-            {
-                id: 'plantStage',
-                header: 'Giai đoạn',
-                render: schedule => (
-                    <div className="text-sm">
-                        <Badge variant="outline">
-                            {getPlantStageLabel(schedule.currentPlantStage)}
-                        </Badge>
-                    </div>
-                ),
-            },
-            {
-                id: 'status',
-                header: 'Trạng thái',
-                render: schedule => (
-                    <Badge variant={getStatusVariant(schedule.status)}>
-                        {getStatusLabel(schedule.status)}
-                    </Badge>
-                ),
-            },
-            {
-                id: 'actions',
-                header: '',
-                cellClassName: 'text-right',
-                render: schedule => (
-                    <DropdownMenu
-                        modal={false}
-                        onOpenChange={open => {
-                            if (!open) {
-                                setTimeout(() => {
-                                }, 0)
-                            }
-                        }}
-                    >
-                        <DropdownMenuTrigger asChild>
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-8 w-8 p-0"
-                                onClick={e => e.stopPropagation()}
-                            >
-                                <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-48" sideOffset={5}>
-                            {schedule.scheduleId && (
-                                <DropdownMenuItem
-                                    onClick={e => {
-                                        e.preventDefault()
-                                        e.stopPropagation()
-                                        setTimeout(() => {
-                                            handleViewDetail(schedule)
-                                        }, 0)
-                                    }}
-                                    className="cursor-pointer focus:bg-gray-100"
-                                >
-                                    Xem chi tiết
-                                </DropdownMenuItem>
-                            )}
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                ),
-            },
-        ],
-        [formatDateOnly, handleViewDetail]
-    )
 
     return (
         <StaffLayout>
@@ -428,22 +366,20 @@ const StaffSchedulesPage: React.FC = () => {
                 {/* Filter Bar */}
                 <StaffFilterBar>
                     <div className="flex-1">
-                        <div className="flex gap-2">
-                            <div className="relative flex-1">
-                                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                                <Input
-                                    placeholder="Tìm kiếm theo tên nông trại, cây trồng hoặc mã lịch..."
-                                    value={searchQuery}
-                                    onChange={e => setSearchQuery(e.target.value)}
-                                    className="pl-10"
-                                />
-                            </div>
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <Input
+                                placeholder="Tìm kiếm theo tên nông trại, cây trồng hoặc mã lịch..."
+                                value={searchQuery}
+                                onChange={e => setSearchQuery(e.target.value)}
+                                className="pl-9"
+                            />
                         </div>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="w-full sm:w-48">
                         <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
-                            <SelectTrigger className="w-40">
-                                <SelectValue placeholder="Trạng thái" />
+                            <SelectTrigger>
+                                <SelectValue placeholder="Tất cả trạng thái" />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="all">Tất cả</SelectItem>
@@ -452,33 +388,144 @@ const StaffSchedulesPage: React.FC = () => {
                             </SelectContent>
                         </Select>
                     </div>
+                    <div className="w-full sm:w-48">
+                        <Select value={sortBy} onValueChange={value => setSortBy(value as SortOption)}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Sắp xếp" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="newest">Mới nhất</SelectItem>
+                                <SelectItem value="cropName">Tên cây trồng</SelectItem>
+                                <SelectItem value="farmName">Tên nông trại</SelectItem>
+                                <SelectItem value="status">Trạng thái</SelectItem>
+                                <SelectItem value="date">Ngày bắt đầu</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
                 </StaffFilterBar>
 
-                {/* Data Table */}
-                <Card>
-                    <CardContent className="p-0">
-                        {loading ? (
-                            <div className="flex items-center justify-center py-10">
-                                <RefreshCw className="h-6 w-6 animate-spin text-green-600" />
+                {/* Card-based Layout */}
+                {loading ? (
+                    <Card>
+                        <CardContent className="p-12">
+                            <div className="flex items-center justify-center">
+                                <RefreshCw className="h-8 w-8 animate-spin text-green-600" />
                                 <span className="ml-2 text-gray-600">Đang tải dữ liệu...</span>
                             </div>
-                        ) : (
-                            <>
-                                <StaffDataTable<DisplaySchedule>
-                                    className="px-4 sm:px-6 pb-6"
-                                    data={filteredSchedules}
-                                    getRowKey={getRowKey}
-                                    currentPage={1}
-                                    pageSize={filteredSchedules.length || 10}
-                                    totalPages={1}
-                                    emptyTitle="Không tìm thấy lịch làm việc nào"
-                                    emptyDescription="Không có lịch làm việc nào phù hợp với điều kiện lọc hiện tại."
-                                    columns={tableColumns}
+                        </CardContent>
+                    </Card>
+                ) : paginatedSchedules.length === 0 ? (
+                    <Card>
+                        <CardContent className="p-12 text-center">
+                            <p className="text-lg font-semibold text-gray-900">
+                                {(() => {
+                                    if (searchQuery) return 'Không tìm thấy lịch làm việc nào'
+                                    if (statusFilter === 'ACTIVE') return 'Chưa có lịch làm việc đang hoạt động'
+                                    if (statusFilter === 'DEACTIVATED') return 'Chưa có lịch làm việc vô hiệu hóa'
+                                    return 'Chưa có lịch làm việc'
+                                })()}
+                            </p>
+                            <p className="text-sm text-gray-600 mt-2">
+                                {(() => {
+                                    if (searchQuery) return 'Không có lịch làm việc nào phù hợp với điều kiện tìm kiếm.'
+                                    if (statusFilter === 'ACTIVE') return 'Hãy chờ quản lý giao lịch làm việc mới.'
+                                    if (statusFilter === 'DEACTIVATED') return 'Không có lịch làm việc nào đã bị vô hiệu hóa.'
+                                    return 'Bạn chưa có lịch làm việc nào được giao.'
+                                })()}
+                            </p>
+                        </CardContent>
+                    </Card>
+                ) : (
+                    <>
+                        <div className="grid gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                            {paginatedSchedules.map((schedule) => {
+                                return (
+                                    <Card
+                                        key={schedule.id}
+                                        className="hover:shadow-md transition-all cursor-pointer"
+                                        onClick={() => handleViewDetail(schedule)}
+                                    >
+                                        <CardContent className="p-4">
+                                            <div className="flex items-start justify-between">
+                                                <div className="flex-1 min-w-0">
+                                                    <h3 className="text-base font-semibold text-gray-900 truncate mb-2">
+                                                        {schedule.cropView?.cropName || `Cây trồng #${schedule.cropId || 'N/A'}`}
+                                                    </h3>
+                                                    <div className="flex items-center gap-2 flex-wrap mb-2">
+                                                        {schedule.currentPlantStage && (
+                                                            <Badge variant="outline" className="h-6 items-center whitespace-nowrap text-xs">
+                                                                {getPlantStageLabel(schedule.currentPlantStage)}
+                                                            </Badge>
+                                                        )}
+                                                        <Badge
+                                                            variant={getStatusVariant(schedule.status)}
+                                                            className="h-6 items-center whitespace-nowrap text-xs"
+                                                        >
+                                                            {getStatusLabel(schedule.status)}
+                                                        </Badge>
+                                                    </div>
+                                                    {schedule.farmView?.farmName && (
+                                                        <p className="text-xs text-gray-500 mb-1">
+                                                            Nông trại: {schedule.farmView.farmName}
+                                                        </p>
+                                                    )}
+                                                    <p className="text-xs text-gray-600 mb-1">
+                                                        Thời gian: {formatDateOnly(schedule.startDate)} - {formatDateOnly(schedule.endDate)}
+                                                    </p>
+                                                    {schedule.quantity && (
+                                                        <p className="text-xs text-gray-500">
+                                                            Số lượng cây trồng: {schedule.quantity}
+                                                        </p>
+                                                    )}
+                                                </div>
+                                                <div onClick={(e) => e.stopPropagation()}>
+                                                    <DropdownMenu modal={false}>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                className="h-8 w-8 p-0"
+                                                            >
+                                                                <MoreHorizontal className="h-4 w-4" />
+                                                            </Button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end" className="w-48" sideOffset={5}>
+                                                            {schedule.scheduleId && (
+                                                                <DropdownMenuItem
+                                                                    onClick={(e) => {
+                                                                        e.preventDefault()
+                                                                        e.stopPropagation()
+                                                                        setTimeout(() => {
+                                                                            handleViewDetail(schedule)
+                                                                        }, 0)
+                                                                    }}
+                                                                    className="cursor-pointer focus:bg-gray-100"
+                                                                >
+                                                                    Xem chi tiết
+                                                                </DropdownMenuItem>
+                                                            )}
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                </div>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                )
+                            })}
+                        </div>
+
+                        {/* Pagination Controls */}
+                        {totalPages > 1 && (
+                            <div className="mt-6">
+                                <Pagination
+                                    currentPage={pageIndex}
+                                    totalPages={totalPages}
+                                    onPageChange={handlePageChange}
                                 />
-                            </>
+                            </div>
                         )}
-                    </CardContent>
-                </Card>
+                    </>
+                )}
 
                 {/* Schedule Detail Dialog */}
                 <Dialog open={isScheduleDetailOpen} onOpenChange={handleModalOpenChange}>
@@ -646,7 +693,7 @@ const StaffSchedulesPage: React.FC = () => {
                                                             </div>
                                                             <div>
                                                                 <span className="font-medium">Độ ẩm:</span>
-                                                                <span className="ml-2">{req.moisture || 'N/A'}</span>
+                                                                <span className="ml-2">{req.moisture ? `${req.moisture}%` : 'N/A'}</span>
                                                             </div>
                                                             <div>
                                                                 <span className="font-medium">Nhiệt độ:</span>
@@ -662,7 +709,7 @@ const StaffSchedulesPage: React.FC = () => {
                                                             </div>
                                                             <div>
                                                                 <span className="font-medium">Tần suất tưới:</span>
-                                                                <span className="ml-2">{req.wateringFrequency || 'N/A'}</span>
+                                                                <span className="ml-2">{req.wateringFrequency ? `${req.wateringFrequency} lần/ngày` : 'N/A'}</span>
                                                             </div>
                                                             {req.notes && (
                                                                 <div className="md:col-span-2">

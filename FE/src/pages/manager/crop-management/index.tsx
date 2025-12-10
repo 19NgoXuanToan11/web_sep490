@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import { ManagerLayout } from '@/shared/layouts/ManagerLayout'
-import { ManagementPageHeader, StaffFilterBar, StaffDataTable, type StaffDataTableColumn } from '@/shared/ui'
+import { ManagementPageHeader, StaffFilterBar } from '@/shared/ui'
 import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
 import { Label } from '@/shared/ui/label'
 import { Card, CardContent } from '@/shared/ui/card'
 import { Badge } from '@/shared/ui/badge'
+import { cn } from '@/shared/lib/utils'
 import {
   Dialog,
   DialogContent,
@@ -21,12 +22,14 @@ import {
 } from '@/shared/ui/dropdown-menu'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { Textarea } from '@/shared/ui/textarea'
+import { Pagination } from '@/shared/ui/pagination'
 import {
   Search,
   Upload,
   Loader2,
   X,
   MoreHorizontal,
+  RefreshCw,
 } from 'lucide-react'
 import { useToast } from '@/shared/ui/use-toast'
 import {
@@ -34,9 +37,6 @@ import {
   type Crop,
   type CropRequest,
   type CreateCropWithProductRequest,
-  type PaginatedCrops,
-  type CropResponse,
-  type CropRequirement,
 } from '@/shared/api/cropService'
 import { categoryService, type Category } from '@/shared/api/categoryService'
 import { uploadImageToCloudinary, CloudinaryUploadError } from '@/shared/lib/cloudinary'
@@ -70,17 +70,6 @@ const isActiveStatus = (status: string | undefined | null): boolean => {
   return normalized === 'ACTIVE'
 }
 
-// Helper function to translate plant stage to Vietnamese
-const translatePlantStage = (stage: string | null | undefined): string => {
-  if (!stage) return ''
-  const stageMap: Record<string, string> = {
-    'Germination': 'Nảy mầm',
-    'Seedling': 'Cây con',
-    'Vegetative': 'Sinh trưởng',
-    'Harvest': 'Thu hoạch',
-  }
-  return stageMap[stage] || stage
-}
 
 // Component riêng cho Action Menu để tránh re-render issues
 interface CropActionMenuProps {
@@ -168,15 +157,18 @@ const CropActionMenu: React.FC<CropActionMenuProps> = React.memo(({ crop, onView
 
 CropActionMenu.displayName = 'CropActionMenu'
 
+type SortOption = 'newest' | 'cropName' | 'status'
+
 export default function CropManagementPage() {
-  const [crops, setCrops] = useState<Crop[]>([])
+  const [allCrops, setAllCrops] = useState<Crop[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all')
-  const [currentPage, setCurrentPage] = useState(1)
-  const [totalItems, setTotalItems] = useState(0)
+  const [sortBy, setSortBy] = useState<SortOption>('newest')
+  const [pageIndex, setPageIndex] = useState(1)
   const [pageSize] = useState(10)
-  const [isSearchMode, setIsSearchMode] = useState(false)
+  const [newlyCreatedIds, setNewlyCreatedIds] = useState<Set<number>>(new Set())
+  const previousMaxIdRef = useRef<number>(0)
 
   const [formDialogOpen, setFormDialogOpen] = useState(false)
   const [formMode, setFormMode] = useState<'create' | 'edit'>('create')
@@ -211,41 +203,31 @@ export default function CropManagementPage() {
     }
   }
 
-  const loadCrops = async (page: number = 1, useSearch: boolean = false) => {
+  const loadCrops = async () => {
     try {
       setLoading(true)
-      let response: PaginatedCrops | CropResponse
+      // Load all crops for client-side filtering/sorting
+      const response = await cropService.getAllCrops(1, 1000)
+      const loadedCrops = response.items || []
 
-      if (useSearch && (searchTerm || statusFilter !== 'all')) {
-        const status = statusFilter === 'all' ? undefined : statusFilter === 'active' ? 'ACTIVE' : 'INACTIVE'
-        const searchResponse = await cropService.searchCrop(searchTerm || undefined, status, page, pageSize)
-
-        // Handle search response structure
-        if (searchResponse.data && Array.isArray(searchResponse.data.items)) {
-          setCrops(searchResponse.data.items)
-          setTotalItems(searchResponse.data.totalItemCount || 0)
-        } else if (Array.isArray(searchResponse.data)) {
-          setCrops(searchResponse.data)
-          setTotalItems(searchResponse.data.length)
-        } else {
-          setCrops([])
-          setTotalItems(0)
-        }
-        setIsSearchMode(true)
-      } else {
-        response = await cropService.getAllCrops(page, pageSize)
-        setCrops(response.items || [])
-        setTotalItems(response.totalItemCount || 0)
-        setIsSearchMode(false)
+      // Track newly created crops
+      const currentMaxId = Math.max(...loadedCrops.map(c => c.cropId), 0)
+      if (currentMaxId > previousMaxIdRef.current && previousMaxIdRef.current > 0) {
+        setNewlyCreatedIds(new Set([currentMaxId]))
+        setTimeout(() => {
+          window.scrollTo({ top: 0, behavior: 'smooth' })
+        }, 100)
       }
+      previousMaxIdRef.current = currentMaxId
+
+      setAllCrops(loadedCrops)
     } catch (error: any) {
       toast({
         title: 'Lỗi',
         description: error?.response?.data?.message || 'Không thể tải danh sách cây trồng',
         variant: 'destructive',
       })
-      setCrops([])
-      setTotalItems(0)
+      setAllCrops([])
     } finally {
       setLoading(false)
     }
@@ -347,7 +329,7 @@ export default function CropManagementPage() {
         toast({ title: 'Thành công', description: 'Đã tạo cây trồng mới' })
         setFormDialogOpen(false)
         handleResetForm()
-        loadCrops(currentPage, isSearchMode)
+        await loadCrops()
       } else if (selectedCrop) {
         const payload: CropRequest = {
           cropName: formData.cropName,
@@ -360,7 +342,7 @@ export default function CropManagementPage() {
         toast({ title: 'Thành công', description: 'Đã cập nhật cây trồng' })
         setFormDialogOpen(false)
         handleResetForm()
-        loadCrops(currentPage, isSearchMode)
+        await loadCrops()
       }
     } catch (error: any) {
       toast({
@@ -374,16 +356,16 @@ export default function CropManagementPage() {
   }
 
 
-  const handleSearch = () => {
-    setCurrentPage(1)
-    loadCrops(1, true)
-  }
-
   const handleRefresh = async () => {
     setSearchTerm('')
     setStatusFilter('all')
-    setCurrentPage(1)
-    await loadCrops(1, false)
+    setSortBy('newest')
+    setPageIndex(1)
+    await loadCrops()
+  }
+
+  const handlePageChange = (page: number) => {
+    setPageIndex(page)
   }
 
   const openDetailsDialog = useCallback((crop: Crop) => {
@@ -415,7 +397,7 @@ export default function CropManagementPage() {
       })
 
       // Reload crops to reflect the status change
-      await loadCrops(currentPage, isSearchMode)
+      await loadCrops()
     } catch (error: any) {
       toast({
         title: 'Lỗi',
@@ -423,7 +405,7 @@ export default function CropManagementPage() {
         variant: 'destructive',
       })
     }
-  }, [currentPage, isSearchMode, toast])
+  }, [toast])
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -527,30 +509,84 @@ export default function CropManagementPage() {
     }
   }
 
+  // Client-side filtering
+  const filteredCrops = useMemo(() => {
+    return allCrops.filter(crop => {
+      const matchesSearch = !searchTerm ||
+        crop.cropName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (crop.description?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false) ||
+        (crop.origin?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
+
+      const matchesStatus = statusFilter === 'all' ||
+        (statusFilter === 'active' && isActiveStatus(crop.status)) ||
+        (statusFilter === 'inactive' && !isActiveStatus(crop.status))
+
+      return matchesSearch && matchesStatus
+    })
+  }, [allCrops, searchTerm, statusFilter])
+
+  // Client-side sorting
+  const sortedCrops = useMemo(() => {
+    const sorted = [...filteredCrops]
+
+    switch (sortBy) {
+      case 'newest':
+        // Sort by cropId descending (assuming higher ID = newer)
+        return sorted.sort((a, b) => b.cropId - a.cropId)
+      case 'cropName':
+        return sorted.sort((a, b) => a.cropName.localeCompare(b.cropName))
+      case 'status':
+        return sorted.sort((a, b) => {
+          const aActive = isActiveStatus(a.status)
+          const bActive = isActiveStatus(b.status)
+          if (aActive !== bActive) return aActive ? -1 : 1
+          return a.cropName.localeCompare(b.cropName)
+        })
+      default:
+        return sorted
+    }
+  }, [filteredCrops, sortBy])
+
+  // Pagination
+  const totalPages = useMemo(() => {
+    return Math.max(1, Math.ceil(sortedCrops.length / pageSize))
+  }, [sortedCrops.length, pageSize])
+
+  const paginatedCrops = useMemo(() => {
+    const start = (pageIndex - 1) * pageSize
+    return sortedCrops.slice(start, start + pageSize)
+  }, [sortedCrops, pageIndex, pageSize])
+
   const stats = useMemo(() => {
-    const total = totalItems
-    const active = crops.filter(crop => isActiveStatus(crop.status)).length
-    const inactive = crops.filter(crop => !isActiveStatus(crop.status)).length
+    const total = allCrops.length
+    const active = allCrops.filter(crop => isActiveStatus(crop.status)).length
+    const inactive = allCrops.filter(crop => !isActiveStatus(crop.status)).length
 
     return {
       total,
       active,
       inactive,
     }
-  }, [crops, totalItems])
-
-  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize))
+  }, [allCrops])
 
   useEffect(() => {
-    loadCrops(1, false)
+    loadCrops()
     loadCategories()
   }, [])
 
   useEffect(() => {
-    if (!isSearchMode) {
-      loadCrops(currentPage, false)
+    setPageIndex(1)
+  }, [searchTerm, statusFilter, sortBy])
+
+  // Auto-remove highlight after 5 seconds
+  useEffect(() => {
+    if (newlyCreatedIds.size > 0) {
+      const timer = setTimeout(() => {
+        setNewlyCreatedIds(new Set())
+      }, 5000)
+      return () => clearTimeout(timer)
     }
-  }, [currentPage])
+  }, [newlyCreatedIds])
 
   return (
     <ManagerLayout>
@@ -613,20 +649,14 @@ export default function CropManagementPage() {
                 placeholder="Nhập tên cây trồng..."
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
-                onKeyDown={e => {
-                  if (e.key === 'Enter') {
-                    handleSearch()
-                  }
-                }}
                 className="pl-9"
               />
             </div>
           </div>
-
-          <div className="flex gap-2">
+          <div className="w-full sm:w-48">
             <Select value={statusFilter} onValueChange={value => setStatusFilter(value as typeof statusFilter)}>
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Trạng thái" />
+              <SelectTrigger>
+                <SelectValue placeholder="Tất cả trạng thái" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Tất cả</SelectItem>
@@ -634,178 +664,118 @@ export default function CropManagementPage() {
                 <SelectItem value="inactive">Tạm dừng</SelectItem>
               </SelectContent>
             </Select>
-
-            <Button onClick={openCreateDialog} className="bg-green-600 hover:bg-green-700" size="sm">
+          </div>
+          <div className="w-full sm:w-48">
+            <Select value={sortBy} onValueChange={value => setSortBy(value as SortOption)}>
+              <SelectTrigger>
+                <SelectValue placeholder="Sắp xếp" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="newest">Mới nhất</SelectItem>
+                <SelectItem value="cropName">Tên cây trồng</SelectItem>
+                <SelectItem value="status">Trạng thái</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="w-full sm:w-auto flex justify-end">
+            <Button onClick={openCreateDialog} className="w-full sm:w-auto bg-green-600 hover:bg-green-700" size="sm">
               Tạo
             </Button>
           </div>
         </StaffFilterBar>
 
-        <Card>
-          <CardContent className="p-0">
-            {loading ? (
-              <div className="flex items-center justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-green-600" />
+        {/* Card-based Layout */}
+        {loading ? (
+          <Card>
+            <CardContent className="p-12">
+              <div className="flex items-center justify-center">
+                <RefreshCw className="h-8 w-8 animate-spin text-green-600" />
                 <span className="ml-2 text-gray-600">Đang tải dữ liệu...</span>
               </div>
-            ) : (
-              <StaffDataTable<Crop>
-                className="px-4 sm:px-6 pb-6"
-                data={crops}
-                getRowKey={(crop) => crop.cropId}
-                currentPage={currentPage}
-                pageSize={pageSize}
-                totalPages={totalPages}
-                onPageChange={(newPage) => {
-                  setCurrentPage(newPage)
-                  if (isSearchMode) {
-                    loadCrops(newPage, true)
-                  }
-                }}
-                emptyTitle="Không tìm thấy cây trồng nào"
-                emptyDescription={
-                  searchTerm || statusFilter !== 'all'
-                    ? 'Không có cây trồng nào phù hợp với điều kiện lọc hiện tại.'
-                    : 'Hãy tạo cây trồng đầu tiên.'
-                }
-                canExpand={(crop) => {
-                  return !!(crop.cropRequirement && crop.cropRequirement.length > 0)
-                }}
-                renderExpandedContent={(crop) => {
-                  if (!crop.cropRequirement || crop.cropRequirement.length === 0) {
-                    return null
-                  }
-
-                  return (
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-2 mb-3">
-                        <h4 className="text-lg font-semibold text-gray-900">
-                          Yêu cầu cây trồng ({crop.cropRequirement.length})
-                        </h4>
+            </CardContent>
+          </Card>
+        ) : paginatedCrops.length === 0 ? (
+          <Card>
+            <CardContent className="p-12 text-center">
+              <p className="text-lg font-semibold text-gray-900">
+                {(() => {
+                  if (searchTerm) return 'Không tìm thấy cây trồng nào'
+                  if (statusFilter === 'active') return 'Chưa có cây trồng đang hoạt động'
+                  if (statusFilter === 'inactive') return 'Chưa có cây trồng tạm dừng'
+                  return 'Chưa có cây trồng'
+                })()}
+              </p>
+              <p className="text-sm text-gray-600 mt-2">
+                {(() => {
+                  if (searchTerm) return 'Không có cây trồng nào phù hợp với điều kiện tìm kiếm.'
+                  if (statusFilter === 'active') return 'Hãy tạo cây trồng mới hoặc kích hoạt các cây trồng đã tạm dừng.'
+                  if (statusFilter === 'inactive') return 'Hãy tạm dừng một số cây trồng để thấy chúng ở đây.'
+                  return 'Hãy tạo cây trồng đầu tiên.'
+                })()}
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          <>
+            <div className="grid gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+              {paginatedCrops.map((crop) => {
+                const isNewlyCreated = newlyCreatedIds.has(crop.cropId)
+                return (
+                  <Card
+                    key={crop.cropId}
+                    className={cn(
+                      "hover:shadow-md transition-all cursor-pointer",
+                      isNewlyCreated && "ring-2 ring-green-500 bg-green-50/50 shadow-lg"
+                    )}
+                    onClick={() => openDetailsDialog(crop)}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-base font-semibold text-gray-900 truncate mb-2">
+                            {crop.cropName}
+                          </h3>
+                          <div className="flex items-center gap-2 flex-wrap mb-2">
+                            <Badge
+                              variant={isActiveStatus(crop.status) ? 'success' : 'destructive'}
+                              className="h-6 items-center whitespace-nowrap text-xs"
+                            >
+                              {isActiveStatus(crop.status) ? 'Hoạt động' : 'Tạm dừng'}
+                            </Badge>
+                            {isNewlyCreated && (
+                              <Badge className="h-6 items-center whitespace-nowrap text-xs bg-green-500 text-white">
+                                Mới
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                        <div onClick={(e) => e.stopPropagation()}>
+                          <CropActionMenu
+                            crop={crop}
+                            onViewDetails={openDetailsDialog}
+                            onEdit={openEditDialog}
+                            onChangeStatus={handleChangeStatus}
+                          />
+                        </div>
                       </div>
-                      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                        {crop.cropRequirement.map((requirement: CropRequirement) => (
-                          <Card key={requirement.cropRequirementId} className="border-l-4 border-l-green-500">
-                            <CardContent className="p-4">
-                              <div className="space-y-3">
-                                <div className="flex items-center justify-between">
-                                  <Badge variant="outline" className="font-semibold">
-                                    {translatePlantStage(requirement.plantStage)}
-                                  </Badge>
-                                  {requirement.estimatedDate && (
-                                    <div className="flex items-center gap-1 text-sm text-gray-600">
-                                      <span>Ước tính: {requirement.estimatedDate} ngày</span>
-                                    </div>
-                                  )}
-                                </div>
+                    </CardContent>
+                  </Card>
+                )
+              })}
+            </div>
 
-                                <div className="grid grid-cols-2 gap-2 text-sm">
-                                  {requirement.temperature !== undefined && requirement.temperature !== null && (
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-gray-600">Nhiệt độ:</span>
-                                      <span className="font-medium">{requirement.temperature}°C</span>
-                                    </div>
-                                  )}
-
-                                  {requirement.moisture !== undefined && requirement.moisture !== null && (
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-gray-600">Độ ẩm:</span>
-                                      <span className="font-medium">{requirement.moisture}</span>
-                                    </div>
-                                  )}
-
-                                  {requirement.lightRequirement !== undefined && requirement.lightRequirement !== null && (
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-gray-600">Ánh sáng:</span>
-                                      <span className="font-medium">{requirement.lightRequirement}</span>
-                                    </div>
-                                  )}
-
-                                  {requirement.wateringFrequency && (
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-gray-600">Tưới nước:</span>
-                                      <span className="font-medium">{requirement.wateringFrequency}</span>
-                                    </div>
-                                  )}
-                                </div>
-
-                                {requirement.fertilizer && (
-                                  <div className="pt-2 border-t">
-                                    <p className="text-sm text-gray-600">
-                                      <span className="font-medium">Phân bón:</span> {requirement.fertilizer}
-                                    </p>
-                                  </div>
-                                )}
-
-                                {requirement.notes && (
-                                  <div className="pt-2 border-t">
-                                    <p className="text-sm text-gray-600 italic">
-                                      <span className="font-medium">Ghi chú:</span> {requirement.notes}
-                                    </p>
-                                  </div>
-                                )}
-                              </div>
-                            </CardContent>
-                          </Card>
-                        ))}
-                      </div>
-                    </div>
-                  )
-                }}
-                columns={[
-                  {
-                    id: 'cropName',
-                    header: 'Cây trồng',
-                    render: (crop) => (
-                      <p className="font-semibold">{crop.cropName}</p>
-                    ),
-                  },
-                  {
-                    id: 'description',
-                    header: 'Mô tả',
-                    render: (crop) => (
-                      <p className="text-sm text-gray-600 line-clamp-2">
-                        {crop.description || '—'}
-                      </p>
-                    ),
-                  },
-                  {
-                    id: 'origin',
-                    header: 'Xuất xứ',
-                    render: (crop) => (
-                      <p className="text-sm text-gray-600">
-                        {crop.origin || '—'}
-                      </p>
-                    ),
-                  },
-                  {
-                    id: 'status',
-                    header: 'Trạng thái',
-                    render: (crop) => (
-                      <Badge
-                        variant={isActiveStatus(crop.status) ? 'success' : 'destructive'}
-                      >
-                        {isActiveStatus(crop.status) ? 'Hoạt động' : 'Tạm dừng'}
-                      </Badge>
-                    ),
-                  },
-                  {
-                    id: 'actions',
-                    header: '',
-                    render: (crop) => (
-                      <CropActionMenu
-                        crop={crop}
-                        onViewDetails={openDetailsDialog}
-                        onEdit={openEditDialog}
-                        onChangeStatus={handleChangeStatus}
-                      />
-                    ),
-                  },
-                ] satisfies StaffDataTableColumn<Crop>[]}
-              />
+            {/* Pagination Controls */}
+            {totalPages > 1 && (
+              <div className="mt-6">
+                <Pagination
+                  currentPage={pageIndex}
+                  totalPages={totalPages}
+                  onPageChange={handlePageChange}
+                />
+              </div>
             )}
-          </CardContent>
-        </Card>
+          </>
+        )}
       </div>
 
       <Dialog

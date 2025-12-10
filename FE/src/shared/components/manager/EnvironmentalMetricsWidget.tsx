@@ -1,8 +1,7 @@
 import React from 'react'
 import { motion } from 'framer-motion'
-import { Thermometer, Droplets, Sun, AlertTriangle, CheckCircle } from 'lucide-react'
+import { Thermometer, AlertTriangle, CheckCircle } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
-import { Badge } from '@/shared/ui/badge'
 import type { CropRequirementView } from '@/shared/api/cropRequirementService'
 
 interface EnvironmentalMetricsWidgetProps {
@@ -113,17 +112,13 @@ export const EnvironmentalMetricsWidget: React.FC<EnvironmentalMetricsWidgetProp
     }, [requirements, sensorData])
 
     const MetricCard = ({
-        icon: Icon,
         title,
         unit,
         stats,
-        color,
     }: {
-        icon: React.ComponentType<{ className?: string }>
         title: string
         unit: string
         stats: MetricStats
-        color: string
     }) => {
         const statusConfig = {
             optimal: {
@@ -157,32 +152,21 @@ export const EnvironmentalMetricsWidget: React.FC<EnvironmentalMetricsWidgetProp
         }
 
         const config = statusConfig[stats.status]
-        const StatusIcon = config.icon
 
         return (
             <motion.div
-                className={`p-4 rounded-lg border-2 ${config.border} ${config.bg} hover:shadow-md transition-all`}
+                className={`p-4 rounded-lg border-2 ${config.border} hover:shadow-md transition-all`}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 whileHover={{ scale: 1.02 }}
             >
                 <div className="flex items-start justify-between mb-3">
                     <div className="flex items-center gap-2">
-                        <div className={`p-2 rounded-lg bg-gradient-to-br ${color} shadow-sm`}>
-                            <Icon className="h-4 w-4 text-white" />
-                        </div>
                         <div>
                             <h4 className="text-sm font-semibold text-gray-700">{title}</h4>
                             <p className="text-xs text-gray-500">{stats.count} lô đang theo dõi</p>
                         </div>
                     </div>
-                    <Badge
-                        variant="outline"
-                        className={`${config.color} ${config.border} border`}
-                    >
-                        <StatusIcon className="h-3 w-3 mr-1" />
-                        {config.label}
-                    </Badge>
                 </div>
 
                 {stats.value !== null ? (
@@ -192,14 +176,6 @@ export const EnvironmentalMetricsWidget: React.FC<EnvironmentalMetricsWidgetProp
                                 {stats.avg?.toFixed(1)}
                             </span>
                             <span className="text-sm text-gray-600">{unit}</span>
-                        </div>
-                        <div className="flex items-center gap-4 text-xs text-gray-600">
-                            <span>
-                                Min: <strong>{stats.min?.toFixed(1)}</strong>
-                            </span>
-                            <span>
-                                Max: <strong>{stats.max?.toFixed(1)}</strong>
-                            </span>
                         </div>
                     </div>
                 ) : (
@@ -221,25 +197,19 @@ export const EnvironmentalMetricsWidget: React.FC<EnvironmentalMetricsWidgetProp
             <CardContent className="p-6">
                 <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
                     <MetricCard
-                        icon={Thermometer}
                         title="Nhiệt độ"
                         unit="°C"
                         stats={metrics.temperature}
-                        color="from-orange-500 to-orange-600"
                     />
                     <MetricCard
-                        icon={Droplets}
                         title="Độ ẩm"
                         unit="%"
                         stats={metrics.moisture}
-                        color="from-blue-500 to-blue-600"
                     />
                     <MetricCard
-                        icon={Sun}
                         title="Ánh sáng"
                         unit="lux"
                         stats={metrics.light}
-                        color="from-yellow-500 to-yellow-600"
                     />
                 </div>
 

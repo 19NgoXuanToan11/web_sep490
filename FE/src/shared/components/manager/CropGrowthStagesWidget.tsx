@@ -89,7 +89,6 @@ export const CropGrowthStagesWidget: React.FC<CropGrowthStagesWidgetProps> = ({
                             >
                                 <div className="flex items-center justify-between mb-1">
                                     <div className="flex items-center gap-2">
-                                        <div className={`w-3 h-3 rounded-full ${stage.config.color}`} />
                                         <span className="text-sm font-medium text-gray-700">
                                             {stage.config.label}
                                         </span>
@@ -133,7 +132,6 @@ export const CropGrowthStagesWidget: React.FC<CropGrowthStagesWidgetProps> = ({
                                         transition={{ delay: 0.3 + index * 0.1 }}
                                     >
                                         <div className="flex items-center gap-2 mb-1">
-                                            <div className={`w-2 h-2 rounded-full ${stage.config.color}`} />
                                             <span className="text-xs font-medium text-gray-700 truncate">
                                                 {stage.config.label}
                                             </span>

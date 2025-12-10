@@ -881,7 +881,6 @@ export default function ManagerDashboard() {
                       <div className="grid grid-cols-2 gap-3 pt-2">
                         <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
                           <div className="flex items-center gap-2 text-sm text-gray-600">
-                            <Thermometer className="h-4 w-4 text-orange-500" />
                             <span>Cảm giác như</span>
                           </div>
                           <span className="font-semibold text-gray-900">
@@ -890,7 +889,6 @@ export default function ManagerDashboard() {
                         </div>
                         <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
                           <div className="flex items-center gap-2 text-sm text-gray-600">
-                            <Minus className="h-4 w-4 text-blue-500" />
                             <span>Min/Max</span>
                           </div>
                           <span className="font-semibold text-gray-900 text-xs">
@@ -903,7 +901,6 @@ export default function ManagerDashboard() {
                       <div className="grid grid-cols-2 gap-3 pt-2">
                         <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
                           <div className="flex items-center gap-2 text-sm text-gray-600">
-                            <Wind className="h-4 w-4 text-blue-500" />
                             <span>Tốc độ gió</span>
                           </div>
                           <span className="font-semibold text-gray-900">
@@ -912,7 +909,6 @@ export default function ManagerDashboard() {
                         </div>
                         <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
                           <div className="flex items-center gap-2 text-sm text-gray-600">
-                            <Gauge className="h-4 w-4 text-purple-500" />
                             <span>Áp suất</span>
                           </div>
                           <span className="font-semibold text-gray-900">
@@ -925,7 +921,6 @@ export default function ManagerDashboard() {
                       <div className="grid grid-cols-2 gap-3 pt-2">
                         <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
                           <div className="flex items-center gap-2 text-sm text-gray-600">
-                            <Droplets className="h-4 w-4 text-cyan-500" />
                             <span>Độ ẩm</span>
                           </div>
                           <span className="font-semibold text-gray-900">
@@ -935,7 +930,6 @@ export default function ManagerDashboard() {
                         {weather.rainVolumeMm && weather.rainVolumeMm > 0 ? (
                           <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
                             <div className="flex items-center gap-2 text-sm text-gray-600">
-                              <CloudRain className="h-4 w-4 text-green-600" />
                               <span>Lượng mưa</span>
                             </div>
                             <span className="font-semibold text-green-600">
@@ -945,7 +939,6 @@ export default function ManagerDashboard() {
                         ) : (
                           <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
                             <div className="flex items-center gap-2 text-sm text-gray-600">
-                              <CloudRain className="h-4 w-4 text-gray-400" />
                               <span>Lượng mưa</span>
                             </div>
                             <span className="font-semibold text-gray-400 text-xs">

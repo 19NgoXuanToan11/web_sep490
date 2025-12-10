@@ -1,16 +1,10 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import {
-  Thermometer,
   ArrowUpRight,
   ArrowDownRight,
-  CloudRain,
   ShoppingCart,
   Star,
-  Wind,
-  Gauge,
-  Droplets,
-  Minus,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
 import { Button } from '@/shared/ui/button'

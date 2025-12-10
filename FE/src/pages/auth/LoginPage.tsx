@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { Button } from '@/shared/ui'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui'
 import { useToast } from '@/shared/ui/use-toast'
-import { Mail, Lock, ArrowRight, Home } from 'lucide-react'
+import { Mail, Lock } from 'lucide-react'
 import { authApi } from '@/shared/api/auth'
 import { useAuthStore } from '@/shared/store/authStore'
 import { handleAuthError } from '@/shared/lib/error-handler'
@@ -83,7 +83,6 @@ export const LoginPage: React.FC = () => {
           className="bg-white/10 backdrop-blur-sm border-white/20 text-white hover:bg-white/20"
           onClick={() => navigate('/')}
         >
-          <Home className="w-4 h-4 mr-2" />
           Về trang chủ
         </Button>
       </motion.div>
@@ -140,7 +139,6 @@ export const LoginPage: React.FC = () => {
                     disabled={isSubmitting}
                   >
                     {isSubmitting ? 'Đang đăng nhập…' : 'Đăng nhập'}
-                    <ArrowRight className="w-4 h-4 ml-2" />
                   </Button>
                 </form>
               </CardContent>

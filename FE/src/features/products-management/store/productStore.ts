@@ -189,32 +189,51 @@ export const useProductStore = create<ProductState>((set, get) => ({
       // Refresh products list to get updated data
       await get().fetchAllProducts()
 
+      const normalizedProduct = {
+        ...updatedProduct,
+        productId: updatedProduct.productId || id,
+        imageUrl: savedImageUrl || updatedProduct.imageUrl,
+        categoryId: updatedProduct.categoryId || productData.categoryId || 0,
+      }
+
       set(state => ({
         products: state.products.map(product => {
           if (product.productId === id) {
-            // Merge updated product, ensuring imageUrl is preserved
+            // Merge updated product, ensuring imageUrl and id are preserved
             return {
-              ...updatedProduct,
-              imageUrl: savedImageUrl || updatedProduct.imageUrl || product.imageUrl,
+              ...product,
+              ...normalizedProduct,
             }
           }
           return product
         }),
+        filteredProducts: state.filteredProducts.map(product =>
+          product.productId === id
+            ? {
+                ...product,
+                ...normalizedProduct,
+              }
+            : product
+        ),
+        allProducts: state.allProducts.map(product =>
+          product.productId === id
+            ? {
+                ...product,
+                ...normalizedProduct,
+              }
+            : product
+        ),
         selectedProduct:
           state.selectedProduct?.productId === id
             ? {
-                ...updatedProduct,
-                imageUrl:
-                  savedImageUrl || updatedProduct.imageUrl || state.selectedProduct.imageUrl,
+                ...state.selectedProduct,
+                ...normalizedProduct,
               }
             : state.selectedProduct,
         isUpdating: false,
       }))
 
-      return {
-        ...updatedProduct,
-        imageUrl: savedImageUrl || updatedProduct.imageUrl,
-      }
+      return normalizedProduct
     } catch (error) {
       set({ isUpdating: false })
       throw error

@@ -16,7 +16,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/shared/ui/use-toast'
 import { Loader2, Upload, X } from 'lucide-react'
 import { useProductStore } from '../store/productStore'
-import type { Product } from '@/shared/api/productService'
+import type { Product, UpdateProductRequest } from '@/shared/api/productService'
 import { uploadImageToCloudinary, CloudinaryUploadError } from '@/shared/lib/cloudinary'
 
 const updateProductInfoSchema = z.object({
@@ -69,7 +69,12 @@ export function UpdateProductInfoModal({ isOpen, onClose, product: initialProduc
 
   // Update currentProduct when initialProduct changes
   React.useEffect(() => {
-    setCurrentProduct(initialProduct)
+    setCurrentProduct(prev => ({
+      ...prev,
+      ...initialProduct,
+      // Defensive: BE detail response may omit productId, so keep the incoming one
+      productId: initialProduct.productId ?? prev?.productId ?? 0,
+    }))
   }, [initialProduct])
 
   React.useEffect(() => {
@@ -165,16 +170,22 @@ export function UpdateProductInfoModal({ isOpen, onClose, product: initialProduc
         return
       }
 
-      const updatedProduct = await updateProduct(currentProduct.productId, {
+      const updatePayload: UpdateProductRequest = {
         productName: data.productName.trim(),
         productDescription: productDescription || undefined, // Send undefined if no description
         price: Number(data.price),
         categoryId: Number(data.categoryId),
         imageUrl: imageUrl, // Send imageUrl (can be string, empty string, or undefined)
-      })
+      }
+
+      const updatedProduct = await updateProduct(currentProduct.productId, updatePayload)
 
       // Update currentProduct with the updated product data
-      setCurrentProduct(updatedProduct)
+      setCurrentProduct(prev => ({
+        ...prev,
+        ...updatedProduct,
+        productId: updatedProduct.productId || prev?.productId || currentProduct.productId,
+      }))
 
       toast({
         title: 'Cập nhật thành công',

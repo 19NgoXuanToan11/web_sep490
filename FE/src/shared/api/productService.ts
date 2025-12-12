@@ -264,12 +264,24 @@ export const productService = {
     // ProductDetailDTO doesn't have productId, so we fetch the full product
     const updatedProduct = await productService.getProductById(id)
 
+    // Normalize and ensure we never lose the productId (BE response omits it)
+    const normalizedProduct: Product = {
+      ...updatedProduct,
+      productId: updatedProduct.productId || id,
+      // Fall back to the payload values if the detail endpoint omits them
+      categoryId: updatedProduct.categoryId || Number(product.categoryId) || 0,
+      productName: updatedProduct.productName || product.productName || '',
+      productDescription:
+        updatedProduct.productDescription ?? product.productDescription ?? '',
+      price: updatedProduct.price ?? Number(product.price) ?? 0,
+    }
+
     // Always prioritize imageUrl from request if it was provided
     // This ensures the image is included even if the backend response doesn't have it yet
     // or if getProductById returns stale data
     if (product.imageUrl !== undefined) {
       // If imageUrl was explicitly provided (including empty string to remove image)
-      updatedProduct.imageUrl = product.imageUrl || undefined
+      normalizedProduct.imageUrl = product.imageUrl || undefined
     } else {
       // Otherwise, try to use from response
       const responseData = response.data?.data
@@ -278,11 +290,11 @@ export const productService = {
         responseData.Images !== null &&
         responseData.Images !== ''
       ) {
-        updatedProduct.imageUrl = responseData.Images
+        normalizedProduct.imageUrl = responseData.Images
       }
     }
 
-    return updatedProduct
+    return normalizedProduct
   },
 
   changeProductStatus: async (id: number): Promise<Product> => {

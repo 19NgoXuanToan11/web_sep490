@@ -145,7 +145,7 @@ const GaugeComponent: React.FC<GaugeProps> = ({
                     : 'text-gray-900'
                   }`}
               >
-                {isLoading ? '...' : animatedValue.toFixed(1)}
+                {animatedValue.toFixed(1)}
               </div>
               <div className="text-sm text-gray-600 font-medium">{unit}</div>
               {!isLoading && previousValue !== animatedValue && (

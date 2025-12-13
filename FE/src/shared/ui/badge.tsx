@@ -11,8 +11,10 @@ const badgeVariants = cva(
           'border-transparent bg-gradient-to-r from-emerald-500 to-emerald-600 text-white hover:from-emerald-600 hover:to-emerald-700 shadow-emerald-500/20',
         secondary:
           'border-slate-200 bg-gradient-to-r from-slate-50 to-slate-100 text-slate-700 hover:from-slate-100 hover:to-slate-200 shadow-slate-500/10',
+        teal:
+          'border-transparent bg-gradient-to-r from-teal-400 to-emerald-500 text-white hover:from-teal-500 hover:to-emerald-600 shadow-teal-500/20',
         destructive:
-          'border-transparent bg-gradient-to-r from-rose-500 to-rose-600 text-white hover:from-rose-600 hover:to-rose-700 shadow-rose-500/20',
+          'border-transparent bg-[#8B0000] text-white hover:bg-[#7B0000] shadow-[#8B0000]/25',
         outline: 'text-foreground border-slate-300',
         success:
           'border-transparent bg-gradient-to-r from-emerald-500 to-green-600 text-white hover:from-emerald-600 hover:to-green-700 shadow-emerald-500/25',
@@ -34,6 +36,8 @@ const badgeVariants = cva(
           'border-transparent bg-gradient-to-r from-indigo-500 to-blue-600 text-white hover:from-indigo-600 hover:to-blue-700 shadow-indigo-500/25',
         golden:
           'border-transparent bg-gradient-to-r from-yellow-400 to-yellow-500 text-white hover:from-yellow-500 hover:to-yellow-600 shadow-yellow-500/25',
+        cyan:
+          'border-transparent bg-[#b32b5f] text-white hover:bg-[#a02d3f] shadow-[#ba3247]/25',
       },
     },
     defaultVariants: {

@@ -13,6 +13,25 @@ import { vi } from 'date-fns/locale'
 
 type ViewMode = 'month' | 'week' | 'day'
 
+// Plant stage translation
+const plantStageLabels: Record<string, string> = {
+    Sowing: 'Gieo hạt',
+    Germination: 'Nảy mầm',
+    Seedling: 'Cây con',
+    Vegetative: 'Sinh trưởng',
+    CotyledonLeaves: 'Ra lá mầm',
+    TrueLeavesGrowth: 'Phát triển lá thật',
+    VigorousGrowth: 'Tăng trưởng mạnh',
+    ReadyForHarvest: 'Sẵn sàng thu hoạch',
+    Harvest: 'Thu hoạch',
+    PostHarvest: 'Sau thu hoạch',
+}
+
+const translatePlantStage = (stage?: string | null) => {
+    if (!stage) return '-'
+    return plantStageLabels[stage] ?? stage
+}
+
 interface EnterpriseIrrigationCalendarProps {
   className?: string
 }
@@ -657,7 +676,7 @@ function ScheduleDetailPanel({ schedule, onClose }: ScheduleDetailPanelProps) {
           {schedule.currentPlantStage && (
             <div>
               <p className="text-xs text-muted-foreground mb-1">Giai đoạn hiện tại</p>
-              <p className="text-sm font-medium">{schedule.currentPlantStage}</p>
+              <p className="text-sm font-medium">{translatePlantStage(schedule.currentPlantStage)}</p>
             </div>
           )}
 

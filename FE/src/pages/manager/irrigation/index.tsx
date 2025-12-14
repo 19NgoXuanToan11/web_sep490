@@ -198,7 +198,7 @@ export default function IrrigationPage() {
               <TabsTrigger value="list">Danh sách</TabsTrigger>
             </TabsList>
             <TabsContent value="calendar" className="space-y-6">
-              <NewIrrigationCalendar selectedTab={selectedTab} onTabChange={handleTabChange} />
+              <NewIrrigationCalendar />
             </TabsContent>
             <TabsContent value="list" className="space-y-6 mt-6">
               <BackendScheduleList

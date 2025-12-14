@@ -17,16 +17,12 @@ interface EnterpriseIrrigationCalendarProps {
   className?: string
 }
 
-interface ScheduleWithDensity extends ScheduleListItem {
-  density?: number
-}
-
 export function EnterpriseIrrigationCalendar({ className }: EnterpriseIrrigationCalendarProps) {
   const { toast } = useToast()
   const [viewMode, setViewMode] = useState<ViewMode>('month')
   const [selectedDate, setSelectedDate] = useState<Date>(new Date())
   const [schedules, setSchedules] = useState<ScheduleListItem[]>([])
-  const [loading, setLoading] = useState(false)
+  const [, setLoading] = useState(false)
   const [selectedSchedule, setSelectedSchedule] = useState<ScheduleListItem | null>(null)
   const [showDetailPanel, setShowDetailPanel] = useState(false)
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all')
@@ -64,7 +60,6 @@ export function EnterpriseIrrigationCalendar({ className }: EnterpriseIrrigation
 
   // Get schedules for a specific date
   const getSchedulesForDate = useCallback((date: Date): ScheduleListItem[] => {
-    const dateStr = format(date, 'yyyy-MM-dd')
     return filteredSchedules.filter(s => {
       const start = new Date(s.startDate)
       const end = new Date(s.endDate)
@@ -348,7 +343,7 @@ export function EnterpriseIrrigationCalendar({ className }: EnterpriseIrrigation
                     className="w-full border-0"
                     tileContent={tileContent}
                     tileClassName={tileClassName}
-                    formatShortWeekday={(locale, date) => format(date, 'EEE', { locale: vi }).slice(0, 1)}
+                    formatShortWeekday={(_locale, date) => format(date, 'EEE', { locale: vi }).slice(0, 1)}
                   />
                 </div>
               ) : viewMode === 'week' ? (
@@ -467,7 +462,6 @@ function WeekView({ selectedDate, schedules, onDateClick, onScheduleClick }: Wee
   })
 
   const getSchedulesForDay = (day: Date) => {
-    const dayStr = format(day, 'yyyy-MM-dd')
     return schedules.filter(s => {
       const start = new Date(s.startDate)
       const end = new Date(s.endDate)

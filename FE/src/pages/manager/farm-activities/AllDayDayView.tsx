@@ -137,14 +137,14 @@ const AllDayDayViewComponent = ({
     )
 }
 
-AllDayDayViewComponent.range = (date: Date, { localizer }: any) => {
+AllDayDayViewComponent.range = (date: Date, { localizer: _localizer }: any) => {
     const validDate = date && date instanceof Date && !isNaN(date.getTime())
         ? date
         : new Date()
     return rangeDay(validDate)
 }
 
-AllDayDayViewComponent.navigate = (date: Date, action: any, { localizer }: any) => {
+AllDayDayViewComponent.navigate = (date: Date, action: any, { localizer: _localizer }: any) => {
     const validDate = date && date instanceof Date && !isNaN(date.getTime())
         ? date
         : new Date()
@@ -171,13 +171,13 @@ AllDayDayViewComponent.navigate = (date: Date, action: any, { localizer }: any) 
     return result
 }
 
-AllDayDayViewComponent.title = (date: Date, { localizer }: any) => {
+AllDayDayViewComponent.title = (date: Date, { localizer: _localizer }: any) => {
     const validDate = date && date instanceof Date && !isNaN(date.getTime())
         ? date
         : new Date()
     return formatVNLong(validDate)
 }
-    
+
 export const AllDayDayView = AllDayDayViewComponent as typeof AllDayDayViewComponent & {
     range: (date: Date, options: { localizer: any }) => Date[]
     navigate: (date: Date, action: any, options: { localizer: any }) => Date

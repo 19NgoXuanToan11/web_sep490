@@ -23,7 +23,7 @@ interface AllDayWeekViewProps {
 
 const AllDayWeekViewComponent = ({
     date,
-    localizer,
+    localizer: _localizer,
     events,
     onSelectEvent,
     onShowMore,
@@ -83,7 +83,7 @@ const AllDayWeekViewComponent = ({
 
     return (
         <div className="grid grid-cols-7 gap-3 p-4">
-            {days.map((day, index) => {
+            {days.map((day) => {
                 // Validate day before using it
                 if (!day || !(day instanceof Date) || isNaN(day.getTime())) {
                     return null
@@ -160,14 +160,14 @@ const AllDayWeekViewComponent = ({
     )
 }
 
-AllDayWeekViewComponent.range = (date: Date, { localizer }: any) => {
+AllDayWeekViewComponent.range = (date: Date, { localizer: _localizer }: any) => {
     const validDate = date && date instanceof Date && !isNaN(date.getTime())
         ? date
         : new Date()
     return rangeWeek(validDate)
 }
 
-AllDayWeekViewComponent.navigate = (date: Date, action: any, { localizer }: any) => {
+AllDayWeekViewComponent.navigate = (date: Date, action: any, { localizer: _localizer }: any) => {
     // Validate input date
     const validDate = date && date instanceof Date && !isNaN(date.getTime())
         ? date
@@ -196,7 +196,7 @@ AllDayWeekViewComponent.navigate = (date: Date, action: any, { localizer }: any)
     return result
 }
 
-AllDayWeekViewComponent.title = (date: Date, { localizer }: any) => {
+AllDayWeekViewComponent.title = (date: Date, { localizer: _localizer }: any) => {
     // Validate input date
     const validDate = date && date instanceof Date && !isNaN(date.getTime())
         ? date

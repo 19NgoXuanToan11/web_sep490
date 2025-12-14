@@ -85,7 +85,6 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({ children }) => {
         setImageError(false)
       } catch (error) {
         console.error('Failed to fetch staff profile:', error)
-        // Keep default values on error
       } finally {
         setIsLoadingProfile(false)
       }

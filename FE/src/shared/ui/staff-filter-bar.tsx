@@ -6,11 +6,6 @@ interface StaffFilterBarProps {
     className?: string
 }
 
-/**
- * Thanh filter/search chung cho các màn quản lý của Staff.
- * Đảm nhận phần khung giao diện (nền xám, viền, padding, layout responsive).
- * Nội dung bên trong (ô tìm kiếm, combobox, nút...) được truyền qua children.
- */
 export const StaffFilterBar: React.FC<StaffFilterBarProps> = ({ children, className }) => {
     return (
         <div

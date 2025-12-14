@@ -51,7 +51,6 @@ export const UpdateDeviceModal: React.FC<UpdateDeviceModalProps> = ({
 
     useEffect(() => {
         if (device && isOpen) {
-            // Format expiry date for input (YYYY-MM-DD)
             let formattedExpiryDate = ''
             if (device.expiryDate) {
                 try {
@@ -60,7 +59,6 @@ export const UpdateDeviceModal: React.FC<UpdateDeviceModalProps> = ({
                         formattedExpiryDate = date.toISOString().split('T')[0]
                     }
                 } catch (error) {
-                    // If date parsing fails, leave it empty
                     formattedExpiryDate = ''
                 }
             }
@@ -76,7 +74,6 @@ export const UpdateDeviceModal: React.FC<UpdateDeviceModalProps> = ({
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
 
-        // Use devicesId (from backend) or ioTdevicesId (legacy) for device ID
         const deviceId = device?.devicesId || device?.ioTdevicesId
         if (!deviceId) {
             toast({
@@ -99,7 +96,6 @@ export const UpdateDeviceModal: React.FC<UpdateDeviceModalProps> = ({
         try {
             setLoading(true)
 
-            // Format expiryDate to YYYY-MM-DD format if provided
             let formattedExpiryDate: string | undefined = undefined
             if (formData.expiryDate) {
                 const date = new Date(formData.expiryDate)
@@ -108,15 +104,12 @@ export const UpdateDeviceModal: React.FC<UpdateDeviceModalProps> = ({
                 }
             }
 
-            // Only send fields the backend expects (matching IOTRequest)
             const payload: IoTDeviceRequest = {
                 deviceName: formData.deviceName,
                 deviceType: formData.deviceType,
                 expiryDate: formattedExpiryDate,
-                // Note: farmDetailsId is not sent as backend doesn't accept it
             }
 
-            // Use devicesId (from backend) or ioTdevicesId (legacy)
             const deviceId = device?.devicesId || device?.ioTdevicesId
             const updatedDevice = await iotDeviceService.updateDevice(deviceId!, payload)
 

@@ -42,11 +42,9 @@ async function request<T>(
     if (status === 401) {
       terminateSession({ reason: 'expired' })
     }
-    // Extract meaningful error message from response
     const message =
       (data as any)?.message || (data as any)?.Message || (data as any)?.error || `HTTP ${status}`
 
-    // Create enhanced error object with status and data
     const error = Object.assign(new Error(message), {
       status,
       data,

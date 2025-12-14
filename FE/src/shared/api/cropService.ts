@@ -1,6 +1,5 @@
 import { http } from './client'
-
-// Crop requirement as returned in the GET /api/v1/crop/get-all response
+  
 export interface CropRequirement {
   cropRequirementId: number
   cropId: number
@@ -17,7 +16,6 @@ export interface CropRequirement {
   updatedDate?: string | null
 }
 
-// View model returned from the backend crop endpoints
 export interface Crop {
   cropId: number
   cropName: string
@@ -27,7 +25,6 @@ export interface Crop {
   cropRequirement?: CropRequirement[]
 }
 
-// Payload sent inside request1 when creating or updating a crop
 export interface CropRequest {
   cropName: string
   description?: string
@@ -35,7 +32,6 @@ export interface CropRequest {
   categoryId: number
 }
 
-// Product payload embedded in request2 when creating a crop
 export interface CropProductRequest {
   productName: string
   price: number
@@ -43,7 +39,6 @@ export interface CropProductRequest {
   description?: string
 }
 
-// Combined payload sent to POST /v1/crop/create
 export interface CreateCropWithProductRequest {
   request1: CropRequest
   request2: CropProductRequest
@@ -73,7 +68,6 @@ export const cropService = {
     return response.data
   },
 
-  // Convenience helper used by selectors that just need a flat crop list
   getAllCropsList: async (pageSize: number = 1000): Promise<Crop[]> => {
     const response = await http.get<PaginatedCrops>(
       `/v1/crop/get-all?pageIndex=1&pageSize=${pageSize}`

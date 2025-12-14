@@ -1,7 +1,8 @@
 import { useEffect, useState, useCallback } from 'react'
-import { Tabs, TabsContent } from '@/shared/ui/tabs'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs'
 import { ManagerLayout } from '@/shared/layouts/ManagerLayout'
 import { BackendScheduleList } from '@/features/irrigation/ui/BackendScheduleList'
+import { EnterpriseIrrigationCalendar } from '@/features/irrigation/ui/EnterpriseIrrigationCalendar'
 import { Button } from '@/shared/ui/button'
 import { Card, CardContent } from '@/shared/ui/card'
 import { Input } from '@/shared/ui/input'
@@ -16,8 +17,10 @@ import { accountApi } from '@/shared/api/auth'
 const BULK_PAGE_SIZE = 50
 
 export default function IrrigationPage() {
-  const selectedTab = 'calendar'
-  const handleTabChange = (_tab: string) => { }
+  const [selectedTab, setSelectedTab] = useState('calendar')
+  const handleTabChange = (tab: string) => {
+    setSelectedTab(tab)
+  }
   const [showCreate, setShowCreate] = useState(false)
   const [stats, setStats] = useState({
     total: 0,
@@ -28,27 +31,23 @@ export default function IrrigationPage() {
   })
   const { toast } = useToast()
 
-  // Filter state
   const [staffFilter, setStaffFilter] = useState<number | null>(null)
   const [filteredItems, setFilteredItems] = useState<ScheduleListItem[] | null>(null)
   const [staffs, setStaffs] = useState<{ id: number; name: string }[]>([])
   const [, setAllSchedules] = useState<ScheduleListItem[]>([])
   const [, setAllSchedulesLoading] = useState(false)
 
-  // Load staffs for filter
   useEffect(() => {
     const loadStaffs = async () => {
       try {
         const staffRes = await accountApi.getAll({ role: 'Staff', pageSize: 1000 })
         setStaffs(staffRes.items.map(s => ({ id: s.accountId, name: s.email })))
       } catch (error) {
-        // Silent fail for staff list
       }
     }
     loadStaffs()
   }, [])
 
-  // Load all schedules for filtering
   const loadAllSchedules = useCallback(async (): Promise<ScheduleListItem[]> => {
     setAllSchedulesLoading(true)
     try {
@@ -79,14 +78,12 @@ export default function IrrigationPage() {
     }
   }, [toast])
 
-  // Load all schedules in background
   useEffect(() => {
     loadAllSchedules()
   }, [loadAllSchedules])
 
   const loadStats = useCallback(async () => {
     try {
-      // Lấy một trang lớn để có cái nhìn tổng quan chính xác nhất có thể
       const res: PaginatedSchedules = await scheduleService.getScheduleList(1, 1000)
       const items = res.data.items || []
       const now = new Date()
@@ -255,7 +252,18 @@ export default function IrrigationPage() {
 
           { }
           <Tabs value={selectedTab} onValueChange={handleTabChange} className="space-y-6">
-            <TabsContent value="calendar" className="space-y-6">
+            <TabsList className="grid w-full max-w-md grid-cols-2">
+              <TabsTrigger value="calendar">
+                Lịch
+              </TabsTrigger>
+              <TabsTrigger value="list">
+                Danh sách
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="calendar" className="space-y-6 mt-6">
+              <EnterpriseIrrigationCalendar />
+            </TabsContent>
+            <TabsContent value="list" className="space-y-6 mt-6">
               <BackendScheduleList
                 showCreate={showCreate}
                 onShowCreateChange={setShowCreate}

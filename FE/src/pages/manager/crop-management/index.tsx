@@ -206,11 +206,9 @@ export default function CropManagementPage() {
   const loadCrops = async () => {
     try {
       setLoading(true)
-      // Load all crops for client-side filtering/sorting
       const response = await cropService.getAllCrops(1, 1000)
       const loadedCrops = response.items || []
 
-      // Track newly created crops
       const currentMaxId = Math.max(...loadedCrops.map(c => c.cropId), 0)
       if (currentMaxId > previousMaxIdRef.current && previousMaxIdRef.current > 0) {
         setNewlyCreatedIds(new Set([currentMaxId]))
@@ -253,7 +251,7 @@ export default function CropManagementPage() {
       cropName: crop.cropName || '',
       description: crop.description || '',
       origin: crop.origin || '',
-      categoryId: '', // Will need to be set from crop data if available
+      categoryId: '', 
       productName: '',
       price: '',
       productDescription: '',
@@ -383,11 +381,8 @@ export default function CropManagementPage() {
 
   const handleChangeStatus = useCallback(async (crop: Crop) => {
     try {
-      // Determine new status: 
-      // CropStatus enum: ACTIVE = 0, INACTIVE = 1
-      // If currently ACTIVE (0), change to INACTIVE (1), otherwise change to ACTIVE (0)
       const currentIsActive = isActiveStatus(crop.status)
-      const newStatus = currentIsActive ? 1 : 0 // 0 = ACTIVE, 1 = INACTIVE
+      const newStatus = currentIsActive ? 1 : 0 
 
       await cropService.changeStatus(crop.cropId, newStatus)
 
@@ -396,7 +391,6 @@ export default function CropManagementPage() {
         description: `Đã ${currentIsActive ? 'tạm dừng' : 'kích hoạt'} cây trồng "${crop.cropName}"`,
       })
 
-      // Reload crops to reflect the status change
       await loadCrops()
     } catch (error: any) {
       toast({
@@ -411,7 +405,6 @@ export default function CropManagementPage() {
     const file = event.target.files?.[0]
     if (!file) return
 
-    // Validate file type
     if (!file.type.startsWith('image/')) {
       toast({
         title: 'File không hợp lệ',
@@ -424,7 +417,6 @@ export default function CropManagementPage() {
       return
     }
 
-    // Validate file size (5MB max)
     if (file.size > 5 * 1024 * 1024) {
       toast({
         title: 'File quá lớn',
@@ -437,7 +429,6 @@ export default function CropManagementPage() {
       return
     }
 
-    // Show preview immediately
     const reader = new FileReader()
     reader.onload = e => {
       const result = e.target?.result as string
@@ -445,11 +436,9 @@ export default function CropManagementPage() {
     }
     reader.readAsDataURL(file)
 
-    // Upload to Cloudinary
     setIsUploading(true)
     setUploadProgress(0)
 
-    // Create abort controller for cancellation
     abortControllerRef.current = new AbortController()
 
     try {
@@ -469,7 +458,6 @@ export default function CropManagementPage() {
     } catch (error) {
       if (error instanceof CloudinaryUploadError) {
         if (error.message.includes('aborted')) {
-          // Upload was cancelled, don't show error
           return
         }
         toast({
@@ -509,7 +497,6 @@ export default function CropManagementPage() {
     }
   }
 
-  // Client-side filtering
   const filteredCrops = useMemo(() => {
     return allCrops.filter(crop => {
       const matchesSearch = !searchTerm ||
@@ -525,13 +512,11 @@ export default function CropManagementPage() {
     })
   }, [allCrops, searchTerm, statusFilter])
 
-  // Client-side sorting
   const sortedCrops = useMemo(() => {
     const sorted = [...filteredCrops]
 
     switch (sortBy) {
       case 'newest':
-        // Sort by cropId descending (assuming higher ID = newer)
         return sorted.sort((a, b) => b.cropId - a.cropId)
       case 'cropName':
         return sorted.sort((a, b) => a.cropName.localeCompare(b.cropName))
@@ -547,7 +532,6 @@ export default function CropManagementPage() {
     }
   }, [filteredCrops, sortBy])
 
-  // Pagination
   const totalPages = useMemo(() => {
     return Math.max(1, Math.ceil(sortedCrops.length / pageSize))
   }, [sortedCrops.length, pageSize])
@@ -578,7 +562,6 @@ export default function CropManagementPage() {
     setPageIndex(1)
   }, [searchTerm, statusFilter, sortBy])
 
-  // Auto-remove highlight after 5 seconds
   useEffect(() => {
     if (newlyCreatedIds.size > 0) {
       const timer = setTimeout(() => {
@@ -684,7 +667,6 @@ export default function CropManagementPage() {
           </div>
         </StaffFilterBar>
 
-        {/* Card-based Layout */}
         {loading ? (
           <Card>
             <CardContent className="p-12">
@@ -764,7 +746,6 @@ export default function CropManagementPage() {
               })}
             </div>
 
-            {/* Pagination Controls */}
             {totalPages > 1 && (
               <div className="mt-6">
                 <Pagination
@@ -782,7 +763,6 @@ export default function CropManagementPage() {
         open={formDialogOpen}
         onOpenChange={open => {
           if (!open) {
-            // Cancel any ongoing upload when closing
             if (abortControllerRef.current) {
               abortControllerRef.current.abort()
               abortControllerRef.current = null

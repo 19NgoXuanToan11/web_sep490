@@ -38,7 +38,6 @@ interface UpdateProductInfoModalProps {
 export function UpdateProductInfoModal({ isOpen, onClose, product: initialProduct }: UpdateProductInfoModalProps) {
   const { categories, isUpdating, updateProduct, fetchCategories } = useProductStore()
   const { toast } = useToast()
-  // Use state to track current product, so it can be updated after successful update
   const [currentProduct, setCurrentProduct] = React.useState<Product>(initialProduct)
   const [imagePreview, setImagePreview] = React.useState<string | null>(
     currentProduct?.imageUrl || null
@@ -67,12 +66,10 @@ export function UpdateProductInfoModal({ isOpen, onClose, product: initialProduc
     },
   })
 
-  // Update currentProduct when initialProduct changes
   React.useEffect(() => {
     setCurrentProduct(prev => ({
       ...prev,
-      ...initialProduct,
-      // Defensive: BE detail response may omit productId, so keep the incoming one
+      ...initialProduct,        
       productId: initialProduct.productId ?? prev?.productId ?? 0,
     }))
   }, [initialProduct])
@@ -90,7 +87,6 @@ export function UpdateProductInfoModal({ isOpen, onClose, product: initialProduc
       setImageExplicitlyRemoved(false)
       setIsUploading(false)
       setUploadProgress(0)
-      // Cancel any ongoing upload when modal opens
       if (abortControllerRef.current) {
         abortControllerRef.current.abort()
         abortControllerRef.current = null
@@ -103,7 +99,6 @@ export function UpdateProductInfoModal({ isOpen, onClose, product: initialProduc
         })
       })
     } else {
-      // Clean up when modal closes
       if (abortControllerRef.current) {
         abortControllerRef.current.abort()
         abortControllerRef.current = null
@@ -115,7 +110,6 @@ export function UpdateProductInfoModal({ isOpen, onClose, product: initialProduc
 
   const onSubmit = async (data: UpdateProductInfoFormData) => {
     try {
-      // Validate productId
       if (!currentProduct.productId || currentProduct.productId === 0) {
         toast({
           title: 'Lỗi dữ liệu',
@@ -125,24 +119,17 @@ export function UpdateProductInfoModal({ isOpen, onClose, product: initialProduc
         return
       }
 
-      // Preserve original values for description and imageUrl if they're empty or unchanged
-      // This prevents data loss when fields are not edited
       const productDescription = data.productDescription?.trim() || currentProduct.productDescription
 
-      // For imageUrl: preserve original if empty and not explicitly removed, otherwise use form value
       let imageUrl: string | undefined
       if (data.imageUrl?.trim()) {
-        // User uploaded a new image - use the Cloudinary URL
         imageUrl = data.imageUrl.trim()
       } else if (imageExplicitlyRemoved) {
-        // User explicitly removed the image - send empty string to delete
         imageUrl = ''
       } else {
-        // User didn't change the image - don't send imageUrl (undefined means no change)
         imageUrl = undefined
       }
 
-      // Ensure all required fields are valid before sending
       if (!data.productName?.trim()) {
         toast({
           title: 'Lỗi validation',
@@ -172,15 +159,14 @@ export function UpdateProductInfoModal({ isOpen, onClose, product: initialProduc
 
       const updatePayload: UpdateProductRequest = {
         productName: data.productName.trim(),
-        productDescription: productDescription || undefined, // Send undefined if no description
+        productDescription: productDescription || undefined, 
         price: Number(data.price),
         categoryId: Number(data.categoryId),
-        imageUrl: imageUrl, // Send imageUrl (can be string, empty string, or undefined)
+        imageUrl: imageUrl, 
       }
 
       const updatedProduct = await updateProduct(currentProduct.productId, updatePayload)
 
-      // Update currentProduct with the updated product data
       setCurrentProduct(prev => ({
         ...prev,
         ...updatedProduct,
@@ -193,7 +179,6 @@ export function UpdateProductInfoModal({ isOpen, onClose, product: initialProduc
         variant: 'success',
       })
 
-      // Close modal after successful update
       onClose()
     } catch (error) {
       toast({
@@ -208,7 +193,6 @@ export function UpdateProductInfoModal({ isOpen, onClose, product: initialProduc
     const file = event.target.files?.[0]
     if (!file) return
 
-    // Validate file type
     if (!file.type.startsWith('image/')) {
       toast({
         title: 'File không hợp lệ',
@@ -221,7 +205,6 @@ export function UpdateProductInfoModal({ isOpen, onClose, product: initialProduc
       return
     }
 
-    // Validate file size (5MB limit)
     if (file.size > 5 * 1024 * 1024) {
       toast({
         title: 'File quá lớn',
@@ -234,7 +217,6 @@ export function UpdateProductInfoModal({ isOpen, onClose, product: initialProduc
       return
     }
 
-    // Cancel any ongoing upload
     if (abortControllerRef.current) {
       abortControllerRef.current.abort()
     }
@@ -242,11 +224,9 @@ export function UpdateProductInfoModal({ isOpen, onClose, product: initialProduc
     setIsUploading(true)
     setUploadProgress(0)
 
-    // Create abort controller for cancellation
     abortControllerRef.current = new AbortController()
 
     try {
-      // Upload to Cloudinary
       const cloudinaryUrl = await uploadImageToCloudinary({
         file,
         folder: 'sep490/products',
@@ -256,7 +236,7 @@ export function UpdateProductInfoModal({ isOpen, onClose, product: initialProduc
 
       setImagePreview(cloudinaryUrl)
       setValue('imageUrl', cloudinaryUrl)
-      setImageExplicitlyRemoved(false) // Reset flag when new image is uploaded
+      setImageExplicitlyRemoved(false) 
       toast({
         title: 'Thành công',
         description: 'Đã tải ảnh lên thành công',
@@ -265,7 +245,6 @@ export function UpdateProductInfoModal({ isOpen, onClose, product: initialProduc
     } catch (error) {
       if (error instanceof CloudinaryUploadError) {
         if (error.message.includes('aborted')) {
-          // Upload was cancelled, don't show error
           return
         }
         toast({
@@ -293,7 +272,6 @@ export function UpdateProductInfoModal({ isOpen, onClose, product: initialProduc
   }
 
   const removeImage = () => {
-    // Cancel any ongoing upload
     if (abortControllerRef.current) {
       abortControllerRef.current.abort()
       abortControllerRef.current = null

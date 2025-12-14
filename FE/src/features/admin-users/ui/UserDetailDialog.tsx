@@ -46,6 +46,13 @@ export const UserDetailDialog: React.FC<UserDetailDialogProps> = ({ user, isOpen
         ? availableRoles.find(role => role.value === user.roles[0])?.label || user.roles[0]
         : ''
 
+    const roleVariant = user
+        ? (() => {
+            const role = user.roles[0] || 'STAFF'
+            return role === 'CUSTOMER' ? 'default' : role === 'MANAGER' ? 'golden' : 'cyan'
+        })()
+        : 'default'
+
     const statusLabel = user
         ? statusOptions.find(status => status.value === user.status)?.label || user.status
         : ''
@@ -94,7 +101,7 @@ export const UserDetailDialog: React.FC<UserDetailDialogProps> = ({ user, isOpen
                                     </div>
 
                                     <div className="flex flex-wrap items-center gap-2 sm:justify-end">
-                                        <Badge>{roleLabel}</Badge>
+                                        <Badge variant={roleVariant}>{roleLabel}</Badge>
                                         <Badge variant={statusVariant}>{statusLabel}</Badge>
                                     </div>
                                 </div>

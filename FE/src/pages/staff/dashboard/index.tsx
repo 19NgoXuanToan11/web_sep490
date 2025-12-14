@@ -176,16 +176,14 @@ export default function StaffDashboard() {
             return orderDate >= cutoffDate
         })
 
-        // Đơn hàng cần xử lý (chưa thanh toán hoặc đang xử lý)
         const pendingOrders = orders.filter(order => {
             const status = order.status ?? 0
-            return status === 0 || status === 3 // UNPAID hoặc PENDING
+            return status === 0 || status === 3
         })
 
-        // Đơn hàng đang giao
         const deliveringOrders = orders.filter(order => {
             const status = order.status ?? 0
-            return status === 3 // PENDING (đang giao)
+            return status === 3
         })
 
         const validFeedbacks = feedbacks.filter(fb => fb.rating >= 1 && fb.rating <= 5)
@@ -304,7 +302,6 @@ export default function StaffDashboard() {
     const categoryStats = useMemo(() => {
         const statsMap = new Map<number, { name: string; count: number; activeCount: number }>()
 
-        // Khởi tạo với tất cả categories
         categories.forEach(category => {
             statsMap.set(category.categoryId, {
                 name: category.categoryName,
@@ -313,7 +310,6 @@ export default function StaffDashboard() {
             })
         })
 
-        // Đếm sản phẩm theo category
         products.forEach(product => {
             const categoryId = product.categoryId
             const existing = statsMap.get(categoryId)
@@ -323,7 +319,6 @@ export default function StaffDashboard() {
                     existing.activeCount++
                 }
             } else {
-                // Nếu category không có trong danh sách, thêm vào
                 statsMap.set(categoryId, {
                     name: product.categoryName || `Danh mục ${categoryId}`,
                     count: 1,
@@ -337,8 +332,7 @@ export default function StaffDashboard() {
             .sort((a, b) => b.count - a.count)
     }, [products, categories])
 
-    const getStatusBadge = (status: number, paymentStatus?: string) => {
-        // Nếu thanh toán thất bại, hiển thị "Thất bại" thay vì "Đang chuẩn bị"
+    const getStatusBadge = (status: number, paymentStatus?: string) => {                    
         let label = getOrderStatusLabel(status)
         let variant = getOrderStatusVariant(status)
 
@@ -351,9 +345,6 @@ export default function StaffDashboard() {
     }
 
     const getDisplayStatusBadge = (order: Order) => {
-        // Luôn hiển thị trạng thái ĐƠN HÀNG (Đang giao, Đã xác nhận, Hoàn thành...)
-        // Trạng thái thanh toán đã có cột riêng "Thanh toán"
-        // Nhưng nếu thanh toán thất bại, hiển thị "Thất bại" thay vì "Đang chuẩn bị"
         const normalizedStatus = normalizeOrderStatus(order.status)
         const paymentStatus = derivePaymentStatus({
             status: normalizedStatus,
@@ -362,7 +353,6 @@ export default function StaffDashboard() {
         return getStatusBadge(normalizedStatus, paymentStatus)
     }
 
-    // Use centralized date formatting utility
     const formatDateOnly = (dateString: string) => {
         return formatDate(dateString)
     }

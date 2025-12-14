@@ -50,7 +50,7 @@ export interface Payment {
 export interface Order {
   orderId: string
   totalPrice: number
-  email?: string // Optional vì có thể lấy từ customer.email
+  email?: string 
   customerId?: string
   orderDetailIds?: string[]
   createdAt: string
@@ -133,8 +133,6 @@ export const orderService = {
         date
       )
 
-      // Transform response từ array sang format OrderListResponse
-      // API trả về data là array trực tiếp, không phải object có items
       const orders = Array.isArray(response.data.data) ? response.data.data : []
 
       return {
@@ -178,7 +176,6 @@ export const orderService = {
   },
 }
 
-// Chuẩn hóa trạng thái đơn hàng từ backend (có thể trả về số hoặc chuỗi)
 export const normalizeOrderStatus = (status: any): number => {
   if (typeof status === 'number' && !Number.isNaN(status)) {
     return status
@@ -227,7 +224,6 @@ export const normalizeOrderStatus = (status: any): number => {
   }
 }
 
-// Suy ra trạng thái thanh toán từ payments hoặc từ status đã chuẩn hóa
 export const derivePaymentStatus = (
   order: Partial<Order> & { status?: number }
 ): 'pending' | 'paid' | 'failed' | 'refunded' => {
@@ -270,28 +266,28 @@ export const derivePaymentStatus = (
 
 export const getOrderStatusLabel = (status: number): string => {
   const statusMap: Record<number, string> = {
-    0: 'Chờ xử lý', // UNPAID - Đơn hàng mới, chờ xử lý
-    1: 'Đã xác nhận', // PAID - Đã thanh toán và xác nhận
-    2: 'Thất bại', // UNDISCHARGED - Đang chuẩn bị hàng
-    3: 'Đang giao', // PENDING - Đang trong quá trình giao hàng
-    4: 'Đã hủy', // CANCELLED - Đơn hàng đã bị hủy
-    5: 'Hoàn thành', // COMPLETED - Đơn hàng đã hoàn thành
-    6: 'Đang giao', // DELIVERED / SHIPPING - Đơn đang giao cho khách
+    0: 'Chờ xử lý', 
+    1: 'Đã xác nhận', 
+    2: 'Thất bại', 
+    3: 'Đang giao', 
+    4: 'Đã hủy', 
+    5: 'Hoàn thành', 
+    6: 'Đang giao', 
   }
   return statusMap[status] || 'Không xác định'
 }
 
 export const getOrderStatusVariant = (status: number): 'default' | 'secondary' | 'destructive' => {
   switch (status) {
-    case 0: // Chờ xử lý
-    case 2: // Đang chuẩn bị
-    case 3: // Đang giao
-    case 6: // Đang giao
+    case 0: 
+    case 2: 
+    case 3: 
+    case 6: 
       return 'secondary'
-    case 1: // Đã xác nhận
-    case 5: // Hoàn thành
+    case 1: 
+    case 5: 
       return 'default'
-    case 4: // Đã hủy
+    case 4: 
       return 'destructive'
     default:
       return 'secondary'
@@ -300,19 +296,19 @@ export const getOrderStatusVariant = (status: number): 'default' | 'secondary' |
 
 export const getOrderStatusIcon = (status: number): string => {
   switch (status) {
-    case 0: // Chờ xử lý
+    case 0: 
       return 'clock'
-    case 1: // Đã xác nhận
+    case 1: 
       return 'check-circle'
-    case 2: // Đang chuẩn bị
+    case 2: 
       return 'package'
-    case 3: // Đang giao
+    case 3: 
       return 'truck'
-    case 4: // Đã hủy
+    case 4: 
       return 'alert-triangle'
-    case 5: // Hoàn thành
+    case 5: 
       return 'check-circle'
-    case 6: // Đã giao
+    case 6: 
       return 'truck'
     default:
       return 'shopping-cart'

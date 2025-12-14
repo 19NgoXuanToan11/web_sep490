@@ -46,11 +46,15 @@ export const UsersTable: React.FC<UsersTableProps> = ({
 
     const role = roles[0] || 'STAFF'
     const roleConfig = availableRoles.find(r => r.value === role)
+    const variant =
+      role === 'CUSTOMER'
+        ? 'default'
+        : role === 'MANAGER'
+          ? 'golden'
+          : 'cyan' // Xanh Ngọc Lam Đậm for staff
+
     return (
-      <Badge
-        variant={role === 'CUSTOMER' ? 'default' : role === 'MANAGER' ? 'golden' : 'destructive'}
-        className="text-xs"
-      >
+      <Badge variant={variant} className="text-xs">
         {roleConfig?.label || role}
       </Badge>
     )

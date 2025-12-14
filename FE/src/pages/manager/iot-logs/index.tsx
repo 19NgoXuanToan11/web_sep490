@@ -26,14 +26,12 @@ const ManagerIoTLogsPage: React.FC = () => {
     const [searchQuery, setSearchQuery] = useState('')
     const [currentPage, setCurrentPage] = useState(1)
 
-    const PAGE_SIZE = 25 // Items per page
+    const PAGE_SIZE = 25
 
     const syncLatestBlynkData = useCallback(async () => {
         try {
-            // Trigger backend sync with Blynk; silent on UI
             await blynkService.getBlynkData()
         } catch (error) {
-            // Run in background without surfacing errors to users
             console.error('Không thể đồng bộ dữ liệu Blynk nền', error)
         }
     }, [])
@@ -41,7 +39,6 @@ const ManagerIoTLogsPage: React.FC = () => {
     const fetchLogs = useCallback(async () => {
         try {
             setLoading(true)
-            // Ensure backend pulls latest Blynk data before reading logs
             await syncLatestBlynkData()
             const data = await blynkService.getLogs()
             setLogs(data)
@@ -56,12 +53,10 @@ const ManagerIoTLogsPage: React.FC = () => {
         }
     }, [syncLatestBlynkData, toast])
 
-    // Initial fetch
     useEffect(() => {
         fetchLogs()
     }, [fetchLogs])
 
-    // Background sync to keep logs updated without changing UI
     useEffect(() => {
         const interval = setInterval(() => {
             syncLatestBlynkData()
@@ -89,26 +84,22 @@ const ManagerIoTLogsPage: React.FC = () => {
             )
     }, [logs, sensorFilter, searchQuery])
 
-    // Calculate pagination
     const totalPages = useMemo(() => {
         return Math.max(1, Math.ceil(filteredLogs.length / PAGE_SIZE))
     }, [filteredLogs.length])
 
-    // Paginated logs for current page
     const paginatedLogs = useMemo(() => {
         const startIndex = (currentPage - 1) * PAGE_SIZE
         const endIndex = startIndex + PAGE_SIZE
         return filteredLogs.slice(startIndex, endIndex)
     }, [filteredLogs, currentPage])
 
-    // Reset to page 1 when filters change or if current page is out of bounds
     useEffect(() => {
         if (currentPage > totalPages && totalPages > 0) {
             setCurrentPage(1)
         }
     }, [totalPages, currentPage])
 
-    // Reset to page 1 when filters change
     useEffect(() => {
         setCurrentPage(1)
     }, [sensorFilter, searchQuery])
@@ -153,10 +144,8 @@ const ManagerIoTLogsPage: React.FC = () => {
 
     const handleExportToCSV = async () => {
         try {
-            // Call backend endpoint to export CSV
             const blob = await blynkService.exportLogs()
 
-            // Create download link
             const link = document.createElement('a')
             const url = URL.createObjectURL(blob)
 

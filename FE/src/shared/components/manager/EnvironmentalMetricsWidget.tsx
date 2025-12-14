@@ -51,7 +51,6 @@ export const EnvironmentalMetricsWidget: React.FC<EnvironmentalMetricsWidgetProp
         const calculateStats = (
             key: 'temperature' | 'moisture' | 'lightRequirement'
         ): MetricStats => {
-            // First, try to get values from crop requirements
             const requirementValues = activeRequirements
                 .map((req) => {
                     if (key === 'lightRequirement') return req.lightRequirement
@@ -61,7 +60,6 @@ export const EnvironmentalMetricsWidget: React.FC<EnvironmentalMetricsWidgetProp
                 })
                 .filter((v): v is number => v !== null && v !== undefined)
 
-            // Fallback to sensor data if no requirement data available
             let values = requirementValues
             if (values.length === 0 && sensorData) {
                 const sensorValue =

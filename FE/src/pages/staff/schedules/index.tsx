@@ -158,7 +158,6 @@ const StaffSchedulesPage: React.FC = () => {
 
     const filteredSchedules = useMemo(() => {
         return schedules.filter(schedule => {
-            // Search filter
             if (searchQuery.trim()) {
                 const searchTerm = searchQuery.toLowerCase()
                 const farmName = schedule.farmView?.farmName?.toLowerCase() || ''
@@ -174,7 +173,6 @@ const StaffSchedulesPage: React.FC = () => {
                 }
             }
 
-            // Status filter
             if (statusFilter !== 'all') {
                 if (statusFilter === 'ACTIVE') {
                     if (typeof schedule.status === 'string') {
@@ -195,7 +193,6 @@ const StaffSchedulesPage: React.FC = () => {
         })
     }, [schedules, searchQuery, statusFilter])
 
-    // Client-side sorting
     const sortedSchedules = useMemo(() => {
         const sorted = [...filteredSchedules]
 
@@ -232,7 +229,6 @@ const StaffSchedulesPage: React.FC = () => {
         }
     }, [filteredSchedules, sortBy])
 
-    // Pagination
     const totalPages = useMemo(() => {
         return Math.max(1, Math.ceil(sortedSchedules.length / pageSize))
     }, [sortedSchedules.length, pageSize])
@@ -262,7 +258,6 @@ const StaffSchedulesPage: React.FC = () => {
     )
 
     const handleViewDetail = useCallback((schedule: DisplaySchedule) => {
-        // Create a proper copy with nested objects to avoid reference issues
         const scheduleCopy: DisplaySchedule = {
             ...schedule,
             farmView: schedule.farmView ? { ...schedule.farmView } : undefined,
@@ -279,16 +274,13 @@ const StaffSchedulesPage: React.FC = () => {
         return formatDate(dateString)
     }, [])
 
-    // Handle modal open/close with proper cleanup
     const handleModalOpenChange = useCallback((open: boolean) => {
         setIsScheduleDetailOpen(open)
         if (!open) {
-            // Clear selected schedule when modal closes to prevent stale data
             setSelectedScheduleDetail(null)
         }
     }, [])
 
-    // Memoize crop requirements to prevent expensive re-computations
     const memoizedCropRequirements = useMemo(() => {
         if (!selectedScheduleDetail?.cropRequirement) return []
         return selectedScheduleDetail.cropRequirement

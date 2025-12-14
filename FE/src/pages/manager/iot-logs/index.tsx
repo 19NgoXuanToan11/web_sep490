@@ -18,6 +18,16 @@ const formatSensorValue = (value: number) => {
     return value % 1 === 0 ? value.toFixed(0) : value.toFixed(1)
 }
 
+const translateSensorName = (sensorName: string): string => {
+    const sensorNameMap: Record<string, string> = {
+        'Soil Moisture Sensor': 'Cảm biến độ ẩm đất',
+        'Light Sensor': 'Cảm biến ánh sáng',
+        'Temperature Sensor': 'Cảm biến nhiệt độ',
+        'Humidity Sensor': 'Cảm biến độ ẩm',
+    }
+    return sensorNameMap[sensorName] || sensorName
+}
+
 const ManagerIoTLogsPage: React.FC = () => {
     const { toast } = useToast()
     const [logs, setLogs] = useState<BlynkLogEntry[]>([])
@@ -259,7 +269,7 @@ const ManagerIoTLogsPage: React.FC = () => {
                                     className="border rounded-lg p-4 flex flex-col gap-2 bg-gray-50"
                                 >
                                     <div className="flex items-center justify-between">
-                                        <h3 className="font-semibold text-gray-900">{sensor.sensorName}</h3>
+                                        <h3 className="font-semibold text-gray-900">{translateSensorName(sensor.sensorName)}</h3>
                                         <Badge variant="outline">{sensor.count} bản ghi</Badge>
                                     </div>
                                     <div className="text-3xl font-bold text-green-700">
@@ -287,7 +297,7 @@ const ManagerIoTLogsPage: React.FC = () => {
                                 <SelectItem value="all">Tất cả</SelectItem>
                                 {sensors.map(sensor => (
                                     <SelectItem key={sensor} value={sensor}>
-                                        {sensor}
+                                        {translateSensorName(sensor)}
                                     </SelectItem>
                                 ))}
                             </SelectContent>
@@ -330,7 +340,7 @@ const ManagerIoTLogsPage: React.FC = () => {
                                         id: 'sensor',
                                         header: 'Cảm biến',
                                         render: (log) => (
-                                            <div className="font-semibold">{log.sensorName}</div>
+                                            <div className="font-semibold">{translateSensorName(log.sensorName)}</div>
                                         ),
                                     },
                                     {

@@ -14,12 +14,9 @@ import { Loader2 } from 'lucide-react'
 import { farmService } from '@/shared/api/farmService'
 import { cropService } from '@/shared/api/cropService'
 import { accountApi } from '@/shared/api/auth'
-import { farmActivityService } from '@/shared/api/farmActivityService'
 
 interface NewIrrigationCalendarProps {
     className?: string
-    selectedTab?: string
-    onTabChange?: (tab: string) => void
 }
 
 const buildEmptyScheduleForm = (): CreateScheduleRequest => ({
@@ -45,7 +42,7 @@ const isActiveStatus = (status: number | string | null | undefined) => {
     return status === 1
 }
 
-export function NewIrrigationCalendar({ className, selectedTab, onTabChange }: NewIrrigationCalendarProps) {
+export function NewIrrigationCalendar({ className }: NewIrrigationCalendarProps) {
     const { toast } = useToast()
     const [schedules, setSchedules] = useState<ScheduleListItem[]>([])
     const [loading, setLoading] = useState(true)
@@ -75,7 +72,6 @@ export function NewIrrigationCalendar({ className, selectedTab, onTabChange }: N
     const [farms, setFarms] = useState<{ id: number; name: string }[]>([])
     const [crops, setCrops] = useState<{ id: number; name: string }[]>([])
     const [staffs, setStaffs] = useState<{ id: number; name: string }[]>([])
-    const [activities, setActivities] = useState<{ id: number; name: string }[]>([])
     const [metaLoading, setMetaLoading] = useState(false)
 
     // Load schedules
@@ -103,20 +99,15 @@ export function NewIrrigationCalendar({ className, selectedTab, onTabChange }: N
     const loadMetaData = useCallback(async () => {
         setMetaLoading(true)
         try {
-            const [farmsRes, cropsRes, staffsRes, activitiesRes] = await Promise.all([
+            const [farmsRes, cropsRes, staffsRes] = await Promise.all([
                 farmService.getAllFarms().catch(() => []),
                 cropService.getAllCropsList(1000).catch(() => []),
                 accountApi.getAll({ role: 'Staff', pageSize: 1000 }).catch(() => ({ items: [] })),
-                farmActivityService.getActiveFarmActivities({ pageIndex: 1, pageSize: 1000 }).catch(() => ({ items: [] })),
             ])
 
             setFarms(Array.isArray(farmsRes) ? farmsRes.map(f => ({ id: f.farmId, name: f.farmName || '' })) : [])
             setCrops(Array.isArray(cropsRes) ? cropsRes.map(c => ({ id: c.cropId, name: c.cropName || '' })) : [])
             setStaffs(Array.isArray(staffsRes.items) ? staffsRes.items.map(s => ({ id: s.accountId, name: s.email || '' })) : [])
-            setActivities(Array.isArray(activitiesRes.items) ? activitiesRes.items.map(a => ({
-                id: a.farmActivitiesId,
-                name: a.activityType || ''
-            })) : [])
         } catch (error) {
             console.error('Error loading meta data:', error)
         } finally {

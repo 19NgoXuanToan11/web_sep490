@@ -9,7 +9,6 @@ import { Button } from '@/shared/ui/button'
 import type { ScheduleListItem } from '@/shared/api/scheduleService'
 import { AllDayWeekView } from './AllDayWeekView'
 import { AllDayDayView } from './AllDayDayView'
-import { StatusBadge } from './components/StatusBadge'
 
 // View type definition (not exported from react-big-calendar)
 export type View = 'month' | 'week' | 'day' | 'agenda'

@@ -29,7 +29,6 @@ interface Category {
   products?: any[]
 }
 
-// Component riêng cho Action Menu để tránh re-render issues
 interface CategoryActionMenuProps {
   category: Category
   onEdit: (category: Category) => void
@@ -42,8 +41,7 @@ const CategoryActionMenu: React.FC<CategoryActionMenuProps> = React.memo(({ cate
   const handleEdit = useCallback((e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    setOpen(false) // Đóng menu ngay lập tức
-    // Sử dụng setTimeout để tránh blocking UI
+    setOpen(false)
     setTimeout(() => {
       onEdit(category)
     }, 0)
@@ -52,8 +50,7 @@ const CategoryActionMenu: React.FC<CategoryActionMenuProps> = React.memo(({ cate
   const handleDelete = useCallback((e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    setOpen(false) // Đóng menu ngay lập tức
-    // Sử dụng setTimeout để tránh blocking UI
+    setOpen(false)
     setTimeout(() => {
       onDelete(category)
     }, 0)
@@ -116,8 +113,6 @@ export default function CategoriesPage() {
   const stats = useMemo(() => {
     const total = categories.length
 
-    // Nếu API có trả về danh sách sản phẩm trong từng category thì tận dụng,
-    // còn không thì coi như 0 để không làm sai lệch số liệu.
     const withProducts = categories.filter(c => Array.isArray(c.products) && c.products.length > 0).length
 
     return {
@@ -243,7 +238,6 @@ export default function CategoriesPage() {
     <ManagerLayout>
       <div className="container mx-auto px-4 py-8">
         <div className="space-y-6">
-          { }
           <ManagementPageHeader
             title="Quản lý danh mục"
             description="Quản lý danh mục sản phẩm để tổ chức kho"
@@ -261,7 +255,6 @@ export default function CategoriesPage() {
             }
           />
 
-          { }
           <div className="grid gap-4 md:grid-cols-3">
             <Card>
               <CardContent className="p-4">
@@ -306,7 +299,6 @@ export default function CategoriesPage() {
             </Card>
           </div>
 
-          { }
           <StaffFilterBar>
             <div className="flex-1">
               <div className="relative">
@@ -329,7 +321,6 @@ export default function CategoriesPage() {
             </div>
           </StaffFilterBar>
 
-          { }
           <Card>
             <CardContent className="p-0">
               {loading ? (
@@ -378,7 +369,6 @@ export default function CategoriesPage() {
         </div>
       </div>
 
-      { }
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -411,7 +401,6 @@ export default function CategoriesPage() {
         </DialogContent>
       </Dialog>
 
-      { }
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -444,8 +433,7 @@ export default function CategoriesPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      { }
+                  
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>

@@ -44,7 +44,6 @@ const RealTimeIoTDashboard: React.FC = () => {
   const [servoAngle, setServoAngle] = useState([90])
   const [retryCount, setRetryCount] = useState(0)
 
-  // Threshold configuration state
   const [soilLowThreshold, setSoilLowThreshold] = useState<number>(0)
   const [soilHighThreshold, setSoilHighThreshold] = useState<number>(0)
   const [ldrLowThreshold, setLdrLowThreshold] = useState<number>(0)
@@ -55,14 +54,12 @@ const RealTimeIoTDashboard: React.FC = () => {
   const [isThresholdModalOpen, setIsThresholdModalOpen] = useState(false)
   const [isLoadingThresholds, setIsLoadingThresholds] = useState(false)
 
-  // Validation errors state
   const [soilValidationError, setSoilValidationError] = useState<string | null>(null)
   const [ldrValidationError, setLdrValidationError] = useState<string | null>(null)
   const [lightValidationError, setLightValidationError] = useState<string | null>(null)
 
   const REFRESH_INTERVAL = 5000
 
-  // Validation functions
   const validateSoilThresholds = (low: number, high: number): string | null => {
     if (high <= low) {
       return 'Ngưỡng cao phải lớn hơn ngưỡng thấp'
@@ -123,7 +120,6 @@ const RealTimeIoTDashboard: React.FC = () => {
     return () => clearInterval(interval)
   }, [fetchSensorData, manualControl])
 
-  // Fetch threshold values when modal opens
   useEffect(() => {
     if (isThresholdModalOpen) {
       const fetchThresholds = async () => {
@@ -131,9 +127,6 @@ const RealTimeIoTDashboard: React.FC = () => {
         try {
           const rawData = await blynkService.getRawBlynkData()
 
-          // Map v8, v9, v10, v11 to threshold values
-          // v8 = Soil Moisture Low, v9 = Soil Moisture High
-          // v10 = Light Intensity Low, v11 = Light Intensity High
           if (rawData.v8 !== undefined && rawData.v8 !== null && rawData.v8 !== '') {
             const v8 = parseInt(rawData.v8)
             if (!isNaN(v8)) setSoilLowThreshold(v8)
@@ -150,8 +143,6 @@ const RealTimeIoTDashboard: React.FC = () => {
             const v11 = parseInt(rawData.v11)
             if (!isNaN(v11)) setLdrHighThreshold(v11)
           }
-          // Map v13, v14 to light threshold values
-          // v13 = Light On Threshold, v14 = Light Off Threshold
           if (rawData.v13 !== undefined && rawData.v13 !== null && rawData.v13 !== '') {
             const v13 = parseInt(rawData.v13)
             if (!isNaN(v13)) setLightOnThreshold(v13)
@@ -173,14 +164,12 @@ const RealTimeIoTDashboard: React.FC = () => {
 
       fetchThresholds()
     } else {
-      // Clear validation errors when modal closes
       setSoilValidationError(null)
       setLdrValidationError(null)
       setLightValidationError(null)
     }
   }, [isThresholdModalOpen, toast])
 
-  // Validate thresholds when values change
   useEffect(() => {
     if (isThresholdModalOpen && !isLoadingThresholds) {
       const soilError = validateSoilThresholds(soilLowThreshold, soilHighThreshold)
@@ -192,7 +181,6 @@ const RealTimeIoTDashboard: React.FC = () => {
     }
   }, [isThresholdModalOpen, soilLowThreshold, soilHighThreshold, ldrLowThreshold, ldrHighThreshold, lightOnThreshold, lightOffThreshold, isLoadingThresholds])
 
-  // Đảm bảo máy bơm luôn bật khi ở chế độ tự động
   useEffect(() => {
     if (!manualControl && !pumpControl) {
       setPumpControl(true)
@@ -241,9 +229,8 @@ const RealTimeIoTDashboard: React.FC = () => {
       if (result.success) {
         setManualControl(newState)
 
-        // Khi tắt chế độ thủ công, tự động bật máy bơm
         if (!newState) {
-          setPumpControl(true) // Cập nhật state ngay lập tức
+          setPumpControl(true)
           await handlePumpControl(true)
         }
 
@@ -324,7 +311,6 @@ const RealTimeIoTDashboard: React.FC = () => {
     type: 'soil-low' | 'soil-high' | 'ldr-low' | 'ldr-high' | 'light-on' | 'light-off',
     value: number
   ) => {
-    // Validate before making API call
     let validationError: string | null = null
 
     if (type === 'soil-low' || type === 'soil-high') {
@@ -678,7 +664,6 @@ const RealTimeIoTDashboard: React.FC = () => {
                           const val = parseInt(e.target.value) || 0
                           if (val >= 0 && val <= 100) {
                             setSoilLowThreshold(val)
-                            // Validate in real-time
                             const error = validateSoilThresholds(val, soilHighThreshold)
                             setSoilValidationError(error)
                           }
@@ -724,7 +709,6 @@ const RealTimeIoTDashboard: React.FC = () => {
                           const val = parseInt(e.target.value) || 0
                           if (val >= 0 && val <= 100) {
                             setSoilHighThreshold(val)
-                            // Validate in real-time
                             const error = validateSoilThresholds(soilLowThreshold, val)
                             setSoilValidationError(error)
                           }
@@ -779,7 +763,6 @@ const RealTimeIoTDashboard: React.FC = () => {
                           const val = parseInt(e.target.value) || 0
                           if (val >= 0 && val <= 1023) {
                             setLdrLowThreshold(val)
-                            // Validate in real-time
                             const error = validateLdrThresholds(val, ldrHighThreshold)
                             setLdrValidationError(error)
                           }
@@ -825,7 +808,6 @@ const RealTimeIoTDashboard: React.FC = () => {
                           const val = parseInt(e.target.value) || 0
                           if (val >= 0 && val <= 1023) {
                             setLdrHighThreshold(val)
-                            // Validate in real-time
                             const error = validateLdrThresholds(ldrLowThreshold, val)
                             setLdrValidationError(error)
                           }
@@ -880,7 +862,6 @@ const RealTimeIoTDashboard: React.FC = () => {
                           const val = parseInt(e.target.value) || 0
                           if (val >= 0 && val <= 1023) {
                             setLightOnThreshold(val)
-                            // Validate in real-time
                             const error = validateLightThresholds(val, lightOffThreshold)
                             setLightValidationError(error)
                           }
@@ -926,7 +907,6 @@ const RealTimeIoTDashboard: React.FC = () => {
                           const val = parseInt(e.target.value) || 0
                           if (val >= 0 && val <= 1023) {
                             setLightOffThreshold(val)
-                            // Validate in real-time
                             const error = validateLightThresholds(lightOnThreshold, val)
                             setLightValidationError(error)
                           }

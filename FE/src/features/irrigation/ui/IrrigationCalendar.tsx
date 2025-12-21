@@ -524,7 +524,6 @@ export function IrrigationCalendar({
                             />
                         </div>
                     ) : view === 'week' ? (
-                        /* Week view: Custom All-Day Week Board */
                         <div className="rbc-calendar-wrapper">
                             <CustomToolbar
                                 date={date}
@@ -544,7 +543,6 @@ export function IrrigationCalendar({
                             />
                         </div>
                     ) : view === 'day' ? (
-                        /* Day view: Custom All-Day Day Board */
                         <div className="rbc-calendar-wrapper">
                             <CustomToolbar
                                 date={date}
@@ -563,8 +561,7 @@ export function IrrigationCalendar({
                                 getStatusBadge={getStatusBadge}
                             />
                         </div>
-                    ) : (
-                        /* Agenda/List view: Keep existing or use RBC agenda */
+                    ) : (           
                         <div style={{ height: '600px' }} className="rbc-calendar-wrapper">
                             <Calendar
                                 localizer={localizer}

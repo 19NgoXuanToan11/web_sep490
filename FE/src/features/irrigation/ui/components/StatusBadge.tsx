@@ -13,7 +13,6 @@ export function StatusBadge({
     className = '',
     size = 'md'
 }: StatusBadgeProps) {
-    // Determine if active based on status or isActive prop
     const active = isActive !== undefined
         ? isActive
         : (typeof status === 'number' ? status === 1 : status === 'ACTIVE')

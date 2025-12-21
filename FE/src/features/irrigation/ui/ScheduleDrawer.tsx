@@ -17,8 +17,7 @@ import { cn } from '@/shared/lib/utils'
 import type { ScheduleListItem } from '@/shared/api/scheduleService'
 import type { CalendarEvent } from './IrrigationCalendar'
 import { formatDate, formatDateTime } from '@/shared/lib/date-utils'
-
-// Plant stage translation
+    
 const plantStageLabels: Record<string, string> = {
     Sowing: 'Gieo hạt',
     Germination: 'Nảy mầm',
@@ -76,7 +75,6 @@ export function ScheduleDrawer({
         })
     }
 
-    // Detect mobile for responsive drawer
     const [isMobile, setIsMobile] = React.useState(false)
     useEffect(() => {
         const checkMobile = () => {
@@ -87,7 +85,6 @@ export function ScheduleDrawer({
         return () => window.removeEventListener('resize', checkMobile)
     }, [])
 
-    // Focus trap and ESC key handling
     const drawerRef = useRef<HTMLDivElement>(null)
     useEffect(() => {
         if (!open) {
@@ -110,7 +107,6 @@ export function ScheduleDrawer({
         }
     }, [open, onOpenChange])
 
-    // Day Drawer
     if (mode === 'day' && selectedDate) {
         if (isMobile) {
             return (
@@ -194,7 +190,6 @@ export function ScheduleDrawer({
             )
         }
 
-        // Desktop: right-side drawer
         const drawerContent = (
             <>
                 {open && (
@@ -318,7 +313,6 @@ export function ScheduleDrawer({
         return createPortal(drawerContent, document.body)
     }
 
-    // Event Drawer - Show single schedule details
     if (mode === 'event' && selectedEvent) {
         const schedule = selectedEvent.resource
         const isActive = typeof schedule.status === 'number' ? schedule.status === 1 : schedule.status === 'ACTIVE'
@@ -416,7 +410,6 @@ export function ScheduleDrawer({
             )
         }
 
-        // Desktop: right-side drawer
         const drawerContent = (
             <>
                 {open && (
@@ -535,7 +528,6 @@ export function ScheduleDrawer({
                                         </div>
                                     </div>
 
-                                    {/* Action Buttons */}
                                     {(onEdit || onAssignStaff || onToggleStatus) && (
                                         <div className="pt-4 border-t space-y-2">
                                             {onEdit && (

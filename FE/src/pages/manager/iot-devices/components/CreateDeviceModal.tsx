@@ -19,7 +19,7 @@ interface CreateDeviceFormState {
   deviceName: string
   pinCode: string
   deviceType: string
-  unit: string // UI-only field, not sent to backend
+  unit: string
   expiryDate?: string
 }
 
@@ -78,27 +78,21 @@ export const CreateDeviceModal: React.FC<CreateDeviceModalProps> = ({
     try {
       setLoading(true)
 
-      // Format expiryDate to YYYY-MM-DD format if provided
       let formattedExpiryDate: string | undefined = undefined
       if (formData.expiryDate) {
-        // Ensure date is in YYYY-MM-DD format
         const date = new Date(formData.expiryDate)
         if (!isNaN(date.getTime())) {
           formattedExpiryDate = date.toISOString().split('T')[0]
         }
       }
 
-      // Only send fields the backend expects (matching IOTRequest)
       const payload: IoTDeviceRequest = {
         deviceName: formData.deviceName,
-        pinCode: formData.pinCode || undefined, // Send undefined if empty
+        pinCode: formData.pinCode || undefined,
         deviceType: formData.deviceType,
         expiryDate: formattedExpiryDate,
-        // Note: farmDetailsId is not sent as backend doesn't accept it
-        // Note: unit is UI-only field, not sent to backend
       }
 
-      // Call API and get response with all mapped fields
       const createdDevice = await iotDeviceService.createDevice(payload)
 
       toast({
@@ -106,7 +100,6 @@ export const CreateDeviceModal: React.FC<CreateDeviceModalProps> = ({
         description: `Đã tạo thiết bị IoT "${createdDevice.deviceName || formData.deviceName}" thành công`,
       })
 
-      // Reset form
       setFormData({
         deviceName: '',
         pinCode: '',

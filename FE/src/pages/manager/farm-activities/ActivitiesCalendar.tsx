@@ -11,10 +11,8 @@ import { AllDayWeekView } from './AllDayWeekView'
 import { AllDayDayView } from './AllDayDayView'
 import { StatusBadge } from './components/StatusBadge'
 
-// View type definition (not exported from react-big-calendar)
 export type View = 'month' | 'week' | 'day' | 'agenda'
 
-// SlotInfo type definition (not exported from react-big-calendar)
 export interface SlotInfo {
   start: Date
   end: Date
@@ -35,16 +33,14 @@ export interface SlotInfo {
   }
 }
 
-// Configure moment for Vietnamese locale with Monday as week start
 try {
   require('moment/locale/vi')
   moment.locale('vi', {
     week: {
-      dow: 1, // Monday is the first day of the week
+      dow: 1,
     },
   })
 } catch {
-  // Fallback if locale not available
   moment.locale('en', {
     week: {
       dow: 1,
@@ -52,12 +48,10 @@ try {
   })
 }
 
-// Create localizer using moment (required for react-big-calendar v1.x)
 const localizer = momentLocalizer(moment)
 
-// Calendar Event interface (Event is not exported from react-big-calendar, so we define it)
 export interface CalendarEvent {
-  resource: FarmActivity // Store full backend activity object
+  resource: FarmActivity
   title: string
   start: Date
   end: Date
@@ -511,7 +505,6 @@ export function ActivitiesCalendar({
               />
             </div>
           ) : view === 'week' ? (
-            /* Week view: Custom All-Day Week Board */
             <div className="rbc-calendar-wrapper">
               <CustomToolbar
                 date={date}
@@ -532,7 +525,6 @@ export function ActivitiesCalendar({
               />
             </div>
           ) : view === 'day' ? (
-            /* Day view: Custom All-Day Day Board */
             <div className="rbc-calendar-wrapper">
               <CustomToolbar
                 date={date}
@@ -552,8 +544,7 @@ export function ActivitiesCalendar({
                 isActivityOverdue={isActivityOverdue}
               />
             </div>
-          ) : (
-            /* Agenda/List view: Keep existing or use RBC agenda */
+          ) : (   
             <div style={{ height: '600px' }} className="rbc-calendar-wrapper">
               <Calendar
                 localizer={localizer}

@@ -4,7 +4,7 @@ try {
   require('moment/locale/vi')
   moment.locale('vi', {
     week: {
-      dow: 1, // Monday is the first day of the week
+      dow: 1,
     },
   })
 } catch {

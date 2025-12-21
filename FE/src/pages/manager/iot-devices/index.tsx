@@ -25,7 +25,6 @@ import { DeviceDetailsModal } from './components/DeviceDetailsModal'
 import { UpdateDeviceModal } from './components/UpdateDeviceModal'
 import { ManagementPageHeader, StaffFilterBar, StaffDataTable, type StaffDataTableColumn } from '@/shared/ui'
 
-// Component riêng cho Action Menu để tránh re-render issues
 interface DeviceActionMenuProps {
   device: IoTDevice
   isActive: boolean
@@ -48,8 +47,7 @@ const DeviceActionMenu: React.FC<DeviceActionMenuProps> = React.memo(({
   const handleViewDetails = useCallback((e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    setOpen(false) // Đóng menu ngay lập tức
-    // Sử dụng setTimeout để tránh blocking UI
+    setOpen(false)
     setTimeout(() => {
       onViewDetails(device)
     }, 0)
@@ -58,8 +56,7 @@ const DeviceActionMenu: React.FC<DeviceActionMenuProps> = React.memo(({
   const handleEdit = useCallback((e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    setOpen(false) // Đóng menu ngay lập tức
-    // Sử dụng setTimeout để tránh blocking UI
+    setOpen(false)
     setTimeout(() => {
       onEdit(device)
     }, 0)
@@ -150,7 +147,6 @@ const ManagerIoTDevicesPage: React.FC = () => {
   }
 
   const computedStats = useMemo(() => {
-    // Ưu tiên số liệu từ API thống kê, fallback sang tính toán từ danh sách thiết bị nếu cần
     const apiTotal = statistics.total || 0
     const apiActive = statistics.active || 0
     const apiInactive = statistics.inactive || 0
@@ -284,7 +280,6 @@ const ManagerIoTDevicesPage: React.FC = () => {
     if (status === undefined) {
       return <Badge variant="outline">Không xác định</Badge>
     }
-    // Xử lý cả string và number
     const normalizedStatus = typeof status === 'string'
       ? status.toUpperCase()
       : String(status)
@@ -303,11 +298,9 @@ const ManagerIoTDevicesPage: React.FC = () => {
       device.deviceName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       device.deviceType?.toLowerCase().includes(searchQuery.toLowerCase())
 
-    // Convert string filter from Select into number for safe comparisons
     const selectedStatus =
       statusFilter === 'all' ? null : Number.isNaN(Number(statusFilter)) ? null : Number(statusFilter)
 
-    // Check status match - handle both string "ACTIVE"/"DEACTIVATED" and number 1/0
     const matchesStatus =
       selectedStatus === null ||
       (selectedStatus === 1 && isActiveStatus(device.status)) ||

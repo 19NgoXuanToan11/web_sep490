@@ -191,7 +191,6 @@ export default function ManagerDashboard() {
       const stats = await iotDeviceService.getDeviceStatistics()
       setIotDeviceStats(stats)
     } catch (error) {
-      // handle silently on dashboard
     }
   }, [])
 
@@ -204,7 +203,6 @@ export default function ManagerDashboard() {
         description: translateWeatherDescription(weatherData.description),
       })
     } catch (error) {
-      // keep previous weather state
     } finally {
       setIsLoadingWeather(false)
     }
@@ -249,10 +247,6 @@ export default function ManagerDashboard() {
       if (orderResult.status === 'fulfilled') {
         const orderData = orderResult.value
         const orderItems = orderData?.items ?? []
-        // Debug: Log order data structure
-        if (orderItems.length > 0) {
-
-        }
         setOrders(orderItems)
         setTotalOrdersCount(orderData?.totalItemCount ?? 0)
       } else {
@@ -296,8 +290,6 @@ export default function ManagerDashboard() {
 
   const cropStats = useMemo(() => {
     const active = crops.filter(crop => crop.status?.toLowerCase() === 'active').length
-    // Note: harvestDate is not available on Crop type, so setting to 0
-    // To track nearing harvest, we would need schedule data instead
     const nearingHarvest = 0
 
     return {
@@ -448,7 +440,6 @@ export default function ManagerDashboard() {
   }, [orders])
 
   const getStatusBadge = (status: number, paymentStatus?: string) => {
-    // Nếu thanh toán thất bại, hiển thị "Thất bại" thay vì "Đang chuẩn bị"
     let label = getOrderStatusLabel(status)
     let variant = getOrderStatusVariant(status)
 
@@ -461,9 +452,6 @@ export default function ManagerDashboard() {
   }
 
   const getDisplayStatusBadge = (order: Order) => {
-    // Luôn hiển thị trạng thái ĐƠN HÀNG (Đang giao, Đã xác nhận, Hoàn thành...)
-    // Trạng thái thanh toán đã có cột riêng "Thanh toán"
-    // Nhưng nếu thanh toán thất bại, hiển thị "Thất bại" thay vì "Đang chuẩn bị"
     const normalizedStatus = normalizeOrderStatus(order.status)
     const paymentStatus = derivePaymentStatus({
       status: normalizedStatus,
@@ -472,7 +460,6 @@ export default function ManagerDashboard() {
     return getStatusBadge(normalizedStatus, paymentStatus)
   }
 
-  // Use centralized date formatting utility
   const formatDateOnly = (dateString: string) => {
     return formatDate(dateString)
   }
@@ -480,7 +467,6 @@ export default function ManagerDashboard() {
   const dashboardMetrics = useMemo(() => {
     const metrics: MetricCardProps[] = []
 
-    // Farm Management Metrics
     metrics.push({
       title: 'Thiết bị IoT hoạt động',
       value: `${iotDeviceStats.active}/${iotDeviceStats.total}`,
@@ -523,7 +509,6 @@ export default function ManagerDashboard() {
       description: 'Dựa trên danh sách cây trồng',
     })
 
-    // Business Metrics
     metrics.push({
       title: 'Tổng đơn hàng',
       value: businessStats.totalOrders,

@@ -66,7 +66,6 @@ export function ActivityDrawer({
     })
   }
 
-  // Detect mobile for responsive drawer
   const [isMobile, setIsMobile] = React.useState(false)
   useEffect(() => {
     const checkMobile = () => {
@@ -77,16 +76,13 @@ export function ActivityDrawer({
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
 
-  // Focus trap and ESC key handling
   const drawerRef = useRef<HTMLDivElement>(null)
   useEffect(() => {
     if (!open) {
-      // Restore body scroll when drawer closes
       document.body.style.overflow = ''
       return
     }
 
-    // Prevent body scroll when drawer is open
     document.body.style.overflow = 'hidden'
 
     const handleEscape = (e: KeyboardEvent) => {
@@ -102,10 +98,8 @@ export function ActivityDrawer({
     }
   }, [open, onOpenChange])
 
-  // Day Drawer
   if (mode === 'day' && selectedDate) {
     if (isMobile) {
-      // Mobile: bottom sheet
       return (
         <Drawer open={open} onOpenChange={onOpenChange}>
           <DrawerContent className="max-h-[90vh]">
@@ -244,7 +238,6 @@ export function ActivityDrawer({
       )
     }
 
-    // Desktop: right-side drawer
     const drawerContent = (
       <>
         {open && (
@@ -431,7 +424,6 @@ export function ActivityDrawer({
       : drawerContent
   }
 
-  // Event Drawer
   if (mode === 'event' && selectedEvent) {
     const activity = selectedEvent.resource
     const progress = getActivityProgress(activity)
@@ -441,8 +433,7 @@ export function ActivityDrawer({
     const isActive = status === 'ACTIVE' || status === 'IN_PROGRESS'
     const isCompleted = status === 'COMPLETED'
 
-    if (isMobile) {
-      // Mobile: bottom sheet
+    if (isMobile) { 
       return (
         <Drawer open={open} onOpenChange={onOpenChange}>
           <DrawerContent className="max-h-[90vh]">
@@ -564,7 +555,6 @@ export function ActivityDrawer({
       )
     }
 
-    // Desktop: right-side drawer with enterprise action layout
     const drawerContent = (
       <>
         {open && (

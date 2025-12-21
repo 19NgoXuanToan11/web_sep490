@@ -63,15 +63,12 @@ const INITIAL_FORM_STATE: CropFormData = {
   images: '',
 }
 
-// Helper function to check if crop is active (handles all case variations)
 const isActiveStatus = (status: string | undefined | null): boolean => {
   if (!status) return false
   const normalized = status.toUpperCase()
   return normalized === 'ACTIVE'
 }
 
-
-// Component riêng cho Action Menu để tránh re-render issues
 interface CropActionMenuProps {
   crop: Crop
   onViewDetails: (crop: Crop) => void

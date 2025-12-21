@@ -38,16 +38,13 @@ const AllDayWeekViewComponent = ({
     const days = rangeWeek(validDate)
     const activities = events.map(e => e.resource)
 
-    // Sort activities: overdue/at-risk first, then by status priority
     const sortActivities = (items: FarmActivity[]): FarmActivity[] => {
         return [...items].sort((a, b) => {
-            // Overdue/at-risk first
             const aOverdue = isActivityOverdue ? isActivityOverdue(a) : false
             const bOverdue = isActivityOverdue ? isActivityOverdue(b) : false
             if (aOverdue && !bOverdue) return -1
             if (!aOverdue && bOverdue) return 1
 
-            // Then by status priority
             const statusOrder: Record<string, number> = {
                 IN_PROGRESS: 0,
                 ACTIVE: 1,
@@ -57,8 +54,7 @@ const AllDayWeekViewComponent = ({
             const aOrder = statusOrder[(a.status || '').toUpperCase()] ?? 99
             const bOrder = statusOrder[(b.status || '').toUpperCase()] ?? 99
             if (aOrder !== bOrder) return aOrder - bOrder
-
-            // Then by start date
+            
             const aStart = a.startDate ? new Date(a.startDate).getTime() : 0
             const bStart = b.startDate ? new Date(b.startDate).getTime() : 0
             return aStart - bStart
@@ -73,7 +69,6 @@ const AllDayWeekViewComponent = ({
 
     const handleActivityClick = (activity: FarmActivity) => {
         if (onSelectEvent) {
-            // Find the event that corresponds to this activity
             const event = events.find(e => e.resource.farmActivitiesId === activity.farmActivitiesId)
             if (event) {
                 onSelectEvent(event)
@@ -84,7 +79,6 @@ const AllDayWeekViewComponent = ({
     return (
         <div className="grid grid-cols-7 gap-3 p-4">
             {days.map((day) => {
-                // Validate day before using it
                 if (!day || !(day instanceof Date) || isNaN(day.getTime())) {
                     return null
                 }
@@ -168,7 +162,6 @@ AllDayWeekViewComponent.range = (date: Date, { localizer: _localizer }: any) => 
 }
 
 AllDayWeekViewComponent.navigate = (date: Date, action: any, { localizer: _localizer }: any) => {
-    // Validate input date
     const validDate = date && date instanceof Date && !isNaN(date.getTime())
         ? date
         : new Date()
@@ -188,7 +181,6 @@ AllDayWeekViewComponent.navigate = (date: Date, action: any, { localizer: _local
             result = validDate
     }
 
-    // Validate result date
     if (!result || !(result instanceof Date) || isNaN(result.getTime())) {
         return new Date()
     }
@@ -197,7 +189,6 @@ AllDayWeekViewComponent.navigate = (date: Date, action: any, { localizer: _local
 }
 
 AllDayWeekViewComponent.title = (date: Date, { localizer: _localizer }: any) => {
-    // Validate input date
     const validDate = date && date instanceof Date && !isNaN(date.getTime())
         ? date
         : new Date()

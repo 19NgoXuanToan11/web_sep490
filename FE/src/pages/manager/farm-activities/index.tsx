@@ -35,7 +35,6 @@ import { ActivitiesCalendar, mapActivitiesToCalendarEvents, type CalendarEvent, 
 import { ActivityDrawer } from './ActivityDrawer'
 import { StatusBadge } from './components/StatusBadge'
 
-// Component riêng cho Action Menu
 interface ActivityActionMenuProps {
   activity: FarmActivity
   onView: (activity: FarmActivity) => void
@@ -135,7 +134,6 @@ const ActivityActionMenu: React.FC<ActivityActionMenuProps> = React.memo(({ acti
 
 ActivityActionMenu.displayName = 'ActivityActionMenu'
 
-// Enhanced Activity Timeline Card Component
 interface ActivityTimelineCardProps {
   activity: FarmActivity
   getActivityTypeLabel: (type: string | null | undefined) => string
@@ -183,7 +181,6 @@ const ActivityTimelineCard: React.FC<ActivityTimelineCardProps> = React.memo(({
       onClick={() => onView(activity)}
     >
       <CardContent className="p-4">
-        {/* Header with Type and Actions */}
         <div className="flex items-start justify-between mb-3">
           <div className="flex-1 min-w-0">
             <h4 className="text-sm font-semibold text-slate-900 truncate">
@@ -200,14 +197,12 @@ const ActivityTimelineCard: React.FC<ActivityTimelineCardProps> = React.memo(({
           </div>
         </div>
 
-        {/* Date Range */}
         <div className="flex items-center gap-2 mb-3 text-xs text-slate-600">
           <span className="font-medium">
             {formatDisplayDate(activity.startDate)} - {formatDisplayDate(activity.endDate)}
           </span>
         </div>
 
-        {/* Progress Bar (for active/in-progress activities) */}
         {isActive && !isCompleted && (
           <div className="mb-3">
             <div className="flex items-center justify-between mb-1.5">
@@ -223,7 +218,6 @@ const ActivityTimelineCard: React.FC<ActivityTimelineCardProps> = React.memo(({
           </div>
         )}
 
-        {/* Status and Time Indicators */}
         <div className="flex items-center justify-between gap-2">
           <div className="flex-1">
             {getStatusBadge(activity.status, overdue)}
@@ -270,7 +264,6 @@ export default function FarmActivitiesPage() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
 
-  // Pagination state
   const [pageIndex, setPageIndex] = useState(1)
   const pageSize = 10
   const [totalPages, setTotalPages] = useState(0)
@@ -299,10 +292,9 @@ export default function FarmActivitiesPage() {
     inProgress: 0,
     completed: 0,
     deactivated: 0,
-    atRisk: 0, // Activities that are past due or approaching deadline
+    atRisk: 0,
   })
 
-  // Get today's date in YYYY-MM-DD format for date input min attribute
   const getTodayDateString = (): string => {
     const today = new Date()
     const year = today.getFullYear()
@@ -313,8 +305,6 @@ export default function FarmActivitiesPage() {
 
   const todayDateString = getTodayDateString()
 
-  // Enum ActivityType từ backend (C#):
-  // Mapping tất cả các loại hoạt động từ backend
   const activityTypeMap: Record<string, string> = {
     SoilPreparation: 'Chuẩn bị đất trước gieo',
     Sowing: 'Gieo hạt',
@@ -327,7 +317,6 @@ export default function FarmActivitiesPage() {
     CleaningFarmArea: 'Dọn dẹp đồng ruộng',
   }
 
-  // Danh sách activity types cho dropdown (giữ nguyên format cũ cho tương thích)
   const activityTypes = [
     { value: 'SoilPreparation', label: 'Chuẩn bị đất trước gieo' },
     { value: 'Sowing', label: 'Gieo hạt' },
@@ -362,7 +351,6 @@ export default function FarmActivitiesPage() {
     if (!type) return 'Không có dữ liệu'
     const activityType = activityTypes.find(at => at.value === type)
     if (activityType) return activityType.label
-    // Fallback: nếu type là string từ backend, thử map trực tiếp
     return activityTypeMap[type] || type
   }
 
@@ -388,7 +376,6 @@ export default function FarmActivitiesPage() {
       const normalizedActivities = Array.isArray(response.items)
         ? response.items.map(activity => ({
           ...activity,
-          // Giữ nguyên activityType từ backend (string như "Weeding", "Harvesting", etc.)
           activityType: activity.activityType || '',
         }))
         : []
@@ -427,7 +414,6 @@ export default function FarmActivitiesPage() {
           else if (status === 'COMPLETED') acc.completed += 1
           else if (status === 'DEACTIVATED') acc.deactivated += 1
 
-          // Calculate at-risk activities (past due or due within 2 days)
           if (status === 'ACTIVE' || status === 'IN_PROGRESS') {
             const endDate = activity.endDate ? new Date(activity.endDate) : null
             if (endDate) {
@@ -753,11 +739,9 @@ export default function FarmActivitiesPage() {
   const formatDisplayDate = (dateString: string | undefined | null): string => {
     if (!dateString) return 'Không có dữ liệu'
     try {
-      // Xử lý định dạng MM/DD/YYYY từ backend
       if (dateString.includes('/')) {
         const parts = dateString.split('/')
         if (parts.length === 3) {
-          // MM/DD/YYYY -> YYYY-MM-DD để parse
           const month = parts[0].padStart(2, '0')
           const day = parts[1].padStart(2, '0')
           const year = parts[2]
@@ -768,7 +752,6 @@ export default function FarmActivitiesPage() {
           }
         }
       }
-      // Thử parse trực tiếp nếu là ISO format hoặc format khác
       const date = new Date(dateString)
       if (!isNaN(date.getTime())) {
         return date.toLocaleDateString('vi-VN')
@@ -781,20 +764,16 @@ export default function FarmActivitiesPage() {
 
   const formatDateForInput = (dateString: string | undefined | null): string => {
     if (!dateString) return ''
-    // Xử lý định dạng MM/DD/YYYY từ backend
     if (dateString.includes('/')) {
       const parts = dateString.split('/')
       if (parts.length === 3) {
-        // MM/DD/YYYY -> YYYY-MM-DD
         const month = parts[0].padStart(2, '0')
         const day = parts[1].padStart(2, '0')
         const year = parts[2]
         return `${year}-${month}-${day}`
       }
     }
-    // Đã là format YYYY-MM-DD
     if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) return dateString
-    // ISO format với T
     if (dateString.includes('T')) return dateString.split('T')[0]
     return dateString
   }
@@ -819,7 +798,6 @@ export default function FarmActivitiesPage() {
     }
   }
 
-  // Timeline utility functions
   const getActivityProgress = useCallback((activity: FarmActivity): number => {
     if (!activity.startDate || !activity.endDate) return 0
     const start = new Date(activity.startDate).getTime()
@@ -865,12 +843,10 @@ export default function FarmActivitiesPage() {
   }, [])
 
 
-  // Map activities to calendar events
   const calendarEvents = useMemo(() => {
     return mapActivitiesToCalendarEvents(sortedActivities, getActivityTypeLabel)
   }, [sortedActivities, getActivityTypeLabel])
 
-  // Get activities for a specific date (for day drawer)
   const dayActivities = useMemo(() => {
     if (!selectedDate) return []
     const selectedDateStr = selectedDate.toISOString().split('T')[0]
@@ -881,7 +857,6 @@ export default function FarmActivitiesPage() {
     })
   }, [selectedDate, calendarEvents])
 
-  // Calendar handlers
   const handleSelectEvent = useCallback((event: CalendarEvent) => {
     setSelectedEvent(event)
     setDrawerMode('event')
@@ -894,7 +869,6 @@ export default function FarmActivitiesPage() {
       setDrawerMode('day')
       setDrawerOpen(true)
     } else if (slotInfo.action === 'select') {
-      // Create activity with selected date range
       const startDateStr = slotInfo.start.toISOString().split('T')[0]
       const endDateStr = slotInfo.end.toISOString().split('T')[0]
       setFormData({
@@ -950,9 +924,7 @@ export default function FarmActivitiesPage() {
             }
           />
 
-          {/* Bento Stats Layout - Enterprise Hierarchy */}
           <div className="grid gap-4 grid-cols-1 lg:grid-cols-4">
-            {/* Hero Tile - Spans 2 columns: Total + Active combined */}
             <Card className="lg:col-span-2">
               <CardContent className="p-6">
                 <div className="space-y-4">
@@ -980,7 +952,6 @@ export default function FarmActivitiesPage() {
               </CardContent>
             </Card>
 
-            {/* Secondary Tile 1 - At Risk */}
             <Card className="">
               <CardContent className="p-5">
                 <div className="space-y-1">
@@ -995,7 +966,6 @@ export default function FarmActivitiesPage() {
               </CardContent>
             </Card>
 
-            {/* Secondary Tile 2 - Completed */}
             <Card className="">
               <CardContent className="p-5">
                 <div className="space-y-1">
@@ -1011,11 +981,9 @@ export default function FarmActivitiesPage() {
             </Card>
           </div>
 
-          {/* Unified Command Toolbar */}
           <Card className="border-0 shadow-sm">
             <CardContent className="p-4">
               <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center">
-                {/* Search */}
                 <div className="flex-1 w-full lg:w-auto min-w-0">
                   <Input
                     id="search"
@@ -1026,7 +994,6 @@ export default function FarmActivitiesPage() {
                   />
                 </div>
 
-                {/* Filters */}
                 <div className="flex flex-wrap gap-2 flex-1 lg:flex-initial">
                   <Select value={activityTypeFilter} onValueChange={setActivityTypeFilter}>
                     <SelectTrigger className="h-9 w-full sm:w-[180px]">
@@ -1068,7 +1035,6 @@ export default function FarmActivitiesPage() {
                   </Select>
                 </div>
 
-                {/* View Toggle & Create */}
                 <div className="flex gap-2 w-full lg:w-auto">
                   <div className="flex border rounded-md p-1 bg-slate-50">
                     <Button
@@ -1108,14 +1074,13 @@ export default function FarmActivitiesPage() {
                     onClick={() => setCreateDialogOpen(true)}
                     className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 h-9"
                   >
-                    Tạo 
+                    Tạo
                   </Button>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Zone D: Main Stage - Calendar */}
           {loading ? (
             <Card className="border-0 shadow-sm">
               <CardContent className="p-8">
@@ -1159,7 +1124,6 @@ export default function FarmActivitiesPage() {
               </CardContent>
             </Card>
           ) : viewMode === 'agenda' ? (
-            /* Agenda/List View */
             <Card className="border-0 shadow-sm">
               <CardContent className="p-6">
                 <div className="space-y-6">
@@ -1198,7 +1162,6 @@ export default function FarmActivitiesPage() {
               </CardContent>
             </Card>
           ) : (
-            /* Calendar View (Month/Week/Day) */
             <ActivitiesCalendar
               events={calendarEvents}
               view={viewMode}
@@ -1214,7 +1177,6 @@ export default function FarmActivitiesPage() {
             />
           )}
 
-          {/* Right-side Drawer */}
           <ActivityDrawer
             open={drawerOpen}
             onOpenChange={setDrawerOpen}
@@ -1237,7 +1199,6 @@ export default function FarmActivitiesPage() {
         </div>
       </div>
 
-      {/* Dialogs */}
       <Dialog open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
@@ -1277,7 +1238,6 @@ export default function FarmActivitiesPage() {
         </DialogContent>
       </Dialog>
 
-      { }
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -1308,7 +1268,6 @@ export default function FarmActivitiesPage() {
                 value={formData.startDate}
                 onChange={e => {
                   setFormData({ ...formData, startDate: e.target.value })
-                  // Clear error when user changes the date
                   if (dateErrors.startDate) {
                     setDateErrors({ ...dateErrors, startDate: undefined })
                   }
@@ -1328,7 +1287,6 @@ export default function FarmActivitiesPage() {
                 value={formData.endDate}
                 onChange={e => {
                   setFormData({ ...formData, endDate: e.target.value })
-                  // Clear error when user changes the date
                   if (dateErrors.endDate) {
                     setDateErrors({ ...dateErrors, endDate: undefined })
                   }
@@ -1364,7 +1322,6 @@ export default function FarmActivitiesPage() {
         </DialogContent>
       </Dialog>
 
-      { }
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -1395,7 +1352,6 @@ export default function FarmActivitiesPage() {
                 value={formData.startDate}
                 onChange={e => {
                   setFormData({ ...formData, startDate: e.target.value })
-                  // Clear error when user changes the date
                   if (dateErrors.startDate) {
                     setDateErrors({ ...dateErrors, startDate: undefined })
                   }
@@ -1415,7 +1371,6 @@ export default function FarmActivitiesPage() {
                 value={formData.endDate}
                 onChange={e => {
                   setFormData({ ...formData, endDate: e.target.value })
-                  // Clear error when user changes the date
                   if (dateErrors.endDate) {
                     setDateErrors({ ...dateErrors, endDate: undefined })
                   }

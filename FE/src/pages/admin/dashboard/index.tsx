@@ -136,7 +136,7 @@ const AdminDashboard: React.FC = () => {
       if (farmsResult.status === 'fulfilled') {
         const farms = Array.isArray(farmsResult.value) ? farmsResult.value : []
         totalFarms = farms.length
-        activeFarms = farms.length // Assuming all farms are active if they exist
+        activeFarms = farms.length
       }
 
       let totalDevices = 0
@@ -189,7 +189,7 @@ const AdminDashboard: React.FC = () => {
         lowStockItems,
         totalRevenue,
         totalFeedbacks,
-        systemHealth: 0, // Will be calculated
+        systemHealth: 0,
         lastUpdated: new Date(),
       }
 
@@ -277,17 +277,6 @@ const AdminDashboard: React.FC = () => {
     [metrics]
   )
 
-  // Manager style: Show skeleton instead of full-page loader
-  // if (isLoading && metrics.totalUsers === 0) {
-  //   return (
-  //     <AdminLayout>
-  //       <div className="flex items-center justify-center min-h-screen">
-  //         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600"></div>
-  //       </div>
-  //     </AdminLayout>
-  //   )
-  // }
-
   return (
     <AdminLayout>
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -317,7 +306,6 @@ const AdminDashboard: React.FC = () => {
           </div>
         )}
 
-        {/* Manager style: Loading indicator when refreshing */}
         {isRefreshing && (
           <div className="mb-4 flex items-center gap-2 text-sm text-gray-600">
             <span className="h-2.5 w-2.5 rounded-full bg-green-500 animate-ping" />

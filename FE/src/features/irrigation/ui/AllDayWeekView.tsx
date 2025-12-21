@@ -36,16 +36,13 @@ const AllDayWeekViewComponent = ({
     const days = rangeWeek(validDate)
     const schedules = events.map(e => e.resource)
 
-    // Sort schedules: active first, then by start date
     const sortSchedules = (items: ScheduleListItem[]): ScheduleListItem[] => {
         return [...items].sort((a, b) => {
-            // Active first
             const aActive = typeof a.status === 'number' ? a.status === 1 : a.status === 'ACTIVE'
             const bActive = typeof b.status === 'number' ? b.status === 1 : b.status === 'ACTIVE'
             if (aActive && !bActive) return -1
             if (!aActive && bActive) return 1
 
-            // Then by start date
             const aStart = a.startDate ? new Date(a.startDate).getTime() : 0
             const bStart = b.startDate ? new Date(b.startDate).getTime() : 0
             return aStart - bStart
@@ -60,7 +57,6 @@ const AllDayWeekViewComponent = ({
 
     const handleScheduleClick = (schedule: ScheduleListItem) => {
         if (onSelectEvent) {
-            // Find the event that corresponds to this schedule
             const event = events.find(e => e.resource.scheduleId === schedule.scheduleId)
             if (event) {
                 onSelectEvent(event)
@@ -71,7 +67,6 @@ const AllDayWeekViewComponent = ({
     return (
         <div className="grid grid-cols-7 gap-3 p-4">
             {days.map((day) => {
-                // Validate day before using it
                 if (!day || !(day instanceof Date) || isNaN(day.getTime())) {
                     return null
                 }
@@ -87,7 +82,6 @@ const AllDayWeekViewComponent = ({
                         className="rounded-lg border border-slate-200 bg-white shadow-sm hover:shadow-md transition-shadow"
                     >
                         <CardContent className="p-3">
-                            {/* Day Header */}
                             <header className="mb-3 flex items-center justify-between border-b border-slate-100 pb-2">
                                 <button
                                     onClick={() => handleDayClick(day)}
@@ -100,7 +94,6 @@ const AllDayWeekViewComponent = ({
                                 </span>
                             </header>
 
-                            {/* Schedules List */}
                             <div className="space-y-2 min-h-[200px]">
                                 {sortedSchedules.length === 0 ? (
                                     <div className="rounded-lg border border-dashed border-slate-200 p-4 text-center">
@@ -150,7 +143,6 @@ AllDayWeekViewComponent.range = (date: Date, { localizer: _localizer }: any) => 
 }
 
 AllDayWeekViewComponent.navigate = (date: Date, action: any, { localizer: _localizer }: any) => {
-    // Validate input date
     const validDate = date && date instanceof Date && !isNaN(date.getTime())
         ? date
         : new Date()
@@ -170,7 +162,6 @@ AllDayWeekViewComponent.navigate = (date: Date, action: any, { localizer: _local
             result = validDate
     }
 
-    // Validate result date
     if (!result || !(result instanceof Date) || isNaN(result.getTime())) {
         return new Date()
     }
@@ -179,7 +170,6 @@ AllDayWeekViewComponent.navigate = (date: Date, action: any, { localizer: _local
 }
 
 AllDayWeekViewComponent.title = (date: Date, { localizer: _localizer }: any) => {
-    // Validate input date
     const validDate = date && date instanceof Date && !isNaN(date.getTime())
         ? date
         : new Date()

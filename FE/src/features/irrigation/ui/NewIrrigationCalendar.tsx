@@ -55,26 +55,22 @@ export function NewIrrigationCalendar({ className }: NewIrrigationCalendarProps)
     const [selectedDate, setSelectedDate] = useState<Date | null>(null)
     const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
 
-    // Dialog states
     const [showCreateDialog, setShowCreateDialog] = useState(false)
     const [showEditDialog, setShowEditDialog] = useState(false)
     const [showAssignStaffDialog, setShowAssignStaffDialog] = useState(false)
     const [selectedSchedule, setSelectedSchedule] = useState<ScheduleListItem | null>(null)
     const [actionLoading, setActionLoading] = useState<{ [key: string]: boolean }>({})
 
-    // Form states
     const [createForm, setCreateForm] = useState<CreateScheduleRequest>(buildEmptyScheduleForm)
     const [editForm, setEditForm] = useState<CreateScheduleRequest>(buildEmptyScheduleForm)
     const [editLoading, setEditLoading] = useState(false)
     const [assignStaffId, setAssignStaffId] = useState<number | null>(null)
 
-    // Meta data for forms
     const [farms, setFarms] = useState<{ id: number; name: string }[]>([])
     const [crops, setCrops] = useState<{ id: number; name: string }[]>([])
     const [staffs, setStaffs] = useState<{ id: number; name: string }[]>([])
     const [metaLoading, setMetaLoading] = useState(false)
 
-    // Load schedules
     const loadSchedules = useCallback(async () => {
         try {
             setLoading(true)
@@ -95,7 +91,6 @@ export function NewIrrigationCalendar({ className }: NewIrrigationCalendarProps)
         loadSchedules()
     }, [loadSchedules])
 
-    // Load meta data for forms
     const loadMetaData = useCallback(async () => {
         setMetaLoading(true)
         try {
@@ -119,14 +114,12 @@ export function NewIrrigationCalendar({ className }: NewIrrigationCalendarProps)
         loadMetaData()
     }, [loadMetaData])
 
-    // Action handlers
     const handleEdit = useCallback((schedule: ScheduleListItem) => {
         if (!schedule.scheduleId) return
         setSelectedSchedule(schedule)
         setEditForm(buildEmptyScheduleForm())
         setShowEditDialog(true)
 
-        // Load schedule details
         setEditLoading(true)
         scheduleService.getScheduleById(schedule.scheduleId)
             .then(res => {
@@ -229,7 +222,6 @@ export function NewIrrigationCalendar({ className }: NewIrrigationCalendarProps)
     const handleCreateSchedule = useCallback(async (ev: React.FormEvent) => {
         ev.preventDefault()
 
-        // Basic validation
         if (!createForm.farmId || !createForm.cropId || !createForm.staffId || !createForm.startDate || !createForm.endDate || !createForm.quantity) {
             toast({
                 title: 'Dữ liệu không hợp lệ',
@@ -257,11 +249,9 @@ export function NewIrrigationCalendar({ className }: NewIrrigationCalendarProps)
         }
     }, [createForm, toast, loadSchedules])
 
-    // Filter schedules
     const filteredSchedules = useMemo(() => {
         let filtered = schedules
 
-        // Filter by status
         if (statusFilter !== 'all') {
             filtered = filtered.filter(s => {
                 const isActive = typeof s.status === 'number' ? s.status === 1 : s.status === 'ACTIVE'
@@ -269,7 +259,6 @@ export function NewIrrigationCalendar({ className }: NewIrrigationCalendarProps)
             })
         }
 
-        // Filter by search term
         if (searchTerm.trim()) {
             const normalizedSearch = searchTerm.trim().toLowerCase()
             filtered = filtered.filter(s => {
@@ -283,22 +272,18 @@ export function NewIrrigationCalendar({ className }: NewIrrigationCalendarProps)
         return filtered
     }, [schedules, statusFilter, searchTerm])
 
-    // Get schedule label
     const getScheduleLabel = useCallback((schedule: ScheduleListItem): string => {
         return schedule.cropView?.cropName || `Lịch #${schedule.scheduleId || 'N/A'}`
     }, [])
 
-    // Get status badge
     const getStatusBadge = useCallback((status: number | string, isActive?: boolean) => {
         return <StatusBadge status={status} isActive={isActive} size="sm" />
     }, [])
 
-    // Map schedules to calendar events
     const calendarEvents = useMemo(() => {
         return mapSchedulesToCalendarEvents(filteredSchedules, getScheduleLabel)
     }, [filteredSchedules, getScheduleLabel])
 
-    // Get schedules for a specific date (for day drawer)
     const daySchedules = useMemo(() => {
         if (!selectedDate) return []
         const selectedDateStr = selectedDate.toISOString().split('T')[0]
@@ -309,7 +294,6 @@ export function NewIrrigationCalendar({ className }: NewIrrigationCalendarProps)
         })
     }, [selectedDate, calendarEvents])
 
-    // Calendar handlers
     const handleSelectEvent = useCallback((event: CalendarEvent) => {
         setSelectedEvent(event)
         setDrawerMode('event')
@@ -322,7 +306,6 @@ export function NewIrrigationCalendar({ className }: NewIrrigationCalendarProps)
             setDrawerMode('day')
             setDrawerOpen(true)
         } else if (slotInfo.action === 'select') {
-            // Handle date range selection - could open a dialog to create new schedule
             console.log('Date range selected:', slotInfo.start, slotInfo.end)
         }
     }, [])

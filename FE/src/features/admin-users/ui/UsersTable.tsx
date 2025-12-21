@@ -51,7 +51,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({
         ? 'default'
         : role === 'MANAGER'
           ? 'golden'
-          : 'cyan' // Xanh Ngọc Lam Đậm for staff
+          : 'cyan'
 
     return (
       <Badge variant={variant} className="text-xs">

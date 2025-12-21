@@ -13,7 +13,6 @@ import { vi } from 'date-fns/locale'
 
 type ViewMode = 'month' | 'week' | 'day'
 
-// Plant stage translation
 const plantStageLabels: Record<string, string> = {
     Sowing: 'Gieo hạt',
     Germination: 'Nảy mầm',
@@ -46,11 +45,9 @@ export function EnterpriseIrrigationCalendar({ className }: EnterpriseIrrigation
   const [showDetailPanel, setShowDetailPanel] = useState(false)
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all')
 
-  // Load schedules
   const loadSchedules = useCallback(async () => {
     setLoading(true)
     try {
-      // Load a large page size to get all schedules for calendar view
       const res = await scheduleService.getScheduleList(1, 1000)
       setSchedules(res.data.items || [])
     } catch (error) {
@@ -68,7 +65,6 @@ export function EnterpriseIrrigationCalendar({ className }: EnterpriseIrrigation
     loadSchedules()
   }, [loadSchedules])
 
-  // Filter schedules by status
   const filteredSchedules = useMemo(() => {
     if (filterStatus === 'all') return schedules
     return schedules.filter(s => {
@@ -77,7 +73,6 @@ export function EnterpriseIrrigationCalendar({ className }: EnterpriseIrrigation
     })
   }, [schedules, filterStatus])
 
-  // Get schedules for a specific date
   const getSchedulesForDate = useCallback((date: Date): ScheduleListItem[] => {
     return filteredSchedules.filter(s => {
       const start = new Date(s.startDate)
@@ -88,13 +83,11 @@ export function EnterpriseIrrigationCalendar({ className }: EnterpriseIrrigation
     })
   }, [filteredSchedules])
 
-  // Calculate schedule density for a date
   const getScheduleDensity = useCallback((date: Date): number => {
     const daySchedules = getSchedulesForDate(date)
     return daySchedules.length
   }, [getSchedulesForDate])
 
-  // Get schedules for current view period
   const getViewSchedules = useMemo(() => {
     if (viewMode === 'day') {
       return getSchedulesForDate(selectedDate)
@@ -104,7 +97,6 @@ export function EnterpriseIrrigationCalendar({ className }: EnterpriseIrrigation
       const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd })
       return weekDays.flatMap(day => getSchedulesForDate(day))
     } else {
-      // Month view - return all schedules in the month
       const monthStart = startOfMonth(selectedDate)
       const monthEnd = endOfMonth(selectedDate)
       const allSchedules = filteredSchedules.filter(s => {
@@ -116,7 +108,6 @@ export function EnterpriseIrrigationCalendar({ className }: EnterpriseIrrigation
     }
   }, [viewMode, selectedDate, getSchedulesForDate, filteredSchedules])
 
-  // Statistics
   const stats = useMemo(() => {
     const active = filteredSchedules.filter(s => {
       const isActive = typeof s.status === 'number' ? s.status === 1 : s.status === 'ACTIVE'
@@ -137,7 +128,6 @@ export function EnterpriseIrrigationCalendar({ className }: EnterpriseIrrigation
     }
   }, [filteredSchedules, getSchedulesForDate])
 
-  // Handle date selection
   const handleDateChange = useCallback((date: Date) => {
     setSelectedDate(date)
     if (viewMode === 'day') {
@@ -149,7 +139,6 @@ export function EnterpriseIrrigationCalendar({ className }: EnterpriseIrrigation
     }
   }, [viewMode, getSchedulesForDate])
 
-  // Navigate view
   const navigateView = useCallback((direction: 'prev' | 'next') => {
     if (viewMode === 'day') {
       setSelectedDate(prev => direction === 'prev' ? subDays(prev, 1) : addDays(prev, 1))
@@ -160,7 +149,6 @@ export function EnterpriseIrrigationCalendar({ className }: EnterpriseIrrigation
     }
   }, [viewMode])
 
-  // Custom tile content for calendar
   const tileContent = useCallback(({ date, view }: { date: Date; view: string }) => {
     if (view !== 'month') return null
     
@@ -198,7 +186,6 @@ export function EnterpriseIrrigationCalendar({ className }: EnterpriseIrrigation
     )
   }, [getScheduleDensity, getSchedulesForDate])
 
-  // Custom tile className for density visualization
   const tileClassName = useCallback(({ date, view }: { date: Date; view: string }) => {
     if (view !== 'month') return ''
     
@@ -224,7 +211,6 @@ export function EnterpriseIrrigationCalendar({ className }: EnterpriseIrrigation
     )
   }, [selectedDate, getScheduleDensity, getSchedulesForDate])
 
-  // Handle schedule click
   const handleScheduleClick = useCallback((schedule: ScheduleListItem) => {
     setSelectedSchedule(schedule)
     setShowDetailPanel(true)
@@ -255,7 +241,6 @@ export function EnterpriseIrrigationCalendar({ className }: EnterpriseIrrigation
           </div>
         </div>
 
-        {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
           <Card className="border-0 shadow-sm">
             <CardContent className="p-4">
@@ -300,14 +285,11 @@ export function EnterpriseIrrigationCalendar({ className }: EnterpriseIrrigation
         </div>
       </div>
 
-      {/* Main Calendar View */}
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Calendar Panel - Takes 2 columns on large screens */}
         <div className={cn(
           "lg:col-span-2 space-y-4",
           showDetailPanel && "lg:col-span-2"
         )}>
-          {/* View Mode Toggle */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Button
@@ -350,7 +332,6 @@ export function EnterpriseIrrigationCalendar({ className }: EnterpriseIrrigation
             </div>
           </div>
 
-          {/* Calendar Component */}
           <Card className="border-0 shadow-sm">
             <CardContent className="p-6">
               {viewMode === 'month' ? (
@@ -383,7 +364,6 @@ export function EnterpriseIrrigationCalendar({ className }: EnterpriseIrrigation
           </Card>
         </div>
 
-        {/* Detail Panel - Takes 1 column on large screens */}
         {showDetailPanel && selectedSchedule && (
           <div className="lg:col-span-1">
             <ScheduleDetailPanel
@@ -397,7 +377,6 @@ export function EnterpriseIrrigationCalendar({ className }: EnterpriseIrrigation
         )}
       </div>
 
-      {/* Global Styles for react-calendar */}
       <style>{`
         .react-calendar {
           border: none;
@@ -465,7 +444,6 @@ export function EnterpriseIrrigationCalendar({ className }: EnterpriseIrrigation
   )
 }
 
-// Week View Component
 interface WeekViewProps {
   selectedDate: Date
   schedules: ScheduleListItem[]
@@ -549,7 +527,6 @@ function WeekView({ selectedDate, schedules, onDateClick, onScheduleClick }: Wee
   )
 }
 
-// Day View Component
 interface DayViewProps {
   selectedDate: Date
   schedules: ScheduleListItem[]
@@ -612,7 +589,6 @@ function DayView({ selectedDate, schedules, onScheduleClick }: DayViewProps) {
   )
 }
 
-// Schedule Detail Panel
 interface ScheduleDetailPanelProps {
   schedule: ScheduleListItem
   onClose: () => void

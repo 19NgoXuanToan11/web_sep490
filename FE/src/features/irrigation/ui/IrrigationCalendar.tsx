@@ -10,10 +10,8 @@ import type { ScheduleListItem } from '@/shared/api/scheduleService'
 import { AllDayWeekView } from './AllDayWeekView'
 import { AllDayDayView } from './AllDayDayView'
 
-// View type definition (not exported from react-big-calendar)
 export type View = 'month' | 'week' | 'day' | 'agenda'
 
-// SlotInfo type definition (not exported from react-big-calendar)
 export interface SlotInfo {
     start: Date
     end: Date
@@ -34,16 +32,14 @@ export interface SlotInfo {
     }
 }
 
-// Configure moment for Vietnamese locale with Monday as week start
 try {
     require('moment/locale/vi')
     moment.locale('vi', {
         week: {
-            dow: 1, // Monday is the first day of the week
+            dow: 1,
         },
     })
 } catch {
-    // Fallback if locale not available
     moment.locale('en', {
         week: {
             dow: 1,
@@ -51,12 +47,10 @@ try {
     })
 }
 
-// Create localizer using moment (required for react-big-calendar v1.x)
 const localizer = momentLocalizer(moment)
 
-// Calendar Event interface
 export interface CalendarEvent {
-    resource: ScheduleListItem // Store full backend schedule object
+    resource: ScheduleListItem
     title: string
     start: Date
     end: Date
@@ -150,9 +144,9 @@ function eventStyleGetter(event: CalendarEvent) {
     let borderLeftWidth = '0px'
 
     if (isActive) {
-        backgroundColor = '#10b981' // Green for active
+        backgroundColor = '#10b981'
     } else {
-        backgroundColor = '#94a3b8' // Gray for inactive
+        backgroundColor = '#94a3b8'
     }
 
     return {
@@ -352,12 +346,10 @@ const CustomShowMore = ({ events, date, onShowMore }: any) => {
     )
 }
 
-// Custom Agenda Time component để ẩn cột "Giờ"
 const CustomAgendaTime = () => {
     return <span style={{ display: 'none' }} />
 }
 
-// Custom Agenda Date component
 const CustomAgendaDate = ({ date }: any) => {
     return <span>{moment(date).format('ddd MMM DD')}</span>
 }
@@ -458,7 +450,6 @@ export function IrrigationCalendar({
           text-decoration: underline;
         }
         
-        /* Xóa hoàn toàn cột "Giờ" trong agenda view */
         .rbc-agenda-view table thead th.rbc-agenda-time-cell,
         .rbc-agenda-view table tbody td.rbc-agenda-time-cell,
         .rbc-agenda-view .rbc-agenda-time-cell,

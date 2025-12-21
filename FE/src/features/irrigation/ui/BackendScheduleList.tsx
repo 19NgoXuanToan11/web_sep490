@@ -48,7 +48,6 @@ const toDateOnly = (value?: string) => {
 
 const rangesOverlap = (startA: Date, endA: Date, startB: Date, endB: Date) => startA <= endB && startB <= endA
 
-// Keep the labels in sync with the farm-activities management page
 const activityTypeLabels: Record<string, string> = {
     SoilPreparation: 'Chuẩn bị đất trước gieo',
     Sowing: 'Gieo hạt',
@@ -101,7 +100,6 @@ const translatePlantStage = (stage?: string | null) => {
     return plantStageLabels[stage] ?? stage
 }
 
-// Helper function to get farm activity status label and variant
 const getFarmActivityStatusInfo = (status: string | null | undefined): { label: string; variant: 'success' | 'processing' | 'completed' | 'destructive' | 'outline' } => {
     if (!status) {
         return { label: 'Không xác định', variant: 'outline' }
@@ -166,7 +164,6 @@ const buildEmptyScheduleForm = (): CreateScheduleRequest => ({
     farmActivitiesId: 0,
 })
 
-// Component riêng cho Action Menu
 interface ScheduleActionMenuProps {
     schedule: ScheduleListItem
     onView: (schedule: ScheduleListItem) => void
@@ -316,8 +313,8 @@ export function BackendScheduleList({
     const [loading, setLoading] = useState(false)
     const [internalShowCreate, setInternalShowCreate] = useState(false)
     const [searchTerm, setSearchTerm] = useState('')
-    const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all') // Mặc định hiển thị tất cả
-    const [sortBy, setSortBy] = useState<SortOption>('newest') // Mặc định sắp xếp mới nhất
+    const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all')
+    const [sortBy, setSortBy] = useState<SortOption>('newest')
     const [newlyCreatedIds, setNewlyCreatedIds] = useState<Set<number>>(new Set())
     const previousMaxIdRef = useRef<number>(0)
 
@@ -332,7 +329,6 @@ export function BackendScheduleList({
     const [metaLoading, setMetaLoading] = useState(false)
     const [allSchedules, setAllSchedules] = useState<ScheduleListItem[]>([])
 
-    // Use external state if provided, otherwise use internal state
     const [internalFilteredItems, setInternalFilteredItems] = useState<ScheduleListItem[] | null>(null)
     const filteredItems = externalFilteredItems !== undefined ? externalFilteredItems : internalFilteredItems
     const setFilteredItems = onFilteredItemsChange ?? setInternalFilteredItems
@@ -353,12 +349,10 @@ export function BackendScheduleList({
     const displayItems = filteredItems ?? data?.data.items ?? []
     const lastAutoUpdatedScheduleId = useRef<number | null>(null)
 
-    // Filter và sort schedules
     const filteredSchedules = useMemo(() => {
         const normalizedSearch = searchTerm.trim().toLowerCase()
 
         return displayItems.filter(schedule => {
-            // Filter by status
             if (statusFilter !== 'all') {
                 const isActive = typeof schedule.status === 'number'
                     ? schedule.status === 1
@@ -367,7 +361,6 @@ export function BackendScheduleList({
                 if (statusFilter === 'inactive' && isActive) return false
             }
 
-            // Filter by search term
             if (normalizedSearch) {
                 const cropName = (schedule.cropView?.cropName || '').toLowerCase()
                 const farmName = (schedule.farmView?.farmName || '').toLowerCase()
@@ -383,13 +376,11 @@ export function BackendScheduleList({
         })
     }, [displayItems, searchTerm, statusFilter])
 
-    // Sort schedules
     const sortedSchedules = useMemo(() => {
         const sorted = [...filteredSchedules]
 
         switch (sortBy) {
             case 'newest':
-                // Mới nhất lên đầu: Active trước, sau đó sort theo scheduleId giảm dần
                 return sorted.sort((a, b) => {
                     const aActive = typeof a.status === 'number' ? a.status === 1 : a.status === 'ACTIVE'
                     const bActive = typeof b.status === 'number' ? b.status === 1 : b.status === 'ACTIVE'
@@ -402,7 +393,6 @@ export function BackendScheduleList({
                 })
 
             case 'startDate':
-                // Sắp xếp theo ngày bắt đầu (sớm nhất trước)
                 return sorted.sort((a, b) => {
                     const aDate = new Date(a.startDate).getTime()
                     const bDate = new Date(b.startDate).getTime()
@@ -416,7 +406,6 @@ export function BackendScheduleList({
                 })
 
             case 'cropName':
-                // Sắp xếp theo tên cây trồng
                 return sorted.sort((a, b) => {
                     const nameA = (a.cropView?.cropName || '').toLowerCase()
                     const nameB = (b.cropView?.cropName || '').toLowerCase()
@@ -430,7 +419,6 @@ export function BackendScheduleList({
                 })
 
             case 'farmName':
-                // Sắp xếp theo tên nông trại
                 return sorted.sort((a, b) => {
                     const nameA = (a.farmView?.farmName || '').toLowerCase()
                     const nameB = (b.farmView?.farmName || '').toLowerCase()
@@ -448,7 +436,6 @@ export function BackendScheduleList({
         }
     }, [filteredSchedules, sortBy])
 
-    // Pagination
     const totalPages = useMemo(() => {
         return Math.max(1, Math.ceil(sortedSchedules.length / pageSize))
     }, [sortedSchedules.length, pageSize])
@@ -458,7 +445,6 @@ export function BackendScheduleList({
         return sortedSchedules.slice(start, start + pageSize)
     }, [sortedSchedules, pageIndex, pageSize])
 
-    // Group by crop name
     const groupedSchedules = useMemo(() => {
         const groups = new Map<string, ScheduleListItem[]>()
         const groupOrder: string[] = []
@@ -480,19 +466,15 @@ export function BackendScheduleList({
         try {
             const res = await scheduleService.getScheduleList(pageIndex, pageSize)
 
-            // Tìm max ID mới sau khi reload
             const currentMaxId = Math.max(...res.data.items.map(s => s.scheduleId || 0), 0)
 
-            // Nếu có ID mới lớn hơn ID trước đó, highlight nó
             if (currentMaxId > previousMaxIdRef.current && previousMaxIdRef.current > 0) {
                 setNewlyCreatedIds(new Set([currentMaxId]))
-                // Scroll to top để user thấy item mới
                 setTimeout(() => {
                     window.scrollTo({ top: 0, behavior: 'smooth' })
                 }, 100)
             }
 
-            // Cập nhật max ID reference
             previousMaxIdRef.current = currentMaxId
 
             setData(res)
@@ -522,7 +504,6 @@ export function BackendScheduleList({
             setAllSchedules(items)
             return items
         } catch (e) {
-            // Chỉ hiển thị error khi không phải silent mode (khi user thực sự cần validate)
             if (!silent) {
                 handleFetchError(e, toast, 'lịch tưới (toàn bộ)')
             }
@@ -545,7 +526,6 @@ export function BackendScheduleList({
         if (!payload.quantity || payload.quantity <= 0) errors.push('Số lượng phải lớn hơn 0.')
         if (!start) errors.push('Ngày bắt đầu không hợp lệ.')
         if (!end) errors.push('Ngày kết thúc không hợp lệ.')
-        // plantingDate and harvestDate are optional, no validation required
 
         const ensureFuture = (date: Date | null, label: string) => {
             if (date && date < today) {
@@ -555,7 +535,6 @@ export function BackendScheduleList({
 
         ensureFuture(start, 'Ngày bắt đầu')
         ensureFuture(end, 'Ngày kết thúc')
-        // plantingDate and harvestDate are optional, only validate if provided
         if (planting) ensureFuture(planting, 'Ngày gieo trồng')
         if (harvest) ensureFuture(harvest, 'Ngày thu hoạch')
 
@@ -598,13 +577,9 @@ export function BackendScheduleList({
             }
         }
 
-        // Validate: Cây mới gieo trồng không thể có tình trạng bệnh
         if (planting && payload.diseaseStatus !== null && payload.diseaseStatus !== undefined) {
-            // Tính số ngày từ ngày gieo trồng đến hôm nay
             const daysDiff = Math.floor((planting.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
-            // Nếu ngày gieo trồng là hôm nay hoặc trong tương lai, hoặc trong vòng 7 ngày gần đây
             if (daysDiff >= 0 || (daysDiff >= -7 && daysDiff < 0)) {
-                // Kiểm tra xem có chọn bệnh không (-1 là "Không có bệnh", >= 0 là các loại bệnh)
                 if (payload.diseaseStatus >= 0) {
                     errors.push('Cây mới gieo trồng (trong vòng 7 ngày gần đây hoặc trong tương lai) không thể có tình trạng bệnh. Vui lòng chọn "Không có bệnh".')
                 }
@@ -635,7 +610,6 @@ export function BackendScheduleList({
     }, [load])
 
     useEffect(() => {
-        // Load trong background, không hiển thị error nếu fail (vì dữ liệu chính đã được load bởi load())
         loadAllSchedules(true)
     }, [loadAllSchedules])
 
@@ -644,7 +618,6 @@ export function BackendScheduleList({
             farmService.getAllFarms(),
             cropService.getAllCropsList(),
             accountApi.getAll({ role: 'Staff', pageSize: 1000 }),
-            // Chỉ lấy các hoạt động nông trại từ trang quản lý (đang hoạt động) để người dùng chọn
             farmActivityService.getActiveFarmActivities({ pageIndex: 1, pageSize: 1000 }),
         ])
 
@@ -656,7 +629,6 @@ export function BackendScheduleList({
             if (end && !Number.isNaN(end.getTime())) {
                 return end >= today
             }
-            // nếu không có endDate, vẫn cho hiển thị
             return true
         })
 
@@ -687,7 +659,6 @@ export function BackendScheduleList({
         }
     }, [translateActivityType])
 
-    // Load metadata whenever any dialog/filter that depends on it is opened
     useEffect(() => {
         const shouldLoadMetadata = showCreate || showEdit || showAssignStaff
         if (!shouldLoadMetadata) return
@@ -740,11 +711,9 @@ export function BackendScheduleList({
 
     const submit = async (ev: React.FormEvent) => {
         ev.preventDefault()
-        // Lưu max ID hiện tại trước khi tạo mới
         const currentMaxId = Math.max(...displayItems.map(s => s.scheduleId || 0), 0)
         previousMaxIdRef.current = currentMaxId
 
-        // Backend yêu cầu plantingDate/harvestDate, dùng fallback nếu người dùng chưa nhập
         const payload: CreateScheduleRequest = {
             ...form,
             plantingDate: form.plantingDate || form.startDate,
@@ -755,7 +724,6 @@ export function BackendScheduleList({
             await scheduleService.createSchedule(payload)
             handleApiSuccess('Tạo lịch thành công', toast)
             handleCreateDialogChange(false)
-            // Reload - load() sẽ tự động highlight item mới
             await load()
             await loadAllSchedules()
         } catch (e) {
@@ -763,7 +731,6 @@ export function BackendScheduleList({
         }
     }
 
-    // New action handlers
     const handleViewDetail = async (schedule: ScheduleListItem) => {
         if (!schedule.scheduleId) return
         setActionLoading({ [`detail-${schedule.scheduleId}`]: true })
@@ -779,26 +746,20 @@ export function BackendScheduleList({
         }
     }
 
-    // Automatically update schedule stage when detail modal opens
     useEffect(() => {
         if (showDetail && scheduleDetail?.scheduleId) {
             const scheduleId = scheduleDetail.scheduleId
-            // Only auto-update if we haven't already updated this schedule
             if (lastAutoUpdatedScheduleId.current !== scheduleId) {
                 lastAutoUpdatedScheduleId.current = scheduleId
-                    // Automatically call update API when modal opens to sync stage with current date
-                    // Call silently without showing success toast
                     ; (async () => {
                         try {
                             setActionLoading(prev => ({ ...prev, [`update-today-${scheduleId}`]: true }))
                             await scheduleService.updateToday(scheduleId)
-                            // Refresh schedule details after update
                             const res = await scheduleService.getScheduleById(scheduleId)
                             setScheduleDetail(res.data)
                             await load()
                             await loadAllSchedules()
                         } catch (e) {
-                            // Silently handle errors - don't show toast for automatic updates
                             console.error('Auto-update schedule stage failed:', e)
                         } finally {
                             setActionLoading(prev => ({ ...prev, [`update-today-${scheduleId}`]: false }))
@@ -806,7 +767,6 @@ export function BackendScheduleList({
                     })()
             }
         } else if (!showDetail) {
-            // Reset the ref when modal closes
             lastAutoUpdatedScheduleId.current = null
         }
     }, [showDetail, scheduleDetail?.scheduleId, load, loadAllSchedules])
@@ -818,12 +778,10 @@ export function BackendScheduleList({
         try {
             await scheduleService.updateToday(scheduleId, customDate)
             handleApiSuccess('Cập nhật giai đoạn theo ngày thành công', toast)
-            // Refresh schedule details after update
             const res = await scheduleService.getScheduleById(scheduleId)
             setScheduleDetail(res.data)
             await load()
             await loadAllSchedules()
-            // Close modal if it was open
             if (customDate) {
                 setShowUpdateStageModal(false)
                 setCustomToday('')
@@ -945,7 +903,6 @@ export function BackendScheduleList({
         try {
             await scheduleService.updateScheduleStatus(schedule.scheduleId, nextStatus)
             toast({ title: 'Cập nhật trạng thái lịch thành công', variant: 'success' })
-            // Refresh detail if the modal is open for this schedule
             if (showDetail && scheduleDetail?.scheduleId === schedule.scheduleId) {
                 const res = await scheduleService.getScheduleById(schedule.scheduleId)
                 setScheduleDetail(res.data)
@@ -959,7 +916,6 @@ export function BackendScheduleList({
         }
     }
 
-    // Auto-remove highlight sau 5 giây
     useEffect(() => {
         if (newlyCreatedIds.size > 0) {
             const timer = setTimeout(() => {
@@ -975,7 +931,6 @@ export function BackendScheduleList({
 
     return (
         <>
-            {/* Filter Bar */}
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
                 <div className="flex flex-col sm:flex-row gap-4">
                     <div className="flex-1">
@@ -1017,7 +972,6 @@ export function BackendScheduleList({
                 </div>
             </div>
 
-            {/* Card-based Layout */}
             {loading ? (
                 <Card>
                     <CardContent className="p-12">
@@ -1050,7 +1004,6 @@ export function BackendScheduleList({
                 </Card>
             ) : (
                 <>
-                    {/* Grouped Card Layout - Grouped by Crop Name */}
                     <div className="space-y-6">
                         {groupedSchedules.map(([cropName, items]) => {
                             return (

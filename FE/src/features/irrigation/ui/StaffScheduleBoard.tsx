@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { scheduleService, type ScheduleListItem, type ScheduleStatusString } from '@/shared/api/scheduleService'
+import { scheduleService, type ScheduleListItem } from '@/shared/api/scheduleService'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
 import { Button } from '@/shared/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
@@ -20,13 +20,6 @@ interface StaffScheduleBoardProps {
 
 const monthOptions = Array.from({ length: 12 }, (_, idx) => idx + 1)
 
-const statusLabelMap: Record<ScheduleStatusString | number, string> = {
-    ACTIVE: 'Hoạt động',
-    DEACTIVATED: 'Vô hiệu hóa',
-    1: 'Hoạt động',
-    0: 'Vô hiệu hóa',
-}
-
 const getPlantStageLabel = (stage?: string) => {
     if (!stage) return undefined
     const labels: Record<string, string> = {
@@ -37,13 +30,6 @@ const getPlantStageLabel = (stage?: string) => {
         Harvest: 'Thu hoạch',
     }
     return labels[stage] ?? stage
-}
-
-const getStatusLabel = (status: ScheduleListItem['status']) => {
-    if (typeof status === 'string') {
-        return statusLabelMap[status as ScheduleStatusString] ?? status
-    }
-    return statusLabelMap[status] ?? String(status)
 }
 
 const isActiveStatus = (status: ScheduleListItem['status']) => {

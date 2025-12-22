@@ -23,6 +23,8 @@ import { StaffLayout } from '@/shared/layouts/StaffLayout'
 import { ManagementPageHeader, StaffFilterBar } from '@/shared/ui'
 import { useToast } from '@/shared/ui/use-toast'
 import { scheduleService, type ScheduleListItem, type ScheduleStatusString } from '@/shared/api/scheduleService'
+import type { View as CalendarView } from '@/features/irrigation/ui/IrrigationCalendar'
+import { IrrigationCalendar, mapSchedulesToCalendarEvents } from '@/features/irrigation/ui/IrrigationCalendar'
 
 interface DisplaySchedule extends Omit<ScheduleListItem, 'diseaseStatus'> {
     id: string
@@ -93,6 +95,10 @@ const StaffSchedulesPage: React.FC = () => {
     const [isScheduleDetailOpen, setIsScheduleDetailOpen] = useState(false)
     const [selectedScheduleDetail, setSelectedScheduleDetail] = useState<DisplaySchedule | null>(null)
 
+    // Calendar state (reuse manager calendar appearance/behavior)
+    const [calendarView, setCalendarView] = useState<CalendarView>('month')
+    const [calendarDate, setCalendarDate] = useState<Date>(new Date())
+
     const transformApiSchedule = (apiSchedule: any): DisplaySchedule => {
         return {
             ...apiSchedule,
@@ -137,6 +143,7 @@ const StaffSchedulesPage: React.FC = () => {
     useEffect(() => {
         fetchSchedules()
     }, [fetchSchedules])
+
 
     useEffect(() => {
         setPageIndex(1)
@@ -270,6 +277,18 @@ const StaffSchedulesPage: React.FC = () => {
         setIsScheduleDetailOpen(true)
     }, [])
 
+    const handleCalendarViewChange = useCallback((v: any) => setCalendarView(v as CalendarView), [])
+    const handleCalendarNavigate = useCallback((newDate: Date) => setCalendarDate(newDate), [])
+    const handleCalendarSelectEvent = useCallback((event: any) => {
+        const scheduleId = event?.id ?? event?.scheduleId ?? event?.originalId
+        const found = schedules.find(s => String(s.scheduleId || s.id) === String(scheduleId))
+        if (found) handleViewDetail(found as DisplaySchedule)
+    }, [schedules, handleViewDetail])
+    const handleCalendarSelectSlot = useCallback((slotInfo: any) => {
+        // Placeholder: could open create dialog or filter by date
+    }, [])
+    const calendarEvents = useMemo(() => mapSchedulesToCalendarEvents(schedules as any, (s: any) => s.cropView?.cropName || s.name || `Lịch #${s.scheduleId || s.id || ''}`), [schedules])
+
     const formatDateOnly = useCallback((dateString: string) => {
         return formatDate(dateString)
     }, [])
@@ -395,6 +414,21 @@ const StaffSchedulesPage: React.FC = () => {
                         </Select>
                     </div>
                 </StaffFilterBar>
+
+                {/* Calendar view (reusing manager calendar UI) */}
+                <div className="mb-6">
+                    <IrrigationCalendar
+                        events={calendarEvents}
+                        view={calendarView}
+                        date={calendarDate}
+                        onViewChange={handleCalendarViewChange}
+                        onNavigate={handleCalendarNavigate}
+                        onSelectEvent={handleCalendarSelectEvent}
+                        onSelectSlot={handleCalendarSelectSlot}
+                        getScheduleLabel={(s: any) => s.cropView?.cropName || 'Lịch'}
+                        getStatusBadge={() => null}
+                    />
+                </div>
 
                 {/* Card-based Layout */}
                 {loading ? (

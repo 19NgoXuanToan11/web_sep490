@@ -29,8 +29,7 @@ import { StaffLayout } from '@/shared/layouts/StaffLayout'
 import { ManagementPageHeader, StaffFilterBar } from '@/shared/ui'
 import { useToast } from '@/shared/ui/use-toast'
 import { scheduleService, type ScheduleListItem, type ScheduleStatusString } from '@/shared/api/scheduleService'
-import type { View as CalendarView } from '@/features/irrigation/ui/IrrigationCalendar'
-import { IrrigationCalendar, mapSchedulesToCalendarEvents } from '@/features/irrigation/ui/IrrigationCalendar'
+// Irrigation calendar helpers were previously imported but are unused here.
 
 interface DisplaySchedule extends Omit<ScheduleListItem, 'diseaseStatus'> {
     id: string
@@ -101,9 +100,7 @@ const StaffSchedulesPage: React.FC = () => {
     const [isScheduleDetailOpen, setIsScheduleDetailOpen] = useState(false)
     const [selectedScheduleDetail, setSelectedScheduleDetail] = useState<DisplaySchedule | null>(null)
 
-    // Calendar state (reuse manager calendar appearance/behavior)
-    const [calendarView, setCalendarView] = useState<CalendarView>('month')
-    const [calendarDate, setCalendarDate] = useState<Date>(new Date())
+    // Calendar state removed: not used in this staff page (keeps UI simpler)
 
     const transformApiSchedule = (apiSchedule: any): DisplaySchedule => {
         return {
@@ -283,18 +280,8 @@ const StaffSchedulesPage: React.FC = () => {
         setIsScheduleDetailOpen(true)
     }, [])
 
-    const handleCalendarViewChange = useCallback((v: any) => setCalendarView(v as CalendarView), [])
-    const handleCalendarNavigate = useCallback((newDate: Date) => setCalendarDate(newDate), [])
-    const handleCalendarSelectEvent = useCallback((event: any) => {
-        const scheduleId = event?.id ?? event?.scheduleId ?? event?.originalId
-        const found = schedules.find(s => String(s.scheduleId || s.id) === String(scheduleId))
-        if (found) handleViewDetail(found as DisplaySchedule)
-    }, [schedules, handleViewDetail])
-    const handleCalendarSelectSlot = useCallback((slotInfo: any) => {
-        void slotInfo // mark as used to satisfy TS 'declared but its value is never read'
-        // Placeholder: could open create dialog or filter by date
-    }, [])
-    const calendarEvents = useMemo(() => mapSchedulesToCalendarEvents(schedules as any, (s: any) => s.cropView?.cropName || s.name || `Lịch #${s.scheduleId || s.id || ''}`), [schedules])
+    // Calendar handlers removed because they're not used on this page.
+    // We'll use the local `calendarEvents` memo below which derives from filteredSchedules.
 
     const formatDateOnly = useCallback((dateString: string) => {
         return formatDate(dateString)

@@ -285,7 +285,7 @@ const StaffSchedulesPage: React.FC = () => {
         if (!open) {
             // Clear selected schedule when modal closes to prevent stale data
             setSelectedScheduleDetail(null)
-        }
+    }
     }, [])
 
     // Memoize crop requirements to prevent expensive re-computations

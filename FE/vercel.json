@@ -16,7 +16,7 @@
       "destination": "https://iotfarm.onrender.com/api/:path*"
     },
     {
-      "source": "/payment-result",
+      "source": "/(.*)",
       "destination": "/index.html"
     }
   ]

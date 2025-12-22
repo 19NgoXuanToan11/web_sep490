@@ -29,6 +29,7 @@ import { StaffLayout } from '@/shared/layouts/StaffLayout'
 import { ManagementPageHeader, StaffFilterBar } from '@/shared/ui'
 import { useToast } from '@/shared/ui/use-toast'
 import { scheduleService, type ScheduleListItem, type ScheduleStatusString } from '@/shared/api/scheduleService'
+// Irrigation calendar helpers were previously imported but are unused here.
 
 interface DisplaySchedule extends Omit<ScheduleListItem, 'diseaseStatus'> {
     id: string
@@ -99,6 +100,8 @@ const StaffSchedulesPage: React.FC = () => {
     const [isScheduleDetailOpen, setIsScheduleDetailOpen] = useState(false)
     const [selectedScheduleDetail, setSelectedScheduleDetail] = useState<DisplaySchedule | null>(null)
 
+    // Calendar state removed: not used in this staff page (keeps UI simpler)
+
     const transformApiSchedule = (apiSchedule: any): DisplaySchedule => {
         return {
             ...apiSchedule,
@@ -144,6 +147,7 @@ const StaffSchedulesPage: React.FC = () => {
         fetchSchedules()
     }, [fetchSchedules])
 
+
     useEffect(() => {
         setPageIndex(1)
     }, [searchQuery, statusFilter, sortBy])
@@ -164,7 +168,6 @@ const StaffSchedulesPage: React.FC = () => {
 
     const filteredSchedules = useMemo(() => {
         return schedules.filter(schedule => {
-            // Search filter
             if (searchQuery.trim()) {
                 const searchTerm = searchQuery.toLowerCase()
                 const farmName = schedule.farmView?.farmName?.toLowerCase() || ''
@@ -180,7 +183,6 @@ const StaffSchedulesPage: React.FC = () => {
                 }
             }
 
-            // Status filter
             if (statusFilter !== 'all') {
                 if (statusFilter === 'ACTIVE') {
                     if (typeof schedule.status === 'string') {
@@ -201,7 +203,6 @@ const StaffSchedulesPage: React.FC = () => {
         })
     }, [schedules, searchQuery, statusFilter])
 
-    // Client-side sorting
     const sortedSchedules = useMemo(() => {
         const sorted = [...filteredSchedules]
 
@@ -238,7 +239,6 @@ const StaffSchedulesPage: React.FC = () => {
         }
     }, [filteredSchedules, sortBy])
 
-    // Pagination
     const totalPages = useMemo(() => {
         return Math.max(1, Math.ceil(sortedSchedules.length / pageSize))
     }, [sortedSchedules.length, pageSize])
@@ -268,7 +268,6 @@ const StaffSchedulesPage: React.FC = () => {
     )
 
     const handleViewDetail = useCallback((schedule: DisplaySchedule) => {
-        // Create a proper copy with nested objects to avoid reference issues
         const scheduleCopy: DisplaySchedule = {
             ...schedule,
             farmView: schedule.farmView ? { ...schedule.farmView } : undefined,
@@ -281,20 +280,20 @@ const StaffSchedulesPage: React.FC = () => {
         setIsScheduleDetailOpen(true)
     }, [])
 
+    // Calendar handlers removed because they're not used on this page.
+    // We'll use the local `calendarEvents` memo below which derives from filteredSchedules.
+
     const formatDateOnly = useCallback((dateString: string) => {
         return formatDate(dateString)
     }, [])
 
-    // Handle modal open/close with proper cleanup
     const handleModalOpenChange = useCallback((open: boolean) => {
         setIsScheduleDetailOpen(open)
         if (!open) {
-            // Clear selected schedule when modal closes to prevent stale data
             setSelectedScheduleDetail(null)
         }
     }, [])
 
-    // Memoize crop requirements to prevent expensive re-computations
     const memoizedCropRequirements = useMemo(() => {
         if (!selectedScheduleDetail?.cropRequirement) return []
         return selectedScheduleDetail.cropRequirement

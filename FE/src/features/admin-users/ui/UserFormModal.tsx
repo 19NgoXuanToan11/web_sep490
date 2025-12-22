@@ -88,7 +88,6 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
     }
   }, [isOpen, user, reset])
 
-  // Update preview when images value changes
   useEffect(() => {
     if (watchedImages && watchedImages.startsWith('http')) {
       setImagePreview(watchedImages)
@@ -98,7 +97,6 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
   }, [watchedImages])
 
   const handleClose = () => {
-    // Cancel any ongoing upload
     if (abortControllerRef.current) {
       abortControllerRef.current.abort()
       abortControllerRef.current = null
@@ -117,7 +115,6 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
     const file = event.target.files?.[0]
     if (!file) return
 
-    // Validate file type
     if (!file.type.startsWith('image/')) {
       toast({
         title: 'File không hợp lệ',
@@ -130,7 +127,6 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
       return
     }
 
-    // Validate file size (5MB max)
     if (file.size > 5 * 1024 * 1024) {
       toast({
         title: 'File quá lớn',
@@ -143,7 +139,6 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
       return
     }
 
-    // Show preview immediately
     const reader = new FileReader()
     reader.onload = e => {
       const result = e.target?.result as string
@@ -151,11 +146,9 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
     }
     reader.readAsDataURL(file)
 
-    // Upload to Cloudinary
     setIsUploading(true)
     setUploadProgress(0)
 
-    // Create abort controller for cancellation
     abortControllerRef.current = new AbortController()
 
     try {
@@ -171,7 +164,6 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
     } catch (error) {
       if (error instanceof CloudinaryUploadError) {
         if (error.message.includes('aborted')) {
-          // Upload was cancelled, don't show error
           return
         }
         toast({
@@ -443,8 +435,7 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
               </SelectTrigger>
               <SelectContent>
                 {availableRoles
-                  .filter(role => {
-                    // When editing, hide the current user's role from the selection
+                  .filter(role => { 
                     if (isEditing && user) {
                       const currentUserRole = user.roles[0] || 'STAFF'
                       return role.value !== currentUserRole

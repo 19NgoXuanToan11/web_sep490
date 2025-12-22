@@ -42,7 +42,6 @@ export const Pagination: React.FC<PaginationProps> = ({
   const renderPageNumbers = () => {
     const pages = []
 
-    // First page button
     if (startPage > 1) {
       pages.push(
         <Button
@@ -65,7 +64,6 @@ export const Pagination: React.FC<PaginationProps> = ({
       }
     }
 
-    // Visible page numbers
     for (let i = startPage; i <= endPage; i++) {
       pages.push(
         <Button
@@ -81,7 +79,6 @@ export const Pagination: React.FC<PaginationProps> = ({
       )
     }
 
-    // Last page button
     if (endPage < totalPages) {
       if (endPage < totalPages - 1) {
         pages.push(
@@ -110,7 +107,6 @@ export const Pagination: React.FC<PaginationProps> = ({
   return (
     <div className={`flex flex-wrap items-center justify-end gap-4 ${className}`}>
       <div className="flex items-center gap-2">
-        {/* First page button */}
         <Button
           variant="outline"
           size="sm"
@@ -120,7 +116,6 @@ export const Pagination: React.FC<PaginationProps> = ({
           Đầu
         </Button>
 
-        {/* Previous page button */}
         <Button
           variant="outline"
           size="sm"
@@ -131,10 +126,8 @@ export const Pagination: React.FC<PaginationProps> = ({
           Trước
         </Button>
 
-        {/* Page numbers */}
         <div className="flex items-center gap-1">{renderPageNumbers()}</div>
 
-        {/* Next page button */}
         <Button
           variant="outline"
           size="sm"
@@ -145,7 +138,6 @@ export const Pagination: React.FC<PaginationProps> = ({
           <ChevronRight className="h-4 w-4" />
         </Button>
 
-        {/* Last page button */}
         <Button
           variant="outline"
           size="sm"
@@ -156,7 +148,6 @@ export const Pagination: React.FC<PaginationProps> = ({
         </Button>
       </div>
 
-      {/* Page size selector */}
       {showPageSizeSelector && onPageSizeChange && (
         <div className="flex items-center gap-2">
           <Label className="text-sm">Số lượng mỗi trang:</Label>
@@ -164,7 +155,7 @@ export const Pagination: React.FC<PaginationProps> = ({
             value={pageSize?.toString() || '10'}
             onValueChange={value => {
               onPageSizeChange(Number(value))
-              onPageChange(1) // Reset to first page when page size changes
+              onPageChange(1) 
             }}
           >
             <SelectTrigger className="w-[80px]">

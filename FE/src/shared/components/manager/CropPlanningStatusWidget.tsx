@@ -19,7 +19,6 @@ export const CropPlanningStatusWidget: React.FC<CropPlanningStatusWidgetProps> =
         const active = requirements.filter((req) => req.isActive).length
         const inactive = total - active
 
-        // Requirements with complete data
         const withCompleteData = requirements.filter(
             (req) =>
                 req.isActive &&
@@ -29,7 +28,6 @@ export const CropPlanningStatusWidget: React.FC<CropPlanningStatusWidgetProps> =
                 req.estimatedDate !== null
         ).length
 
-        // Requirements missing critical data
         const missingData = requirements.filter(
             (req) =>
                 req.isActive &&
@@ -39,7 +37,6 @@ export const CropPlanningStatusWidget: React.FC<CropPlanningStatusWidgetProps> =
                     req.estimatedDate === null)
         ).length
 
-        // Requirements with notes (better planning)
         const withNotes = requirements.filter(
             (req) => req.isActive && req.notes && req.notes.trim().length > 0
         ).length

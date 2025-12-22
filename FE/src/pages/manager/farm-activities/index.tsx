@@ -5,6 +5,7 @@ import { Input } from '@/shared/ui/input'
 import { Label } from '@/shared/ui/label'
 import { Card, CardContent } from '@/shared/ui/card'
 import { Badge } from '@/shared/ui/badge'
+import { Skeleton } from '@/shared/ui/skeleton'
 import {
   Dialog,
   DialogContent,
@@ -13,11 +14,9 @@ import {
   DialogTitle,
 } from '@/shared/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
-import { RefreshCw, Search, MoreHorizontal } from 'lucide-react'
 import { useToast } from '@/shared/ui/use-toast'
 import {
   ManagementPageHeader,
-  StaffFilterBar,
 } from '@/shared/ui'
 import { Pagination } from '@/shared/ui/pagination'
 import {
@@ -32,8 +31,10 @@ import {
   type FarmActivityRequest,
   type FarmActivityUpdate,
 } from '@/shared/api/farmActivityService'
+import { ActivitiesCalendar, mapActivitiesToCalendarEvents, type CalendarEvent, type SlotInfo } from './ActivitiesCalendar'
+import { ActivityDrawer } from './ActivityDrawer'
+import { StatusBadge } from './components/StatusBadge'
 
-// Component riêng cho Action Menu
 interface ActivityActionMenuProps {
   activity: FarmActivity
   onView: (activity: FarmActivity) => void
@@ -96,7 +97,7 @@ const ActivityActionMenu: React.FC<ActivityActionMenuProps> = React.memo(({ acti
           className="h-8 w-8 p-0"
           onClick={(e) => e.stopPropagation()}
         >
-          <MoreHorizontal className="h-4 w-4" />
+          ⋯
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
@@ -133,6 +134,122 @@ const ActivityActionMenu: React.FC<ActivityActionMenuProps> = React.memo(({ acti
 
 ActivityActionMenu.displayName = 'ActivityActionMenu'
 
+interface ActivityTimelineCardProps {
+  activity: FarmActivity
+  getActivityTypeLabel: (type: string | null | undefined) => string
+  formatDisplayDate: (date: string | undefined | null) => string
+  getStatusBadge: (status: string, isOverdue?: boolean) => React.ReactNode
+  getActivityProgress: (activity: FarmActivity) => number
+  getDaysUntilDue: (activity: FarmActivity) => number | null
+  isActivityOverdue: (activity: FarmActivity) => boolean
+  getStatusColor: (status: string) => string
+  onView: (activity: FarmActivity) => void
+  onEdit: (activity: FarmActivity) => void
+  onToggleStatus: (activity: FarmActivity) => void
+}
+
+const ActivityTimelineCard: React.FC<ActivityTimelineCardProps> = React.memo(({
+  activity,
+  getActivityTypeLabel,
+  formatDisplayDate,
+  getStatusBadge,
+  getActivityProgress,
+  getDaysUntilDue,
+  isActivityOverdue,
+  getStatusColor,
+  onView,
+  onEdit,
+  onToggleStatus,
+}) => {
+  const progress = getActivityProgress(activity)
+  const daysUntilDue = getDaysUntilDue(activity)
+  const overdue = isActivityOverdue(activity)
+  const status = (activity.status || '').toUpperCase()
+  const statusColor = getStatusColor(activity.status || '')
+
+  const isActive = status === 'ACTIVE' || status === 'IN_PROGRESS'
+  const isCompleted = status === 'COMPLETED'
+
+  return (
+    <Card
+      className={`
+        group relative overflow-hidden cursor-pointer
+        transition-all duration-200 hover:shadow-lg hover:border-slate-300
+        ${overdue ? 'border-l-4 border-l-red-500' : isActive ? 'border-l-4 border-l-emerald-500' : ''}
+        ${isCompleted ? 'opacity-75' : ''}
+      `}
+      onClick={() => onView(activity)}
+    >
+      <CardContent className="p-4">
+        <div className="flex items-start justify-between mb-3">
+          <div className="flex-1 min-w-0">
+            <h4 className="text-sm font-semibold text-slate-900 truncate">
+              {getActivityTypeLabel(activity.activityType)}
+            </h4>
+          </div>
+          <div onClick={(e) => e.stopPropagation()}>
+            <ActivityActionMenu
+              activity={activity}
+              onView={onView}
+              onEdit={onEdit}
+              onToggleStatus={onToggleStatus}
+            />
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 mb-3 text-xs text-slate-600">
+          <span className="font-medium">
+            {formatDisplayDate(activity.startDate)} - {formatDisplayDate(activity.endDate)}
+          </span>
+        </div>
+
+        {isActive && !isCompleted && (
+          <div className="mb-3">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-xs font-medium text-slate-600">Tiến độ</span>
+              <span className="text-xs font-semibold text-slate-900">{progress}%</span>
+            </div>
+            <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+              <div
+                className={`h-full ${statusColor} transition-all duration-300`}
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+          </div>
+        )}
+
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex-1">
+            {getStatusBadge(activity.status, overdue)}
+          </div>
+          {daysUntilDue !== null && !isCompleted && (
+            <div className={`
+              text-xs font-medium px-2 py-0.5 rounded
+              ${overdue
+                ? 'bg-red-50 text-red-700'
+                : daysUntilDue <= 2
+                  ? 'bg-amber-50 text-amber-700'
+                  : 'bg-slate-50 text-slate-600'
+              }
+            `}>
+              {overdue
+                ? `Quá hạn ${Math.abs(daysUntilDue)} ngày`
+                : daysUntilDue === 0
+                  ? 'Hôm nay'
+                  : daysUntilDue === 1
+                    ? 'Còn 1 ngày'
+                    : `Còn ${daysUntilDue} ngày`
+              }
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  )
+})
+
+ActivityTimelineCard.displayName = 'ActivityTimelineCard'
+
 export default function FarmActivitiesPage() {
   const [activities, setActivities] = useState<FarmActivity[]>([])
   const [loading, setLoading] = useState(true)
@@ -140,8 +257,13 @@ export default function FarmActivitiesPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [activityTypeFilter, setActivityTypeFilter] = useState<string>('all')
   const [sortBy, setSortBy] = useState<'newest' | 'startDate' | 'status'>('newest')
+  const [viewMode, setViewMode] = useState<'month' | 'week' | 'day' | 'agenda'>('month')
+  const [calendarDate, setCalendarDate] = useState(new Date())
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const [drawerMode, setDrawerMode] = useState<'day' | 'event' | null>(null)
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null)
+  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
 
-  // Pagination state
   const [pageIndex, setPageIndex] = useState(1)
   const pageSize = 10
   const [totalPages, setTotalPages] = useState(0)
@@ -170,9 +292,9 @@ export default function FarmActivitiesPage() {
     inProgress: 0,
     completed: 0,
     deactivated: 0,
+    atRisk: 0,
   })
 
-  // Get today's date in YYYY-MM-DD format for date input min attribute
   const getTodayDateString = (): string => {
     const today = new Date()
     const year = today.getFullYear()
@@ -183,8 +305,6 @@ export default function FarmActivitiesPage() {
 
   const todayDateString = getTodayDateString()
 
-  // Enum ActivityType từ backend (C#):
-  // Mapping tất cả các loại hoạt động từ backend
   const activityTypeMap: Record<string, string> = {
     SoilPreparation: 'Chuẩn bị đất trước gieo',
     Sowing: 'Gieo hạt',
@@ -197,7 +317,6 @@ export default function FarmActivitiesPage() {
     CleaningFarmArea: 'Dọn dẹp đồng ruộng',
   }
 
-  // Danh sách activity types cho dropdown (giữ nguyên format cũ cho tương thích)
   const activityTypes = [
     { value: 'SoilPreparation', label: 'Chuẩn bị đất trước gieo' },
     { value: 'Sowing', label: 'Gieo hạt' },
@@ -232,14 +351,11 @@ export default function FarmActivitiesPage() {
     if (!type) return 'Không có dữ liệu'
     const activityType = activityTypes.find(at => at.value === type)
     if (activityType) return activityType.label
-    // Fallback: nếu type là string từ backend, thử map trực tiếp
     return activityTypeMap[type] || type
   }
 
-  function getStatusBadge(status: string) {
-    const statusOption = statusOptions.find(s => s.value === status)
-    if (!statusOption) return <Badge variant="outline">{status}</Badge>
-    return <Badge variant={statusOption.variant}>{statusOption.label}</Badge>
+  function getStatusBadge(status: string, isOverdue?: boolean) {
+    return <StatusBadge status={status} isOverdue={isOverdue} size="sm" />
   }
 
   const loadActivities = useCallback(async () => {
@@ -260,7 +376,6 @@ export default function FarmActivitiesPage() {
       const normalizedActivities = Array.isArray(response.items)
         ? response.items.map(activity => ({
           ...activity,
-          // Giữ nguyên activityType từ backend (string như "Weeding", "Harvesting", etc.)
           activityType: activity.activityType || '',
         }))
         : []
@@ -287,6 +402,9 @@ export default function FarmActivitiesPage() {
 
       const items = Array.isArray(response.items) ? response.items : []
 
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+
       const stats = items.reduce(
         (acc, activity) => {
           const status = (activity.status || '').toUpperCase()
@@ -295,6 +413,18 @@ export default function FarmActivitiesPage() {
           else if (status === 'IN_PROGRESS') acc.inProgress += 1
           else if (status === 'COMPLETED') acc.completed += 1
           else if (status === 'DEACTIVATED') acc.deactivated += 1
+
+          if (status === 'ACTIVE' || status === 'IN_PROGRESS') {
+            const endDate = activity.endDate ? new Date(activity.endDate) : null
+            if (endDate) {
+              endDate.setHours(0, 0, 0, 0)
+              const daysUntilDue = Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+              if (daysUntilDue <= 2 && daysUntilDue >= 0) {
+                acc.atRisk += 1
+              }
+            }
+          }
+
           return acc
         },
         {
@@ -303,6 +433,7 @@ export default function FarmActivitiesPage() {
           inProgress: 0,
           completed: 0,
           deactivated: 0,
+          atRisk: 0,
         }
       )
 
@@ -608,11 +739,9 @@ export default function FarmActivitiesPage() {
   const formatDisplayDate = (dateString: string | undefined | null): string => {
     if (!dateString) return 'Không có dữ liệu'
     try {
-      // Xử lý định dạng MM/DD/YYYY từ backend
       if (dateString.includes('/')) {
         const parts = dateString.split('/')
         if (parts.length === 3) {
-          // MM/DD/YYYY -> YYYY-MM-DD để parse
           const month = parts[0].padStart(2, '0')
           const day = parts[1].padStart(2, '0')
           const year = parts[2]
@@ -623,7 +752,6 @@ export default function FarmActivitiesPage() {
           }
         }
       }
-      // Thử parse trực tiếp nếu là ISO format hoặc format khác
       const date = new Date(dateString)
       if (!isNaN(date.getTime())) {
         return date.toLocaleDateString('vi-VN')
@@ -636,20 +764,16 @@ export default function FarmActivitiesPage() {
 
   const formatDateForInput = (dateString: string | undefined | null): string => {
     if (!dateString) return ''
-    // Xử lý định dạng MM/DD/YYYY từ backend
     if (dateString.includes('/')) {
       const parts = dateString.split('/')
       if (parts.length === 3) {
-        // MM/DD/YYYY -> YYYY-MM-DD
         const month = parts[0].padStart(2, '0')
         const day = parts[1].padStart(2, '0')
         const year = parts[2]
         return `${year}-${month}-${day}`
       }
     }
-    // Đã là format YYYY-MM-DD
     if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) return dateString
-    // ISO format với T
     if (dateString.includes('T')) return dateString.split('T')[0]
     return dateString
   }
@@ -674,9 +798,113 @@ export default function FarmActivitiesPage() {
     }
   }
 
+  const getActivityProgress = useCallback((activity: FarmActivity): number => {
+    if (!activity.startDate || !activity.endDate) return 0
+    const start = new Date(activity.startDate).getTime()
+    const end = new Date(activity.endDate).getTime()
+    const now = new Date().getTime()
+
+    if (now < start) return 0
+    if (now > end) return 100
+    return Math.round(((now - start) / (end - start)) * 100)
+  }, [])
+
+  const getDaysUntilDue = useCallback((activity: FarmActivity): number | null => {
+    if (!activity.endDate) return null
+    const endDate = new Date(activity.endDate)
+    endDate.setHours(0, 0, 0, 0)
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    const diff = Math.ceil((endDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+    return diff
+  }, [])
+
+  const isActivityOverdue = useCallback((activity: FarmActivity): boolean => {
+    const daysUntilDue = getDaysUntilDue(activity)
+    if (daysUntilDue === null) return false
+    const status = (activity.status || '').toUpperCase()
+    return daysUntilDue < 0 && (status === 'ACTIVE' || status === 'IN_PROGRESS')
+  }, [getDaysUntilDue])
+
+  const getStatusColor = useCallback((status: string): string => {
+    const normalizedStatus = (status || '').toUpperCase()
+    switch (normalizedStatus) {
+      case 'ACTIVE':
+        return 'bg-emerald-500'
+      case 'IN_PROGRESS':
+        return 'bg-blue-500'
+      case 'COMPLETED':
+        return 'bg-slate-400'
+      case 'DEACTIVATED':
+        return 'bg-amber-500'
+      default:
+        return 'bg-gray-400'
+    }
+  }, [])
+
+
+  const calendarEvents = useMemo(() => {
+    return mapActivitiesToCalendarEvents(sortedActivities, getActivityTypeLabel)
+  }, [sortedActivities, getActivityTypeLabel])
+
+  const dayActivities = useMemo(() => {
+    if (!selectedDate) return []
+    const selectedDateStr = selectedDate.toISOString().split('T')[0]
+    return calendarEvents.filter(event => {
+      const eventStart = event.start.toISOString().split('T')[0]
+      const eventEnd = event.end.toISOString().split('T')[0]
+      return selectedDateStr >= eventStart && selectedDateStr <= eventEnd
+    })
+  }, [selectedDate, calendarEvents])
+
+  const handleSelectEvent = useCallback((event: CalendarEvent) => {
+    setSelectedEvent(event)
+    setDrawerMode('event')
+    setDrawerOpen(true)
+  }, [])
+
+  const handleSelectSlot = useCallback((slotInfo: SlotInfo) => {
+    if (slotInfo.action === 'click') {
+      setSelectedDate(slotInfo.start)
+      setDrawerMode('day')
+      setDrawerOpen(true)
+    } else if (slotInfo.action === 'select') {
+      const startDateStr = slotInfo.start.toISOString().split('T')[0]
+      const endDateStr = slotInfo.end.toISOString().split('T')[0]
+      setFormData({
+        startDate: startDateStr,
+        endDate: endDateStr,
+      })
+      setCreateDialogOpen(true)
+    }
+  }, [])
+
+  const handleViewChange = useCallback((view: any) => {
+    setViewMode(view as 'month' | 'week' | 'day' | 'agenda')
+  }, [])
+
+  const handleNavigate = useCallback((date: Date) => {
+    setCalendarDate(date)
+  }, [])
+
+  const handleCreateFromDate = useCallback((date: Date) => {
+    const dateStr = date.toISOString().split('T')[0]
+    setFormData({
+      startDate: dateStr,
+      endDate: dateStr,
+    })
+    setCreateDialogOpen(true)
+  }, [])
+
+  const handleShowMore = useCallback((date: Date) => {
+    setSelectedDate(date)
+    setDrawerMode('day')
+    setDrawerOpen(true)
+  }, [])
+
   return (
     <ManagerLayout>
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-6 lg:px-6">
         <div className="space-y-6">
           <ManagementPageHeader
             title="Quản lý hoạt động nông trại"
@@ -687,120 +915,186 @@ export default function FarmActivitiesPage() {
                   variant="outline"
                   onClick={loadActivities}
                   disabled={loading}
+                  size="sm"
                   className="flex items-center gap-2"
                 >
-                  Làm mới
+                  {loading ? 'Đang tải...' : 'Làm mới'}
                 </Button>
               </div>
             }
           />
 
-          <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
+          <div className="grid gap-4 grid-cols-1 lg:grid-cols-4">
+            <Card className="lg:col-span-2">
+              <CardContent className="p-6">
+                <div className="space-y-4">
                   <div>
-                    <p className="text-sm text-gray-500">Tổng hoạt động</p>
-                    <p className="text-2xl font-semibold mt-1">{activityStats.total}</p>
+                    <p className="text-sm font-medium text-slate-600 uppercase tracking-wide mb-2">
+                      Tổng hoạt động
+                    </p>
+                    <p className="text-5xl font-bold text-slate-900 leading-tight">
+                      {activityStats.total}
+                    </p>
+                    <p className="text-sm text-slate-500 mt-2">
+                      Toàn bộ hoạt động nông trại trong hệ thống
+                    </p>
                   </div>
-                </div>
-                <p className="text-xs text-gray-500 mt-2">
-                  Toàn bộ hoạt động nông trại trong hệ thống
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-500">Đang hoạt động</p>
-                    <p className="text-2xl font-semibold mt-1 text-green-600">
+                  <div className="pt-4 border-t border-slate-200">
+                    <p className="text-sm font-medium text-slate-600 mb-1">Đang hoạt động</p>
+                    <p className="text-3xl font-bold text-emerald-600">
                       {activityStats.active + activityStats.inProgress}
+                    </p>
+                    <p className="text-xs text-slate-500 mt-1">
+                      Đang chạy và thực hiện
                     </p>
                   </div>
                 </div>
-                <p className="text-xs text-gray-500 mt-2">
-                  Bao gồm hoạt động đang chạy và đang thực hiện
-                </p>
               </CardContent>
             </Card>
 
-            {/* Removed “Hoàn thành” & “Đã hủy” cards per request */}
+            <Card className="">
+              <CardContent className="p-5">
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-slate-600">Cần chú ý</p>
+                  <p className="text-3xl font-bold text-amber-600">
+                    {activityStats.atRisk}
+                  </p>
+                  <p className="text-xs text-slate-500 mt-2">
+                    Sắp đến hạn
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="">
+              <CardContent className="p-5">
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-slate-600">Hoàn thành</p>
+                  <p className="text-3xl font-bold text-slate-600">
+                    {activityStats.completed}
+                  </p>
+                  <p className="text-xs text-slate-500 mt-2">
+                    Đã hoàn tất
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
-          <StaffFilterBar>
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                <Input
-                  id="search"
-                  placeholder="Nhập loại hoạt động..."
-                  value={searchTerm}
-                  onChange={e => setSearchTerm(e.target.value)}
-                  className="pl-9"
-                />
-              </div>
-            </div>
-            <div className="w-full sm:w-48">
-              <Select value={activityTypeFilter} onValueChange={setActivityTypeFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Tất cả loại" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tất cả</SelectItem>
-                  {activityTypes.map(type => (
-                    <SelectItem key={type.value} value={type.value}>
-                      {type.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="w-full sm:w-48">
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Tất cả trạng thái" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tất cả</SelectItem>
-                  {statusOptions.map(status => (
-                    <SelectItem key={status.value} value={status.value}>
-                      {status.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="w-full sm:w-48">
-              <Select value={sortBy} onValueChange={(value) => setSortBy(value as typeof sortBy)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Sắp xếp" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="newest">Mới nhất</SelectItem>
-                  <SelectItem value="startDate">Ngày bắt đầu</SelectItem>
-                  <SelectItem value="status">Trạng thái</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex gap-2">
-              <Button onClick={() => setCreateDialogOpen(true)} className="flex items-center gap-2 bg-green-600 hover:bg-green-700">
-                Tạo
-              </Button>
-            </div>
-          </StaffFilterBar>
-
-          <Card>
-            <CardContent className="p-0">
-              {loading ? (
-                <div className="flex items-center justify-center py-12">
-                  <RefreshCw className="h-8 w-8 animate-spin text-green-600" />
-                  <span className="ml-2 text-gray-600">Đang tải dữ liệu...</span>
+          <Card className="border-0 shadow-sm">
+            <CardContent className="p-4">
+              <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center">
+                <div className="flex-1 w-full lg:w-auto min-w-0">
+                  <Input
+                    id="search"
+                    placeholder="Tìm kiếm hoạt động, loại, trạng thái..."
+                    value={searchTerm}
+                    onChange={e => setSearchTerm(e.target.value)}
+                    className="h-9"
+                  />
                 </div>
-              ) : sortedActivities.length === 0 ? (
-                <div className="py-12 text-center space-y-2">
-                  <p className="text-lg font-semibold text-gray-900">
+
+                <div className="flex flex-wrap gap-2 flex-1 lg:flex-initial">
+                  <Select value={activityTypeFilter} onValueChange={setActivityTypeFilter}>
+                    <SelectTrigger className="h-9 w-full sm:w-[180px]">
+                      <SelectValue placeholder="Loại hoạt động" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tất cả loại</SelectItem>
+                      {activityTypes.map(type => (
+                        <SelectItem key={type.value} value={type.value}>
+                          {type.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="h-9 w-full sm:w-[160px]">
+                      <SelectValue placeholder="Trạng thái" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tất cả trạng thái</SelectItem>
+                      {statusOptions.map(status => (
+                        <SelectItem key={status.value} value={status.value}>
+                          {status.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  <Select value={sortBy} onValueChange={(value) => setSortBy(value as typeof sortBy)}>
+                    <SelectTrigger className="h-9 w-full sm:w-[140px]">
+                      <SelectValue placeholder="Sắp xếp" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="newest">Mới nhất</SelectItem>
+                      <SelectItem value="startDate">Ngày bắt đầu</SelectItem>
+                      <SelectItem value="status">Trạng thái</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="flex gap-2 w-full lg:w-auto">
+                  <div className="flex border rounded-md p-1 bg-slate-50">
+                    <Button
+                      variant={viewMode === 'month' ? 'default' : 'ghost'}
+                      size="sm"
+                      onClick={() => setViewMode('month')}
+                      className="h-7 px-3"
+                    >
+                      Tháng
+                    </Button>
+                    <Button
+                      variant={viewMode === 'week' ? 'default' : 'ghost'}
+                      size="sm"
+                      onClick={() => setViewMode('week')}
+                      className="h-7 px-3"
+                    >
+                      Tuần
+                    </Button>
+                    <Button
+                      variant={viewMode === 'day' ? 'default' : 'ghost'}
+                      size="sm"
+                      onClick={() => setViewMode('day')}
+                      className="h-7 px-3"
+                    >
+                      Ngày
+                    </Button>
+                    <Button
+                      variant={viewMode === 'agenda' ? 'default' : 'ghost'}
+                      size="sm"
+                      onClick={() => setViewMode('agenda')}
+                      className="h-7 px-3"
+                    >
+                      Danh sách
+                    </Button>
+                  </div>
+                  <Button
+                    onClick={() => setCreateDialogOpen(true)}
+                    className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 h-9"
+                  >
+                    Tạo
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {loading ? (
+            <Card className="border-0 shadow-sm">
+              <CardContent className="p-8">
+                <div className="space-y-4">
+                  <Skeleton className="h-8 w-48 mx-auto" />
+                  <Skeleton className="h-[600px] w-full rounded-lg" />
+                </div>
+              </CardContent>
+            </Card>
+          ) : sortedActivities.length === 0 ? (
+            <Card className="border-0 shadow-sm">
+              <CardContent className="p-12">
+                <div className="text-center space-y-3">
+                  <p className="text-lg font-semibold text-slate-900">
                     {(() => {
                       if (searchTerm) return 'Không tìm thấy hoạt động nào'
                       if (statusFilter !== 'all' || activityTypeFilter !== 'all') {
@@ -809,69 +1103,102 @@ export default function FarmActivitiesPage() {
                       return 'Chưa có hoạt động nông trại'
                     })()}
                   </p>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-slate-600 max-w-md mx-auto">
                     {(() => {
                       if (searchTerm) return 'Không có hoạt động nào phù hợp với điều kiện lọc hiện tại.'
                       if (statusFilter !== 'all' || activityTypeFilter !== 'all') {
                         return 'Không có hoạt động nào phù hợp với điều kiện lọc hiện tại.'
                       }
-                      return 'Hãy tạo hoạt động nông trại đầu tiên.'
+                      return 'Hãy tạo hoạt động nông trại đầu tiên để bắt đầu quản lý.'
                     })()}
                   </p>
+                  {!searchTerm && statusFilter === 'all' && activityTypeFilter === 'all' && (
+                    <Button
+                      onClick={() => setCreateDialogOpen(true)}
+                      className="mt-4 bg-emerald-600 hover:bg-emerald-700"
+                    >
+                      Tạo hoạt động đầu tiên
+                    </Button>
+                  )}
                 </div>
-              ) : (
+              </CardContent>
+            </Card>
+          ) : viewMode === 'agenda' ? (
+            <Card className="border-0 shadow-sm">
+              <CardContent className="p-6">
                 <div className="space-y-6">
                   {groupedActivities.map(([typeLabel, items]) => (
                     <div key={typeLabel} className="space-y-3">
-                      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
-                        <h3 className="text-lg font-semibold text-gray-900">{typeLabel}</h3>
+                      <div className="flex items-center justify-between pb-2 border-b border-slate-200">
+                        <h3 className="text-base font-semibold text-slate-900">{typeLabel}</h3>
+                        <Badge variant="secondary">{items.length}</Badge>
                       </div>
-                      <div className="grid gap-3 px-4 pb-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                      <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                         {items.map(activity => (
-                          <Card
+                          <ActivityTimelineCard
                             key={activity.farmActivitiesId ?? `${activity.activityType}-${activity.startDate}`}
-                            className="hover:shadow-md transition-all cursor-pointer"
-                            onClick={() => handleViewDetailsClick(activity)}
-                          >
-                            <CardContent className="p-4">
-                              <div className="flex items-start justify-between">
-                                <div className="space-y-3">
-                                  <p className="text-sm font-medium text-gray-900">
-                                    {formatDisplayDate(activity.startDate)} - {formatDisplayDate(activity.endDate)}
-                                  </p>
-                                  <div className="flex items-center gap-2">
-                                    {getStatusBadge(activity.status)}
-                                  </div>
-                                </div>
-                                <div onClick={(e) => e.stopPropagation()}>
-                                  <ActivityActionMenu
-                                    activity={activity}
-                                    onView={handleViewDetailsClick}
-                                    onEdit={handleEditClick}
-                                    onToggleStatus={handleToggleStatus}
-                                  />
-                                </div>
-                              </div>
-                            </CardContent>
-                          </Card>
+                            activity={activity}
+                            getActivityTypeLabel={getActivityTypeLabel}
+                            formatDisplayDate={formatDisplayDate}
+                            getStatusBadge={getStatusBadge}
+                            getActivityProgress={getActivityProgress}
+                            getDaysUntilDue={getDaysUntilDue}
+                            isActivityOverdue={isActivityOverdue}
+                            getStatusColor={getStatusColor}
+                            onView={handleViewDetailsClick}
+                            onEdit={handleEditClick}
+                            onToggleStatus={handleToggleStatus}
+                          />
                         ))}
                       </div>
                     </div>
                   ))}
-
                   {totalPages > 1 && (
-                    <div className="px-4 pb-4">
+                    <div className="pt-4 border-t">
                       <Pagination currentPage={pageIndex} totalPages={totalPages} onPageChange={handlePageChange} />
                     </div>
                   )}
                 </div>
-              )}
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          ) : (
+            <ActivitiesCalendar
+              events={calendarEvents}
+              view={viewMode}
+              date={calendarDate}
+              onViewChange={handleViewChange}
+              onNavigate={handleNavigate}
+              onSelectEvent={handleSelectEvent}
+              onSelectSlot={handleSelectSlot}
+              getActivityTypeLabel={getActivityTypeLabel}
+              getStatusBadge={getStatusBadge}
+              onShowMore={handleShowMore}
+              isActivityOverdue={isActivityOverdue}
+            />
+          )}
+
+          <ActivityDrawer
+            open={drawerOpen}
+            onOpenChange={setDrawerOpen}
+            mode={drawerMode}
+            selectedDate={selectedDate}
+            selectedEvent={selectedEvent}
+            dayActivities={dayActivities}
+            loading={false}
+            getActivityTypeLabel={getActivityTypeLabel}
+            getStatusBadge={getStatusBadge}
+            formatDisplayDate={formatDisplayDate}
+            getActivityProgress={getActivityProgress}
+            getDaysUntilDue={getDaysUntilDue}
+            isActivityOverdue={isActivityOverdue}
+            onViewActivity={handleViewDetailsClick}
+            onEditActivity={handleEditClick}
+            onToggleStatus={handleToggleStatus}
+            onCreateActivity={handleCreateFromDate}
+          />
         </div>
       </div>
 
-      {/* Dialogs */}
       <Dialog open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
@@ -911,7 +1238,6 @@ export default function FarmActivitiesPage() {
         </DialogContent>
       </Dialog>
 
-      { }
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -942,7 +1268,6 @@ export default function FarmActivitiesPage() {
                 value={formData.startDate}
                 onChange={e => {
                   setFormData({ ...formData, startDate: e.target.value })
-                  // Clear error when user changes the date
                   if (dateErrors.startDate) {
                     setDateErrors({ ...dateErrors, startDate: undefined })
                   }
@@ -962,7 +1287,6 @@ export default function FarmActivitiesPage() {
                 value={formData.endDate}
                 onChange={e => {
                   setFormData({ ...formData, endDate: e.target.value })
-                  // Clear error when user changes the date
                   if (dateErrors.endDate) {
                     setDateErrors({ ...dateErrors, endDate: undefined })
                   }
@@ -998,7 +1322,6 @@ export default function FarmActivitiesPage() {
         </DialogContent>
       </Dialog>
 
-      { }
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -1029,7 +1352,6 @@ export default function FarmActivitiesPage() {
                 value={formData.startDate}
                 onChange={e => {
                   setFormData({ ...formData, startDate: e.target.value })
-                  // Clear error when user changes the date
                   if (dateErrors.startDate) {
                     setDateErrors({ ...dateErrors, startDate: undefined })
                   }
@@ -1049,7 +1371,6 @@ export default function FarmActivitiesPage() {
                 value={formData.endDate}
                 onChange={e => {
                   setFormData({ ...formData, endDate: e.target.value })
-                  // Clear error when user changes the date
                   if (dateErrors.endDate) {
                     setDateErrors({ ...dateErrors, endDate: undefined })
                   }

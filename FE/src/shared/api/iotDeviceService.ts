@@ -1,15 +1,14 @@
 import { http } from './client'
 
 export interface IoTDevice {
-  devicesId?: number // Backend returns this field (DevicesId)
+  devicesId?: number 
   deviceName?: string
   pinCode?: string
   deviceType?: string
-  status?: number | string // Status enum from backend
-  unit?: string // Unit field from backend response
-  lastUpdate?: string // DateOnly from backend
-  expiryDate?: string // DateOnly from backend
-  // Legacy field for backward compatibility
+  status?: number | string 
+  unit?: string 
+  lastUpdate?: string 
+  expiryDate?: string 
   ioTdevicesId?: number
   farmDetailsId?: number
 }
@@ -19,7 +18,6 @@ export interface IoTDeviceRequest {
   pinCode?: string
   deviceType: string
   expiryDate?: string
-  // Note: farmDetailsId is not accepted by backend (commented out in IOTRequest)
 }
 
 export interface IoTDeviceResponse {
@@ -38,8 +36,6 @@ export interface PaginatedIoTDevices {
   items: IoTDevice[]
 }
 
-// Helper function to map API response to IoTDevice interface
-// Handles both PascalCase (from backend) and camelCase (from serialization)
 const mapApiDeviceToDevice = (apiDevice: any): IoTDevice => {
   return {
     devicesId:
@@ -54,7 +50,6 @@ const mapApiDeviceToDevice = (apiDevice: any): IoTDevice => {
     unit: apiDevice.unit || apiDevice.Unit,
     lastUpdate: apiDevice.lastUpdate || apiDevice.LastUpdate,
     expiryDate: apiDevice.expiryDate || apiDevice.ExpiryDate,
-    // Legacy fields for backward compatibility
     ioTdevicesId:
       apiDevice.devicesId ||
       apiDevice.DevicesId ||

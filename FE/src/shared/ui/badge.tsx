@@ -14,10 +14,10 @@ const badgeVariants = cva(
         teal:
           'border-transparent bg-gradient-to-r from-teal-400 to-emerald-500 text-white hover:from-teal-500 hover:to-emerald-600 shadow-teal-500/20',
         destructive:
-          'border-transparent bg-[#8B0000] text-white hover:bg-[#7B0000] shadow-[#8B0000]/25',
+          'border-transparent bg-red-700 text-[#fff] hover:bg-red-800 shadow-red-700/25 font-semibold',
         outline: 'text-foreground border-slate-300',
         success:
-          'border-transparent bg-gradient-to-r from-emerald-500 to-green-600 text-white hover:from-emerald-600 hover:to-green-700 shadow-emerald-500/25',
+          'border-transparent bg-green-600 text-[#fff] hover:bg-green-700 shadow-green-600/25 font-semibold',
         warning:
           'border-transparent bg-gradient-to-r from-amber-500 to-orange-600 text-white hover:from-amber-600 hover:to-orange-700 shadow-amber-500/25',
         info:
@@ -25,11 +25,13 @@ const badgeVariants = cva(
         pending:
           'border-transparent bg-gradient-to-r from-purple-50 to-purple-100 text-purple-700 hover:from-purple-100 hover:to-purple-200 shadow-purple-500/15 border border-purple-200',
         processing:
-          'border-transparent bg-gradient-to-r from-blue-50 to-indigo-100 text-blue-700 hover:from-blue-100 hover:to-indigo-200 shadow-blue-500/15 border border-blue-200',
+          'border-transparent bg-blue-600 text-[#fff] hover:bg-blue-700 shadow-blue-600/25 font-semibold',
         completed:
-          'border-transparent bg-gradient-to-r from-emerald-50 to-green-100 text-green-700 hover:from-emerald-100 hover:to-green-200 shadow-emerald-500/15 border border-emerald-200',
+          'border-transparent bg-teal-700 text-[#fff] hover:bg-teal-800 shadow-teal-700/25 font-semibold',
         failed:
           'border-transparent bg-gradient-to-r from-rose-50 to-red-100 text-rose-700 hover:from-rose-100 hover:to-red-200 shadow-rose-500/15 border border-rose-200',
+        overdue:
+          'border-transparent bg-red-600 text-[#fff] hover:bg-red-700 shadow-red-600/25 font-semibold',
         paid:
           'border-transparent bg-gradient-to-r from-teal-500 to-emerald-600 text-white hover:from-teal-600 hover:to-emerald-700 shadow-teal-500/25',
         shipping:

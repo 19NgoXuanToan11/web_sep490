@@ -72,7 +72,6 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
         })
       } catch (error) {
         console.error('Failed to fetch admin profile:', error)
-        // Keep default values on error
       } finally {
         setIsLoadingProfile(false)
       }

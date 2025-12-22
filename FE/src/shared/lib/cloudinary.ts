@@ -1,7 +1,3 @@
-/**
- * Cloudinary configuration and upload utilities for web frontend
- */
-
 export const CLOUDINARY = {
   cloudName: 'dlfitbaqd',
   unsignedPreset: 'sep490',
@@ -26,10 +22,6 @@ export interface UploadImageOptions {
   signal?: AbortSignal
 }
 
-/**
- * Upload image directly to Cloudinary using unsigned preset.
- * Returns secure_url string.
- */
 export async function uploadImageToCloudinary(options: UploadImageOptions): Promise<string> {
   const { file, folder, onProgress, signal } = options
 
@@ -41,7 +33,6 @@ export async function uploadImageToCloudinary(options: UploadImageOptions): Prom
   return new Promise<string>((resolve, reject) => {
     const xhr = new XMLHttpRequest()
 
-    // Handle upload progress
     if (onProgress) {
       xhr.upload.addEventListener('progress', event => {
         if (event.lengthComputable) {
@@ -51,7 +42,6 @@ export async function uploadImageToCloudinary(options: UploadImageOptions): Prom
       })
     }
 
-    // Handle abort signal
     if (signal) {
       if (signal.aborted) {
         xhr.abort()
@@ -64,7 +54,6 @@ export async function uploadImageToCloudinary(options: UploadImageOptions): Prom
       })
     }
 
-    // Handle response
     xhr.addEventListener('load', () => {
       if (xhr.status >= 200 && xhr.status < 300) {
         try {
@@ -93,18 +82,16 @@ export async function uploadImageToCloudinary(options: UploadImageOptions): Prom
       }
     })
 
-    // Handle network errors
     xhr.addEventListener('error', () => {
       reject(new CloudinaryUploadError('Network error during upload'))
     })
 
-    // Handle timeout
     xhr.addEventListener('timeout', () => {
       reject(new CloudinaryUploadError('Upload timeout'))
     })
 
     xhr.open('POST', CLOUDINARY.uploadUrl)
-    xhr.timeout = 60000 // 60 seconds timeout
+    xhr.timeout = 60000 
     xhr.send(formData)
   })
 }

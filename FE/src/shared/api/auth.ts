@@ -68,8 +68,8 @@ export interface AccountDto {
 
 export interface AccountFormRequest {
   email: string
-  gender: number // 0: Male, 1: Female, 2: Other
-  role: number // 0: Customer, 1: Admin, 2: Manager, 3: Staff
+  gender: number 
+  role: number 
   phone: string
   fullname: string
   address: string

@@ -26,7 +26,6 @@ export const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({
         if (status === undefined) {
             return <Badge variant="outline">Không xác định</Badge>
         }
-        // Xử lý cả string và number
         const normalizedStatus = typeof status === 'string'
             ? status.toUpperCase()
             : String(status)
@@ -55,16 +54,13 @@ export const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({
 
     const handleOpenChange = (open: boolean) => {
         if (!open) {
-            // Cleanup body overflow immediately
             document.body.style.overflow = ''
-            // Call onClose after a small delay to ensure cleanup
             setTimeout(() => {
                 onClose()
             }, 0)
         }
     }
 
-    // Prevent body scroll when modal is open
     React.useEffect(() => {
         if (isOpen) {
             document.body.style.overflow = 'hidden'
@@ -72,16 +68,13 @@ export const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({
             document.body.style.overflow = ''
         }
         return () => {
-            // Always cleanup on unmount
             document.body.style.overflow = ''
         }
     }, [isOpen])
 
-    // Cleanup on unmount
     React.useEffect(() => {
         return () => {
             document.body.style.overflow = ''
-            // Remove any lingering pointer-events blocks
             document.body.style.pointerEvents = ''
         }
     }, [])
@@ -91,7 +84,6 @@ export const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({
             <DialogContent
                 className="max-w-2xl max-h-[90vh] overflow-y-auto"
                 onEscapeKeyDown={(e) => {
-                    // Allow Escape to close
                     e.preventDefault()
                     onClose()
                 }}

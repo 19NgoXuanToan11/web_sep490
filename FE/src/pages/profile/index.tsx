@@ -34,7 +34,6 @@ const ProfilePage: React.FC = () => {
     e.preventDefault()
     setSaving(true)
     try {
-      // Profile update functionality removed
       toast({ title: 'Cập nhật hồ sơ thành công' })
     } catch (e: any) {
       toast({

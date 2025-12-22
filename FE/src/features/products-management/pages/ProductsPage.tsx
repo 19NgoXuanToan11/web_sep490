@@ -37,7 +37,6 @@ export function ProductsPage() {
   }
 
   const getFilteredStats = () => {
-    // Use allProducts for accurate counts when no filters are active
     const baseProductsForStats = hasActiveFilters() ? filteredProducts : allProducts
     return {
       total: hasActiveFilters() ? filteredProducts.length : (totalCount || allProducts.length),

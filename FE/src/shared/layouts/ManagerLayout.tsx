@@ -123,7 +123,6 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
         setImageError(false)
       } catch (error) {
         console.error('Failed to fetch manager profile:', error)
-        // Keep default values on error
       } finally {
         setIsLoadingProfile(false)
       }

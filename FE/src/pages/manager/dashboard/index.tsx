@@ -191,7 +191,6 @@ export default function ManagerDashboard() {
       const stats = await iotDeviceService.getDeviceStatistics()
       setIotDeviceStats(stats)
     } catch (error) {
-      // handle silently on dashboard
     }
   }, [])
 
@@ -204,7 +203,6 @@ export default function ManagerDashboard() {
         description: translateWeatherDescription(weatherData.description),
       })
     } catch (error) {
-      // keep previous weather state
     } finally {
       setIsLoadingWeather(false)
     }
@@ -249,7 +247,6 @@ export default function ManagerDashboard() {
       if (orderResult.status === 'fulfilled') {
         const orderData = orderResult.value
         const orderItems = orderData?.items ?? []
-        // Debug: Log order data structure
         if (orderItems.length > 0) {
 
         }
@@ -295,9 +292,7 @@ export default function ManagerDashboard() {
   }, [])
 
   const cropStats = useMemo(() => {
-    const active = crops.filter(crop => crop.status?.toLowerCase() === 'active').length
-    // Note: harvestDate is not available on Crop type, so setting to 0
-    // To track nearing harvest, we would need schedule data instead
+    const active = crops.filter(crop => crop.status?.toLowerCase() === 'active').length 
     const nearingHarvest = 0
 
     return {
@@ -448,7 +443,6 @@ export default function ManagerDashboard() {
   }, [orders])
 
   const getStatusBadge = (status: number, paymentStatus?: string) => {
-    // Nếu thanh toán thất bại, hiển thị "Thất bại" thay vì "Đang chuẩn bị"
     let label = getOrderStatusLabel(status)
     let variant = getOrderStatusVariant(status)
 
@@ -461,9 +455,6 @@ export default function ManagerDashboard() {
   }
 
   const getDisplayStatusBadge = (order: Order) => {
-    // Luôn hiển thị trạng thái ĐƠN HÀNG (Đang giao, Đã xác nhận, Hoàn thành...)
-    // Trạng thái thanh toán đã có cột riêng "Thanh toán"
-    // Nhưng nếu thanh toán thất bại, hiển thị "Thất bại" thay vì "Đang chuẩn bị"
     const normalizedStatus = normalizeOrderStatus(order.status)
     const paymentStatus = derivePaymentStatus({
       status: normalizedStatus,
@@ -472,7 +463,6 @@ export default function ManagerDashboard() {
     return getStatusBadge(normalizedStatus, paymentStatus)
   }
 
-  // Use centralized date formatting utility
   const formatDateOnly = (dateString: string) => {
     return formatDate(dateString)
   }
@@ -480,7 +470,6 @@ export default function ManagerDashboard() {
   const dashboardMetrics = useMemo(() => {
     const metrics: MetricCardProps[] = []
 
-    // Farm Management Metrics
     metrics.push({
       title: 'Thiết bị IoT hoạt động',
       value: `${iotDeviceStats.active}/${iotDeviceStats.total}`,
@@ -523,7 +512,6 @@ export default function ManagerDashboard() {
       description: 'Dựa trên danh sách cây trồng',
     })
 
-    // Business Metrics
     metrics.push({
       title: 'Tổng đơn hàng',
       value: businessStats.totalOrders,
@@ -627,7 +615,6 @@ export default function ManagerDashboard() {
           </div>
         )}
 
-        {/* Section 1: Key Performance Indicators - Farm Operations */}
         <div className="mb-8">
           <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
             Hoạt động nông trại
@@ -639,7 +626,6 @@ export default function ManagerDashboard() {
           </div>
         </div>
 
-        {/* Section 2: Crop Monitoring - Comprehensive Analysis */}
         <div className="mb-8">
           <div className="mb-6">
             <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
@@ -650,12 +636,10 @@ export default function ManagerDashboard() {
             </p>
           </div>
 
-          {/* First Row: Growth Stages */}
           <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-1 mb-6">
             <CropGrowthStagesWidget requirements={cropRequirements} />
           </div>
 
-          {/* Second Row: Environmental Metrics - Full Width */}
           <div className="mb-6">
             <EnvironmentalMetricsWidget
               requirements={cropRequirements}
@@ -668,20 +652,17 @@ export default function ManagerDashboard() {
           </div>
         </div>
 
-        {/* Section 3: Business Analytics */}
         <div className="mb-8">
           <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
             Phân tích kinh doanh
           </h2>
 
-          {/* Business Metrics Cards */}
           <div className="grid gap-6 md:grid-cols-3 mb-8">
             {dashboardMetrics.slice(4).map(metric => (
               <MetricCard key={metric.title} {...metric} />
             ))}
           </div>
 
-          {/* Revenue and Order Analytics */}
           <div className="grid gap-8 lg:grid-cols-2 mb-8">
             <Card className="border-0 shadow-lg">
               <CardHeader>
@@ -754,16 +735,13 @@ export default function ManagerDashboard() {
           </div>
         </div>
 
-        {/* Section 4: Customer Insights & Recent Activity */}
         <div className="mb-8">
           <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
             Thông tin khách hàng & Hoạt động gần đây
           </h2>
 
           <div className="grid gap-8 xl:grid-cols-5">
-            {/* Left Column: Extended width for Recent Orders prominence */}
             <div className="xl:col-span-3 space-y-8">
-              {/* Recent Orders - Full width for maximum prominence */}
               <Card className="border-0 shadow-lg">
                 <CardHeader className="border-b border-gray-100">
                   <div className="flex items-center justify-between">
@@ -817,7 +795,6 @@ export default function ManagerDashboard() {
                 </CardContent>
               </Card>
 
-              {/* Rating Distribution - Below Recent Orders */}
               <Card className="border-0 shadow-lg">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -838,7 +815,6 @@ export default function ManagerDashboard() {
               </Card>
             </div>
 
-            {/* Right Column: Weather and Recent Reviews */}
             <div className="xl:col-span-2 space-y-8">
               <Card className="border-0 shadow-lg overflow-hidden bg-white">
                 <CardHeader className="border-b">
@@ -871,7 +847,6 @@ export default function ManagerDashboard() {
                         )}
                       </div>
 
-                      {/* Temperature Details */}
                       <div className="grid grid-cols-2 gap-3 pt-2">
                         <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
                           <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -891,7 +866,6 @@ export default function ManagerDashboard() {
                         </div>
                       </div>
 
-                      {/* Weather Metrics Grid */}
                       <div className="grid grid-cols-2 gap-3 pt-2">
                         <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
                           <div className="flex items-center gap-2 text-sm text-gray-600">
@@ -911,7 +885,6 @@ export default function ManagerDashboard() {
                         </div>
                       </div>
 
-                      {/* Humidity and Rain */}
                       <div className="grid grid-cols-2 gap-3 pt-2">
                         <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
                           <div className="flex items-center gap-2 text-sm text-gray-600">

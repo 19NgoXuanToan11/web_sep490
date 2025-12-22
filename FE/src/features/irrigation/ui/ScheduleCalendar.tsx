@@ -33,7 +33,6 @@ export function ScheduleCalendar({ className, showScheduleForm: externalShowSche
   const [internalShowScheduleForm, setInternalShowScheduleForm] = React.useState(false)
   const [editingSchedule, setEditingSchedule] = React.useState<IrrigationSchedule | null>(null)
 
-  // Use external state if provided, otherwise use internal state
   const showScheduleForm = externalShowScheduleForm !== undefined ? externalShowScheduleForm : internalShowScheduleForm
   const setShowScheduleForm = onShowScheduleFormChange || setInternalShowScheduleForm
 

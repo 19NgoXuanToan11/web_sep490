@@ -29,7 +29,6 @@ interface Category {
   products?: any[]
 }
 
-// Component riêng cho Action Menu để tránh re-render issues
 interface CategoryActionMenuProps {
   category: Category
   onEdit: (category: Category) => void
@@ -42,8 +41,7 @@ const CategoryActionMenu: React.FC<CategoryActionMenuProps> = React.memo(({ cate
   const handleEdit = useCallback((e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    setOpen(false) // Đóng menu ngay lập tức
-    // Sử dụng setTimeout để tránh blocking UI
+    setOpen(false)
     setTimeout(() => {
       onEdit(category)
     }, 0)
@@ -52,8 +50,7 @@ const CategoryActionMenu: React.FC<CategoryActionMenuProps> = React.memo(({ cate
   const handleDelete = useCallback((e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    setOpen(false) // Đóng menu ngay lập tức
-    // Sử dụng setTimeout để tránh blocking UI
+    setOpen(false) 
     setTimeout(() => {
       onDelete(category)
     }, 0)
@@ -116,8 +113,6 @@ export default function CategoriesPage() {
   const stats = useMemo(() => {
     const total = categories.length
 
-    // Nếu API có trả về danh sách sản phẩm trong từng category thì tận dụng,
-    // còn không thì coi như 0 để không làm sai lệch số liệu.
     const withProducts = categories.filter(c => Array.isArray(c.products) && c.products.length > 0).length
 
     return {

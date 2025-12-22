@@ -1,12 +1,9 @@
-// Centralized error message mapping for Vietnamese localization
-
 export interface ErrorMessage {
   code: string
   vietnamese: string
   context?: string
 }
 
-// HTTP Status Code Error Messages
 export const HTTP_ERROR_MESSAGES: Record<number, ErrorMessage> = {
   400: {
     code: 'BAD_REQUEST',
@@ -65,7 +62,6 @@ export const HTTP_ERROR_MESSAGES: Record<number, ErrorMessage> = {
   }
 }
 
-// Network and Connection Error Messages
 export const NETWORK_ERROR_MESSAGES: Record<string, ErrorMessage> = {
   NETWORK_ERROR: {
     code: 'NETWORK_ERROR',
@@ -84,9 +80,7 @@ export const NETWORK_ERROR_MESSAGES: Record<string, ErrorMessage> = {
   }
 }
 
-// Application-specific Error Messages
 export const APP_ERROR_MESSAGES: Record<string, ErrorMessage> = {
-  // Authentication & Authorization
   LOGIN_FAILED: {
     code: 'LOGIN_FAILED',
     vietnamese: 'Đăng nhập thất bại. Vui lòng kiểm tra email và mật khẩu.',
@@ -103,7 +97,6 @@ export const APP_ERROR_MESSAGES: Record<string, ErrorMessage> = {
     context: 'Insufficient permissions'
   },
 
-  // Data Operations
   FETCH_FAILED: {
     code: 'FETCH_FAILED',
     vietnamese: 'Không thể tải dữ liệu. Vui lòng thử lại.',
@@ -130,7 +123,6 @@ export const APP_ERROR_MESSAGES: Record<string, ErrorMessage> = {
     context: 'Failed to save data'
   },
 
-  // Validation Errors
   REQUIRED_FIELD: {
     code: 'REQUIRED_FIELD',
     vietnamese: 'Vui lòng điền đầy đủ thông tin bắt buộc.',
@@ -157,7 +149,6 @@ export const APP_ERROR_MESSAGES: Record<string, ErrorMessage> = {
     context: 'Invalid number format'
   },
 
-  // File Operations
   UPLOAD_FAILED: {
     code: 'UPLOAD_FAILED',
     vietnamese: 'Không thể tải lên tệp. Vui lòng thử lại.',
@@ -174,7 +165,6 @@ export const APP_ERROR_MESSAGES: Record<string, ErrorMessage> = {
     context: 'Unsupported file type'
   },
 
-  // Business Logic Errors
   INSUFFICIENT_STOCK: {
     code: 'INSUFFICIENT_STOCK',
     vietnamese: 'Không đủ hàng trong kho.',
@@ -191,7 +181,6 @@ export const APP_ERROR_MESSAGES: Record<string, ErrorMessage> = {
     context: 'Operation not permitted'
   },
 
-  // System Errors
   UNKNOWN_ERROR: {
     code: 'UNKNOWN_ERROR',
     vietnamese: 'Đã xảy ra lỗi không xác định. Vui lòng thử lại hoặc liên hệ hỗ trợ.',
@@ -204,7 +193,6 @@ export const APP_ERROR_MESSAGES: Record<string, ErrorMessage> = {
   }
 }
 
-// Common English error patterns to Vietnamese mapping
 export const ENGLISH_TO_VIETNAMESE_PATTERNS: Array<{
   pattern: RegExp
   vietnamese: string
@@ -267,7 +255,6 @@ export const ENGLISH_TO_VIETNAMESE_PATTERNS: Array<{
   }
 ]
 
-// Default fallback message
 export const DEFAULT_ERROR_MESSAGE: ErrorMessage = {
   code: 'UNKNOWN_ERROR',
   vietnamese: 'Đã xảy ra lỗi không xác định. Vui lòng thử lại hoặc liên hệ hỗ trợ.',

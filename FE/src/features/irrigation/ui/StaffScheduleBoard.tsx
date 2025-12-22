@@ -86,7 +86,6 @@ export function StaffScheduleBoard({ className }: StaffScheduleBoardProps) {
             if (stageLabel) title += ` • ${stageLabel}`
             if (s.quantity) title += ` • ${s.quantity} cây`
 
-            // FullCalendar treats end as exclusive. Keep backend dates as-is; UI should reflect them exactly.
             const start = s.startDate ? new Date(s.startDate) : undefined
             const end = s.endDate ? new Date(s.endDate) : undefined
 

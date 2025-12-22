@@ -33,7 +33,6 @@ import {
   type FarmActivityUpdate,
 } from '@/shared/api/farmActivityService'
 
-// Component riêng cho Action Menu
 interface ActivityActionMenuProps {
   activity: FarmActivity
   onView: (activity: FarmActivity) => void
@@ -141,7 +140,6 @@ export default function FarmActivitiesPage() {
   const [activityTypeFilter, setActivityTypeFilter] = useState<string>('all')
   const [sortBy, setSortBy] = useState<'newest' | 'startDate' | 'status'>('newest')
 
-  // Pagination state
   const [pageIndex, setPageIndex] = useState(1)
   const pageSize = 10
   const [totalPages, setTotalPages] = useState(0)
@@ -172,7 +170,6 @@ export default function FarmActivitiesPage() {
     deactivated: 0,
   })
 
-  // Get today's date in YYYY-MM-DD format for date input min attribute
   const getTodayDateString = (): string => {
     const today = new Date()
     const year = today.getFullYear()
@@ -183,8 +180,6 @@ export default function FarmActivitiesPage() {
 
   const todayDateString = getTodayDateString()
 
-  // Enum ActivityType từ backend (C#):
-  // Mapping tất cả các loại hoạt động từ backend
   const activityTypeMap: Record<string, string> = {
     SoilPreparation: 'Chuẩn bị đất trước gieo',
     Sowing: 'Gieo hạt',
@@ -197,7 +192,6 @@ export default function FarmActivitiesPage() {
     CleaningFarmArea: 'Dọn dẹp đồng ruộng',
   }
 
-  // Danh sách activity types cho dropdown (giữ nguyên format cũ cho tương thích)
   const activityTypes = [
     { value: 'SoilPreparation', label: 'Chuẩn bị đất trước gieo' },
     { value: 'Sowing', label: 'Gieo hạt' },
@@ -232,7 +226,6 @@ export default function FarmActivitiesPage() {
     if (!type) return 'Không có dữ liệu'
     const activityType = activityTypes.find(at => at.value === type)
     if (activityType) return activityType.label
-    // Fallback: nếu type là string từ backend, thử map trực tiếp
     return activityTypeMap[type] || type
   }
 
@@ -259,8 +252,7 @@ export default function FarmActivitiesPage() {
 
       const normalizedActivities = Array.isArray(response.items)
         ? response.items.map(activity => ({
-          ...activity,
-          // Giữ nguyên activityType từ backend (string như "Weeding", "Harvesting", etc.)
+          ...activity,  
           activityType: activity.activityType || '',
         }))
         : []
@@ -608,11 +600,9 @@ export default function FarmActivitiesPage() {
   const formatDisplayDate = (dateString: string | undefined | null): string => {
     if (!dateString) return 'Không có dữ liệu'
     try {
-      // Xử lý định dạng MM/DD/YYYY từ backend
       if (dateString.includes('/')) {
         const parts = dateString.split('/')
         if (parts.length === 3) {
-          // MM/DD/YYYY -> YYYY-MM-DD để parse
           const month = parts[0].padStart(2, '0')
           const day = parts[1].padStart(2, '0')
           const year = parts[2]
@@ -623,7 +613,6 @@ export default function FarmActivitiesPage() {
           }
         }
       }
-      // Thử parse trực tiếp nếu là ISO format hoặc format khác
       const date = new Date(dateString)
       if (!isNaN(date.getTime())) {
         return date.toLocaleDateString('vi-VN')
@@ -636,20 +625,16 @@ export default function FarmActivitiesPage() {
 
   const formatDateForInput = (dateString: string | undefined | null): string => {
     if (!dateString) return ''
-    // Xử lý định dạng MM/DD/YYYY từ backend
     if (dateString.includes('/')) {
       const parts = dateString.split('/')
       if (parts.length === 3) {
-        // MM/DD/YYYY -> YYYY-MM-DD
         const month = parts[0].padStart(2, '0')
         const day = parts[1].padStart(2, '0')
         const year = parts[2]
         return `${year}-${month}-${day}`
       }
     }
-    // Đã là format YYYY-MM-DD
     if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) return dateString
-    // ISO format với T
     if (dateString.includes('T')) return dateString.split('T')[0]
     return dateString
   }
@@ -726,7 +711,6 @@ export default function FarmActivitiesPage() {
               </CardContent>
             </Card>
 
-            {/* Removed “Hoàn thành” & “Đã hủy” cards per request */}
           </div>
 
           <StaffFilterBar>
@@ -871,7 +855,6 @@ export default function FarmActivitiesPage() {
         </div>
       </div>
 
-      {/* Dialogs */}
       <Dialog open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>
@@ -942,7 +925,6 @@ export default function FarmActivitiesPage() {
                 value={formData.startDate}
                 onChange={e => {
                   setFormData({ ...formData, startDate: e.target.value })
-                  // Clear error when user changes the date
                   if (dateErrors.startDate) {
                     setDateErrors({ ...dateErrors, startDate: undefined })
                   }
@@ -962,7 +944,6 @@ export default function FarmActivitiesPage() {
                 value={formData.endDate}
                 onChange={e => {
                   setFormData({ ...formData, endDate: e.target.value })
-                  // Clear error when user changes the date
                   if (dateErrors.endDate) {
                     setDateErrors({ ...dateErrors, endDate: undefined })
                   }
@@ -1029,7 +1010,6 @@ export default function FarmActivitiesPage() {
                 value={formData.startDate}
                 onChange={e => {
                   setFormData({ ...formData, startDate: e.target.value })
-                  // Clear error when user changes the date
                   if (dateErrors.startDate) {
                     setDateErrors({ ...dateErrors, startDate: undefined })
                   }
@@ -1049,7 +1029,6 @@ export default function FarmActivitiesPage() {
                 value={formData.endDate}
                 onChange={e => {
                   setFormData({ ...formData, endDate: e.target.value })
-                  // Clear error when user changes the date
                   if (dateErrors.endDate) {
                     setDateErrors({ ...dateErrors, endDate: undefined })
                   }

@@ -84,8 +84,7 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({ children }) => {
         })
         setImageError(false)
       } catch (error) {
-        console.error('Failed to fetch staff profile:', error)
-        // Keep default values on error
+        console.error('Failed to fetch staff profile:', error)  
       } finally {
         setIsLoadingProfile(false)
       }
@@ -257,7 +256,6 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({ children }) => {
                 </p>
               </div>
             )}
-            {/* Hiển thị nút đăng xuất ở cả hai trạng thái; khi thu nhỏ đặt dưới avatar */}
             <LogoutButton
               className={`text-gray-500 hover:text-gray-700 ${isSidebarOpen ? '' : 'w-10 h-10 p-2 border border-gray-300 rounded-lg shadow-sm'
                 }`}

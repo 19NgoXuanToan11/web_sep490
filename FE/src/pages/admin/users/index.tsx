@@ -70,11 +70,9 @@ const AdminUsersPage: React.FC = () => {
   useEffect(() => {
     const loadUserStats = async () => {
       try {
-        // Lấy dữ liệu người dùng với pageSize lớn để thống kê càng đầy đủ càng tốt
         const res = await accountApi.getAll({ pageSize: 1000, pageIndex: 1 })
         computeStatsFromAccounts(res.items || [])
       } catch {
-        // Nếu thống kê lỗi thì vẫn cho phép sử dụng bảng phía dưới
       }
     }
 
@@ -173,7 +171,6 @@ const AdminUsersPage: React.FC = () => {
           </Card>
         </div>
 
-        {/* Controls Panel */}
         <div className="mb-6">
           <UserControlsPanel
             onCreateUser={() => {
@@ -183,7 +180,6 @@ const AdminUsersPage: React.FC = () => {
           />
         </div>
 
-        {/* Users Table */}
         <Card>
           <CardContent className="p-0">
             <UsersTable

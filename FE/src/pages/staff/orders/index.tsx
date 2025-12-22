@@ -52,7 +52,6 @@ interface DisplayOrder {
   updatedAt?: string
 }
 
-// Mở rộng kiểu ApiOrder để bao gồm thêm thuộc tính fullname từ API
 type ApiOrderWithFullname = ApiOrder & {
   fullname?: string
 }
@@ -64,7 +63,6 @@ const StaffOrdersPage: React.FC = () => {
   const [totalPages, setTotalPages] = useState(0)
   const [currentPage, setCurrentPage] = useState(1)
   const [totalItems, setTotalItems] = useState(0)
-  // Sử dụng cùng kích thước trang với các màn quản lý khác để pagination đồng nhất
   const pageSize = 10
 
   const [searchQuery, setSearchQuery] = useState('')
@@ -87,8 +85,6 @@ const StaffOrdersPage: React.FC = () => {
       payments: apiOrder.payments,
     })
 
-    // Ưu tiên hiển thị đúng fullname trả về từ API,
-    // nếu không có thì fallback như cũ từ email
     const customerName =
       apiOrder.fullname ||
       (email !== 'N/A' ? email.split('@')[0].replace(/[._]/g, ' ') : 'Unknown Customer')
@@ -199,8 +195,6 @@ const StaffOrdersPage: React.FC = () => {
   }, [maxOrderId, currentPage, statusFilter, searchQuery, fetchOrders, toast])
 
   const handleStatusFilterChange = (status: string) => {
-    // Chỉ thay đổi filter ở client; dữ liệu đã được load sẵn theo trang
-    // Việc lọc sẽ được thực hiện trong filteredOrders để tránh phụ thuộc vào backend
     setStatusFilter(status)
   }
 
@@ -265,7 +259,6 @@ const StaffOrdersPage: React.FC = () => {
         })
       }
 
-      // Đảm bảo searchResult có items
       if (!searchResult || !searchResult.items) {
         throw new Error('Invalid search result format')
       }
@@ -330,7 +323,6 @@ const StaffOrdersPage: React.FC = () => {
 
       const matchesStatus =
         statusFilter === 'all' ||
-        // Với filter "Đang giao" (mã 3), bao gồm cả các trạng thái đang giao khác (ví dụ 6)
         (statusFilter === '3'
           ? [3, 6].includes(order.status)
           : order.status?.toString() === statusFilter)
@@ -368,7 +360,6 @@ const StaffOrdersPage: React.FC = () => {
   }
 
   const getStatusBadge = (status: number, paymentStatus?: string) => {
-    // Nếu thanh toán thất bại, hiển thị "Thất bại" thay vì "Đang chuẩn bị"
     let label = getOrderStatusLabel(status)
     let variant = getOrderStatusVariant(status)
 
@@ -381,9 +372,6 @@ const StaffOrdersPage: React.FC = () => {
   }
 
   const getDisplayStatusBadge = (order: DisplayOrder) => {
-    // Luôn hiển thị trạng thái ĐƠN HÀNG (Đang giao, Đã xác nhận, Hoàn thành...)
-    // Trạng thái thanh toán đã có cột riêng "Thanh toán"
-    // Nhưng nếu thanh toán thất bại, hiển thị "Thất bại" thay vì "Đang chuẩn bị"
     return getStatusBadge(order.status, order.paymentStatus)
   }
 

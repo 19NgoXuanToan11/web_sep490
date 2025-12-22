@@ -19,7 +19,6 @@ export const CropPlanningStatusWidget: React.FC<CropPlanningStatusWidgetProps> =
         const active = requirements.filter((req) => req.isActive).length
         const inactive = total - active
 
-        // Requirements with complete data
         const withCompleteData = requirements.filter(
             (req) =>
                 req.isActive &&
@@ -29,7 +28,6 @@ export const CropPlanningStatusWidget: React.FC<CropPlanningStatusWidgetProps> =
                 req.estimatedDate !== null
         ).length
 
-        // Requirements missing critical data
         const missingData = requirements.filter(
             (req) =>
                 req.isActive &&
@@ -39,7 +37,6 @@ export const CropPlanningStatusWidget: React.FC<CropPlanningStatusWidgetProps> =
                     req.estimatedDate === null)
         ).length
 
-        // Requirements with notes (better planning)
         const withNotes = requirements.filter(
             (req) => req.isActive && req.notes && req.notes.trim().length > 0
         ).length
@@ -114,7 +111,6 @@ export const CropPlanningStatusWidget: React.FC<CropPlanningStatusWidgetProps> =
             </CardHeader>
             <CardContent className="p-6">
                 <div className="space-y-6">
-                    {/* Completion Progress */}
                     <div>
                         <div className="flex items-center justify-between mb-2">
                             <span className="text-sm font-medium text-gray-700">
@@ -142,7 +138,6 @@ export const CropPlanningStatusWidget: React.FC<CropPlanningStatusWidgetProps> =
                         </p>
                     </div>
 
-                    {/* Status Grid */}
                     <div className="grid grid-cols-2 gap-4">
                         {statusItems.map((item, index) => {
                             const Icon = item.icon
@@ -172,7 +167,6 @@ export const CropPlanningStatusWidget: React.FC<CropPlanningStatusWidgetProps> =
                         })}
                     </div>
 
-                    {/* Quick Actions */}
                     {planningStats.missingData > 0 && (
                         <motion.div
                             className="p-4 rounded-lg bg-yellow-50 border border-yellow-200"

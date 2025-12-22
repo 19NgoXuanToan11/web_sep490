@@ -52,7 +52,6 @@ type RequirementFormState = {
   notes: string
 }
 
-// Map UI labels to the 4 enum values that backend accepts (Domain.Enum.PlantStage)
 const PLANT_STAGE_OPTIONS: { value: PlantStage; label: string; description: string }[] = [
   {
     value: 'Germination',
@@ -125,7 +124,6 @@ type CropRequirementRow = {
   isActive?: boolean | null
 }
 
-// Component riêng cho Action Menu
 interface RequirementActionMenuProps {
   requirement: CropRequirementView | CropRequirement | CropRequirementRow
   isUpdatingStatus: boolean
@@ -229,12 +227,12 @@ export default function CropsPage() {
   const [requirements, setRequirements] = useState<CropRequirementView[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all') // Mặc định chỉ hiển thị Active
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all')
   const [stageFilter, setStageFilter] = useState<'all' | PlantStage>('all')
-  const [sortBy, setSortBy] = useState<SortOption>('newest') // Mặc định sắp xếp mới nhất
+  const [sortBy, setSortBy] = useState<SortOption>('newest')
   const [pageIndex, setPageIndex] = useState(1)
-  const [newlyCreatedIds, setNewlyCreatedIds] = useState<Set<number>>(new Set()) // Track items mới tạo
-  const previousMaxIdRef = useRef<number>(0) // Track max ID trước khi reload
+  const [newlyCreatedIds, setNewlyCreatedIds] = useState<Set<number>>(new Set())
+  const previousMaxIdRef = useRef<number>(0)
   const pageSize = 10
 
   const [crops, setCrops] = useState<Crop[]>([])
@@ -254,7 +252,6 @@ export default function CropsPage() {
 
   const { toast } = useToast()
 
-  // Đồng bộ crop + requirement để hiển thị đầy đủ dữ liệu (kể cả crop chưa có requirement)
   const requirementRows: CropRequirementRow[] = useMemo(() => {
     const cropMap = new Map<number, Crop>()
     crops.forEach(crop => cropMap.set(crop.cropId, crop))
@@ -280,7 +277,6 @@ export default function CropsPage() {
       } as CropRequirementRow
     })
 
-    // Thêm dòng placeholder cho crop chưa có requirement
     const rowsFromCrops: CropRequirementRow[] = crops
       .filter(crop => !crop.cropRequirement || crop.cropRequirement.length === 0)
       .map(crop => ({
@@ -356,30 +352,24 @@ export default function CropsPage() {
     })
   }, [requirementRows, searchTerm, statusFilter, stageFilter])
 
-  // Sắp xếp requirements theo tùy chọn của user
   const sortedRequirements = useMemo(() => {
     const sorted = [...filteredRequirements]
 
     switch (sortBy) {
       case 'newest':
-        // Mới nhất lên đầu: Active trước, sau đó sort theo ID giảm dần
         return sorted.sort((a, b) => {
-          // Ưu tiên Active trước
           if (a.isActive !== b.isActive) {
             return a.isActive ? -1 : 1
           }
-          // Sau đó sort theo ID giảm dần (mới nhất lên đầu)
           const aId = a.cropRequirementId || 0
           const bId = b.cropRequirementId || 0
           return bId - aId
         })
 
       case 'cropName':
-        // Sắp xếp theo tên cây trồng (A-Z)
         return sorted.sort((a, b) => {
           const nameA = (a.cropName || '').toLowerCase()
-          const nameB = (b.cropName || '').toLowerCase()
-          // Nếu cùng tên, ưu tiên Active và mới nhất
+          const nameB = (b.cropName || '').toLowerCase()      
           if (nameA === nameB) {
             if (a.isActive !== b.isActive) return a.isActive ? -1 : 1
             return (b.cropRequirementId || 0) - (a.cropRequirementId || 0)
@@ -388,7 +378,6 @@ export default function CropsPage() {
         })
 
       case 'stage':
-        // Sắp xếp theo giai đoạn (theo thứ tự phát triển)
         const stageOrder = ['Germination', 'Seedling', 'Vegetative', 'Harvest']
         return sorted.sort((a, b) => {
           const aStage = a.plantStage || ''
@@ -396,13 +385,11 @@ export default function CropsPage() {
           const aIndex = stageOrder.indexOf(aStage)
           const bIndex = stageOrder.indexOf(bStage)
 
-          // Nếu cùng giai đoạn, ưu tiên Active và mới nhất
           if (aIndex === bIndex) {
             if (a.isActive !== b.isActive) return a.isActive ? -1 : 1
             return (b.cropRequirementId || 0) - (a.cropRequirementId || 0)
           }
 
-          // Nếu không có trong order, đẩy xuống cuối
           if (aIndex === -1) return 1
           if (bIndex === -1) return -1
           return aIndex - bIndex
@@ -422,22 +409,19 @@ export default function CropsPage() {
     return sortedRequirements.slice(start, start + pageSize)
   }, [sortedRequirements, pageIndex, pageSize])
 
-  // Nhóm requirements theo crop name (sau khi đã paginate để giữ nguyên pagination logic)
-  // Giữ nguyên thứ tự xuất hiện đầu tiên của mỗi crop trong sorted list
   const groupedRequirements = useMemo(() => {
     const groups = new Map<string, CropRequirementRow[]>()
-    const groupOrder: string[] = [] // Lưu thứ tự xuất hiện đầu tiên của mỗi crop
+    const groupOrder: string[] = []
 
     paginatedRequirements.forEach(req => {
       const key = req.cropName || 'Khác'
       if (!groups.has(key)) {
         groups.set(key, [])
-        groupOrder.push(key) // Lưu thứ tự xuất hiện đầu tiên
+        groupOrder.push(key)
       }
       groups.get(key)!.push(req)
     })
 
-    // Giữ nguyên thứ tự xuất hiện đầu tiên, không sort lại
     return groupOrder.map(key => [key, groups.get(key)!] as [string, CropRequirementRow[]])
   }, [paginatedRequirements])
 
@@ -456,19 +440,15 @@ export default function CropsPage() {
       const response = await cropRequirementService.getAll()
       const data = Array.isArray(response.data) ? response.data : []
 
-      // Tìm max ID mới sau khi reload
       const currentMaxId = Math.max(...data.map(r => r.cropRequirementId || 0), 0)
 
-      // Nếu có ID mới lớn hơn ID trước đó, highlight nó
       if (currentMaxId > previousMaxIdRef.current && previousMaxIdRef.current > 0) {
         setNewlyCreatedIds(new Set([currentMaxId]))
-        // Scroll to top để user thấy item mới
         setTimeout(() => {
           window.scrollTo({ top: 0, behavior: 'smooth' })
         }, 100)
       }
 
-      // Cập nhật max ID reference
       previousMaxIdRef.current = currentMaxId
 
       setRequirements(data)
@@ -502,8 +482,7 @@ export default function CropsPage() {
   const loadAvailableCrops = async () => {
     try {
       setLoadingCrops(true)
-      // Load all crops (not just active) to get complete status information
-      const response = await cropService.getAllCrops(1, 1000) // Load a large page size to get all crops
+      const response = await cropService.getAllCrops(1, 1000)
       setAvailableCrops(response.items || [])
     } catch (error) {
       toast({
@@ -580,17 +559,14 @@ export default function CropsPage() {
       setIsSubmitting(true)
       const payload = mapFormToPayload()
       if (formMode === 'create') {
-        // Lưu max ID hiện tại trước khi tạo mới
         const currentMaxId = Math.max(...requirements.map(r => r.cropRequirementId || 0), 0)
         previousMaxIdRef.current = currentMaxId
 
-        // For create mode, use the selected cropId from dropdown
         await cropRequirementService.create(formData.cropId as number, payload, formData.plantStage)
         toast({ title: 'Thành công', description: 'Đã thêm yêu cầu cây trồng mới' })
         setFormDialogOpen(false)
         handleResetForm()
 
-        // Reload - loadRequirements sẽ tự động highlight item mới
         await loadRequirements()
       } else if (selectedRequirement) {
         const requirementId = selectedRequirement.cropRequirementId
@@ -602,7 +578,6 @@ export default function CropsPage() {
           })
           return
         }
-        // For edit mode, use the cropId from the selected requirement implicitly
         await cropRequirementService.update(
           requirementId,
           payload,
@@ -688,7 +663,6 @@ export default function CropsPage() {
     setPageIndex(1)
   }, [searchTerm, statusFilter, stageFilter, sortBy])
 
-  // Auto-remove highlight sau 5 giây
   useEffect(() => {
     if (newlyCreatedIds.size > 0) {
       const timer = setTimeout(() => {
@@ -833,7 +807,6 @@ export default function CropsPage() {
             </div>
           </StaffFilterBar>
 
-          {/* Simplified Crop List - Card-based Layout with Progressive Disclosure */}
           {loading || cropsLoading ? (
             <Card>
               <CardContent className="p-12">
@@ -868,17 +841,14 @@ export default function CropsPage() {
             </Card>
           ) : (
             <>
-              {/* Grouped Card Layout - Grouped by Crop Name */}
               <div className="space-y-6">
                 {groupedRequirements.map(([cropName, items]) => {
                   return (
                     <div key={cropName} className="space-y-3">
-                      {/* Section Header */}
                       <div className="flex items-center justify-between px-2 py-2 border-b border-gray-200">
                         <h3 className="text-lg font-semibold text-gray-900">{cropName}</h3>
                       </div>
 
-                      {/* Cards Grid for this Crop */}
                       <div className="grid gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
                         {items.map((req) => {
                           const isNewlyCreated = req.cropRequirementId ? newlyCreatedIds.has(req.cropRequirementId) : false
@@ -898,7 +868,6 @@ export default function CropsPage() {
                               }}
                             >
                               <CardContent className="p-4">
-                                {/* Stage & Status - Primary Information (Crop name đã ở header) */}
                                 <div className="flex items-start justify-between">
                                   <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2 flex-wrap mb-2">
@@ -913,7 +882,6 @@ export default function CropsPage() {
                                       )}
                                     </div>
 
-                                    {/* Additional Information */}
                                     {req.estimatedDate && (
                                       <p className="text-xs text-gray-600 mb-1">
                                         Thời gian ước tính: {req.estimatedDate} ngày
@@ -987,7 +955,6 @@ export default function CropsPage() {
                 })}
               </div>
 
-              {/* Pagination Controls */}
               {totalPages > 1 && (
                 <div className="mt-6">
                   <Pagination
@@ -1153,7 +1120,6 @@ export default function CropsPage() {
 
           {detailRequirement && (
             <div className="space-y-6">
-              {/* Cluster 1: Basic Crop Information */}
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">Thông tin cây trồng</CardTitle>
@@ -1196,7 +1162,6 @@ export default function CropsPage() {
                 </CardContent>
               </Card>
 
-              {/* Cluster 2: Growth Stage & Status */}
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">Giai đoạn phát triển</CardTitle>
@@ -1229,7 +1194,6 @@ export default function CropsPage() {
                 </CardContent>
               </Card>
 
-              {/* Cluster 3: Environmental Requirements */}
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">Yêu cầu môi trường</CardTitle>
@@ -1258,7 +1222,6 @@ export default function CropsPage() {
                 </CardContent>
               </Card>
 
-              {/* Cluster 4: Care & Maintenance */}
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">Chăm sóc & Bảo dưỡng</CardTitle>
@@ -1281,7 +1244,6 @@ export default function CropsPage() {
                 </CardContent>
               </Card>
 
-              {/* Cluster 5: Additional Notes */}
               {detailRequirement.notes && (
                 <Card>
                   <CardHeader>

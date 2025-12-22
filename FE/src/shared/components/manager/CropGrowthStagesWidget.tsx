@@ -4,8 +4,7 @@ import { Sprout } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
 import type { CropRequirementView, PlantStage } from '@/shared/api/cropRequirementService'
 
-// Config khớp với enum PlantStage ở backend (Germination, Seedling, Vegetative, Harvest)
-const PLANT_STAGE_CONFIG: Record<PlantStage, { label: string; color: string; description: string }> = {
+    const PLANT_STAGE_CONFIG: Record<PlantStage, { label: string; color: string; description: string }> = {
     Germination: {
         label: 'Gieo hạt',
         color: 'bg-blue-500',
@@ -40,7 +39,6 @@ export const CropGrowthStagesWidget: React.FC<CropGrowthStagesWidgetProps> = ({
     const stageDistribution = React.useMemo(() => {
         const total = requirements.length
         const distribution = Object.keys(PLANT_STAGE_CONFIG).map((stage) => {
-            // Đếm tất cả requirements (không chỉ active) để đồng bộ với trang crops
             const count = requirements.filter(
                 (req) => req.plantStage === stage
             ).length
@@ -78,7 +76,6 @@ export const CropGrowthStagesWidget: React.FC<CropGrowthStagesWidgetProps> = ({
             </CardHeader>
             <CardContent className="p-6">
                 <div className="space-y-4">
-                    {/* Stage Progress Bars */}
                     <div className="space-y-3">
                         {stageDistribution.stages.map((stage, index) => (
                             <motion.div
@@ -114,7 +111,6 @@ export const CropGrowthStagesWidget: React.FC<CropGrowthStagesWidgetProps> = ({
                         ))}
                     </div>
 
-                    {/* Top Stages Summary */}
                     {topStages.length > 0 && (
                         <div className="pt-4 border-t border-gray-100">
                             <div className="flex items-center gap-2 mb-3">

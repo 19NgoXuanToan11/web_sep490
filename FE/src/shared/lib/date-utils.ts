@@ -12,7 +12,6 @@ export function formatDate(date: string | Date | null | undefined): string {
   try {
     const dateObj = typeof date === 'string' ? new Date(date) : date
     
-    // Check if date is valid
     if (isNaN(dateObj.getTime())) {
       return '-'
     }
@@ -35,7 +34,6 @@ export function formatDateTime(date: string | Date | null | undefined): string {
   try {
     const dateObj = typeof date === 'string' ? new Date(date) : date
     
-    // Check if date is valid
     if (isNaN(dateObj.getTime())) {
       return '-'
     }
@@ -58,7 +56,6 @@ export function formatDateTimeWithSeconds(date: string | Date | null | undefined
   try {
     const dateObj = typeof date === 'string' ? new Date(date) : date
     
-    // Check if date is valid
     if (isNaN(dateObj.getTime())) {
       return '-'
     }

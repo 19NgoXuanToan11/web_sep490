@@ -87,7 +87,6 @@ export const useProductStore = create<ProductState>((set, get) => ({
         pageSize: filter?.pageSize || pageSize,
       }
 
-      // Convert ProductFilter to product-filter API format
       const apiFilter: {
         pageIndex?: number
         pageSize?: number
@@ -100,7 +99,6 @@ export const useProductStore = create<ProductState>((set, get) => ({
         sortByStockAsc: true,
       }
 
-      // Map status: 'Active' -> 'ACTIVE', 'Inactive' -> 'DEACTIVATED'
       if (mergedFilters.status) {
         if (mergedFilters.status === 'Active' || mergedFilters.status === 'ACTIVE') {
           apiFilter.status = 'ACTIVE'
@@ -113,7 +111,6 @@ export const useProductStore = create<ProductState>((set, get) => ({
         apiFilter.categoryId = mergedFilters.categoryId
       }
 
-      // Use product-filter API for staff product management
       const response: ProductListResponse = await productService.getProductFilter(apiFilter)
 
       set({
@@ -183,10 +180,8 @@ export const useProductStore = create<ProductState>((set, get) => ({
     try {
       const updatedProduct = await productService.updateProduct(id, productData)
 
-      // Save imageUrl before refresh, as it might not be in the refreshed data yet
       const savedImageUrl = updatedProduct.imageUrl
 
-      // Refresh products list to get updated data
       await get().fetchAllProducts()
 
       const normalizedProduct = {
@@ -199,7 +194,6 @@ export const useProductStore = create<ProductState>((set, get) => ({
       set(state => ({
         products: state.products.map(product => {
           if (product.productId === id) {
-            // Merge updated product, ensuring imageUrl and id are preserved
             return {
               ...product,
               ...normalizedProduct,
@@ -263,7 +257,6 @@ export const useProductStore = create<ProductState>((set, get) => ({
     try {
       const updatedProduct = await productService.changeProductStatus(id)
 
-      // Refresh products list to get updated data
       await get().fetchAllProducts()
 
       set(state => ({
@@ -289,7 +282,6 @@ export const useProductStore = create<ProductState>((set, get) => ({
         stockQuantity: quantity,
       })
 
-      // Refresh products list to get updated data
       await get().fetchAllProducts()
 
       set(state => ({
@@ -362,7 +354,6 @@ export const useProductStore = create<ProductState>((set, get) => ({
   fetchAllProducts: async () => {
     set({ isLoading: true })
     try {
-      // Use product-filter API for staff product management
       const response: ProductListResponse = await productService.getProductFilter({
         pageIndex: 0,
         pageSize: 1000,

@@ -164,7 +164,6 @@ const StaffSchedulesPage: React.FC = () => {
 
     const filteredSchedules = useMemo(() => {
         return schedules.filter(schedule => {
-            // Search filter
             if (searchQuery.trim()) {
                 const searchTerm = searchQuery.toLowerCase()
                 const farmName = schedule.farmView?.farmName?.toLowerCase() || ''
@@ -180,7 +179,6 @@ const StaffSchedulesPage: React.FC = () => {
                 }
             }
 
-            // Status filter
             if (statusFilter !== 'all') {
                 if (statusFilter === 'ACTIVE') {
                     if (typeof schedule.status === 'string') {
@@ -201,7 +199,6 @@ const StaffSchedulesPage: React.FC = () => {
         })
     }, [schedules, searchQuery, statusFilter])
 
-    // Client-side sorting
     const sortedSchedules = useMemo(() => {
         const sorted = [...filteredSchedules]
 
@@ -238,7 +235,6 @@ const StaffSchedulesPage: React.FC = () => {
         }
     }, [filteredSchedules, sortBy])
 
-    // Pagination
     const totalPages = useMemo(() => {
         return Math.max(1, Math.ceil(sortedSchedules.length / pageSize))
     }, [sortedSchedules.length, pageSize])
@@ -268,7 +264,6 @@ const StaffSchedulesPage: React.FC = () => {
     )
 
     const handleViewDetail = useCallback((schedule: DisplaySchedule) => {
-        // Create a proper copy with nested objects to avoid reference issues
         const scheduleCopy: DisplaySchedule = {
             ...schedule,
             farmView: schedule.farmView ? { ...schedule.farmView } : undefined,
@@ -285,16 +280,13 @@ const StaffSchedulesPage: React.FC = () => {
         return formatDate(dateString)
     }, [])
 
-    // Handle modal open/close with proper cleanup
     const handleModalOpenChange = useCallback((open: boolean) => {
         setIsScheduleDetailOpen(open)
         if (!open) {
-            // Clear selected schedule when modal closes to prevent stale data
             setSelectedScheduleDetail(null)
         }
     }, [])
 
-    // Memoize crop requirements to prevent expensive re-computations
     const memoizedCropRequirements = useMemo(() => {
         if (!selectedScheduleDetail?.cropRequirement) return []
         return selectedScheduleDetail.cropRequirement
@@ -353,7 +345,6 @@ const StaffSchedulesPage: React.FC = () => {
                     }
                 />
 
-                {/* Stats Cards */}
                 <div className="grid gap-4 mb-8 md:grid-cols-2 lg:grid-cols-3">
                     <Card>
                         <CardContent className="p-4">
@@ -402,7 +393,6 @@ const StaffSchedulesPage: React.FC = () => {
                     </Card>
                 </div>
 
-                {/* Filter Bar */}
                 <StaffFilterBar>
                     <div className="flex-1">
                         <div className="relative">
@@ -443,7 +433,6 @@ const StaffSchedulesPage: React.FC = () => {
                     </div>
                 </StaffFilterBar>
 
-                {/* Calendar View */}
                 <div className="mb-6">
                     <Card>
                         <CardContent>
@@ -464,7 +453,6 @@ const StaffSchedulesPage: React.FC = () => {
                     </Card>
                 </div>
 
-                {/* Card-based Layout */}
                 {loading ? (
                     <Card>
                         <CardContent className="p-12">
@@ -574,7 +562,6 @@ const StaffSchedulesPage: React.FC = () => {
                             })}
                         </div>
 
-                        {/* Pagination Controls */}
                         {totalPages > 1 && (
                             <div className="mt-6">
                                 <Pagination
@@ -587,7 +574,6 @@ const StaffSchedulesPage: React.FC = () => {
                     </>
                 )}
 
-                {/* Schedule Detail Dialog */}
                 <Dialog open={isScheduleDetailOpen} onOpenChange={handleModalOpenChange}>
                     <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
                         <DialogHeader>
@@ -598,7 +584,6 @@ const StaffSchedulesPage: React.FC = () => {
 
                         {selectedScheduleDetail ? (
                             <div className="space-y-6">
-                                {/* Schedule Information */}
                                 <Card>
                                     <CardContent className="p-6 space-y-4">
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -664,12 +649,10 @@ const StaffSchedulesPage: React.FC = () => {
                                     </CardContent>
                                 </Card>
 
-                                {/* Farm and Crop Information - Combined */}
                                 {(selectedScheduleDetail.farmView || selectedScheduleDetail.cropView) && (
                                     <Card>
                                         <CardContent className="p-4">
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                {/* Farm Information */}
                                                 {selectedScheduleDetail.farmView && (
                                                     <div className="space-y-3">
                                                         <h3 className="text-base font-semibold text-gray-700 border-b pb-2">
@@ -694,7 +677,6 @@ const StaffSchedulesPage: React.FC = () => {
                                                     </div>
                                                 )}
 
-                                                {/* Crop Information */}
                                                 {selectedScheduleDetail.cropView && (
                                                     <div className="space-y-3">
                                                         <h3 className="text-base font-semibold text-gray-700 border-b pb-2">
@@ -733,7 +715,6 @@ const StaffSchedulesPage: React.FC = () => {
                                     </Card>
                                 )}
 
-                                {/* Crop Requirements */}
                                 {memoizedCropRequirements && memoizedCropRequirements.length > 0 && (
                                     <Card>
                                         <CardContent className="p-6 space-y-4">

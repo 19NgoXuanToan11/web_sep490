@@ -91,16 +91,16 @@ const ManagerOrdersPage: React.FC = () => {
 
   const mapPaymentStatus = (status: number): 'pending' | 'paid' | 'failed' | 'refunded' => {
     switch (status) {
-      case 1: // PAID - Đã thanh toán
-      case 5: // COMPLETED - Hoàn thành
-      case 6: // DELIVERED - Đã giao hàng
+      case 1:
+      case 5:
+      case 6:
         return 'paid'
-      case 0: // UNPAID - Chưa thanh toán
-      case 3: // PENDING - Đang xử lý
+      case 0:
+      case 3:
         return 'pending'
-      case 2: // UNDISCHARGED - Thanh toán thất bại/Chưa thanh toán
+      case 2:
         return 'failed'
-      case 4: // CANCELLED - Đã hủy
+      case 4:
         return 'refunded'
       default:
         return 'pending'
@@ -108,7 +108,6 @@ const ManagerOrdersPage: React.FC = () => {
   }
 
   const transformApiOrder = (apiOrder: ApiOrder): DisplayOrder => {
-    // Ưu tiên lấy email từ customer object, nếu không có thì dùng email trực tiếp
     const email = apiOrder.customer?.email || apiOrder.email || 'N/A'
     const customerName =
       email !== 'N/A' ? email.split('@')[0].replace(/[._]/g, ' ') : 'Unknown Customer'
@@ -373,13 +372,13 @@ const ManagerOrdersPage: React.FC = () => {
   const orderStats = useMemo(
     () => ({
       total: totalItems || orders.length,
-      pending: orders.filter(o => o.status === 0).length, // Chưa thanh toán
-      confirmed: orders.filter(o => o.status === 1).length, // Đã thanh toán
-      preparing: orders.filter(o => o.status === 2).length, // Chưa thanh toán
-      shipping: orders.filter(o => o.status === 3).length, // Đang xử lý
-      cancelled: orders.filter(o => o.status === 4).length, // Đã hủy
-      completed: orders.filter(o => o.status === 5).length, // Hoàn thành
-      delivered: orders.filter(o => o.status === 6).length, // Đã giao hàng
+      pending: orders.filter(o => o.status === 0).length,
+      confirmed: orders.filter(o => o.status === 1).length,
+      preparing: orders.filter(o => o.status === 2).length,
+      shipping: orders.filter(o => o.status === 3).length,
+      cancelled: orders.filter(o => o.status === 4).length,
+      completed: orders.filter(o => o.status === 5).length,
+      delivered: orders.filter(o => o.status === 6).length,
       totalRevenue: orders
         .filter(o => o.paymentStatus === 'paid')
         .reduce((sum, o) => sum + o.totalAmount, 0),
@@ -461,7 +460,6 @@ const ManagerOrdersPage: React.FC = () => {
     )
   }
 
-  // Use centralized date formatting utilities
   const formatDateOnly = (dateString: string) => {
     return formatDate(dateString)
   }

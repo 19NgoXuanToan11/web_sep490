@@ -89,7 +89,6 @@ export interface ChangeQuantityRequest {
 }
 
 const mapApiProductToProduct = (apiProduct: any): Product => {
-  // Handle status: backend returns "ACTIVE" (string) or 1 (number)
   let status: 'Active' | 'Inactive' = 'Inactive'
   if (apiProduct.status === 1 || apiProduct.status === 'ACTIVE' || apiProduct.status === 'Active') {
     status = 'Active'
@@ -170,7 +169,6 @@ export const productService = {
   }): Promise<ProductListResponse> => {
     const queryParams = new URLSearchParams()
 
-    // Set defaults according to API spec
     const pageIndex = filter?.pageIndex ?? 1
     const pageSize = filter?.pageSize ?? 10
     const sortByStockAsc = filter?.sortByStockAsc ?? true
@@ -203,7 +201,6 @@ export const productService = {
 
     const apiData = response.data.data
 
-    // Calculate totalCount: use totalItemCount if available, otherwise estimate from totalPagesCount
     const totalItemCount = apiData?.totalItemCount
     const totalPagesCount = apiData?.totalPagesCount || 0
     const responsePageSize = apiData?.pageSize || pageSize
@@ -240,35 +237,26 @@ export const productService = {
   },
 
   updateProduct: async (id: number, product: UpdateProductRequest): Promise<Product> => {
-    // Map frontend field names to backend DTO field names (PascalCase)
-    // Backend expects: ProductName, Description, Price, CategoryId, Images
     const backendPayload: any = {
       ProductName: product.productName,
       Price: product.price,
       CategoryId: product.categoryId,
     }
 
-    // Include Description only if provided (can be empty string, null, or undefined)
-    // Backend accepts null/empty for optional Description field
     if (product.productDescription !== undefined) {
       backendPayload.Description = product.productDescription || null
     }
 
-    // Include Images only if provided
     if (product.imageUrl !== undefined) {
       backendPayload.Images = product.imageUrl || null
     }
 
     const response = await http.put<any>(`/v1/products/update/${id}`, backendPayload)
-    // Backend returns ResponseDTO with Data field containing ProductDetailDTO
-    // ProductDetailDTO doesn't have productId, so we fetch the full product
     const updatedProduct = await productService.getProductById(id)
 
-    // Normalize and ensure we never lose the productId (BE response omits it)
     const normalizedProduct: Product = {
       ...updatedProduct,
       productId: updatedProduct.productId || id,
-      // Fall back to the payload values if the detail endpoint omits them
       categoryId: updatedProduct.categoryId || Number(product.categoryId) || 0,
       productName: updatedProduct.productName || product.productName || '',
       productDescription:
@@ -276,14 +264,9 @@ export const productService = {
       price: updatedProduct.price ?? Number(product.price) ?? 0,
     }
 
-    // Always prioritize imageUrl from request if it was provided
-    // This ensures the image is included even if the backend response doesn't have it yet
-    // or if getProductById returns stale data
     if (product.imageUrl !== undefined) {
-      // If imageUrl was explicitly provided (including empty string to remove image)
       normalizedProduct.imageUrl = product.imageUrl || undefined
     } else {
-      // Otherwise, try to use from response
       const responseData = response.data?.data
       if (
         responseData?.Images !== undefined &&
@@ -299,8 +282,6 @@ export const productService = {
 
   changeProductStatus: async (id: number): Promise<Product> => {
     await http.put<any>(`/v1/products/change-product-status/${id}`)
-    // Backend returns ResponseDTO with message only, not full product data
-    // Fetch the updated product
     return await productService.getProductById(id)
   },
 
@@ -309,8 +290,6 @@ export const productService = {
     quantityData: ChangeQuantityRequest
   ): Promise<Product> => {
     await http.put<any>(`/v1/products/change-product-Quantity/${id}`, quantityData)
-    // Backend returns ResponseDTO with message only, not full product data
-    // Fetch the updated product
     return await productService.getProductById(id)
   },
 

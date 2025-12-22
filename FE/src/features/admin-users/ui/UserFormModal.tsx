@@ -88,7 +88,6 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
     }
   }, [isOpen, user, reset])
 
-  // Update preview when images value changes
   useEffect(() => {
     if (watchedImages && watchedImages.startsWith('http')) {
       setImagePreview(watchedImages)
@@ -98,7 +97,6 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
   }, [watchedImages])
 
   const handleClose = () => {
-    // Cancel any ongoing upload
     if (abortControllerRef.current) {
       abortControllerRef.current.abort()
       abortControllerRef.current = null
@@ -117,7 +115,6 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
     const file = event.target.files?.[0]
     if (!file) return
 
-    // Validate file type
     if (!file.type.startsWith('image/')) {
       toast({
         title: 'File không hợp lệ',
@@ -130,7 +127,6 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
       return
     }
 
-    // Validate file size (5MB max)
     if (file.size > 5 * 1024 * 1024) {
       toast({
         title: 'File quá lớn',
@@ -143,7 +139,6 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
       return
     }
 
-    // Show preview immediately
     const reader = new FileReader()
     reader.onload = e => {
       const result = e.target?.result as string
@@ -151,11 +146,9 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
     }
     reader.readAsDataURL(file)
 
-    // Upload to Cloudinary
     setIsUploading(true)
     setUploadProgress(0)
 
-    // Create abort controller for cancellation
     abortControllerRef.current = new AbortController()
 
     try {
@@ -171,7 +164,6 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
     } catch (error) {
       if (error instanceof CloudinaryUploadError) {
         if (error.message.includes('aborted')) {
-          // Upload was cancelled, don't show error
           return
         }
         toast({
@@ -251,7 +243,6 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
         </DialogHeader>
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          { }
           {loadingStates[loadingKey]?.error && (
             <motion.div
               initial={{ opacity: 0, y: -10 }}
@@ -262,14 +253,12 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
             </motion.div>
           )}
 
-          { }
           <div className="space-y-2">
             <Label htmlFor="name">Họ và tên *</Label>
             <Input id="name" placeholder="Nhập họ và tên" {...register('name')} />
             {errors.name && <p className="text-sm text-red-600">{errors.name.message}</p>}
           </div>
 
-          { }
           <div className="space-y-2">
             <Label htmlFor="email">Địa chỉ email *</Label>
             <Input
@@ -281,7 +270,6 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
             {errors.email && <p className="text-sm text-red-600">{errors.email.message}</p>}
           </div>
 
-          { }
           <div className="space-y-2">
             <Label htmlFor="gender">Giới tính *</Label>
             <Select
@@ -307,7 +295,6 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
             {errors.gender && <p className="text-sm text-red-600">{errors.gender.message}</p>}
           </div>
 
-          { }
           <div className="space-y-2">
             <Label htmlFor="phone">Số điện thoại *</Label>
             <Input
@@ -319,7 +306,6 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
             {errors.phone && <p className="text-sm text-red-600">{errors.phone.message}</p>}
           </div>
 
-          { }
           <div className="space-y-2">
             <Label htmlFor="address">Địa chỉ *</Label>
             <Input
@@ -330,7 +316,6 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
             {errors.address && <p className="text-sm text-red-600">{errors.address.message}</p>}
           </div>
 
-          { }
           <div className="space-y-2">
             <Label htmlFor="images">Hình ảnh</Label>
             <div className="space-y-3">
@@ -399,7 +384,6 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
             </div>
           </div>
 
-          { }
           <div className="space-y-2">
             <Label htmlFor="status">Trạng thái *</Label>
             <Select
@@ -426,7 +410,6 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
             {errors.status && <p className="text-sm text-red-600">{errors.status.message}</p>}
           </div>
 
-          { }
           <div className="space-y-2">
             <Label htmlFor="role">Vai trò người dùng *</Label>
             <Select
@@ -444,7 +427,6 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
               <SelectContent>
                 {availableRoles
                   .filter(role => {
-                    // When editing, hide the current user's role from the selection
                     if (isEditing && user) {
                       const currentUserRole = user.roles[0] || 'STAFF'
                       return role.value !== currentUserRole
@@ -469,8 +451,7 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
             </Select>
             {errors.role && <p className="text-sm text-red-600">{errors.role.message}</p>}
           </div>
-
-          { }
+                  
           <div className="flex justify-end gap-3 pt-4 border-t">
             <Button type="button" variant="outline" onClick={handleClose} disabled={isLoading}>
               Hủy

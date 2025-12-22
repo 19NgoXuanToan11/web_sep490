@@ -298,7 +298,7 @@ const StaffSchedulesPage: React.FC = () => {
         setIsScheduleDetailOpen(open)
         if (!open) {
             setSelectedScheduleDetail(null)
-        }
+    }
     }, [])
 
     const memoizedCropRequirements = useMemo(() => {

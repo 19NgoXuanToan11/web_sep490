@@ -227,7 +227,7 @@ export default function CropsPage() {
   const [requirements, setRequirements] = useState<CropRequirementView[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all')
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all') // Mặc định chỉ hiển thị Active
   const [stageFilter, setStageFilter] = useState<'all' | PlantStage>('all')
   const [sortBy, setSortBy] = useState<SortOption>('newest')
   const [pageIndex, setPageIndex] = useState(1)

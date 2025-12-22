@@ -285,6 +285,7 @@ const StaffSchedulesPage: React.FC = () => {
         if (found) handleViewDetail(found as DisplaySchedule)
     }, [schedules, handleViewDetail])
     const handleCalendarSelectSlot = useCallback((slotInfo: any) => {
+        void slotInfo // mark as used to satisfy TS 'declared but its value is never read'
         // Placeholder: could open create dialog or filter by date
     }, [])
     const calendarEvents = useMemo(() => mapSchedulesToCalendarEvents(schedules as any, (s: any) => s.cropView?.cropName || s.name || `Lịch #${s.scheduleId || s.id || ''}`), [schedules])

@@ -7,6 +7,12 @@ import { Input } from '@/shared/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { Pagination } from '@/shared/ui/pagination'
 import { formatDate } from '@/shared/lib/date-utils'
+import FullCalendar from '@fullcalendar/react'
+import dayGridPlugin from '@fullcalendar/daygrid'
+import timeGridPlugin from '@fullcalendar/timegrid'
+import interactionPlugin from '@fullcalendar/interaction'
+import viLocale from '@fullcalendar/core/locales/vi'
+
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -298,13 +304,46 @@ const StaffSchedulesPage: React.FC = () => {
         setIsScheduleDetailOpen(open)
         if (!open) {
             setSelectedScheduleDetail(null)
-    }
+        }
     }, [])
 
     const memoizedCropRequirements = useMemo(() => {
         if (!selectedScheduleDetail?.cropRequirement) return []
         return selectedScheduleDetail.cropRequirement
     }, [selectedScheduleDetail?.cropRequirement])
+
+    const calendarEvents = useMemo(() => {
+        return filteredSchedules.map(s => {
+            const cropName = s.cropView?.cropName ?? `Cây #${s.cropId ?? ''}`
+            const farmName = s.farmView?.farmName ?? `Nông trại #${s.farmId ?? ''}`
+            const stageLabel = getPlantStageLabel(s.currentPlantStage)
+            let title = `${cropName} — ${farmName}`
+            if (stageLabel) title += ` • ${stageLabel}`
+            if (s.quantity) title += ` • ${s.quantity} cây`
+
+            const start = s.startDate ? new Date(s.startDate) : undefined
+            const end = s.endDate ? new Date(s.endDate) : undefined
+
+            const color = (typeof s.status === 'string' ? s.status === 'ACTIVE' : s.status === 1) ? '#16a34a' : '#dc2626'
+
+            return {
+                id: String(s.id),
+                title,
+                start,
+                end,
+                allDay: true,
+                backgroundColor: color,
+                borderColor: color,
+                extendedProps: { original: s },
+            }
+        })
+    }, [filteredSchedules])
+
+    const handleCalendarEventClick = (arg: any) => {
+        const original: DisplaySchedule | undefined = arg.event.extendedProps?.original
+        if (!original) return
+        handleViewDetail(original)
+    }
 
     return (
         <StaffLayout>
@@ -416,19 +455,25 @@ const StaffSchedulesPage: React.FC = () => {
                     </div>
                 </StaffFilterBar>
 
-                {/* Calendar view (reusing manager calendar UI) */}
+                {/* Calendar View */}
                 <div className="mb-6">
-                    <IrrigationCalendar
-                        events={calendarEvents}
-                        view={calendarView}
-                        date={calendarDate}
-                        onViewChange={handleCalendarViewChange}
-                        onNavigate={handleCalendarNavigate}
-                        onSelectEvent={handleCalendarSelectEvent}
-                        onSelectSlot={handleCalendarSelectSlot}
-                        getScheduleLabel={(s: any) => s.cropView?.cropName || 'Lịch'}
-                        getStatusBadge={() => null}
-                    />
+                    <Card>
+                        <CardContent>
+                            <FullCalendar
+                                plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+                                initialView="dayGridMonth"
+                                headerToolbar={{
+                                    left: 'prev,next today',
+                                    center: 'title',
+                                    right: 'dayGridMonth,timeGridWeek,timeGridDay',
+                                }}
+                                locale={viLocale}
+                                events={calendarEvents}
+                                eventClick={handleCalendarEventClick}
+                                height="auto"
+                            />
+                        </CardContent>
+                    </Card>
                 </div>
 
                 {/* Card-based Layout */}
@@ -568,7 +613,6 @@ const StaffSchedulesPage: React.FC = () => {
                                 {/* Schedule Information */}
                                 <Card>
                                     <CardContent className="p-6 space-y-4">
-                                        <h3 className="text-lg font-semibold mb-4">Thông tin lịch làm việc</h3>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div>
                                                 <span className="font-medium">Trạng thái:</span>

@@ -3,12 +3,16 @@ import { scheduleService, type ScheduleListItem, type ScheduleStatusString } fro
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
 import { Button } from '@/shared/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
-import { Badge } from '@/shared/ui/badge'
 import { useToast } from '@/shared/ui/use-toast'
 import { Label } from '@/shared/ui/label'
 import { Loader2, RefreshCw } from 'lucide-react'
 import { handleFetchError } from '@/shared/lib/error-handler'
 import { formatDate } from '@/shared/lib/date-utils'
+import FullCalendar from '@fullcalendar/react'
+import dayGridPlugin from '@fullcalendar/daygrid'
+import timeGridPlugin from '@fullcalendar/timegrid'
+import interactionPlugin from '@fullcalendar/interaction'
+import viLocale from '@fullcalendar/core/locales/vi'
 
 interface StaffScheduleBoardProps {
     className?: string
@@ -21,6 +25,18 @@ const statusLabelMap: Record<ScheduleStatusString | number, string> = {
     DEACTIVATED: 'Vô hiệu hóa',
     1: 'Hoạt động',
     0: 'Vô hiệu hóa',
+}
+
+const getPlantStageLabel = (stage?: string) => {
+    if (!stage) return undefined
+    const labels: Record<string, string> = {
+        Germination: 'Nảy mầm',
+        Seedling: 'Cây con',
+        Vegetative: 'Sinh trưởng',
+        Flowering: 'Ra hoa',
+        Harvest: 'Thu hoạch',
+    }
+    return labels[stage] ?? stage
 }
 
 const getStatusLabel = (status: ScheduleListItem['status']) => {
@@ -75,6 +91,43 @@ export function StaffScheduleBoard({ className }: StaffScheduleBoardProps) {
 
     const handleRefresh = () => load(month)
 
+    const events = useMemo(() => {
+        return filteredSchedules.map(s => {
+            const cropName = s.cropView?.cropName ?? `Cây #${s.cropId ?? ''}`
+            const farmName = s.farmView?.farmName ?? `Nông trại #${s.farmId ?? ''}`
+            const stageLabel = getPlantStageLabel(s.currentPlantStage ?? s.cropView?.plantStage)
+            let title = `${cropName} — ${farmName}`
+            if (stageLabel) title += ` • ${stageLabel}`
+            if (s.quantity) title += ` • ${s.quantity} cây`
+
+            // FullCalendar treats end as exclusive. Keep backend dates as-is; UI should reflect them exactly.
+            const start = s.startDate ? new Date(s.startDate) : undefined
+            const end = s.endDate ? new Date(s.endDate) : undefined
+
+            const color = isActiveStatus(s.status) ? '#16a34a' /* green */ : '#dc2626' /* red */
+
+            return {
+                id: String(s.scheduleId ?? `${s.farmId}-${s.startDate}`),
+                title,
+                start,
+                end,
+                allDay: true,
+                backgroundColor: color,
+                borderColor: color,
+                extendedProps: { original: s },
+            }
+        })
+    }, [filteredSchedules])
+
+    const handleEventClick = (arg: any) => {
+        const original: ScheduleListItem | undefined = arg.event.extendedProps?.original
+        if (!original) return
+        toast({
+            title: original.farmView?.farmName ?? `Nông trại #${original.farmId}`,
+            description: `${original.cropView?.cropName ?? `Cây #${original.cropId}`}\n${formatDate(original.startDate)} → ${formatDate(original.endDate)}`,
+        })
+    }
+
     return (
         <Card className={className}>
             <CardHeader>
@@ -117,50 +170,29 @@ export function StaffScheduleBoard({ className }: StaffScheduleBoardProps) {
                 </div>
             </CardHeader>
             <CardContent>
-                <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                        <thead>
-                            <tr className="text-left border-b">
-                                <th className="py-2 pr-3">Nông trại</th>
-                                <th className="py-2 pr-3">Cây trồng</th>
-                                <th className="py-2 pr-3">Bắt đầu</th>
-                                <th className="py-2 pr-3">Kết thúc</th>
-                                <th className="py-2 pr-3">Gieo trồng</th>
-                                <th className="py-2 pr-3">Thu hoạch</th>
-                                <th className="py-2 pr-3">Hoạt động</th>
-                                <th className="py-2 pr-3">Trạng thái</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {filteredSchedules.map(schedule => (
-                                <tr key={schedule.scheduleId ?? `${schedule.farmId}-${schedule.startDate}`} className="border-b last:border-0">
-                                    <td className="py-2 pr-3">{schedule.farmView?.farmName ?? `#${schedule.farmId}`}</td>
-                                    <td className="py-2 pr-3">{schedule.cropView?.cropName ?? `#${schedule.cropId}`}</td>
-                                    <td className="py-2 pr-3">{formatDate(schedule.startDate)}</td>
-                                    <td className="py-2 pr-3">{formatDate(schedule.endDate)}</td>
-                                    <td className="py-2 pr-3">{formatDate(schedule.plantingDate)}</td>
-                                    <td className="py-2 pr-3">{formatDate(schedule.harvestDate)}</td>
-                                    <td className="py-2 pr-3">{schedule.farmActivityView?.activityType ?? (schedule.farmActivitiesId ? `#${schedule.farmActivitiesId}` : '-')}</td>
-                                    <td className="py-2 pr-3">
-                                        <Badge variant={isActiveStatus(schedule.status) ? 'success' : 'destructive'}>{getStatusLabel(schedule.status)}</Badge>
-                                    </td>
-                                </tr>
-                            ))}
-                            {!loading && filteredSchedules.length === 0 && (
-                                <tr>
-                                    <td colSpan={8} className="py-6 text-center text-muted-foreground">
-                                        Không có lịch trong tháng này.
-                                    </td>
-                                </tr>
-                            )}
-                        </tbody>
-                    </table>
+                <div>
+                    <FullCalendar
+                        plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
+                        initialView="dayGridMonth"
+                        headerToolbar={{
+                            left: 'prev,next today',
+                            center: 'title',
+                            right: 'dayGridMonth,timeGridWeek,timeGridDay',
+                        }}
+                        locale={viLocale}
+                        events={events}
+                        eventClick={handleEventClick}
+                        height="auto"
+                    />
                 </div>
                 {loading && (
                     <div className="flex items-center justify-center py-6 text-muted-foreground">
                         <Loader2 className="h-5 w-5 animate-spin mr-2" />
                         Đang tải dữ liệu...
                     </div>
+                )}
+                {!loading && filteredSchedules.length === 0 && (
+                    <div className="py-6 text-center text-muted-foreground">Không có lịch trong tháng này.</div>
                 )}
             </CardContent>
         </Card>

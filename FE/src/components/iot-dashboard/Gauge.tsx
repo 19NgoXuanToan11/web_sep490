@@ -148,19 +148,6 @@ const GaugeComponent: React.FC<GaugeProps> = ({
                 {animatedValue.toFixed(1)}
               </div>
               <div className="text-sm text-gray-600 font-medium">{unit}</div>
-              {!isLoading && previousValue !== animatedValue && (
-                <div
-                  className={`text-xs mt-1 ${animatedValue > previousValue
-                    ? 'text-green-600'
-                    : animatedValue < previousValue
-                      ? 'text-red-600'
-                      : 'text-gray-500'
-                    }`}
-                >
-                  {animatedValue > previousValue ? '+' : ''}
-                  {(animatedValue - previousValue).toFixed(1)}
-                </div>
-              )}
             </motion.div>
           </AnimatePresence>
         </div>

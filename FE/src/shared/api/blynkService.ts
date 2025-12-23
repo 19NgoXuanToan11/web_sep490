@@ -1,4 +1,6 @@
-﻿interface BlynkData {
+﻿import { withAuth } from '@/shared/api/client'
+
+interface BlynkData {
   v0: string
   v1: string
   v2: string
@@ -42,20 +44,53 @@ interface BlynkLogEntry {
 class BlynkService {
   private baseUrl = 'https://iotfarm.onrender.com/api/blynk'
 
+  private getAuthHeaders(defaults: HeadersInit = {}) {
+    return withAuth(defaults)
+  }
+
   async getBlynkData(): Promise<SensorData> {
     try {
+      const headers = this.getAuthHeaders({ 'Content-Type': 'application/json' })
       const response = await fetch(`${this.baseUrl}/get-blynk-data`, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
       })
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
 
-      const data: BlynkData = await response.json()
+      const contentType =
+        response.headers.get('Content-Type') || response.headers.get('content-type') || ''
+      let data!: BlynkData
+      if (contentType.includes('text/event-stream') && response.body) {
+        const reader = response.body.getReader()
+        const decoder = new TextDecoder('utf-8')
+        let buffer = ''
+        while (true) {
+          const { value, done } = await reader.read()
+          if (done) break
+          buffer += decoder.decode(value, { stream: true })
+          const delimiterIndex = buffer.indexOf('\n\n')
+          if (delimiterIndex !== -1) {
+            const eventChunk = buffer.slice(0, delimiterIndex)
+            const lines = eventChunk.split(/\r?\n/)
+            const dataLine = lines.find(l => l.startsWith('data:'))
+            const jsonText = dataLine ? dataLine.replace(/^data:\s*/, '') : eventChunk
+            try {
+              data = JSON.parse(jsonText)
+            } finally {
+              reader.cancel().catch(() => {})
+            }
+            break
+          }
+        }
+        if (!data) {
+          throw new Error('No SSE data received from server')
+        }
+      } else {
+        data = await response.json()
+      }
 
       const temperature = this.validateSensorValue(parseFloat(data.v0), 0, 60)
       const humidity = this.validateSensorValue(parseFloat(data.v1), 0, 100)
@@ -93,15 +128,43 @@ class BlynkService {
 
   async getRawBlynkData(): Promise<BlynkData> {
     try {
+      const headers = this.getAuthHeaders({ 'Content-Type': 'application/json' })
       const response = await fetch(`${this.baseUrl}/get-blynk-data`, {
         method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
       })
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const contentType =
+        response.headers.get('Content-Type') || response.headers.get('content-type') || ''
+      if (contentType.includes('text/event-stream') && response.body) {
+        const reader = response.body.getReader()
+        const decoder = new TextDecoder('utf-8')
+        let buffer = ''
+        while (true) {
+          const { value, done } = await reader.read()
+          if (done) break
+          buffer += decoder.decode(value, { stream: true })
+          const delimiterIndex = buffer.indexOf('\n\n')
+          if (delimiterIndex !== -1) {
+            const eventChunk = buffer.slice(0, delimiterIndex)
+            const lines = eventChunk.split(/\r?\n/)
+            const dataLine = lines.find(l => l.startsWith('data:'))
+            const jsonText = dataLine ? dataLine.replace(/^data:\s*/, '') : eventChunk
+            try {
+              const parsed = JSON.parse(jsonText)
+              reader.cancel().catch(() => {})
+              return parsed
+            } catch (err) {
+              reader.cancel().catch(() => {})
+              throw err
+            }
+          }
+        }
+        throw new Error('No SSE data received from server')
       }
 
       const data: BlynkData = await response.json()
@@ -112,9 +175,10 @@ class BlynkService {
   }
 
   async getLogs(): Promise<BlynkLogEntry[]> {
+    const headers = this.getAuthHeaders({ 'Content-Type': 'application/json' })
     const response = await fetch(`${this.baseUrl}/logs`, {
       method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
     })
 
     if (!response.ok) {
@@ -139,9 +203,10 @@ class BlynkService {
   }
 
   async exportLogs(): Promise<Blob> {
+    const headers = this.getAuthHeaders({ 'Content-Type': 'application/json' })
     const response = await fetch(`${this.baseUrl}/export`, {
       method: 'GET',
-      headers: { 'Content-Type': 'application/json' },
+      headers,
     })
 
     if (!response.ok) {
@@ -190,11 +255,10 @@ class BlynkService {
 
   async sendControlCommand(pin: string, value: string | number): Promise<boolean> {
     try {
+      const headers = this.getAuthHeaders({ 'Content-Type': 'application/json' })
       const response = await fetch(`${this.baseUrl}/send-command`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
         body: JSON.stringify({ pin, value }),
       })
 
@@ -206,11 +270,10 @@ class BlynkService {
 
   async controlPump(state: boolean): Promise<{ success: boolean; message: string }> {
     try {
+      const headers = this.getAuthHeaders({ 'Content-Type': 'application/json' })
       const response = await fetch(`${this.baseUrl}/pump?state=${state}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
       })
 
       if (!response.ok) {
@@ -233,11 +296,10 @@ class BlynkService {
 
   async controlManualMode(state: boolean): Promise<{ success: boolean; message: string }> {
     try {
+      const headers = this.getAuthHeaders({ 'Content-Type': 'application/json' })
       const response = await fetch(`${this.baseUrl}/manual-mode?state=${state}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
       })
 
       if (!response.ok) {
@@ -267,11 +329,10 @@ class BlynkService {
         }
       }
 
+      const headers = this.getAuthHeaders({ 'Content-Type': 'application/json' })
       const response = await fetch(`${this.baseUrl}/servo?angle=${angle}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
       })
 
       if (!response.ok) {

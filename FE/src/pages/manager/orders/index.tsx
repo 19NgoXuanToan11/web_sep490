@@ -22,7 +22,6 @@ import { Badge } from '@/shared/ui/badge'
 import { Input } from '@/shared/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
 import { format } from 'date-fns'
-import { vi } from 'date-fns/locale'
 import { formatDate, formatDateTime } from '@/shared/lib/date-utils'
 import {
   DropdownMenu,

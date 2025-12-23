@@ -39,13 +39,11 @@ const GaugeComponent: React.FC<GaugeProps> = ({
   trend,
 }): React.ReactElement => {
   const [animatedValue, setAnimatedValue] = useState(min)
-  const [previousValue, setPreviousValue] = useState(min)
 
   useEffect(() => {
     if (value === animatedValue) return
 
     const timer = setTimeout(() => {
-      setPreviousValue(animatedValue)
       setAnimatedValue(value)
     }, 100)
 

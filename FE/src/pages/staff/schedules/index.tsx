@@ -7,11 +7,7 @@ import { Input } from '@/shared/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { Pagination } from '@/shared/ui/pagination'
 import { formatDate } from '@/shared/lib/date-utils'
-import FullCalendar from '@fullcalendar/react'
-import dayGridPlugin from '@fullcalendar/daygrid'
-import timeGridPlugin from '@fullcalendar/timegrid'
-import interactionPlugin from '@fullcalendar/interaction'
-import viLocale from '@fullcalendar/core/locales/vi'
+import CalendarShell from '@/components/Calendar'
 
 import {
     DropdownMenu,
@@ -295,9 +291,8 @@ const StaffSchedulesPage: React.FC = () => {
     const calendarEvents = useMemo(() => {
         return filteredSchedules.map(s => {
             const cropName = s.cropView?.cropName ?? `Cây #${s.cropId ?? ''}`
-            const farmName = s.farmView?.farmName ?? `Nông trại #${s.farmId ?? ''}`
             const stageLabel = getPlantStageLabel(s.currentPlantStage)
-            let title = `${cropName} — ${farmName}`
+            let title = `${cropName}`
             if (stageLabel) title += ` • ${stageLabel}`
             if (s.quantity) title += ` • ${s.quantity} cây`
 
@@ -318,12 +313,6 @@ const StaffSchedulesPage: React.FC = () => {
             }
         })
     }, [filteredSchedules])
-
-    const handleCalendarEventClick = (arg: any) => {
-        const original: DisplaySchedule | undefined = arg.event.extendedProps?.original
-        if (!original) return
-        handleViewDetail(original)
-    }
 
     return (
         <StaffLayout>
@@ -436,18 +425,24 @@ const StaffSchedulesPage: React.FC = () => {
                 <div className="mb-6">
                     <Card>
                         <CardContent>
-                            <FullCalendar
-                                plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-                                initialView="dayGridMonth"
-                                headerToolbar={{
-                                    left: 'prev,next today',
-                                    center: 'title',
-                                    right: 'dayGridMonth,timeGridWeek,timeGridDay',
+                            {/* Custom CalendarShell (Month/Week/Day) */}
+                            <CalendarShell
+                                events={calendarEvents.map(ev => ({
+                                    id: String(ev.id),
+                                    title: ev.title,
+                                    start: ev.start ?? null,
+                                    end: ev.end ?? null,
+                                    color: ev.backgroundColor ?? undefined,
+                                    participants: ev.extendedProps?.original ? [{
+                                        id: String(ev.extendedProps.original.managerName || 'm1'),
+                                        name: ev.extendedProps.original.managerName,
+                                    }] : [],
+                                    raw: ev.extendedProps?.original ?? null,
+                                }))}
+                                onEventClick={(raw) => {
+                                    if (!raw) return;
+                                    handleViewDetail(raw)
                                 }}
-                                locale={viLocale}
-                                events={calendarEvents}
-                                eventClick={handleCalendarEventClick}
-                                height="auto"
                             />
                         </CardContent>
                     </Card>

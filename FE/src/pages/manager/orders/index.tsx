@@ -216,7 +216,7 @@ const ManagerOrdersPage: React.FC = () => {
 
       toast({
         title: 'Tìm kiếm thành công',
-        description: `Tìm thấy ${searchResult.totalItemCount} đơn hàng trong ngày ${format(date, 'dd/MM/yyyy', { locale: vi })}`,
+        description: `Tìm thấy ${searchResult.totalItemCount} đơn hàng trong ngày ${formatDate(date)}`,
       })
     } catch (error) {
       toast({
@@ -419,7 +419,6 @@ const ManagerOrdersPage: React.FC = () => {
   }
 
   const getStatusBadge = (status: number, paymentStatus?: string) => {
-    // Nếu thanh toán thất bại, hiển thị "Thất bại" thay vì "Đang chuẩn bị"
     let label = getOrderStatusLabel(status)
     let variant = getOrderStatusVariant(status)
     let statusIcon = getStatusIcon(status)
@@ -844,7 +843,7 @@ const ManagerOrdersPage: React.FC = () => {
                             <>
                               Kết quả tìm kiếm đơn hàng trong ngày{' '}
                               <span className="font-medium">
-                                {format(selectedDate, 'dd/MM/yyyy', { locale: vi })}
+                                {formatDate(selectedDate)}
                               </span>
                             </>
                           ) : (

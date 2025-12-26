@@ -277,8 +277,7 @@ function CalendarGrid({ selectedDate, schedules, onEditSchedule }: CalendarGridP
                 } ${isTodayDate ? 'bg-primary/5 border-primary' : ''}`}
             >
               <div
-                className={`text-sm font-medium mb-1 ${isCurrentMonth ? '' : 'text-muted-foreground'
-                  } ${isTodayDate ? 'text-primary' : ''}`}
+                className={`mb-1 ${isCurrentMonth ? '' : 'text-muted-foreground'} ${isTodayDate ? 'text-3xl font-extrabold text-primary bg-white px-2 py-0.5 rounded-full shadow-sm inline-block leading-none' : 'text-sm font-medium'}`}
               >
                 {day.getDate()}
               </div>

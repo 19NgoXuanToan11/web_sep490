@@ -342,6 +342,7 @@ export function BackendScheduleList({
     const [showEdit, setShowEdit] = useState(false)
     const [showAssignStaff, setShowAssignStaff] = useState(false)
     const [showUpdateStageModal, setShowUpdateStageModal] = useState(false)
+    const [showThresholdInline, setShowThresholdInline] = useState(false)
     const [selectedSchedule, setSelectedSchedule] = useState<ScheduleListItem | null>(null)
     const [scheduleDetail, setScheduleDetail] = useState<ScheduleDetail | null>(null)
     const [editForm, setEditForm] = useState<CreateScheduleRequest>(buildEmptyScheduleForm)
@@ -775,6 +776,12 @@ export function BackendScheduleList({
             lastAutoUpdatedScheduleId.current = null
         }
     }, [showDetail, scheduleDetail?.scheduleId, load, loadAllSchedules])
+
+    useEffect(() => {
+        if (!showDetail) {
+            setShowThresholdInline(false)
+        }
+    }, [showDetail])
 
     const handleUpdateToday = async (customDate?: string) => {
         if (!scheduleDetail?.scheduleId) return
@@ -1347,7 +1354,7 @@ export function BackendScheduleList({
                                     size="sm"
                                     onClick={(e) => {
                                         e.stopPropagation()
-                                        window.dispatchEvent(new CustomEvent('openThresholdConfig'))
+                                        setShowThresholdInline(prev => !prev)
                                     }}
                                     className="p-2"
                                 >
@@ -1365,7 +1372,7 @@ export function BackendScheduleList({
                         )}
                     </DialogHeader>
                     {scheduleDetail && (
-                        <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6">
+                        <div className={`grid grid-cols-1 ${showThresholdInline ? 'lg:grid-cols-[1fr_360px]' : 'lg:grid-cols-1'} gap-6`}>
                             <div className="space-y-6">
                                 <div>
                                     <h3 className="text-lg font-semibold mb-3">Thông tin cơ bản</h3>
@@ -1545,12 +1552,13 @@ export function BackendScheduleList({
                                 )}
                             </div>
 
-                            {/* Threshold panel (inline on large screens) */}
                             <div className="hidden lg:block">
-                                <div className="sticky top-6 self-start p-4 bg-white rounded-lg border">
-                                    <h3 className="text-lg font-semibold mb-3">Cấu hình ngưỡng</h3>
-                                    <ThresholdPanel />
-                                </div>
+                                {showThresholdInline && (
+                                    <div className="sticky top-6 self-start p-4 bg-white rounded-lg border">
+                                        <h3 className="text-lg font-semibold mb-3">Cấu hình ngưỡng</h3>
+                                        <ThresholdPanel />
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}

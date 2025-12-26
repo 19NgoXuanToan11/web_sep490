@@ -1409,7 +1409,7 @@ export function BackendScheduleList({
                                                 return bActive - aActive
                                             })
 
-                                            const activeCount = allReqs.filter(r => (r as unknown as { isActive?: boolean }).isActive).length
+
 
                                             return (
                                                 <div className="mt-4">

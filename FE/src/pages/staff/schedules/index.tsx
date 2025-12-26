@@ -79,6 +79,23 @@ const getPlantStageLabel = (stage?: string) => {
     return labels[stage] || stage
 }
 
+const activityTypeLabels: Record<string, string> = {
+    SoilPreparation: 'Chuẩn bị đất',
+    Sowing: 'Gieo hạt',
+    Thinning: 'Tỉa cây con',
+    FertilizingDiluted: 'Bón phân (pha loãng)',
+    Weeding: 'Nhổ cỏ',
+    PestControl: 'Phòng trừ sâu bệnh',
+    FertilizingLeaf: 'Bón phân cho lá',
+    Harvesting: 'Thu hoạch',
+    CleaningFarmArea: 'Dọn dẹp nông trại',
+}
+
+const translateActivityType = (type?: string | null) => {
+    if (!type) return ''
+    return activityTypeLabels[type] ?? type
+}
+
 type SortOption = 'newest' | 'cropName' | 'farmName' | 'status' | 'date'
 
 const StaffSchedulesPage: React.FC = () => {
@@ -283,18 +300,11 @@ const StaffSchedulesPage: React.FC = () => {
         }
     }, [])
 
-    const memoizedCropRequirements = useMemo(() => {
-        if (!selectedScheduleDetail?.cropRequirement) return []
-        return selectedScheduleDetail.cropRequirement
-    }, [selectedScheduleDetail?.cropRequirement])
 
     const calendarEvents = useMemo(() => {
         return filteredSchedules.map(s => {
-            const cropName = s.cropView?.cropName ?? `Cây #${s.cropId ?? ''}`
-            const stageLabel = getPlantStageLabel(s.currentPlantStage)
-            let title = `${cropName}`
-            if (stageLabel) title += ` • ${stageLabel}`
-            if (s.quantity) title += ` • ${s.quantity} cây`
+            const activityTitle = s.farmActivityView?.activityType ? translateActivityType(s.farmActivityView.activityType) : ''
+            const title = activityTitle || (s.cropView?.cropName ?? `Cây #${s.cropId ?? ''}`)
 
             const start = s.startDate ? new Date(s.startDate) : undefined
             const end = s.endDate ? new Date(s.endDate) : undefined
@@ -709,55 +719,7 @@ const StaffSchedulesPage: React.FC = () => {
                                     </Card>
                                 )}
 
-                                {memoizedCropRequirements && memoizedCropRequirements.length > 0 && (
-                                    <Card>
-                                        <CardContent className="p-6 space-y-4">
-                                            <h3 className="text-lg font-semibold mb-4">Yêu cầu cây trồng</h3>
-                                            <div className="space-y-4">
-                                                {memoizedCropRequirements.map((req: any, index: number) => (
-                                                    <div key={req.cropRequirementId || index} className="border rounded-lg p-4 bg-gray-50">
-                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                                            <div>
-                                                                <span className="font-medium">Giai đoạn:</span>
-                                                                <span className="ml-2">{getPlantStageLabel(req.plantStage)}</span>
-                                                            </div>
-                                                            <div>
-                                                                <span className="font-medium">Số ngày ước tính:</span>
-                                                                <span className="ml-2">{req.estimatedDate || 'N/A'} ngày</span>
-                                                            </div>
-                                                            <div>
-                                                                <span className="font-medium">Độ ẩm:</span>
-                                                                <span className="ml-2">{req.moisture ? `${req.moisture}%` : 'N/A'}</span>
-                                                            </div>
-                                                            <div>
-                                                                <span className="font-medium">Nhiệt độ:</span>
-                                                                <span className="ml-2">{req.temperature || 'N/A'}°C</span>
-                                                            </div>
-                                                            <div>
-                                                                <span className="font-medium">Phân bón:</span>
-                                                                <span className="ml-2">{req.fertilizer || 'N/A'}</span>
-                                                            </div>
-                                                            <div>
-                                                                <span className="font-medium">Ánh sáng:</span>
-                                                                <span className="ml-2">{req.lightRequirement || 'N/A'}</span>
-                                                            </div>
-                                                            <div>
-                                                                <span className="font-medium">Tần suất tưới:</span>
-                                                                <span className="ml-2">{req.wateringFrequency ? `${req.wateringFrequency} lần/ngày` : 'N/A'}</span>
-                                                            </div>
-                                                            {req.notes && (
-                                                                <div className="md:col-span-2">
-                                                                    <span className="font-medium">Ghi chú:</span>
-                                                                    <p className="mt-1 text-gray-600">{req.notes}</p>
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-                                )}
+                                {/* Crop requirements removed from schedule detail modal by request */}
                             </div>
                         ) : null}
                     </DialogContent>

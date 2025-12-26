@@ -1399,63 +1399,76 @@ export function BackendScheduleList({
                                     </div>
                                     {(() => {
                                         const allReqs = (scheduleDetail.cropRequirement ?? scheduleDetail.cropView?.cropRequirement) || []
-                                        const activeReqs = allReqs.filter(r => (r as { isActive?: boolean }).isActive)
-                                        return activeReqs.length > 0
-                                    })() ? (
-                                        <div className="mt-4">
-                                            {(() => {
-                                                const allReqs = (scheduleDetail.cropRequirement ?? scheduleDetail.cropView?.cropRequirement) || []
-                                                const activeReqs = allReqs.filter(r => (r as { isActive?: boolean }).isActive)
-                                                return (
-                                                    <>
-                                                        <h4 className="text-md font-semibold mb-3">Yêu cầu cây trồng ({activeReqs.length})</h4>
-                                                        <div className="space-y-3">
-                                                            {activeReqs.map((req, idx) => {
-                                                                const reqIsActive = (req as { isActive?: boolean }).isActive
-                                                                return (
-                                                                    <div key={req.cropRequirementId ?? idx} className="p-4 bg-muted/30 rounded-lg border border-muted">
-                                                                        <div className="flex items-center gap-2 mb-3">
-                                                                            <Badge variant="outline" className="text-xs bg-white">
-                                                                                {translatePlantStage(req.plantStage)}
-                                                                            </Badge>
-                                                                            <Badge
-                                                                                variant={reqIsActive ? 'success' : 'destructive'}
-                                                                                className="text-xs"
-                                                                            >
-                                                                                {reqIsActive ? 'Hoạt động' : 'Tạm dừng'}
-                                                                            </Badge>
-                                                                            {req.estimatedDate && (
-                                                                                <span className="text-sm text-muted-foreground">
-                                                                                    Ước tính: {req.estimatedDate} ngày
-                                                                                </span>
-                                                                            )}
-                                                                        </div>
-                                                                        <div className="grid grid-cols-2 gap-3 text-sm">
-                                                                            {req.temperature !== null && req.temperature !== undefined && (
-                                                                                <div><strong>Nhiệt độ:</strong> {req.temperature}°C</div>
-                                                                            )}
-                                                                            {req.moisture !== null && req.moisture !== undefined && (
-                                                                                <div><strong>Độ ẩm:</strong> {req.moisture}%</div>
-                                                                            )}
-                                                                            {req.lightRequirement !== null && req.lightRequirement !== undefined && (
-                                                                                <div><strong>Ánh sáng:</strong> {req.lightRequirement}</div>
-                                                                            )}
-                                                                            {req.wateringFrequency && (
-                                                                                <div><strong>Tưới nước:</strong> {req.wateringFrequency} lần/ngày</div>
-                                                                            )}
-                                                                            {req.fertilizer && (
-                                                                                <div className="col-span-2"><strong>Phân bón:</strong> {req.fertilizer}</div>
-                                                                            )}
-                                                                        </div>
+                                        if (!allReqs || allReqs.length === 0) return null
+
+                                        // Sort so active requirements appear first, then inactive
+                                        const sortedReqs = [...allReqs].sort((a, b) => {
+                                            const aActive = (a as unknown as { isActive?: boolean }).isActive ? 1 : 0
+                                            const bActive = (b as unknown as { isActive?: boolean }).isActive ? 1 : 0
+                                            return bActive - aActive
+                                        })
+
+                                        const activeCount = allReqs.filter(r => (r as unknown as { isActive?: boolean }).isActive).length
+
+                                        return (
+                                            <div className="mt-4">
+                                                <h4 className="text-md font-semibold mb-3">Yêu cầu cây trồng (Tổng: {allReqs.length} • Hoạt động: {activeCount})</h4>
+                                                <div className="space-y-3">
+                                                    {sortedReqs.map((req, idx) => {
+                                                        const r = req as any
+                                                        const reqIsActive = r.isActive
+                                                        return (
+                                                            <div key={r.cropRequirementId ?? idx} className="relative p-4 bg-muted/30 rounded-lg border border-muted">
+                                                                <div className="absolute right-3 top-3">
+                                                                    <Badge
+                                                                        variant={reqIsActive ? 'success' : 'destructive'}
+                                                                        className="text-xs"
+                                                                    >
+                                                                        {reqIsActive ? 'Hoạt động' : 'Tạm dừng'}
+                                                                    </Badge>
+                                                                </div>
+                                                                <div className="flex items-center justify-between mb-2">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <Badge variant="outline" className="text-xs bg-white">
+                                                                            {translatePlantStage(r.plantStage)}
+                                                                        </Badge>
+                                                                        {r.estimatedDate && (
+                                                                            <span className="text-sm text-muted-foreground">
+                                                                                Ước tính: {r.estimatedDate} ngày
+                                                                            </span>
+                                                                        )}
                                                                     </div>
-                                                                )
-                                                            })}
-                                                        </div>
-                                                    </>
-                                                )
-                                            })()}
-                                        </div>
-                                    ) : null}
+                                                                </div>
+                                                                <div className="grid grid-cols-2 gap-3 text-sm">
+                                                                    {r.temperature !== null && r.temperature !== undefined && (
+                                                                        <div><strong>Nhiệt độ:</strong> {r.temperature}°C</div>
+                                                                    )}
+                                                                    {r.moisture !== null && r.moisture !== undefined && (
+                                                                        <div><strong>Độ ẩm:</strong> {r.moisture}%</div>
+                                                                    )}
+                                                                    {r.lightRequirement !== null && r.lightRequirement !== undefined && (
+                                                                        <div><strong>Ánh sáng:</strong> {r.lightRequirement}</div>
+                                                                    )}
+                                                                    {r.wateringFrequency && (
+                                                                        <div><strong>Tưới nước:</strong> {r.wateringFrequency} lần/ngày</div>
+                                                                    )}
+                                                                    {r.fertilizer && (
+                                                                        <div className="col-span-2"><strong>Phân bón:</strong> {r.fertilizer}</div>
+                                                                    )}
+                                                                    {r.notes && (
+                                                                        <div className="col-span-2">
+                                                                            <strong>Ghi chú:</strong>
+                                                                            <div className="mt-1 text-sm text-muted-foreground">{r.notes}</div>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            </div>
+                                                        )
+                                                    })}
+                                                </div>
+                                            </div>
+                                        )
+                                    })()}
                                 </div>
                             )}
 

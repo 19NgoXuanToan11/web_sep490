@@ -425,7 +425,6 @@ const StaffSchedulesPage: React.FC = () => {
                 <div className="mb-6">
                     <Card>
                         <CardContent>
-                            {/* Custom CalendarShell (Month/Week/Day) */}
                             <CalendarShell
                                 events={calendarEvents.map(ev => ({
                                     id: String(ev.id),

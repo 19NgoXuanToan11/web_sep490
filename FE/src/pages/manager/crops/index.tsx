@@ -358,9 +358,6 @@ export default function CropsPage() {
     switch (sortBy) {
       case 'newest':
         return sorted.sort((a, b) => {
-          if (a.isActive !== b.isActive) {
-            return a.isActive ? -1 : 1
-          }
           const aId = a.cropRequirementId || 0
           const bId = b.cropRequirementId || 0
           return bId - aId
@@ -369,7 +366,7 @@ export default function CropsPage() {
       case 'cropName':
         return sorted.sort((a, b) => {
           const nameA = (a.cropName || '').toLowerCase()
-          const nameB = (b.cropName || '').toLowerCase()      
+          const nameB = (b.cropName || '').toLowerCase()
           if (nameA === nameB) {
             if (a.isActive !== b.isActive) return a.isActive ? -1 : 1
             return (b.cropRequirementId || 0) - (a.cropRequirementId || 0)
@@ -400,20 +397,11 @@ export default function CropsPage() {
     }
   }, [filteredRequirements, sortBy])
 
-  const totalPages = useMemo(() => {
-    return Math.max(1, Math.ceil(sortedRequirements.length / pageSize))
-  }, [sortedRequirements.length, pageSize])
-
-  const paginatedRequirements = useMemo(() => {
-    const start = (pageIndex - 1) * pageSize
-    return sortedRequirements.slice(start, start + pageSize)
-  }, [sortedRequirements, pageIndex, pageSize])
-
-  const groupedRequirements = useMemo(() => {
+  const groupedRequirementsAll = useMemo(() => {
     const groups = new Map<string, CropRequirementRow[]>()
     const groupOrder: string[] = []
 
-    paginatedRequirements.forEach(req => {
+    sortedRequirements.forEach(req => {
       const key = req.cropName || 'Khác'
       if (!groups.has(key)) {
         groups.set(key, [])
@@ -423,7 +411,16 @@ export default function CropsPage() {
     })
 
     return groupOrder.map(key => [key, groups.get(key)!] as [string, CropRequirementRow[]])
-  }, [paginatedRequirements])
+  }, [sortedRequirements])
+
+  const totalPages = useMemo(() => {
+    return Math.max(1, Math.ceil(groupedRequirementsAll.length / pageSize))
+  }, [groupedRequirementsAll.length, pageSize])
+
+  const paginatedGroups = useMemo(() => {
+    const start = (pageIndex - 1) * pageSize
+    return groupedRequirementsAll.slice(start, start + pageSize)
+  }, [groupedRequirementsAll, pageIndex, pageSize])
 
   const handleResetForm = () => {
     setFormData(INITIAL_FORM_STATE)
@@ -816,7 +813,7 @@ export default function CropsPage() {
                 </div>
               </CardContent>
             </Card>
-          ) : paginatedRequirements.length === 0 ? (
+          ) : sortedRequirements.length === 0 ? (
             <Card>
               <CardContent className="p-12 text-center">
                 <p className="text-lg font-semibold text-gray-900">
@@ -842,7 +839,7 @@ export default function CropsPage() {
           ) : (
             <>
               <div className="space-y-6">
-                {groupedRequirements.map(([cropName, items]) => {
+                {paginatedGroups.map(([cropName, items]) => {
                   return (
                     <div key={cropName} className="space-y-3">
                       <div className="flex items-center justify-between px-2 py-2 border-b border-gray-200">

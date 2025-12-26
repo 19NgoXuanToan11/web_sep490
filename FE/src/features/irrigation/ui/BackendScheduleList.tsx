@@ -1401,7 +1401,6 @@ export function BackendScheduleList({
                                         const allReqs = (scheduleDetail.cropRequirement ?? scheduleDetail.cropView?.cropRequirement) || []
                                         if (!allReqs || allReqs.length === 0) return null
 
-                                        // Sort so active requirements appear first, then inactive
                                         const sortedReqs = [...allReqs].sort((a, b) => {
                                             const aActive = (a as unknown as { isActive?: boolean }).isActive ? 1 : 0
                                             const bActive = (b as unknown as { isActive?: boolean }).isActive ? 1 : 0

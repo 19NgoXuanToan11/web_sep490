@@ -17,6 +17,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/shared/ui/dropdown-menu'
+import ThresholdPanel from '@/features/thresholds/ThresholdPanel'
 import { farmService } from '@/shared/api/farmService'
 import { cropService } from '@/shared/api/cropService'
 import { accountApi } from '@/shared/api/auth'
@@ -1326,175 +1327,185 @@ export function BackendScheduleList({
                         )}
                     </DialogHeader>
                     {scheduleDetail && (
-                        <div className="space-y-6">
-                            <div>
-                                <h3 className="text-lg font-semibold mb-3">Thông tin cơ bản</h3>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div><strong>Ngày bắt đầu:</strong> {formatDate(scheduleDetail.startDate)}</div>
-                                    <div><strong>Ngày kết thúc:</strong> {formatDate(scheduleDetail.endDate)}</div>
+                        <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6">
+                            <div className="space-y-6">
+                                <div>
+                                    <h3 className="text-lg font-semibold mb-3">Thông tin cơ bản</h3>
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div><strong>Ngày bắt đầu:</strong> {formatDate(scheduleDetail.startDate)}</div>
+                                        <div><strong>Ngày kết thúc:</strong> {formatDate(scheduleDetail.endDate)}</div>
+                                        <div>
+                                            <strong>Trạng thái:</strong>{' '}
+                                            <Badge variant={isActiveStatus(scheduleDetail.status) ? 'success' : 'destructive'}>
+                                                {getStatusLabel(scheduleDetail.status)}
+                                            </Badge>
+                                        </div>
+                                        <div><strong>Thuốc BVTV:</strong> {scheduleDetail.pesticideUsed ? 'Có' : 'Không'}</div>
+                                        <div><strong>Tình trạng bệnh:</strong> {getDiseaseLabel(scheduleDetail.diseaseStatus)}</div>
+                                        <div>
+                                            <strong>Giai đoạn hiện tại:</strong>{' '}
+                                            {scheduleDetail.currentPlantStage
+                                                ? translatePlantStage(scheduleDetail.currentPlantStage)
+                                                : scheduleDetail.cropView?.plantStage
+                                                    ? translatePlantStage(scheduleDetail.cropView.plantStage)
+                                                    : '-'}
+                                        </div>
+                                        <div><strong>Tạo lúc:</strong> {formatDateTime(scheduleDetail.createdAt)}</div>
+                                    </div>
+                                </div>
+
+                                {scheduleDetail.staff && (
                                     <div>
-                                        <strong>Trạng thái:</strong>{' '}
-                                        <Badge variant={isActiveStatus(scheduleDetail.status) ? 'success' : 'destructive'}>
-                                            {getStatusLabel(scheduleDetail.status)}
-                                        </Badge>
+                                        <h3 className="text-lg font-semibold mb-3">Thông tin nhân viên</h3>
+                                        <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
+                                            <div><strong>Họ tên:</strong> {scheduleDetail.staff.fullname ?? scheduleDetail.staffName ?? '-'}</div>
+                                            <div><strong>Số điện thoại:</strong> {scheduleDetail.staff.phone ?? '-'}</div>
+                                            {scheduleDetail.staff.email && (
+                                                <div><strong>Email:</strong> {scheduleDetail.staff.email}</div>
+                                            )}
+                                        </div>
                                     </div>
-                                    <div><strong>Thuốc BVTV:</strong> {scheduleDetail.pesticideUsed ? 'Có' : 'Không'}</div>
-                                    <div><strong>Tình trạng bệnh:</strong> {getDiseaseLabel(scheduleDetail.diseaseStatus)}</div>
+                                )}
+
+                                {scheduleDetail.farmView && (
                                     <div>
-                                        <strong>Giai đoạn hiện tại:</strong>{' '}
-                                        {scheduleDetail.currentPlantStage
-                                            ? translatePlantStage(scheduleDetail.currentPlantStage)
-                                            : scheduleDetail.cropView?.plantStage
-                                                ? translatePlantStage(scheduleDetail.cropView.plantStage)
-                                                : '-'}
+                                        <h3 className="text-lg font-semibold mb-3">Thông tin nông trại</h3>
+                                        <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
+                                            <div><strong>Tên nông trại:</strong> {scheduleDetail.farmView.farmName ?? `#${scheduleDetail.farmView.farmId}`}</div>
+                                            <div><strong>Địa điểm:</strong> {scheduleDetail.farmView.location ?? '-'}</div>
+                                            {scheduleDetail.farmView.createdAt && (
+                                                <div><strong>Ngày tạo:</strong> {formatDate(scheduleDetail.farmView.createdAt)}</div>
+                                            )}
+                                            {scheduleDetail.farmView.updatedAt && (
+                                                <div><strong>Ngày cập nhật:</strong> {formatDate(scheduleDetail.farmView.updatedAt)}</div>
+                                            )}
+                                        </div>
                                     </div>
-                                    <div><strong>Tạo lúc:</strong> {formatDateTime(scheduleDetail.createdAt)}</div>
-                                </div>
-                            </div>
+                                )}
 
-                            {scheduleDetail.staff && (
-                                <div>
-                                    <h3 className="text-lg font-semibold mb-3">Thông tin nhân viên</h3>
-                                    <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
-                                        <div><strong>Họ tên:</strong> {scheduleDetail.staff.fullname ?? scheduleDetail.staffName ?? '-'}</div>
-                                        <div><strong>Số điện thoại:</strong> {scheduleDetail.staff.phone ?? '-'}</div>
-                                        {scheduleDetail.staff.email && (
-                                            <div><strong>Email:</strong> {scheduleDetail.staff.email}</div>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
+                                {scheduleDetail.cropView && (
+                                    <div>
+                                        <h3 className="text-lg font-semibold mb-3">Thông tin cây trồng</h3>
+                                        <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
+                                            <div><strong>Tên cây trồng:</strong> {scheduleDetail.cropView.cropName ?? `#${scheduleDetail.cropView.cropId}`}</div>
+                                            <div><strong>Số lượng cây trồng:</strong> {scheduleDetail.quantity}</div>
+                                            {scheduleDetail.cropView.origin && (
+                                                <div><strong>Nguồn gốc:</strong> {scheduleDetail.cropView.origin}</div>
+                                            )}
+                                            {scheduleDetail.cropView.description && (
+                                                <div className="col-span-2">
+                                                    <strong>Mô tả:</strong>
+                                                    <p className="mt-1 text-sm text-muted-foreground">{scheduleDetail.cropView.description}</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                        {(() => {
+                                            const allReqs = (scheduleDetail.cropRequirement ?? scheduleDetail.cropView?.cropRequirement) || []
+                                            if (!allReqs || allReqs.length === 0) return null
 
-                            {scheduleDetail.farmView && (
-                                <div>
-                                    <h3 className="text-lg font-semibold mb-3">Thông tin nông trại</h3>
-                                    <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
-                                        <div><strong>Tên nông trại:</strong> {scheduleDetail.farmView.farmName ?? `#${scheduleDetail.farmView.farmId}`}</div>
-                                        <div><strong>Địa điểm:</strong> {scheduleDetail.farmView.location ?? '-'}</div>
-                                        {scheduleDetail.farmView.createdAt && (
-                                            <div><strong>Ngày tạo:</strong> {formatDate(scheduleDetail.farmView.createdAt)}</div>
-                                        )}
-                                        {scheduleDetail.farmView.updatedAt && (
-                                            <div><strong>Ngày cập nhật:</strong> {formatDate(scheduleDetail.farmView.updatedAt)}</div>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
+                                            const sortedReqs = [...allReqs].sort((a, b) => {
+                                                const aActive = (a as unknown as { isActive?: boolean }).isActive ? 1 : 0
+                                                const bActive = (b as unknown as { isActive?: boolean }).isActive ? 1 : 0
+                                                return bActive - aActive
+                                            })
 
-                            {scheduleDetail.cropView && (
-                                <div>
-                                    <h3 className="text-lg font-semibold mb-3">Thông tin cây trồng</h3>
-                                    <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
-                                        <div><strong>Tên cây trồng:</strong> {scheduleDetail.cropView.cropName ?? `#${scheduleDetail.cropView.cropId}`}</div>
-                                        <div><strong>Số lượng cây trồng:</strong> {scheduleDetail.quantity}</div>
-                                        {scheduleDetail.cropView.origin && (
-                                            <div><strong>Nguồn gốc:</strong> {scheduleDetail.cropView.origin}</div>
-                                        )}
-                                        {scheduleDetail.cropView.description && (
-                                            <div className="col-span-2">
-                                                <strong>Mô tả:</strong>
-                                                <p className="mt-1 text-sm text-muted-foreground">{scheduleDetail.cropView.description}</p>
-                                            </div>
-                                        )}
-                                    </div>
-                                    {(() => {
-                                        const allReqs = (scheduleDetail.cropRequirement ?? scheduleDetail.cropView?.cropRequirement) || []
-                                        if (!allReqs || allReqs.length === 0) return null
+                                            const activeCount = allReqs.filter(r => (r as unknown as { isActive?: boolean }).isActive).length
 
-                                        const sortedReqs = [...allReqs].sort((a, b) => {
-                                            const aActive = (a as unknown as { isActive?: boolean }).isActive ? 1 : 0
-                                            const bActive = (b as unknown as { isActive?: boolean }).isActive ? 1 : 0
-                                            return bActive - aActive
-                                        })
-
-                                        const activeCount = allReqs.filter(r => (r as unknown as { isActive?: boolean }).isActive).length
-
-                                        return (
-                                            <div className="mt-4">
-                                                <h4 className="text-md font-semibold mb-3">Yêu cầu cây trồng (Tổng: {allReqs.length} • Hoạt động: {activeCount})</h4>
-                                                <div className="space-y-3">
-                                                    {sortedReqs.map((req, idx) => {
-                                                        const r = req as any
-                                                        const reqIsActive = r.isActive
-                                                        return (
-                                                            <div key={r.cropRequirementId ?? idx} className="relative p-4 bg-muted/30 rounded-lg border border-muted">
-                                                                <div className="absolute right-3 top-3">
-                                                                    <Badge
-                                                                        variant={reqIsActive ? 'success' : 'destructive'}
-                                                                        className="text-xs"
-                                                                    >
-                                                                        {reqIsActive ? 'Hoạt động' : 'Tạm dừng'}
-                                                                    </Badge>
-                                                                </div>
-                                                                <div className="flex items-center justify-between mb-2">
-                                                                    <div className="flex items-center gap-2">
-                                                                        <Badge variant="outline" className="text-xs bg-white">
-                                                                            {translatePlantStage(r.plantStage)}
+                                            return (
+                                                <div className="mt-4">
+                                                    <h4 className="text-md font-semibold mb-3">Yêu cầu cây trồng</h4>
+                                                    <div className="space-y-3">
+                                                        {sortedReqs.map((req, idx) => {
+                                                            const r = req as any
+                                                            const reqIsActive = r.isActive
+                                                            return (
+                                                                <div key={r.cropRequirementId ?? idx} className="relative p-4 bg-muted/30 rounded-lg border border-muted">
+                                                                    <div className="absolute right-3 top-3">
+                                                                        <Badge
+                                                                            variant={reqIsActive ? 'success' : 'destructive'}
+                                                                            className="text-xs"
+                                                                        >
+                                                                            {reqIsActive ? 'Hoạt động' : 'Tạm dừng'}
                                                                         </Badge>
-                                                                        {r.estimatedDate && (
-                                                                            <span className="text-sm text-muted-foreground">
-                                                                                Ước tính: {r.estimatedDate} ngày
-                                                                            </span>
+                                                                    </div>
+                                                                    <div className="flex items-center justify-between mb-2">
+                                                                        <div className="flex items-center gap-2">
+                                                                            <Badge variant="outline" className="text-xs bg-white">
+                                                                                {translatePlantStage(r.plantStage)}
+                                                                            </Badge>
+                                                                            {r.estimatedDate && (
+                                                                                <span className="text-sm text-muted-foreground">
+                                                                                    Ước tính: {r.estimatedDate} ngày
+                                                                                </span>
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="grid grid-cols-2 gap-3 text-sm">
+                                                                        {r.temperature !== null && r.temperature !== undefined && (
+                                                                            <div><strong>Nhiệt độ:</strong> {r.temperature}°C</div>
+                                                                        )}
+                                                                        {r.moisture !== null && r.moisture !== undefined && (
+                                                                            <div><strong>Độ ẩm:</strong> {r.moisture}%</div>
+                                                                        )}
+                                                                        {r.lightRequirement !== null && r.lightRequirement !== undefined && (
+                                                                            <div><strong>Ánh sáng:</strong> {r.lightRequirement}</div>
+                                                                        )}
+                                                                        {r.wateringFrequency && (
+                                                                            <div><strong>Tưới nước:</strong> {r.wateringFrequency} lần/ngày</div>
+                                                                        )}
+                                                                        {r.fertilizer && (
+                                                                            <div className="col-span-2"><strong>Phân bón:</strong> {r.fertilizer}</div>
+                                                                        )}
+                                                                        {r.notes && (
+                                                                            <div className="col-span-2">
+                                                                                <strong>Ghi chú:</strong>
+                                                                                <div className="mt-1 text-sm text-muted-foreground">{r.notes}</div>
+                                                                            </div>
                                                                         )}
                                                                     </div>
                                                                 </div>
-                                                                <div className="grid grid-cols-2 gap-3 text-sm">
-                                                                    {r.temperature !== null && r.temperature !== undefined && (
-                                                                        <div><strong>Nhiệt độ:</strong> {r.temperature}°C</div>
-                                                                    )}
-                                                                    {r.moisture !== null && r.moisture !== undefined && (
-                                                                        <div><strong>Độ ẩm:</strong> {r.moisture}%</div>
-                                                                    )}
-                                                                    {r.lightRequirement !== null && r.lightRequirement !== undefined && (
-                                                                        <div><strong>Ánh sáng:</strong> {r.lightRequirement}</div>
-                                                                    )}
-                                                                    {r.wateringFrequency && (
-                                                                        <div><strong>Tưới nước:</strong> {r.wateringFrequency} lần/ngày</div>
-                                                                    )}
-                                                                    {r.fertilizer && (
-                                                                        <div className="col-span-2"><strong>Phân bón:</strong> {r.fertilizer}</div>
-                                                                    )}
-                                                                    {r.notes && (
-                                                                        <div className="col-span-2">
-                                                                            <strong>Ghi chú:</strong>
-                                                                            <div className="mt-1 text-sm text-muted-foreground">{r.notes}</div>
-                                                                        </div>
-                                                                    )}
-                                                                </div>
-                                                            </div>
-                                                        )
-                                                    })}
-                                                </div>
-                                            </div>
-                                        )
-                                    })()}
-                                </div>
-                            )}
-
-                            {scheduleDetail.farmActivityView && (
-                                <div>
-                                    <h3 className="text-lg font-semibold mb-3">Thông tin hoạt động nông trại</h3>
-                                    <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
-                                        <div>
-                                            <strong>Loại hoạt động:</strong>{' '}
-                                            {scheduleDetail.farmActivityView.activityType
-                                                ? translateActivityType(scheduleDetail.farmActivityView.activityType)
-                                                : `#${scheduleDetail.farmActivityView.farmActivitiesId}`}
-                                        </div>
-                                        {scheduleDetail.farmActivityView.status && (() => {
-                                            const statusInfo = getFarmActivityStatusInfo(scheduleDetail.farmActivityView.status)
-                                            return (
-                                                <div>
-                                                    <strong>Trạng thái:</strong>{' '}
-                                                    <Badge variant={statusInfo.variant}>
-                                                        {statusInfo.label}
-                                                    </Badge>
+                                                            )
+                                                        })}
+                                                    </div>
                                                 </div>
                                             )
                                         })()}
                                     </div>
+                                )}
+
+                                {scheduleDetail.farmActivityView && (
+                                    <div>
+                                        <h3 className="text-lg font-semibold mb-3">Thông tin hoạt động nông trại</h3>
+                                        <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
+                                            <div>
+                                                <strong>Loại hoạt động:</strong>{' '}
+                                                {scheduleDetail.farmActivityView.activityType
+                                                    ? translateActivityType(scheduleDetail.farmActivityView.activityType)
+                                                    : `#${scheduleDetail.farmActivityView.farmActivitiesId}`}
+                                            </div>
+                                            {scheduleDetail.farmActivityView.status && (() => {
+                                                const statusInfo = getFarmActivityStatusInfo(scheduleDetail.farmActivityView.status)
+                                                return (
+                                                    <div>
+                                                        <strong>Trạng thái:</strong>{' '}
+                                                        <Badge variant={statusInfo.variant}>
+                                                            {statusInfo.label}
+                                                        </Badge>
+                                                    </div>
+                                                )
+                                            })()}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Threshold panel (inline on large screens) */}
+                            <div className="hidden lg:block">
+                                <div className="sticky top-6 self-start p-4 bg-white rounded-lg border">
+                                    <h3 className="text-lg font-semibold mb-3">Cấu hình ngưỡng</h3>
+                                    <ThresholdPanel />
                                 </div>
-                            )}
+                            </div>
                         </div>
                     )}
                 </DialogContent>

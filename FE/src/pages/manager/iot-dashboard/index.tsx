@@ -109,16 +109,18 @@ const RealTimeIoTDashboard: React.FC = () => {
   }, [toast, retryCount])
 
   useEffect(() => {
-    fetchSensorData()
+    if (!isThresholdModalOpen) {
+      fetchSensorData()
+    }
 
     const interval = setInterval(() => {
-      if (!manualControl) {
+      if (!manualControl && !isThresholdModalOpen) {
         fetchSensorData()
       }
     }, REFRESH_INTERVAL)
 
     return () => clearInterval(interval)
-  }, [fetchSensorData, manualControl])
+  }, [fetchSensorData, manualControl, isThresholdModalOpen])
 
   useEffect(() => {
     if (isThresholdModalOpen) {
@@ -310,7 +312,7 @@ const RealTimeIoTDashboard: React.FC = () => {
   const handleThresholdUpdate = async (
     type: 'soil-low' | 'soil-high' | 'ldr-low' | 'ldr-high' | 'light-on' | 'light-off',
     value: number
-  ) => {  
+  ) => {
     let validationError: string | null = null
 
     if (type === 'soil-low' || type === 'soil-high') {

@@ -15,10 +15,15 @@ export const MonthView: React.FC<Props> = ({ anchorDate, events, onEventClick })
         <div className={styles.monthGrid}>
             {matrix.flat().map((d, idx) => {
                 const isSameMonth = d.getMonth() === anchorDate.getMonth() && d.getFullYear() === anchorDate.getFullYear();
+                const dayStartTs = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
                 const dayEvents = isSameMonth
                     ? events.filter((e) => {
                         if (!e.start) return false;
-                        return new Date(e.start).toDateString() === d.toDateString();
+                        const evStart = new Date(e.start);
+                        const evEnd = e.end ? new Date(e.end) : evStart;
+                        const evStartDayTs = new Date(evStart.getFullYear(), evStart.getMonth(), evStart.getDate()).getTime();
+                        const evEndDayTs = new Date(evEnd.getFullYear(), evEnd.getMonth(), evEnd.getDate()).getTime();
+                        return evStartDayTs <= dayStartTs && dayStartTs <= evEndDayTs;
                     })
                     : [];
                 const isToday = isSameMonth && new Date().toDateString() === d.toDateString();

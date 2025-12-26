@@ -188,6 +188,12 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
+.eventTitleTime {
+  font-weight: 600;
+  font-size: 11px;
+  opacity: 0.95;
+  margin-left: 6px;
+}
 .eventTime {
   font-size: 12px;
   color: rgba(255, 255, 255, 0.95);

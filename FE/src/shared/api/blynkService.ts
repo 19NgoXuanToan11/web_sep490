@@ -361,11 +361,10 @@ class BlynkService {
         }
       }
 
+      const headers = this.getAuthHeaders({ 'Content-Type': 'application/json' })
       const response = await fetch(`${this.baseUrl}/threshold/soil-low?value=${value}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
       })
 
       if (!response.ok) {
@@ -395,11 +394,10 @@ class BlynkService {
         }
       }
 
+      const headers = this.getAuthHeaders({ 'Content-Type': 'application/json' })
       const response = await fetch(`${this.baseUrl}/threshold/soil-high?value=${value}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
       })
 
       if (!response.ok) {
@@ -429,11 +427,10 @@ class BlynkService {
         }
       }
 
+      const headers = this.getAuthHeaders({ 'Content-Type': 'application/json' })
       const response = await fetch(`${this.baseUrl}/threshold/ldr-low?value=${value}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
       })
 
       if (!response.ok) {
@@ -463,11 +460,10 @@ class BlynkService {
         }
       }
 
+      const headers = this.getAuthHeaders({ 'Content-Type': 'application/json' })
       const response = await fetch(`${this.baseUrl}/threshold/ldr-high?value=${value}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
       })
 
       if (!response.ok) {
@@ -490,11 +486,10 @@ class BlynkService {
 
   async controlLight(state: boolean): Promise<{ success: boolean; message: string }> {
     try {
+      const headers = this.getAuthHeaders({ 'Content-Type': 'application/json' })
       const response = await fetch(`${this.baseUrl}/light?state=${state}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
       })
 
       if (!response.ok) {
@@ -523,11 +518,10 @@ class BlynkService {
         }
       }
 
+      const headers = this.getAuthHeaders({ 'Content-Type': 'application/json' })
       const response = await fetch(`${this.baseUrl}/threshold/light-on?value=${value}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
       })
 
       if (!response.ok) {
@@ -557,11 +551,10 @@ class BlynkService {
         }
       }
 
+      const headers = this.getAuthHeaders({ 'Content-Type': 'application/json' })
       const response = await fetch(`${this.baseUrl}/threshold/light-off?value=${value}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers,
       })
 
       if (!response.ok) {

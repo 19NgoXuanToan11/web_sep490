@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/shared/ui/badge'
 import { Pagination } from '@/shared/ui/pagination'
 import { cn } from '@/shared/lib/utils'
-import { Loader2, MoreHorizontal, RefreshCw, Search } from 'lucide-react'
+import { Loader2, MoreHorizontal, RefreshCw, Search, Settings } from 'lucide-react'
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -954,7 +954,7 @@ export function BackendScheduleList({
                             onValueChange={v => {
                                 if (!onStaffFilterChange) return
                                 if (v === 'all') {
-                                    onStaffFilterChange(null)   
+                                    onStaffFilterChange(null)
                                     if (onFilteredItemsChange) onFilteredItemsChange(null)
                                 } else {
                                     onStaffFilterChange(Number(v))
@@ -1303,6 +1303,17 @@ export function BackendScheduleList({
                         <DialogTitle>Chi tiết lịch tưới</DialogTitle>
                         {scheduleDetail?.scheduleId && (
                             <div className="flex items-center gap-2">
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={(e) => {
+                                        e.stopPropagation()
+                                        window.dispatchEvent(new CustomEvent('openThresholdConfig'))
+                                    }}
+                                    className="p-2"
+                                >
+                                    <Settings className="h-4 w-4" />
+                                </Button>
                                 <Button
                                     variant="outline"
                                     size="sm"

@@ -21,6 +21,7 @@ import LogoutButton from '@/shared/ui/LogoutButton'
 import { Badge } from '@/shared/ui/badge'
 import { APP_CONFIG } from '@/shared/constants/app'
 import { accountProfileApi } from '@/shared/api/auth'
+import ThresholdConfigModal from '../../features/thresholds/ThresholdConfigModal.tsx'
 
 interface ManagerLayoutProps {
   children: React.ReactNode
@@ -379,6 +380,7 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
         <main className="flex-1 overflow-y-auto">
           <div className="py-8">{children}</div>
         </main>
+        <ThresholdConfigModal />
       </div>
     </div>
   )

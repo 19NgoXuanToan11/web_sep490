@@ -651,7 +651,7 @@ export function BackendScheduleList({
             cropOptions: cropRes
                 .filter(c => c.status === 'ACTIVE')
                 .map(c => ({ id: c.cropId, name: c.cropName, status: c.status })),
-            staffOptions: staffRes.items.map(s => ({ id: s.accountId, name: s.email })),
+            staffOptions: staffRes.items.map(s => ({ id: s.accountId, name: s.accountProfile?.fullname ?? s.email })),
             activityOptions: validActivities.map((a: FarmActivity) => {
                 const start = formatDateSafe(a.startDate)
                 const end = formatDateSafe(a.endDate)
@@ -829,13 +829,50 @@ export function BackendScheduleList({
         setActionLoading({ [`edit-${editingScheduleId}`]: true })
             ; (async () => {
                 try {
+                    setMetaLoading(true)
+                    let metaResult: {
+                        farmOptions: { id: number; name: string }[]
+                        cropOptions: { id: number; name: string; status?: string }[]
+                        staffOptions: { id: number; name: string }[]
+                        activityOptions: ActivityOption[]
+                    } | null = null
+                    try {
+                        metaResult = await loadReferenceData()
+                        if (cancelled) return
+                        setFarms(metaResult.farmOptions)
+                        setCrops(metaResult.cropOptions)
+                        setStaffs(metaResult.staffOptions)
+                        setActivities(metaResult.activityOptions)
+                    } catch (metaErr) {
+                        console.error('Failed to load metadata for edit dialog:', metaErr)
+                        if (!cancelled) {
+                            handleFetchError(metaErr, toast, 'danh sách tham chiếu')
+                        }
+                    } finally {
+                        if (!cancelled) setMetaLoading(false)
+                    }
+
                     const res = await scheduleService.getScheduleById(editingScheduleId)
                     if (cancelled) return
                     const detail = res.data
+
+                    let resolvedFarmId = detail.farmId ?? detail.farmView?.farmId ?? 0
+                    if ((!resolvedFarmId || resolvedFarmId === 0) && detail.farmView?.farmName) {
+                        const matched = (metaResult?.farmOptions || farms).find((f: { id: number; name: string }) => f.name === detail.farmView?.farmName)
+                        if (matched) resolvedFarmId = matched.id
+                    }
+
+                    let resolvedStaffId = detail.staffId ?? detail.staff?.accountId ?? 0
+                    if ((!resolvedStaffId || resolvedStaffId === 0) && (detail.staff?.fullname || detail.staffName)) {
+                        const staffNameToMatch = detail.staff?.fullname ?? detail.staffName
+                        const matchedStaff = (metaResult?.staffOptions || staffs).find((s: { id: number; name: string }) => s.name === staffNameToMatch || String(s.id) === String(detail.staff?.accountId))
+                        if (matchedStaff) resolvedStaffId = matchedStaff.id
+                    }
+
                     setEditForm({
-                        farmId: detail.farmId ?? 0,
+                        farmId: resolvedFarmId ?? 0,
                         cropId: detail.cropId ?? 0,
-                        staffId: detail.staffId ?? 0,
+                        staffId: resolvedStaffId ?? 0,
                         startDate: detail.startDate,
                         endDate: detail.endDate,
                         plantingDate: detail.plantingDate ?? '',
@@ -859,13 +896,14 @@ export function BackendScheduleList({
                     if (!cancelled) {
                         setEditLoading(false)
                         setActionLoading({ [`edit-${editingScheduleId}`]: false })
+                        setMetaLoading(false)
                     }
                 }
             })()
         return () => {
             cancelled = true
         }
-    }, [editingScheduleId, toast, handleEditDialogChange])
+    }, [editingScheduleId, toast, handleEditDialogChange, loadReferenceData])
 
     const handleUpdateSchedule = async (ev: React.FormEvent) => {
         ev.preventDefault()
@@ -1350,7 +1388,15 @@ export function BackendScheduleList({
                                                     ? translatePlantStage(scheduleDetail.cropView.plantStage)
                                                     : '-'}
                                         </div>
-                                        <div><strong>Tạo lúc:</strong> {formatDateTime(scheduleDetail.createdAt)}</div>
+                                        <div>
+                                            <strong>Tạo lúc:</strong>{' '}
+                                            {scheduleDetail.createdAt
+                                                ? (/\d{4}-\d{2}-\d{2}T/.test(String(scheduleDetail.createdAt))
+                                                    ? formatDateTime(scheduleDetail.createdAt)
+                                                    : `${formatDate(scheduleDetail.createdAt)} ${new Date(String(scheduleDetail.createdAt)).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', hour12: false })}`
+                                                )
+                                                : '-'}
+                                        </div>
                                     </div>
                                 </div>
 

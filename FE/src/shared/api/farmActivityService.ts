@@ -77,7 +77,20 @@ export const farmActivityService = {
 
     const url = `/v1/farm-activity/get-active${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
     const response = await http.get<ApiResponse<PaginationData<FarmActivity>>>(url)
-    return response.data.data
+    const payload = response?.data?.data
+    if (payload && typeof payload === 'object' && Array.isArray((payload as any).items)) {
+      return payload
+    }
+
+    return {
+      totalItemCount: 0,
+      pageSize: 0,
+      totalPagesCount: 0,
+      pageIndex: 0,
+      next: false,
+      previous: false,
+      items: [],
+    }
   },
 
   getFarmActivityById: async (id: number): Promise<FarmActivity> => {

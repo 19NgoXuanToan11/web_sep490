@@ -25,6 +25,7 @@ import { StaffLayout } from '@/shared/layouts/StaffLayout'
 import { ManagementPageHeader, StaffFilterBar } from '@/shared/ui'
 import { useToast } from '@/shared/ui/use-toast'
 import { scheduleService, type ScheduleListItem, type ScheduleStatusString } from '@/shared/api/scheduleService'
+import { farmActivityService } from '@/shared/api/farmActivityService'
 
 interface DisplaySchedule extends Omit<ScheduleListItem, 'diseaseStatus'> {
     id: string
@@ -170,6 +171,32 @@ const StaffSchedulesPage: React.FC = () => {
             description: 'Thông tin lịch làm việc đã được làm mới.',
         })
     }
+
+    const [isCompleting, setIsCompleting] = useState(false)
+
+    const handleCompleteFarmActivity = useCallback(async () => {
+        if (!selectedScheduleDetail?.farmActivityView?.farmActivitiesId) return
+        const activityId = selectedScheduleDetail.farmActivityView.farmActivitiesId
+        setIsCompleting(true)
+        try {
+            await farmActivityService.completeFarmActivity(activityId, selectedScheduleDetail.farmView?.location)
+            toast({ title: 'Hoàn thành', description: 'Hoạt động đã được đánh dấu hoàn thành', variant: 'success' })
+            await fetchSchedules()
+            if (selectedScheduleDetail?.scheduleId) {
+                const res = await scheduleService.getScheduleById(selectedScheduleDetail.scheduleId)
+                if (res?.data) {
+                    setSelectedScheduleDetail(transformApiSchedule(res.data))
+                }
+            } else {
+                setSelectedScheduleDetail(null)
+                setIsScheduleDetailOpen(false)
+            }
+        } catch (error: any) {
+            toast({ title: 'Lỗi', description: error?.message || 'Không thể hoàn thành hoạt động', variant: 'destructive' })
+        } finally {
+            setIsCompleting(false)
+        }
+    }, [selectedScheduleDetail, fetchSchedules, toast])
 
     const handleStatusFilterChange = (status: string) => {
         setStatusFilter(status)
@@ -652,6 +679,21 @@ const StaffSchedulesPage: React.FC = () => {
                                         </div>
                                     </CardContent>
                                 </Card>
+
+                                {selectedScheduleDetail.farmActivityView &&
+                                    selectedScheduleDetail.farmActivityView.status !== 'COMPLETED' && (
+                                        <div className="flex justify-end px-6">
+                                            <Button
+                                                onClick={(e) => {
+                                                    e.stopPropagation()
+                                                    void handleCompleteFarmActivity()
+                                                }}
+                                                disabled={isCompleting}
+                                            >
+                                                {isCompleting ? 'Đang xử lý...' : 'Hoàn thành'}
+                                            </Button>
+                                        </div>
+                                    )}
 
                                 {(selectedScheduleDetail.farmView || selectedScheduleDetail.cropView) && (
                                     <Card>

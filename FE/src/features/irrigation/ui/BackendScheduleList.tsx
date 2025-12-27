@@ -76,18 +76,6 @@ const statusOptions = [
 
 const diseaseOptions = [
     { value: -1, label: 'Không có bệnh' },
-    { value: 0, label: 'Bệnh mốc sương' },
-    { value: 1, label: 'Bệnh phấn trắng' },
-    { value: 2, label: 'Bệnh đốm lá' },
-    { value: 3, label: 'Thối nhũn do vi khuẩn' },
-    { value: 4, label: 'Héo vàng Fusarium' },
-    { value: 5, label: 'Bệnh thán thư' },
-    { value: 6, label: 'Bệnh chết cây con' },
-    { value: 7, label: 'Thối đen' },
-    { value: 8, label: 'Virus khảm' },
-    { value: 9, label: 'Rệp hại' },
-    { value: 10, label: 'Hại do bọ trĩ' },
-    { value: 11, label: 'Ruồi trắng gây hại' },
 ]
 
 const translateActivityType = (type: string) => activityTypeLabels[type] ?? type
@@ -143,6 +131,33 @@ const getDiseaseLabel = (value: number | null | undefined) => {
 const getDiseaseSelectValue = (value: number | null | undefined): string => {
     if (value === null || value === undefined) return '-1'
     return String(value)
+}
+
+const diseaseEnumMap: Record<string, number> = {
+    DownyMildew: 0,
+    PowderyMildew: 1,
+    LeafSpot: 2,
+    BacterialSoftRot: 3,
+    FusariumWilt: 4,
+    Anthracnose: 5,
+    DampingOff: 6,
+    BlackRot: 7,
+    MosaicVirus: 8,
+    AphidInfestation: 9,
+    ThripsDamage: 10,
+    WhiteflyInfestation: 11,
+}
+
+const parseDiseaseStatus = (value: unknown): number | undefined => {
+    if (value === null || value === undefined) return undefined
+    if (typeof value === 'number') return value
+    if (typeof value === 'string') {
+        const maybeNum = Number(value)
+        if (!Number.isNaN(maybeNum)) return maybeNum
+        const mapped = (diseaseEnumMap as any)[value]
+        return mapped !== undefined ? mapped : undefined
+    }
+    return undefined
 }
 
 const buildEmptyScheduleForm = (): CreateScheduleRequest => ({
@@ -437,14 +452,21 @@ export function BackendScheduleList({
         }
     }, [filteredSchedules, sortBy])
 
-    const totalPages = useMemo(() => {
-        return Math.max(1, Math.ceil(sortedSchedules.length / pageSize))
-    }, [sortedSchedules.length, pageSize])
+    const serverTotalPages = useMemo(() => {
+        return data?.data?.totalPagesCount ?? Math.max(1, Math.ceil(sortedSchedules.length / pageSize))
+    }, [data?.data?.totalPagesCount, sortedSchedules.length, pageSize])
+
+    const serverTotalItems = useMemo(() => {
+        return data?.data?.totalItemCount ?? sortedSchedules.length
+    }, [data?.data?.totalItemCount, sortedSchedules.length])
 
     const paginatedSchedules = useMemo(() => {
+        if (data?.data?.items) {
+            return sortedSchedules
+        }
         const start = (pageIndex - 1) * pageSize
         return sortedSchedules.slice(start, start + pageSize)
-    }, [sortedSchedules, pageIndex, pageSize])
+    }, [sortedSchedules, pageIndex, pageSize, data?.data?.items])
 
     const groupedSchedules = useMemo(() => {
         const groups = new Map<string, ScheduleListItem[]>()
@@ -740,7 +762,8 @@ export function BackendScheduleList({
         setActionLoading({ [`detail-${schedule.scheduleId}`]: true })
         try {
             const res = await scheduleService.getScheduleById(schedule.scheduleId)
-            setScheduleDetail(res.data)
+            const normalized = { ...(res.data || {}), diseaseStatus: parseDiseaseStatus((res.data as any)?.diseaseStatus) }
+            setScheduleDetail(normalized)
             setSelectedSchedule(schedule)
             setShowDetail(true)
         } catch (e) {
@@ -918,7 +941,7 @@ export function BackendScheduleList({
                         quantity: detail.quantity,
                         status: resolvedStatus,
                         pesticideUsed: detail.pesticideUsed,
-                        diseaseStatus: detail.diseaseStatus ?? null,
+                        diseaseStatus: parseDiseaseStatus((detail as any)?.diseaseStatus) ?? null,
                         farmActivitiesId: resolvedActivityId ?? 0,
                     })
                     const fav = detail.farmActivityView
@@ -1240,15 +1263,20 @@ export function BackendScheduleList({
                         })}
                     </div>
 
-                    {totalPages > 1 && (
-                        <div className="mt-6">
-                            <Pagination
-                                currentPage={pageIndex}
-                                totalPages={totalPages}
-                                onPageChange={setPageIndex}
-                            />
+                    <div className="mt-6 flex items-center justify-between">
+                        <div className="text-sm text-gray-600">
+                            Hiển thị {paginatedSchedules.length} / {serverTotalItems}
                         </div>
-                    )}
+                        {serverTotalPages > 1 && (
+                            <div>
+                                <Pagination
+                                    currentPage={pageIndex}
+                                    totalPages={serverTotalPages}
+                                    onPageChange={setPageIndex}
+                                />
+                            </div>
+                        )}
+                    </div>
                 </>
             )}
 
@@ -1355,23 +1383,7 @@ export function BackendScheduleList({
                         </div>
                         <div>
                             <Label>Tình trạng bệnh</Label>
-                            <Select
-                                value={getDiseaseSelectValue(form.diseaseStatus)}
-                                onValueChange={v => {
-                                    const numValue = Number(v)
-                                    setForm({ ...form, diseaseStatus: numValue === -1 ? null : numValue })
-                                }}
-                                disabled={metaLoading || editLoading}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Chọn tình trạng bệnh" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {diseaseOptions.map(o => (
-                                        <SelectItem key={o.value} value={String(o.value)}>{o.label}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                            <div className="mt-2 text-sm text-gray-700">Không có bệnh</div>
                         </div>
                         <div>
                             <Label>Hoạt động nông trại</Label>

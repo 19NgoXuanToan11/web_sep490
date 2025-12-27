@@ -1,10 +1,8 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react'
-import { RefreshCw, Search, MoreHorizontal } from 'lucide-react'
+import { RefreshCw, MoreHorizontal } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import { Card, CardContent } from '@/shared/ui/card'
 import { Badge } from '@/shared/ui/badge'
-import { Input } from '@/shared/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { Pagination } from '@/shared/ui/pagination'
 import { formatDate } from '@/shared/lib/date-utils'
 import CalendarShell from '@/components/Calendar'
@@ -22,7 +20,7 @@ import {
     DialogTitle,
 } from '@/shared/ui/dialog'
 import { StaffLayout } from '@/shared/layouts/StaffLayout'
-import { ManagementPageHeader, StaffFilterBar } from '@/shared/ui'
+import { ManagementPageHeader } from '@/shared/ui'
 import { useToast } from '@/shared/ui/use-toast'
 import { scheduleService, type ScheduleListItem, type ScheduleStatusString } from '@/shared/api/scheduleService'
 import { farmActivityService } from '@/shared/api/farmActivityService'
@@ -97,16 +95,11 @@ const translateActivityType = (type?: string | null) => {
     return activityTypeLabels[type] ?? type
 }
 
-type SortOption = 'newest' | 'cropName' | 'farmName' | 'status' | 'date'
-
 const StaffSchedulesPage: React.FC = () => {
     const { toast } = useToast()
     const [schedules, setSchedules] = useState<DisplaySchedule[]>([])
     const [loading, setLoading] = useState(true)
     const [isRefreshing, setIsRefreshing] = useState(false)
-    const [statusFilter, setStatusFilter] = useState<string>('all')
-    const [searchQuery, setSearchQuery] = useState('')
-    const [sortBy, setSortBy] = useState<SortOption>('newest')
     const [pageIndex, setPageIndex] = useState(1)
     const [pageSize] = useState(10)
 
@@ -160,7 +153,7 @@ const StaffSchedulesPage: React.FC = () => {
 
     useEffect(() => {
         setPageIndex(1)
-    }, [searchQuery, statusFilter, sortBy])
+    }, [schedules])
 
     const handleRefresh = async () => {
         setIsRefreshing(true)
@@ -199,82 +192,11 @@ const StaffSchedulesPage: React.FC = () => {
         }
     }, [selectedScheduleDetail, fetchSchedules, toast])
 
-    const handleStatusFilterChange = (status: string) => {
-        setStatusFilter(status)
-    }
-
-    const filteredSchedules = useMemo(() => {
-        return schedules.filter(schedule => {
-            if (searchQuery.trim()) {
-                const searchTerm = searchQuery.toLowerCase()
-                const farmName = schedule.farmView?.farmName?.toLowerCase() || ''
-                const cropName = schedule.cropView?.cropName?.toLowerCase() || ''
-                const scheduleId = String(schedule.scheduleId || '').toLowerCase()
-
-                if (
-                    !farmName.includes(searchTerm) &&
-                    !cropName.includes(searchTerm) &&
-                    !scheduleId.includes(searchTerm)
-                ) {
-                    return false
-                }
-            }
-
-            if (statusFilter !== 'all') {
-                if (statusFilter === 'ACTIVE') {
-                    if (typeof schedule.status === 'string') {
-                        if (schedule.status !== 'ACTIVE') return false
-                    } else {
-                        if (schedule.status !== 1) return false
-                    }
-                } else if (statusFilter === 'DEACTIVATED') {
-                    if (typeof schedule.status === 'string') {
-                        if (schedule.status !== 'DEACTIVATED') return false
-                    } else {
-                        if (schedule.status !== 0) return false
-                    }
-                }
-            }
-
-            return true
-        })
-    }, [schedules, searchQuery, statusFilter])
+    const filteredSchedules = useMemo(() => schedules, [schedules])
 
     const sortedSchedules = useMemo(() => {
-        const sorted = [...filteredSchedules]
-
-        switch (sortBy) {
-            case 'newest':
-                return sorted.sort((a, b) => (b.scheduleId || 0) - (a.scheduleId || 0))
-            case 'cropName':
-                return sorted.sort((a, b) => {
-                    const aName = a.cropView?.cropName || ''
-                    const bName = b.cropView?.cropName || ''
-                    return aName.localeCompare(bName)
-                })
-            case 'farmName':
-                return sorted.sort((a, b) => {
-                    const aName = a.farmView?.farmName || ''
-                    const bName = b.farmView?.farmName || ''
-                    return aName.localeCompare(bName)
-                })
-            case 'status':
-                return sorted.sort((a, b) => {
-                    const aActive = typeof a.status === 'string' ? a.status === 'ACTIVE' : a.status === 1
-                    const bActive = typeof b.status === 'string' ? b.status === 'ACTIVE' : b.status === 1
-                    if (aActive !== bActive) return aActive ? -1 : 1
-                    return (a.cropView?.cropName || '').localeCompare(b.cropView?.cropName || '')
-                })
-            case 'date':
-                return sorted.sort((a, b) => {
-                    const aDate = new Date(a.startDate).getTime()
-                    const bDate = new Date(b.startDate).getTime()
-                    return bDate - aDate
-                })
-            default:
-                return sorted
-        }
-    }, [filteredSchedules, sortBy])
+        return [...filteredSchedules]
+    }, [filteredSchedules])
 
     const totalPages = useMemo(() => {
         return Math.max(1, Math.ceil(sortedSchedules.length / pageSize))
@@ -372,94 +294,6 @@ const StaffSchedulesPage: React.FC = () => {
                     }
                 />
 
-                <div className="grid gap-4 mb-8 md:grid-cols-2 lg:grid-cols-3">
-                    <Card>
-                        <CardContent className="p-4">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm text-gray-500">Tổng lịch làm việc</p>
-                                    <p className="text-2xl font-semibold mt-1">{scheduleStats.total}</p>
-                                </div>
-                            </div>
-                            <p className="text-xs text-gray-500 mt-2">
-                                Tổng số lịch làm việc được giao cho bạn
-                            </p>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardContent className="p-4">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm text-gray-500">Đang hoạt động</p>
-                                    <p className="text-2xl font-semibold mt-1 text-green-600">
-                                        {scheduleStats.active}
-                                    </p>
-                                </div>
-                            </div>
-                            <p className="text-xs text-gray-500 mt-2">
-                                Lịch làm việc đang được thực hiện
-                            </p>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardContent className="p-4">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="text-sm text-gray-500">Đã tạm dừng</p>
-                                    <p className="text-2xl font-semibold mt-1 text-orange-600">
-                                        {scheduleStats.inactive}
-                                    </p>
-                                </div>
-                            </div>
-                            <p className="text-xs text-gray-500 mt-2">
-                                Lịch làm việc đã bị vô hiệu hóa
-                            </p>
-                        </CardContent>
-                    </Card>
-                </div>
-
-                <StaffFilterBar>
-                    <div className="flex-1">
-                        <div className="relative">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                            <Input
-                                placeholder="Tìm kiếm theo tên nông trại, cây trồng hoặc mã lịch..."
-                                value={searchQuery}
-                                onChange={e => setSearchQuery(e.target.value)}
-                                className="pl-9"
-                            />
-                        </div>
-                    </div>
-                    <div className="w-full sm:w-48">
-                        <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Tất cả trạng thái" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">Tất cả</SelectItem>
-                                <SelectItem value="ACTIVE">Hoạt động</SelectItem>
-                                <SelectItem value="DEACTIVATED">Vô hiệu hóa</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                    <div className="w-full sm:w-48">
-                        <Select value={sortBy} onValueChange={value => setSortBy(value as SortOption)}>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Sắp xếp" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="newest">Mới nhất</SelectItem>
-                                <SelectItem value="cropName">Tên cây trồng</SelectItem>
-                                <SelectItem value="farmName">Tên nông trại</SelectItem>
-                                <SelectItem value="status">Trạng thái</SelectItem>
-                                <SelectItem value="date">Ngày bắt đầu</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                </StaffFilterBar>
-
                 <div className="mb-6">
                     <Card>
                         <CardContent>
@@ -498,20 +332,10 @@ const StaffSchedulesPage: React.FC = () => {
                     <Card>
                         <CardContent className="p-12 text-center">
                             <p className="text-lg font-semibold text-gray-900">
-                                {(() => {
-                                    if (searchQuery) return 'Không tìm thấy lịch làm việc nào'
-                                    if (statusFilter === 'ACTIVE') return 'Chưa có lịch làm việc đang hoạt động'
-                                    if (statusFilter === 'DEACTIVATED') return 'Chưa có lịch làm việc vô hiệu hóa'
-                                    return 'Chưa có lịch làm việc'
-                                })()}
+                                {'Chưa có lịch làm việc'}
                             </p>
                             <p className="text-sm text-gray-600 mt-2">
-                                {(() => {
-                                    if (searchQuery) return 'Không có lịch làm việc nào phù hợp với điều kiện tìm kiếm.'
-                                    if (statusFilter === 'ACTIVE') return 'Hãy chờ quản lý giao lịch làm việc mới.'
-                                    if (statusFilter === 'DEACTIVATED') return 'Không có lịch làm việc nào đã bị vô hiệu hóa.'
-                                    return 'Bạn chưa có lịch làm việc nào được giao.'
-                                })()}
+                                {'Bạn chưa có lịch làm việc nào được giao.'}
                             </p>
                         </CardContent>
                     </Card>

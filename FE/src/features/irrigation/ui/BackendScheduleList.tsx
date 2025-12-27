@@ -28,9 +28,6 @@ import { formatDate } from '@/shared/lib/date-utils'
 interface BackendScheduleListProps {
     showCreate?: boolean
     onShowCreateChange?: (v: boolean) => void
-    staffFilter?: number | null
-    onStaffFilterChange?: (filter: number | null) => void
-    staffOptions?: { id: number; name: string }[]
     filteredItems?: ScheduleListItem[] | null
     onFilteredItemsChange?: (items: ScheduleListItem[] | null) => void
 }
@@ -316,9 +313,6 @@ export function BackendScheduleList({
     onShowCreateChange,
     filteredItems: externalFilteredItems,
     onFilteredItemsChange,
-    staffFilter: externalStaffFilter,
-    onStaffFilterChange,
-    staffOptions,
 }: BackendScheduleListProps) {
     const { toast } = useToast()
     const [pageIndex, setPageIndex] = useState(1)
@@ -671,7 +665,10 @@ export function BackendScheduleList({
                 .map(c => ({ id: c.cropId, name: c.cropName, status: c.status })),
             staffOptions: (() => {
                 const staffList = Array.isArray(staffResRaw) ? staffResRaw : (staffResRaw && (staffResRaw as any).items) || []
-                return staffList.map((s: any) => ({ id: s.accountId, name: s.accountProfile?.fullname ?? s.email }))
+                return staffList.map((s: any) => ({
+                    id: s.accountId,
+                    name: s.accountProfile?.fullname ?? s.fullname ?? s.email ?? s.username ?? ''
+                }))
             })(),
             activityOptions: validActivities.map((a: FarmActivity) => {
                 const start = formatDateSafe(a.startDate)
@@ -967,6 +964,22 @@ export function BackendScheduleList({
                             })
                         }
                     }
+                    try {
+                        const staffAccountId = detail.staff?.accountId ?? detail.staffId ?? 0
+                        const staffDisplayName = detail.staff?.fullname ?? detail.staffName ?? ''
+                        if (staffAccountId && staffDisplayName) {
+                            setStaffs(prev => {
+                                const hasExact = prev.some(p => String(p.id) === String(staffAccountId) && p.name === staffDisplayName)
+                                if (hasExact) return prev
+                                const updated = prev.map(p => (String(p.id) === String(staffAccountId) ? { ...p, name: staffDisplayName } : p))
+                                if (updated.some(p => String(p.id) === String(staffAccountId) && p.name === staffDisplayName)) {
+                                    return updated
+                                }
+                                return [{ id: staffAccountId, name: staffDisplayName }, ...prev]
+                            })
+                        }
+                    } catch {
+                    }
                 } catch (e) {
                     if (!cancelled) {
                         toast({
@@ -1076,36 +1089,12 @@ export function BackendScheduleList({
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                             <Input
-                                placeholder="Tìm kiếm theo cây trồng, nông trại, nhân viên..."
+                                placeholder="Tìm kiếm theo cây trồng, nông trại..."
                                 value={searchTerm}
                                 onChange={e => setSearchTerm(e.target.value)}
                                 className="pl-9"
                             />
                         </div>
-                    </div>
-                    <div className="w-full sm:w-48">
-                        <Select
-                            value={externalStaffFilter ? String(externalStaffFilter) : 'all'}
-                            onValueChange={v => {
-                                if (!onStaffFilterChange) return
-                                if (v === 'all') {
-                                    onStaffFilterChange(null)
-                                    if (onFilteredItemsChange) onFilteredItemsChange(null)
-                                } else {
-                                    onStaffFilterChange(Number(v))
-                                }
-                            }}
-                        >
-                            <SelectTrigger>
-                                <SelectValue placeholder="Tất cả nhân viên" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">Tất cả</SelectItem>
-                                {(staffOptions ?? staffs).map((s: { id: number; name: string }) => (
-                                    <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
                     </div>
                     <div className="w-full sm:w-48">
                         <Select value={statusFilter} onValueChange={value => setStatusFilter(value as typeof statusFilter)}>

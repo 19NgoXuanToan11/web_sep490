@@ -1,18 +1,11 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react'
-import { RefreshCw, MoreHorizontal } from 'lucide-react'
+import { RefreshCw } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import { Card, CardContent } from '@/shared/ui/card'
 import { Badge } from '@/shared/ui/badge'
-import { Pagination } from '@/shared/ui/pagination'
 import { formatDate } from '@/shared/lib/date-utils'
 import CalendarShell from '@/components/Calendar'
 
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/shared/ui/dropdown-menu'
 import {
     Dialog,
     DialogContent,
@@ -22,7 +15,7 @@ import {
 import { StaffLayout } from '@/shared/layouts/StaffLayout'
 import { ManagementPageHeader } from '@/shared/ui'
 import { useToast } from '@/shared/ui/use-toast'
-import { scheduleService, type ScheduleListItem, type ScheduleStatusString } from '@/shared/api/scheduleService'
+import { scheduleService, type ScheduleListItem } from '@/shared/api/scheduleService'
 import { farmActivityService } from '@/shared/api/farmActivityService'
 
 interface DisplaySchedule extends Omit<ScheduleListItem, 'diseaseStatus'> {
@@ -30,27 +23,6 @@ interface DisplaySchedule extends Omit<ScheduleListItem, 'diseaseStatus'> {
     currentPlantStage?: string
     diseaseStatus?: string | number
     cropRequirement?: any[]
-}
-
-const statusLabelMap: Record<ScheduleStatusString | number, string> = {
-    ACTIVE: 'Hoạt động',
-    DEACTIVATED: 'Vô hiệu hóa',
-    1: 'Hoạt động',
-    0: 'Vô hiệu hóa',
-}
-
-const getStatusLabel = (status: ScheduleListItem['status']) => {
-    if (typeof status === 'string') {
-        return statusLabelMap[status as ScheduleStatusString] ?? status
-    }
-    return statusLabelMap[status] ?? String(status)
-}
-
-const getStatusVariant = (status: ScheduleListItem['status']): 'default' | 'secondary' | 'destructive' => {
-    if (typeof status === 'string') {
-        return status === 'ACTIVE' ? 'default' : 'destructive'
-    }
-    return status === 1 ? 'default' : 'destructive'
 }
 
 const getFarmActivityStatusVariant = (status?: string): 'default' | 'secondary' | 'destructive' => {
@@ -82,18 +54,6 @@ const getDiseaseStatusLabel = (diseaseStatus?: string | number) => {
         return labels[diseaseStatus] || diseaseStatus
     }
     return String(diseaseStatus)
-}
-
-const getPlantStageLabel = (stage?: string) => {
-    if (!stage) return 'N/A'
-    const labels: Record<string, string> = {
-        Germination: 'Gieo hạt',
-        Seedling: 'Nảy mầm',
-        Vegetative: 'Tăng trưởng lá',
-        Flowering: 'Ra hoa',
-        Harvest: 'Thu hoạch',
-    }
-    return labels[stage] || stage
 }
 
 const activityTypeLabels: Record<string, string> = {
@@ -227,18 +187,10 @@ const StaffSchedulesPage: React.FC = () => {
         return [...filteredSchedules]
     }, [filteredSchedules])
 
-    const totalPages = useMemo(() => {
-        return Math.max(1, Math.ceil(sortedSchedules.length / pageSize))
-    }, [sortedSchedules.length, pageSize])
-
     const paginatedSchedules = useMemo(() => {
         const start = (pageIndex - 1) * pageSize
         return sortedSchedules.slice(start, start + pageSize)
     }, [sortedSchedules, pageIndex, pageSize])
-
-    const handlePageChange = (page: number) => {
-        setPageIndex(page)
-    }
 
     const handleViewDetail = useCallback((schedule: DisplaySchedule) => {
         const scheduleCopy: DisplaySchedule = {
@@ -353,96 +305,7 @@ const StaffSchedulesPage: React.FC = () => {
                             </p>
                         </CardContent>
                     </Card>
-                ) : (
-                    <>
-                        <div className="grid gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-                            {paginatedSchedules.map((schedule) => {
-                                return (
-                                    <Card
-                                        key={schedule.id}
-                                        className="hover:shadow-md transition-all cursor-pointer"
-                                        onClick={() => handleViewDetail(schedule)}
-                                    >
-                                        <CardContent className="p-4">
-                                            <div className="flex items-start justify-between">
-                                                <div className="flex-1 min-w-0">
-                                                    <h3 className="text-base font-semibold text-gray-900 truncate mb-2">
-                                                        {schedule.cropView?.cropName || `Cây trồng #${schedule.cropId || 'N/A'}`}
-                                                    </h3>
-                                                    <div className="flex items-center gap-2 flex-wrap mb-2">
-                                                        {schedule.currentPlantStage && (
-                                                            <Badge variant="outline" className="h-6 items-center whitespace-nowrap text-xs">
-                                                                {getPlantStageLabel(schedule.currentPlantStage)}
-                                                            </Badge>
-                                                        )}
-                                                        <Badge
-                                                            variant={getStatusVariant(schedule.status)}
-                                                            className="h-6 items-center whitespace-nowrap text-xs"
-                                                        >
-                                                            {getStatusLabel(schedule.status)}
-                                                        </Badge>
-                                                    </div>
-                                                    {schedule.farmView?.farmName && (
-                                                        <p className="text-xs text-gray-500 mb-1">
-                                                            Nông trại: {schedule.farmView.farmName}
-                                                        </p>
-                                                    )}
-                                                    <p className="text-xs text-gray-600 mb-1">
-                                                        Thời gian: {formatDateOnly(schedule.startDate)} - {formatDateOnly(schedule.endDate)}
-                                                    </p>
-                                                    {schedule.quantity && (
-                                                        <p className="text-xs text-gray-500">
-                                                            Số lượng cây trồng: {schedule.quantity}
-                                                        </p>
-                                                    )}
-                                                </div>
-                                                <div onClick={(e) => e.stopPropagation()}>
-                                                    <DropdownMenu modal={false}>
-                                                        <DropdownMenuTrigger asChild>
-                                                            <Button
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                className="h-8 w-8 p-0"
-                                                            >
-                                                                <MoreHorizontal className="h-4 w-4" />
-                                                            </Button>
-                                                        </DropdownMenuTrigger>
-                                                        <DropdownMenuContent align="end" className="w-48" sideOffset={5}>
-                                                            {schedule.scheduleId && (
-                                                                <DropdownMenuItem
-                                                                    onClick={(e) => {
-                                                                        e.preventDefault()
-                                                                        e.stopPropagation()
-                                                                        setTimeout(() => {
-                                                                            handleViewDetail(schedule)
-                                                                        }, 0)
-                                                                    }}
-                                                                    className="cursor-pointer focus:bg-gray-100"
-                                                                >
-                                                                    Xem chi tiết
-                                                                </DropdownMenuItem>
-                                                            )}
-                                                        </DropdownMenuContent>
-                                                    </DropdownMenu>
-                                                </div>
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-                                )
-                            })}
-                        </div>
-
-                        {totalPages > 1 && (
-                            <div className="mt-6">
-                                <Pagination
-                                    currentPage={pageIndex}
-                                    totalPages={totalPages}
-                                    onPageChange={handlePageChange}
-                                />
-                            </div>
-                        )}
-                    </>
-                )}
+                ) : null}
 
                 <Dialog open={isScheduleDetailOpen} onOpenChange={handleModalOpenChange}>
                     <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">

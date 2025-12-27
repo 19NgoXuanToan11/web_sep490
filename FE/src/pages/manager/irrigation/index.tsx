@@ -7,7 +7,6 @@ import { Card, CardContent } from '@/shared/ui/card'
 import { scheduleService, type PaginatedSchedules, type ScheduleListItem } from '@/shared/api/scheduleService'
 import { useToast } from '@/shared/ui/use-toast'
 import { ManagementPageHeader } from '@/shared/ui/management-page-header'
-import { accountApi } from '@/shared/api/auth'
 
 const BULK_PAGE_SIZE = 50
 
@@ -24,23 +23,11 @@ export default function IrrigationPage() {
   })
   const { toast } = useToast()
 
-  const [staffFilter, setStaffFilter] = useState<number | null>(null)
   const [filteredItems, setFilteredItems] = useState<ScheduleListItem[] | null>(null)
-  const [staffs, setStaffs] = useState<{ id: number; name: string }[]>([])
   const [, setAllSchedules] = useState<ScheduleListItem[]>([])
   const [, setAllSchedulesLoading] = useState(false)
 
-  useEffect(() => {
-    const loadStaffs = async () => {
-      try {
-        const staffResRaw = await accountApi.getAvailableStaff()
-        const staffList = Array.isArray(staffResRaw) ? staffResRaw : (staffResRaw && (staffResRaw as any).items) || []
-        setStaffs(staffList.map((s: any) => ({ id: s.accountId, name: s.email })))
-      } catch (error) {
-      }
-    }
-    loadStaffs()
-  }, [])
+
 
   const loadAllSchedules = useCallback(async (): Promise<ScheduleListItem[]> => {
     setAllSchedulesLoading(true)
@@ -142,7 +129,7 @@ export default function IrrigationPage() {
             }
           />
 
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-3 items-stretch">
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
@@ -161,7 +148,7 @@ export default function IrrigationPage() {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-500">Đang hoạt động</p>
+                    <p className="text-sm text-gray-500">Hoạt động</p>
                     <p className="text-2xl font-semibold mt-1 text-green-600">{stats.active}</p>
                   </div>
                 </div>
@@ -175,26 +162,12 @@ export default function IrrigationPage() {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-500">Sắp tới</p>
-                    <p className="text-2xl font-semibold mt-1 text-emerald-600">{stats.upcoming}</p>
+                    <p className="text-sm text-gray-500">Vô hiệu hóa</p>
+                    <p className="text-2xl font-semibold mt-1 text-red-600">{stats.inactive}</p>
                   </div>
                 </div>
                 <p className="text-xs text-gray-500 mt-2">
-                  Lịch tưới có ngày bắt đầu sau hôm nay
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-500">Đang diễn ra</p>
-                    <p className="text-2xl font-semibold mt-1 text-orange-600">{stats.ongoing}</p>
-                  </div>
-                </div>
-                <p className="text-xs text-gray-500 mt-2">
-                  Hôm nay nằm trong khoảng thời gian của lịch
+                  Các lịch tưới đã bị vô hiệu hóa
                 </p>
               </CardContent>
             </Card>
@@ -205,12 +178,6 @@ export default function IrrigationPage() {
               <BackendScheduleList
                 showCreate={showCreate}
                 onShowCreateChange={setShowCreate}
-                staffFilter={staffFilter}
-                onStaffFilterChange={(v) => {
-                  setStaffFilter(v ?? null)
-                  if (v === null) setFilteredItems(null)
-                }}
-                staffOptions={staffs}
                 filteredItems={filteredItems}
                 onFilteredItemsChange={setFilteredItems}
               />

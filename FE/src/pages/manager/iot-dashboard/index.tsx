@@ -109,18 +109,14 @@ const RealTimeIoTDashboard: React.FC = () => {
   }, [toast, retryCount])
 
   useEffect(() => {
-    if (!isThresholdModalOpen) {
-      fetchSensorData()
-    }
+    fetchSensorData()
 
     const interval = setInterval(() => {
-      if (!manualControl && !isThresholdModalOpen) {
-        fetchSensorData()
-      }
+      fetchSensorData()
     }, REFRESH_INTERVAL)
 
     return () => clearInterval(interval)
-  }, [fetchSensorData, manualControl, isThresholdModalOpen])
+  }, [fetchSensorData])
 
   useEffect(() => {
     if (isThresholdModalOpen) {

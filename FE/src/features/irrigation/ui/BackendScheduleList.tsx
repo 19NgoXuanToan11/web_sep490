@@ -23,7 +23,7 @@ import { cropService } from '@/shared/api/cropService'
 import { accountApi } from '@/shared/api/auth'
 import { farmActivityService, type FarmActivity } from '@/shared/api/farmActivityService'
 import { handleFetchError, handleCreateError, handleApiSuccess } from '@/shared/lib/error-handler'
-import { formatDate, formatDateTime } from '@/shared/lib/date-utils'
+import { formatDate } from '@/shared/lib/date-utils'
 
 interface BackendScheduleListProps {
     showCreate?: boolean
@@ -1391,7 +1391,7 @@ export function BackendScheduleList({
                                         </div>
                                         <div>
                                             <strong>Tạo lúc:</strong>{' '}
-                                            {scheduleDetail.createdAt ? formatDateTime(scheduleDetail.createdAt) : '-'}
+                                            {scheduleDetail.createdAt ? formatDate(scheduleDetail.createdAt) : '-'}
                                         </div>
                                     </div>
                                 </div>

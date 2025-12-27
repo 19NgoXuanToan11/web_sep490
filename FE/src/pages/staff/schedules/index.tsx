@@ -53,6 +53,24 @@ const getStatusVariant = (status: ScheduleListItem['status']): 'default' | 'seco
     return status === 1 ? 'default' : 'destructive'
 }
 
+const getFarmActivityStatusVariant = (status?: string): 'default' | 'secondary' | 'destructive' => {
+    if (!status) return 'secondary'
+    if (status === 'COMPLETED' || status === 'ACTIVE') return 'default'
+    if (status === 'IN_PROGRESS') return 'secondary'
+    return 'destructive'
+}
+
+const getFarmActivityStatusLabel = (status?: string) => {
+    if (!status) return ''
+    const map: Record<string, string> = {
+        COMPLETED: 'Hoàn thành',
+        ACTIVE: 'Hoạt động',
+        IN_PROGRESS: 'Đang thực hiện',
+        CANCELLED: 'Đã hủy',
+    }
+    return map[status] ?? status
+}
+
 const getDiseaseStatusLabel = (diseaseStatus?: string | number) => {
     if (!diseaseStatus) return 'Không có'
     if (typeof diseaseStatus === 'string') {
@@ -175,11 +193,22 @@ const StaffSchedulesPage: React.FC = () => {
         try {
             await farmActivityService.completeFarmActivity(activityId, selectedScheduleDetail.farmView?.location)
             toast({ title: 'Hoàn thành', description: 'Hoạt động đã được đánh dấu hoàn thành', variant: 'success' })
+
             await fetchSchedules()
+
             if (selectedScheduleDetail?.scheduleId) {
-                const res = await scheduleService.getScheduleById(selectedScheduleDetail.scheduleId)
-                if (res?.data) {
-                    setSelectedScheduleDetail(transformApiSchedule(res.data))
+                try {
+                    const listRes = await scheduleService.getSchedulesByStaff()
+                    const found = (listRes?.data || []).find((s: any) => s.scheduleId === selectedScheduleDetail.scheduleId)
+                    if (found) {
+                        setSelectedScheduleDetail(transformApiSchedule(found))
+                    } else {
+                        setSelectedScheduleDetail(null)
+                        setIsScheduleDetailOpen(false)
+                    }
+                } catch (err) {
+                    setSelectedScheduleDetail(null)
+                    setIsScheduleDetailOpen(false)
                 }
             } else {
                 setSelectedScheduleDetail(null)
@@ -447,9 +476,31 @@ const StaffSchedulesPage: React.FC = () => {
                                             <div>
                                                 <span className="font-medium">Giai đoạn hiện tại:</span>
                                                 <span className="ml-2">
-                                                    <Badge variant="outline">
-                                                        {getPlantStageLabel(selectedScheduleDetail.currentPlantStage)}
-                                                    </Badge>
+                                                    {(() => {
+                                                        const plantLabel = getPlantStageLabel(selectedScheduleDetail.currentPlantStage)
+                                                        const activityLabel = selectedScheduleDetail.farmActivityView?.activityType
+                                                            ? translateActivityType(selectedScheduleDetail.farmActivityView.activityType)
+                                                            : ''
+                                                        const statusLabel = getFarmActivityStatusLabel(selectedScheduleDetail.farmActivityView?.status)
+                                                        return (
+                                                            <>
+                                                                <Badge variant="outline">{plantLabel}</Badge>
+                                                                {activityLabel && activityLabel !== plantLabel && (
+                                                                    <Badge variant="outline" className="ml-2">
+                                                                        {activityLabel}
+                                                                    </Badge>
+                                                                )}
+                                                                {selectedScheduleDetail.farmActivityView?.status && (
+                                                                    <Badge
+                                                                        variant={getFarmActivityStatusVariant(selectedScheduleDetail.farmActivityView.status)}
+                                                                        className="ml-2"
+                                                                    >
+                                                                        {statusLabel}
+                                                                    </Badge>
+                                                                )}
+                                                            </>
+                                                        )
+                                                    })()}
                                                 </span>
                                             </div>
                                             <div>

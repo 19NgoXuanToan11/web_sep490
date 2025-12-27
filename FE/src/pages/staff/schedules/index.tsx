@@ -211,21 +211,6 @@ const StaffSchedulesPage: React.FC = () => {
         setPageIndex(page)
     }
 
-    const scheduleStats = useMemo(
-        () => ({
-            total: schedules.length,
-            active: schedules.filter(s => {
-                if (typeof s.status === 'string') return s.status === 'ACTIVE'
-                return s.status === 1
-            }).length,
-            inactive: schedules.filter(s => {
-                if (typeof s.status === 'string') return s.status === 'DEACTIVATED'
-                return s.status === 0
-            }).length,
-        }),
-        [schedules]
-    )
-
     const handleViewDetail = useCallback((schedule: DisplaySchedule) => {
         const scheduleCopy: DisplaySchedule = {
             ...schedule,

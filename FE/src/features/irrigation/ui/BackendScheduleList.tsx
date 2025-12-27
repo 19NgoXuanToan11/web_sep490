@@ -1572,7 +1572,7 @@ export function BackendScheduleList({
                                 <Select
                                     value={editForm.farmId != null && editForm.farmId > 0 ? String(editForm.farmId) : ''}
                                     onValueChange={v => setEditForm({ ...editForm, farmId: Number(v) })}
-                                    disabled={metaLoading || editLoading}
+                                    disabled={true}
                                 >
                                     <SelectTrigger>
                                         <SelectValue placeholder={metaLoading || editLoading ? 'Đang tải...' : 'Chọn nông trại'} />
@@ -1589,7 +1589,7 @@ export function BackendScheduleList({
                                 <Select
                                     value={editForm.cropId != null && editForm.cropId > 0 ? String(editForm.cropId) : ''}
                                     onValueChange={v => setEditForm({ ...editForm, cropId: Number(v) })}
-                                    disabled={metaLoading || editLoading}
+                                    disabled={true}
                                 >
                                     <SelectTrigger>
                                         <SelectValue placeholder={metaLoading || editLoading ? 'Đang tải...' : 'Chọn cây trồng'} />

@@ -1120,6 +1120,7 @@ export default function CropsPage() {
               <Card>
                 <CardHeader>
                   <CardTitle className="text-lg">Thông tin cây trồng</CardTitle>
+
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid md:grid-cols-2 gap-4">
@@ -1164,8 +1165,8 @@ export default function CropsPage() {
                   <CardTitle className="text-lg">Giai đoạn phát triển</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="flex items-center gap-3">
-                    <div>
+                  <div className="flex items-start gap-6 flex-nowrap">
+                    <div className="flex-1 min-w-0 flex flex-col">
                       <Label className="text-sm font-medium text-gray-700">Giai đoạn hiện tại</Label>
                       <div className="mt-2">
                         <Badge className="h-8 px-3 text-sm" variant="outline">
@@ -1173,18 +1174,18 @@ export default function CropsPage() {
                         </Badge>
                       </div>
                     </div>
-                    <div>
+                    <div className="flex-1 min-w-0 flex flex-col">
                       <Label className="text-sm font-medium text-gray-700">Trạng thái kế hoạch</Label>
                       <div className="mt-2">
                         {getStatusBadge(detailRequirement.isActive)}
                       </div>
                     </div>
                     {detailRequirement.estimatedDate && (
-                      <div>
+                      <div className="flex-1 min-w-0 flex flex-col">
                         <Label className="text-sm font-medium text-gray-700">Thời gian dự kiến</Label>
-                        <p className="mt-2 text-sm font-semibold text-gray-900">
-                          {detailRequirement.estimatedDate} ngày
-                        </p>
+                        <div className="mt-2 h-8 flex items-center">
+                          <span className="text-sm font-semibold text-gray-900">{detailRequirement.estimatedDate} ngày</span>
+                        </div>
                       </div>
                     )}
                   </div>

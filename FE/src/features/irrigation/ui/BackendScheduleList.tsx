@@ -1415,12 +1415,6 @@ export function BackendScheduleList({
                                         <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
                                             <div><strong>Tên nông trại:</strong> {scheduleDetail.farmView.farmName ?? `#${scheduleDetail.farmView.farmId}`}</div>
                                             <div><strong>Địa điểm:</strong> {scheduleDetail.farmView.location ?? '-'}</div>
-                                            {scheduleDetail.farmView.createdAt && (
-                                                <div><strong>Ngày tạo:</strong> {formatDate(scheduleDetail.farmView.createdAt)}</div>
-                                            )}
-                                            {scheduleDetail.farmView.updatedAt && (
-                                                <div><strong>Ngày cập nhật:</strong> {formatDate(scheduleDetail.farmView.updatedAt)}</div>
-                                            )}
                                         </div>
                                     </div>
                                 )}

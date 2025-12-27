@@ -340,6 +340,7 @@ export function BackendScheduleList({
     const [selectedSchedule, setSelectedSchedule] = useState<ScheduleListItem | null>(null)
     const [scheduleDetail, setScheduleDetail] = useState<ScheduleDetail | null>(null)
     const [editForm, setEditForm] = useState<CreateScheduleRequest>(buildEmptyScheduleForm)
+    const [editDetailActivityType, setEditDetailActivityType] = useState<string | null>(null)
     const [assignStaffId, setAssignStaffId] = useState<number>(0)
     const [actionLoading, setActionLoading] = useState<{ [key: string]: boolean }>({})
     const [editingScheduleId, setEditingScheduleId] = useState<number | null>(null)
@@ -614,10 +615,10 @@ export function BackendScheduleList({
     }, [loadAllSchedules])
 
     const loadReferenceData = useCallback(async () => {
-        const [farmRes, cropRes, staffRes, fa] = await Promise.all([
+        const [farmRes, cropRes, staffResRaw, fa] = await Promise.all([
             farmService.getAllFarms(),
             cropService.getAllCropsList(),
-            accountApi.getAll({ role: 'Staff', pageSize: 1000 }),
+            accountApi.getAvailableStaff(),
             farmActivityService.getActiveFarmActivities({ pageIndex: 1, pageSize: 1000 }),
         ])
 
@@ -646,7 +647,10 @@ export function BackendScheduleList({
             cropOptions: cropRes
                 .filter(c => c.status === 'ACTIVE')
                 .map(c => ({ id: c.cropId, name: c.cropName, status: c.status })),
-            staffOptions: staffRes.items.map(s => ({ id: s.accountId, name: s.accountProfile?.fullname ?? s.email })),
+            staffOptions: (() => {
+                const staffList = Array.isArray(staffResRaw) ? staffResRaw : (staffResRaw && (staffResRaw as any).items) || []
+                return staffList.map((s: any) => ({ id: s.accountId, name: s.accountProfile?.fullname ?? s.email }))
+            })(),
             activityOptions: validActivities.map((a: FarmActivity) => {
                 const start = formatDateSafe(a.startDate)
                 const end = formatDateSafe(a.endDate)
@@ -856,6 +860,7 @@ export function BackendScheduleList({
                     const res = await scheduleService.getScheduleById(editingScheduleId)
                     if (cancelled) return
                     const detail = res.data
+                    setEditDetailActivityType(detail.farmActivityView?.activityType ?? null)
 
                     let resolvedFarmId = detail.farmId ?? detail.farmView?.farmId ?? 0
                     if ((!resolvedFarmId || resolvedFarmId === 0) && detail.farmView?.farmName) {
@@ -870,6 +875,26 @@ export function BackendScheduleList({
                         if (matchedStaff) resolvedStaffId = matchedStaff.id
                     }
 
+                    let resolvedStatus = 0
+                    if (typeof detail.status === 'number') {
+                        resolvedStatus = detail.status
+                    } else if (typeof detail.status === 'string') {
+                        const normalized = detail.status.toUpperCase()
+                        if (normalized === 'ACTIVE') resolvedStatus = 1
+                        else resolvedStatus = 0
+                    }
+
+                    let resolvedActivityId = detail.farmActivitiesId ?? detail.farmActivityView?.farmActivitiesId ?? 0
+                    if ((!resolvedActivityId || resolvedActivityId === 0) && detail.farmActivityView?.activityType) {
+                        const translated = translateActivityType(detail.farmActivityView.activityType)
+                        const matchedOption = (metaResult?.activityOptions || activities).find((a: ActivityOption) => {
+                            return a.name.startsWith(translated) || a.name.includes(translated)
+                        })
+                        if (matchedOption) {
+                            resolvedActivityId = matchedOption.id
+                        }
+                    }
+
                     setEditForm({
                         farmId: resolvedFarmId ?? 0,
                         cropId: detail.cropId ?? 0,
@@ -879,11 +904,34 @@ export function BackendScheduleList({
                         plantingDate: detail.plantingDate ?? '',
                         harvestDate: detail.harvestDate ?? '',
                         quantity: detail.quantity,
-                        status: typeof detail.status === 'number' ? detail.status : 0,
+                        status: resolvedStatus,
                         pesticideUsed: detail.pesticideUsed,
                         diseaseStatus: detail.diseaseStatus ?? null,
-                        farmActivitiesId: detail.farmActivitiesId ?? 0,
+                        farmActivitiesId: resolvedActivityId ?? 0,
                     })
+                    const fav = detail.farmActivityView
+                    const activityIdFromDetail = fav?.farmActivitiesId
+                    if (fav && activityIdFromDetail) {
+                        const exists = (metaResult?.activityOptions || activities).some((a: ActivityOption) => a.id === activityIdFromDetail)
+                        if (!exists) {
+                            const formatDateSafeLocal = (value?: string) => {
+                                if (!value) return ''
+                                try {
+                                    return formatDate(value)
+                                } catch {
+                                    return value || ''
+                                }
+                            }
+                            const start = fav.startDate ? formatDateSafeLocal(fav.startDate) : ''
+                            const end = fav.endDate ? formatDateSafeLocal(fav.endDate) : ''
+                            const dateLabel = start || end ? ` (${start || '...'} → ${end || '...'})` : ''
+                            const name = `${translateActivityType(fav.activityType ?? '')}${dateLabel}`
+                            setActivities(prev => {
+                                if (prev.some(p => p.id === activityIdFromDetail)) return prev
+                                return [...prev, { id: activityIdFromDetail, name }]
+                            })
+                        }
+                    }
                 } catch (e) {
                     if (!cancelled) {
                         toast({
@@ -905,6 +953,18 @@ export function BackendScheduleList({
             cancelled = true
         }
     }, [editingScheduleId, toast, handleEditDialogChange, loadReferenceData])
+
+    useEffect(() => {
+        if (!editingScheduleId) return
+        if (editForm.farmActivitiesId && editForm.farmActivitiesId > 0) return
+        if (!editDetailActivityType) return
+
+        const translated = translateActivityType(editDetailActivityType)
+        const matched = activities.find(a => a.name.startsWith(translated) || a.name.includes(translated))
+        if (matched) {
+            setEditForm(prev => ({ ...prev, farmActivitiesId: matched.id }))
+        }
+    }, [activities, editingScheduleId, editForm.farmActivitiesId, editDetailActivityType])
 
     const handleUpdateSchedule = async (ev: React.FormEvent) => {
         ev.preventDefault()

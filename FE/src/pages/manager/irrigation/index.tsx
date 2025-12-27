@@ -33,8 +33,9 @@ export default function IrrigationPage() {
   useEffect(() => {
     const loadStaffs = async () => {
       try {
-        const staffRes = await accountApi.getAll({ role: 'Staff', pageSize: 1000 })
-        setStaffs(staffRes.items.map(s => ({ id: s.accountId, name: s.email })))
+        const staffResRaw = await accountApi.getAvailableStaff()
+        const staffList = Array.isArray(staffResRaw) ? staffResRaw : (staffResRaw && (staffResRaw as any).items) || []
+        setStaffs(staffList.map((s: any) => ({ id: s.accountId, name: s.email })))
       } catch (error) {
       }
     }

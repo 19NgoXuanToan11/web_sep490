@@ -126,6 +126,10 @@ export const accountApi = {
     const { data } = await http.get<PaginationResponse<AccountDto>>(url)
     return data
   },
+  getAvailableStaff: async (): Promise<AccountDto[]> => {
+    const { data } = await http.get<AccountDto[]>('/v1/account/available-staff')
+    return data
+  },
   getByEmail: async (email: string): Promise<AccountDto> => {
     const { data } = await http.get<AccountDto>(
       `/v1/account/get-by-email?email=${encodeURIComponent(email)}`

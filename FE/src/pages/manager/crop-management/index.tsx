@@ -248,7 +248,7 @@ export default function CropManagementPage() {
       cropName: crop.cropName || '',
       description: crop.description || '',
       origin: crop.origin || '',
-      categoryId: '',
+      categoryId: crop.categoryId ?? '',
       productName: '',
       price: '',
       productDescription: '',
@@ -996,6 +996,15 @@ export default function CropManagementPage() {
                 <div className="border-t pt-4">
                   <h3 className="text-sm font-medium text-gray-500 mb-2">Xuất xứ</h3>
                   <p className="text-gray-900">{selectedCropForDetails.origin}</p>
+                </div>
+              )}
+
+              {typeof selectedCropForDetails.categoryId !== 'undefined' && (
+                <div className="border-t pt-4">
+                  <h3 className="text-sm font-medium text-gray-500 mb-2">Danh mục</h3>
+                  <p className="text-gray-900">
+                    {categories.find(cat => cat.categoryId === selectedCropForDetails.categoryId)?.categoryName ?? '—'}
+                  </p>
                 </div>
               )}
             </div>

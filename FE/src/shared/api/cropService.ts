@@ -20,6 +20,7 @@ export interface Crop {
   cropId: number
   cropName: string
   description: string
+  categoryId?: number
   status: string
   origin?: string
   cropRequirement?: CropRequirement[]

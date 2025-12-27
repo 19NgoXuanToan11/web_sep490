@@ -513,20 +513,6 @@ const StaffSchedulesPage: React.FC = () => {
                                     </CardContent>
                                 </Card>
 
-                                {selectedScheduleDetail.farmActivityView &&
-                                    selectedScheduleDetail.farmActivityView.status !== 'COMPLETED' && (
-                                        <div className="flex justify-end px-6">
-                                            <Button
-                                                onClick={(e) => {
-                                                    e.stopPropagation()
-                                                    setIsConfirmCompleteOpen(true)
-                                                }}
-                                                disabled={isCompleting}
-                                            >
-                                                {isCompleting ? 'Đang xử lý...' : 'Hoàn thành'}
-                                            </Button>
-                                        </div>
-                                    )}
 
                                 <Dialog open={isConfirmCompleteOpen} onOpenChange={setIsConfirmCompleteOpen}>
                                     <DialogContent className="max-w-lg">
@@ -558,6 +544,103 @@ const StaffSchedulesPage: React.FC = () => {
                                     </DialogContent>
                                 </Dialog>
 
+                                {(selectedScheduleDetail.farmView || selectedScheduleDetail.cropView) && (
+                                    <Card>
+                                        <CardContent className="p-4">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                {selectedScheduleDetail.farmView && (
+                                                    <div className="space-y-3">
+                                                        <h3 className="text-base font-semibold text-gray-700 border-b pb-2">
+                                                            Thông tin nông trại
+                                                        </h3>
+                                                        <div className="space-y-2">
+                                                            <div>
+                                                                <span className="text-sm text-gray-600">Tên nông trại:</span>
+                                                                <p className="font-medium mt-0.5">
+                                                                    {selectedScheduleDetail.farmView.farmName || 'N/A'}
+                                                                </p>
+                                                            </div>
+                                                            {selectedScheduleDetail.farmView.location && (
+                                                                <div>
+                                                                    <span className="text-sm text-gray-600">Địa điểm:</span>
+                                                                    <p className="font-medium mt-0.5">
+                                                                        {selectedScheduleDetail.farmView.location}
+                                                                    </p>
+                                                                </div>
+                                                            )}
+                                                            {selectedScheduleDetail.farmView.createdAt && (
+                                                                <div>
+                                                                    <span className="text-sm text-gray-600">Ngày tạo:</span>
+                                                                    <p className="font-medium mt-0.5">
+                                                                        {formatDateOnly(selectedScheduleDetail.farmView.createdAt)}
+                                                                    </p>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {selectedScheduleDetail.cropView && (
+                                                    <div className="space-y-3">
+                                                        <h3 className="text-base font-semibold text-gray-700 border-b pb-2">
+                                                            Thông tin cây trồng
+                                                        </h3>
+                                                        <div className="space-y-2">
+                                                            <div>
+                                                                <span className="text-sm text-gray-600">Tên cây trồng:</span>
+                                                                <p className="font-medium mt-0.5">
+                                                                    {selectedScheduleDetail.cropView.cropName || 'N/A'}
+                                                                </p>
+                                                            </div>
+                                                            {selectedScheduleDetail.cropView.description && (
+                                                                <div>
+                                                                    <span className="text-sm text-gray-600">Mô tả:</span>
+                                                                    <p className="text-sm text-gray-700 mt-0.5">
+                                                                        {selectedScheduleDetail.cropView.description}
+                                                                    </p>
+                                                                </div>
+                                                            )}
+                                                            {selectedScheduleDetail.cropView.status && (
+                                                                <div>
+                                                                    <span className="text-sm text-gray-600">Trạng thái:</span>
+                                                                    <div className="mt-0.5">
+                                                                        <Badge variant={selectedScheduleDetail.cropView.status === 'ACTIVE' ? 'default' : 'secondary'}>
+                                                                            {selectedScheduleDetail.cropView.status === 'ACTIVE' ? 'Hoạt động' : 'Tạm dừng'}
+                                                                        </Badge>
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                            {selectedScheduleDetail.cropView.origin && (
+                                                                <div>
+                                                                    <span className="text-sm text-gray-600">Nguồn gốc:</span>
+                                                                    <p className="font-medium mt-0.5">{selectedScheduleDetail.cropView.origin}</p>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                )}
+
+                                <div className="flex justify-end px-4">
+                                    {selectedScheduleDetail?.farmActivityView &&
+                                        selectedScheduleDetail.farmActivityView.status !== 'COMPLETED' && (
+                                            <div className="mt-4">
+                                                <Button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation()
+                                                        setIsConfirmCompleteOpen(true)
+                                                    }}
+                                                    disabled={isCompleting}
+                                                    className="rounded-md"
+                                                >
+                                                    {isCompleting ? 'Đang xử lý...' : 'Hoàn thành'}
+                                                </Button>
+                                            </div>
+                                        )}
+                                </div>
                             </div>
                         ) : null}
                     </DialogContent>

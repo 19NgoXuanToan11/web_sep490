@@ -1,3 +1,8 @@
+# global: ensure padding doesn't increase element box size and cause unexpected horizontal overflow
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
 #root {
   max-width: 1280px;
   margin: 0 auto;

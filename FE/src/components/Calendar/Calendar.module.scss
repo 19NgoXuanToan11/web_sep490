@@ -1,4 +1,6 @@
 .root {
+  box-sizing: border-box;
+  width: 100%;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -57,12 +59,17 @@
   border-radius: 12px;
   padding: 18px;
   border: 1px solid #f0eff3;
+  overflow-x: auto;
+  box-sizing: border-box;
 }
 
 .monthGrid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 10px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .monthCell {
@@ -72,6 +79,8 @@
   border: 1px solid #000;
   background: #fff;
   position: relative;
+  min-width: 0;
+  box-sizing: border-box;
 }
 .monthCellHeader {
   display: flex;
@@ -82,8 +91,7 @@
   font-weight: 600;
   color: #374151;
 }
-.today {
-  /* Subtle slate highlight for Today cell */
+.today {      
   box-shadow:
     0 6px 18px rgba(51, 65, 85, 0.06),
     inset 0 0 0 2px rgba(51, 65, 85, 0.04);
@@ -116,6 +124,8 @@
   flex-direction: column;
   gap: 6px;
   margin-top: 4px;
+  /* create a small right inset for event chips */
+  padding-right: 8px;
 }
 .moreBtn {
   margin-top: 6px;
@@ -180,6 +190,9 @@
   font-size: 13px;
   color: #ffffff;
   border: 1px solid rgba(15, 23, 42, 0.04);
+  /* don't overflow the parent cell and keep a small right gap */
+  min-width: 0;
+  padding-right: 12px;
 }
 .eventTitle {
   font-weight: 700;
@@ -187,6 +200,7 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  text-align: left;
 }
 .eventTitleTime {
   font-weight: 600;

@@ -1397,12 +1397,7 @@ export function BackendScheduleList({
                                         </div>
                                         <div>
                                             <strong>Tạo lúc:</strong>{' '}
-                                            {scheduleDetail.createdAt
-                                                ? (/\d{4}-\d{2}-\d{2}T/.test(String(scheduleDetail.createdAt))
-                                                    ? formatDateTime(scheduleDetail.createdAt)
-                                                    : `${formatDate(scheduleDetail.createdAt)} ${new Date(String(scheduleDetail.createdAt)).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', hour12: false })}`
-                                                )
-                                                : '-'}
+                                            {scheduleDetail.createdAt ? formatDateTime(scheduleDetail.createdAt) : '-'}
                                         </div>
                                     </div>
                                 </div>

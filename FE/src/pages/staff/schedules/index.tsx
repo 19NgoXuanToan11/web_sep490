@@ -70,8 +70,8 @@ const getPlantStageLabel = (stage?: string) => {
     if (!stage) return 'N/A'
     const labels: Record<string, string> = {
         Germination: 'Nảy mầm',
-        Seedling: 'Cây con',
-        Vegetative: 'Sinh trưởng',
+        Seedling: 'Nảy mầm',
+        Vegetative: 'Tăng trưởng lá',
         Flowering: 'Ra hoa',
         Harvest: 'Thu hoạch',
     }

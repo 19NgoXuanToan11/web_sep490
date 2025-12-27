@@ -65,8 +65,8 @@ const activityTypeLabels: Record<string, string> = {
 const plantStageLabels: Record<string, string> = {
     Sowing: 'Gieo hạt',
     Germination: 'Nảy mầm',
-    Seedling: 'Cây con',
-    Vegetative: 'Sinh trưởng',
+    Seedling: 'Nảy mầm',
+    Vegetative: 'Tăng trưởng lá',
     CotyledonLeaves: 'Ra lá mầm',
     TrueLeavesGrowth: 'Phát triển lá thật',
     VigorousGrowth: 'Tăng trưởng mạnh',

@@ -173,6 +173,7 @@ const StaffSchedulesPage: React.FC = () => {
     }
 
     const [isCompleting, setIsCompleting] = useState(false)
+    const [isConfirmCompleteOpen, setIsConfirmCompleteOpen] = useState(false)
 
     const handleCompleteFarmActivity = useCallback(async () => {
         if (!selectedScheduleDetail?.farmActivityView?.farmActivitiesId) return
@@ -686,7 +687,7 @@ const StaffSchedulesPage: React.FC = () => {
                                             <Button
                                                 onClick={(e) => {
                                                     e.stopPropagation()
-                                                    void handleCompleteFarmActivity()
+                                                    setIsConfirmCompleteOpen(true)
                                                 }}
                                                 disabled={isCompleting}
                                             >
@@ -694,6 +695,36 @@ const StaffSchedulesPage: React.FC = () => {
                                             </Button>
                                         </div>
                                     )}
+
+                                <Dialog open={isConfirmCompleteOpen} onOpenChange={setIsConfirmCompleteOpen}>
+                                    <DialogContent className="max-w-lg">
+                                        <DialogHeader>
+                                            <DialogTitle>Xác nhận hoàn thành</DialogTitle>
+                                        </DialogHeader>
+                                        <div className="py-4">
+                                            <p>Bạn có chắc muốn đánh dấu hoạt động này là <strong>Hoàn thành</strong> không?</p>
+                                        </div>
+                                        <div className="flex justify-end gap-2">
+                                            <Button
+                                                variant="outline"
+                                                onClick={() => setIsConfirmCompleteOpen(false)}
+                                                disabled={isCompleting}
+                                            >
+                                                Hủy
+                                            </Button>
+                                            <Button
+                                                onClick={(e) => {
+                                                    e.stopPropagation()
+                                                    setIsConfirmCompleteOpen(false)
+                                                    void handleCompleteFarmActivity()
+                                                }}
+                                                disabled={isCompleting}
+                                            >
+                                                {isCompleting ? 'Đang xử lý...' : 'Xác nhận'}
+                                            </Button>
+                                        </div>
+                                    </DialogContent>
+                                </Dialog>
 
                                 {(selectedScheduleDetail.farmView || selectedScheduleDetail.cropView) && (
                                     <Card>
@@ -760,8 +791,6 @@ const StaffSchedulesPage: React.FC = () => {
                                         </CardContent>
                                     </Card>
                                 )}
-
-                                {/* Crop requirements removed from schedule detail modal by request */}
                             </div>
                         ) : null}
                     </DialogContent>

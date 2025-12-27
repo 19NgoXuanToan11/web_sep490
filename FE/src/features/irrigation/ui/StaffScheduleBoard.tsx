@@ -23,7 +23,7 @@ const monthOptions = Array.from({ length: 12 }, (_, idx) => idx + 1)
 const getPlantStageLabel = (stage?: string) => {
     if (!stage) return undefined
     const labels: Record<string, string> = {
-        Germination: 'Nảy mầm',
+        Germination: 'Gieo hạt',
         Seedling: 'Nảy mầm',
         Vegetative: 'Tăng trưởng lá',
         Flowering: 'Ra hoa',

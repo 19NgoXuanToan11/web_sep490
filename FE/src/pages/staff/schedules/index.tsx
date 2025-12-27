@@ -69,7 +69,7 @@ const getDiseaseStatusLabel = (diseaseStatus?: string | number) => {
 const getPlantStageLabel = (stage?: string) => {
     if (!stage) return 'N/A'
     const labels: Record<string, string> = {
-        Germination: 'Nảy mầm',
+        Germination: 'Gieo hạt',
         Seedling: 'Nảy mầm',
         Vegetative: 'Tăng trưởng lá',
         Flowering: 'Ra hoa',

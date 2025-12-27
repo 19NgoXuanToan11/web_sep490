@@ -871,8 +871,20 @@ export function BackendScheduleList({
                     let resolvedStaffId = detail.staffId ?? detail.staff?.accountId ?? 0
                     if ((!resolvedStaffId || resolvedStaffId === 0) && (detail.staff?.fullname || detail.staffName)) {
                         const staffNameToMatch = detail.staff?.fullname ?? detail.staffName
-                        const matchedStaff = (metaResult?.staffOptions || staffs).find((s: { id: number; name: string }) => s.name === staffNameToMatch || String(s.id) === String(detail.staff?.accountId))
-                        if (matchedStaff) resolvedStaffId = matchedStaff.id
+                        const matchedStaff = (metaResult?.staffOptions || staffs).find((s: { id: number; name: string }) => {
+                            if (!s?.name || !staffNameToMatch) return false
+                            return s.name.trim().toLowerCase() === staffNameToMatch.trim().toLowerCase() || String(s.id) === String(detail.staff?.accountId)
+                        })
+                        if (matchedStaff) {
+                            resolvedStaffId = matchedStaff.id
+                        } else if (staffNameToMatch) {
+                            const tempId = detail.staff?.accountId ?? 0
+                            setStaffs(prev => {
+                                if (prev.some(p => p.id === tempId && p.name === staffNameToMatch)) return prev
+                                return [{ id: tempId, name: staffNameToMatch }, ...prev]
+                            })
+                            resolvedStaffId = tempId
+                        }
                     }
 
                     let resolvedStatus = 0
@@ -1658,7 +1670,7 @@ export function BackendScheduleList({
                             <div>
                                 <Label>Staff</Label>
                                 <Select
-                                    value={editForm.staffId != null && editForm.staffId > 0 ? String(editForm.staffId) : ''}
+                                    value={editForm.staffId != null ? String(editForm.staffId) : ''}
                                     onValueChange={v => setEditForm({ ...editForm, staffId: Number(v) })}
                                     disabled={metaLoading || editLoading}
                                 >

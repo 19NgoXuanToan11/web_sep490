@@ -22,7 +22,7 @@ import { farmService } from '@/shared/api/farmService'
 import { cropService } from '@/shared/api/cropService'
 import { accountApi } from '@/shared/api/auth'
 import { farmActivityService, type FarmActivity } from '@/shared/api/farmActivityService'
-import { handleFetchError, handleCreateError, handleApiSuccess } from '@/shared/lib/error-handler'
+import { handleFetchError, handleCreateError, handleApiSuccess, normalizeError, mapErrorToVietnamese } from '@/shared/lib/error-handler'
 import { formatDate } from '@/shared/lib/date-utils'
 
 interface BackendScheduleListProps {
@@ -764,7 +764,9 @@ export function BackendScheduleList({
             setSelectedSchedule(schedule)
             setShowDetail(true)
         } catch (e) {
-            toast({ title: 'Không thể tải chi tiết lịch', description: (e as Error).message, variant: 'destructive' })
+            const normalized = normalizeError(e)
+            const display = normalized.backendMessage ?? mapErrorToVietnamese(e).vietnamese
+            toast({ title: 'Không thể tải chi tiết lịch', description: display, variant: 'destructive' })
         } finally {
             setActionLoading({ [`detail-${schedule.scheduleId}`]: false })
         }
@@ -817,9 +819,11 @@ export function BackendScheduleList({
                 setCustomToday('')
             }
         } catch (e) {
+            const normalized = normalizeError(e)
+            const display = normalized.backendMessage ?? mapErrorToVietnamese(e).vietnamese
             toast({
                 title: 'Cập nhật giai đoạn thất bại',
-                description: (e as Error).message,
+                description: display,
                 variant: 'destructive'
             })
         } finally {
@@ -982,9 +986,11 @@ export function BackendScheduleList({
                     }
                 } catch (e) {
                     if (!cancelled) {
+                        const normalized = normalizeError(e)
+                        const display = normalized.backendMessage ?? mapErrorToVietnamese(e).vietnamese
                         toast({
                             title: 'Không thể tải thông tin lịch',
-                            description: (e as Error).message,
+                            description: display,
                             variant: 'destructive',
                         })
                         handleEditDialogChange(false)
@@ -1026,7 +1032,9 @@ export function BackendScheduleList({
             await load()
             await loadAllSchedules()
         } catch (e) {
-            toast({ title: 'Cập nhật lịch thất bại', description: (e as Error).message, variant: 'destructive' })
+            const normalized = normalizeError(e)
+            const display = normalized.backendMessage ?? mapErrorToVietnamese(e).vietnamese
+            toast({ title: 'Cập nhật lịch thất bại', description: display, variant: 'destructive' })
         } finally {
             setActionLoading({ [`update-${selectedSchedule.scheduleId}`]: false })
         }
@@ -1043,7 +1051,9 @@ export function BackendScheduleList({
             await load()
             await loadAllSchedules()
         } catch (e) {
-            toast({ title: 'Phân công nhân viên thất bại', description: (e as Error).message, variant: 'destructive' })
+            const normalized = normalizeError(e)
+            const display = normalized.backendMessage ?? mapErrorToVietnamese(e).vietnamese
+            toast({ title: 'Phân công nhân viên thất bại', description: display, variant: 'destructive' })
         } finally {
             setActionLoading({ [`assign-${selectedSchedule.scheduleId}`]: false })
         }
@@ -1062,7 +1072,9 @@ export function BackendScheduleList({
             await load()
             await loadAllSchedules()
         } catch (e) {
-            toast({ title: 'Cập nhật trạng thái thất bại', description: (e as Error).message, variant: 'destructive' })
+            const normalized = normalizeError(e)
+            const display = normalized.backendMessage ?? mapErrorToVietnamese(e).vietnamese
+            toast({ title: 'Cập nhật trạng thái thất bại', description: display, variant: 'destructive' })
         } finally {
             setActionLoading({ [`status-${schedule.scheduleId}`]: false })
         }

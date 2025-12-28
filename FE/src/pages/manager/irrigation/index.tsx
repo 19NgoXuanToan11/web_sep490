@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
+import { normalizeError, mapErrorToVietnamese } from '@/shared/lib/error-handler'
 import { Tabs, TabsContent } from '@/shared/ui/tabs'
 import { ManagerLayout } from '@/shared/layouts/ManagerLayout'
 import { BackendScheduleList } from '@/features/irrigation/ui/BackendScheduleList'
@@ -48,9 +49,11 @@ export default function IrrigationPage() {
       setAllSchedules(items)
       return items
     } catch (e) {
+      const normalized = normalizeError(e)
+      const display = normalized.backendMessage ?? mapErrorToVietnamese(e).vietnamese
       toast({
         title: 'Không thể tải danh sách lịch',
-        description: (e as Error).message,
+        description: display,
         variant: 'destructive',
       })
       return []

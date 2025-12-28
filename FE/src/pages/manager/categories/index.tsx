@@ -50,7 +50,7 @@ const CategoryActionMenu: React.FC<CategoryActionMenuProps> = React.memo(({ cate
   const handleDelete = useCallback((e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    setOpen(false) 
+    setOpen(false)
     setTimeout(() => {
       onDelete(category)
     }, 0)
@@ -79,7 +79,7 @@ const CategoryActionMenu: React.FC<CategoryActionMenuProps> = React.memo(({ cate
           className="cursor-pointer focus:bg-gray-100"
           onSelect={(e) => e.preventDefault()}
         >
-          Chỉnh sửa 
+          Chỉnh sửa
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={handleDelete}
@@ -128,9 +128,12 @@ export default function CategoriesPage() {
       const data = await categoryService.getAllCategories()
       setCategories(data)
     } catch (error) {
+      const { normalizeError } = await import('@/shared/lib/error-handler')
+      const normalized = normalizeError(error)
+      const display = normalized.backendMessage ?? 'Không thể tải danh mục'
       toast({
         title: 'Lỗi',
-        description: 'Không thể tải danh mục',
+        description: display,
         variant: 'destructive',
       })
     } finally {
@@ -159,9 +162,12 @@ export default function CategoriesPage() {
       setCategoryName('')
       loadCategories()
     } catch (error) {
+      const { normalizeError } = await import('@/shared/lib/error-handler')
+      const normalized = normalizeError(error)
+      const display = normalized.backendMessage ?? 'Không thể tạo danh mục'
       toast({
         title: 'Lỗi',
-        description: 'Không thể tạo danh mục',
+        description: display,
         variant: 'destructive',
       })
     }
@@ -189,9 +195,12 @@ export default function CategoriesPage() {
       setSelectedCategory(null)
       loadCategories()
     } catch (error) {
+      const { normalizeError } = await import('@/shared/lib/error-handler')
+      const normalized = normalizeError(error)
+      const display = normalized.backendMessage ?? 'Không thể cập nhật danh mục'
       toast({
         title: 'Lỗi',
-        description: 'Không thể cập nhật danh mục',
+        description: display,
         variant: 'destructive',
       })
     }
@@ -211,9 +220,12 @@ export default function CategoriesPage() {
       setSelectedCategory(null)
       loadCategories()
     } catch (error) {
+      const { normalizeError } = await import('@/shared/lib/error-handler')
+      const normalized = normalizeError(error)
+      const display = normalized.backendMessage ?? 'Không thể xóa danh mục. Có thể đang được sử dụng bởi sản phẩm.'
       toast({
         title: 'Lỗi',
-        description: 'Không thể xóa danh mục. Có thể đang được sử dụng bởi sản phẩm.',
+        description: display,
         variant: 'destructive',
       })
     }

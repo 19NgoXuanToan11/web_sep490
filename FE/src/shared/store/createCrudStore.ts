@@ -1,5 +1,5 @@
 import { type StateCreator } from 'zustand'
-import { mapErrorToVietnamese } from '@/shared/lib/error-handler'
+import { mapErrorToVietnamese, normalizeError } from '@/shared/lib/error-handler'
 
 export interface CrudService<T> {
   getAll: (params?: any) => Promise<{ items: T[]; totalCount: number }>
@@ -15,7 +15,6 @@ export interface LoadingState {
 }
 
 export interface CrudState<T> {
-
   items: T[]
   selectedItem: T | null
 
@@ -33,7 +32,6 @@ export interface CrudState<T> {
 export const createCrudStore =
   <T>(service: CrudService<T>, storeName: string): StateCreator<CrudState<T>> =>
   (set, get) => ({
-
     items: [],
     selectedItem: null,
     loadingStates: {},
@@ -49,10 +47,11 @@ export const createCrudStore =
         })
         get().setLoadingState(key, { isLoading: false })
       } catch (error) {
-        const errorMessage = mapErrorToVietnamese(error)
+        const normalized = normalizeError(error)
+        const display = normalized.backendMessage ?? mapErrorToVietnamese(error).vietnamese
         get().setLoadingState(key, {
           isLoading: false,
-          error: errorMessage.vietnamese,
+          error: display,
         })
         throw error
       }
@@ -68,10 +67,11 @@ export const createCrudStore =
         get().setLoadingState(key, { isLoading: false })
         return item
       } catch (error) {
-        const errorMessage = mapErrorToVietnamese(error)
+        const normalized = normalizeError(error)
+        const display = normalized.backendMessage ?? mapErrorToVietnamese(error).vietnamese
         get().setLoadingState(key, {
           isLoading: false,
-          error: errorMessage.vietnamese,
+          error: display,
         })
         throw error
       }

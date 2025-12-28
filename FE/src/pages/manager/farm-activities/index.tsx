@@ -252,7 +252,7 @@ export default function FarmActivitiesPage() {
 
       const normalizedActivities = Array.isArray(response.items)
         ? response.items.map(activity => ({
-          ...activity,  
+          ...activity,
           activityType: activity.activityType || '',
         }))
         : []
@@ -260,9 +260,12 @@ export default function FarmActivitiesPage() {
       setTotalPages(response.totalPagesCount || 1)
     } catch (error: any) {
       setActivities([])
+      const { normalizeError } = await import('@/shared/lib/error-handler')
+      const normalized = normalizeError(error)
+      const display = normalized.backendMessage ?? 'Không thể tải danh sách hoạt động nông trại'
       toast({
         title: 'Lỗi',
-        description: error?.message || 'Không thể tải danh sách hoạt động nông trại',
+        description: display,
         variant: 'destructive',
       })
     } finally {
@@ -422,9 +425,12 @@ export default function FarmActivitiesPage() {
       resetForm()
       loadActivities()
     } catch (error: any) {
+      const { normalizeError } = await import('@/shared/lib/error-handler')
+      const normalized = normalizeError(error)
+      const display = normalized.backendMessage ?? 'Không thể tạo hoạt động nông trại mới'
       toast({
         title: 'Lỗi',
-        description: error?.message || 'Không thể tạo hoạt động nông trại mới',
+        description: display,
         variant: 'destructive',
       })
     }
@@ -503,9 +509,12 @@ export default function FarmActivitiesPage() {
       resetForm()
       loadActivities()
     } catch (error: any) {
+      const { normalizeError } = await import('@/shared/lib/error-handler')
+      const normalized = normalizeError(error)
+      const display = normalized.backendMessage ?? 'Không thể cập nhật hoạt động nông trại'
       toast({
         title: 'Lỗi',
-        description: error?.message || 'Không thể cập nhật hoạt động nông trại',
+        description: display,
         variant: 'destructive',
       })
     }
@@ -542,9 +551,12 @@ export default function FarmActivitiesPage() {
       setFormStatus(fullActivity.status || activity.status)
       setEditDialogOpen(true)
     } catch (error: any) {
+      const { normalizeError } = await import('@/shared/lib/error-handler')
+      const normalized = normalizeError(error)
+      const display = normalized.backendMessage ?? 'Không thể tải thông tin chi tiết hoạt động'
       toast({
         title: 'Lỗi',
-        description: error?.message || 'Không thể tải thông tin chi tiết hoạt động',
+        description: display,
         variant: 'destructive',
       })
       setEditingActivity(activity)

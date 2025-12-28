@@ -51,6 +51,14 @@ async function request<T>(
       url: path,
       method: options.method || 'GET',
     })
+    try {
+      console.error('API error', {
+        endpoint: path,
+        method: options.method || 'GET',
+        status,
+        payload: data,
+      })
+    } catch (err) {}
 
     throw error
   }

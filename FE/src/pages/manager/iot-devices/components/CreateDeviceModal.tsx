@@ -112,10 +112,12 @@ export const CreateDeviceModal: React.FC<CreateDeviceModalProps> = ({
       onClose()
     } catch (error: any) {
       console.error('Error creating IoT device:', error)
-      const errorMessage = error?.response?.data?.message || error?.message || 'Không thể tạo thiết bị IoT'
+      const { normalizeError } = await import('@/shared/lib/error-handler')
+      const normalized = normalizeError(error)
+      const display = normalized.backendMessage ?? 'Không thể tạo thiết bị IoT'
       toast({
         title: 'Lỗi',
-        description: errorMessage,
+        description: display,
         variant: 'destructive',
       })
     } finally {

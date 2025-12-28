@@ -25,9 +25,10 @@ interface DisplaySchedule extends Omit<ScheduleListItem, 'diseaseStatus'> {
     cropRequirement?: any[]
 }
 
-const getFarmActivityStatusVariant = (status?: string): 'default' | 'secondary' | 'destructive' => {
+const getFarmActivityStatusVariant = (status?: string): 'default' | 'secondary' | 'destructive' | 'golden' => {
     if (!status) return 'secondary'
-    if (status === 'COMPLETED' || status === 'ACTIVE') return 'default'
+    if (status === 'COMPLETED') return 'default'
+    if (status === 'ACTIVE') return 'golden'
     if (status === 'IN_PROGRESS') return 'secondary'
     return 'destructive'
 }
@@ -181,7 +182,12 @@ const StaffSchedulesPage: React.FC = () => {
         }
     }, [selectedScheduleDetail, fetchSchedules, toast])
 
-    const filteredSchedules = useMemo(() => schedules, [schedules])
+    const filteredSchedules = useMemo(() => {
+        return schedules.filter(s => {
+            if (typeof s.status === 'string') return s.status === 'ACTIVE'
+            return s.status === 1
+        })
+    }, [schedules])
 
     const sortedSchedules = useMemo(() => {
         return [...filteredSchedules]
@@ -225,7 +231,7 @@ const StaffSchedulesPage: React.FC = () => {
             const start = s.startDate ? new Date(s.startDate) : undefined
             const end = s.endDate ? new Date(s.endDate) : undefined
 
-            const color = (typeof s.status === 'string' ? s.status === 'ACTIVE' : s.status === 1) ? '#16a34a' : '#dc2626'
+            const color = (typeof s.status === 'string' ? s.status === 'ACTIVE' : s.status === 1) ? '#f59e0b' : '#dc2626'
 
             return {
                 id: String(s.id),

@@ -103,7 +103,7 @@ const toNullableNumber = (value: string | number | '') =>
 
 const getStatusBadge = (isActive: boolean | undefined | null) => {
   if (!isActive) return <Badge className="h-7 items-center whitespace-nowrap" variant="destructive">Tạm dừng</Badge>
-  return <Badge className="h-7 items-center whitespace-nowrap" variant="success">Hoạt động</Badge>
+  return <Badge className="h-7 items-center whitespace-nowrap" variant="golden">Hoạt động</Badge>
 }
 
 type CropRequirementRow = {
@@ -1150,7 +1150,7 @@ export default function CropsPage() {
                       <Label className="text-xs text-gray-500">Trạng thái cây trồng</Label>
                       <div className="mt-1">
                         {detailCrop?.status && (
-                          <Badge variant={detailCrop.status.toUpperCase() === 'ACTIVE' ? 'success' : 'destructive'}>
+                          <Badge variant={detailCrop.status.toUpperCase() === 'ACTIVE' ? 'golden' : 'destructive'}>
                             {detailCrop.status.toUpperCase() === 'ACTIVE' ? 'Hoạt động' : 'Tạm dừng'}
                           </Badge>
                         )}

@@ -81,7 +81,7 @@ const translatePlantStage = (stage?: string | null) => {
     return plantStageLabels[stage] ?? stage
 }
 
-const getFarmActivityStatusInfo = (status: string | null | undefined): { label: string; variant: 'success' | 'processing' | 'completed' | 'destructive' | 'outline' } => {
+const getFarmActivityStatusInfo = (status: string | null | undefined): { label: string; variant: 'golden' | 'processing' | 'completed' | 'destructive' | 'outline' } => {
     if (!status) {
         return { label: 'Không xác định', variant: 'outline' }
     }
@@ -90,7 +90,7 @@ const getFarmActivityStatusInfo = (status: string | null | undefined): { label: 
 
     switch (normalizedStatus) {
         case 'ACTIVE':
-            return { label: 'Hoạt động', variant: 'success' }
+            return { label: 'Hoạt động', variant: 'golden' }
         case 'IN_PROGRESS':
             return { label: 'Đang thực hiện', variant: 'processing' }
         case 'COMPLETED':
@@ -1203,7 +1203,7 @@ export function BackendScheduleList({
                                                                 <div className="flex items-center gap-2 flex-wrap mb-2">
                                                                     <Badge className={cn(
                                                                         "h-6 items-center whitespace-nowrap text-xs",
-                                                                        isActive ? "bg-green-500 text-white" : "bg-red-500 text-white"
+                                                                        isActive ? "bg-yellow-500 text-white" : "bg-red-500 text-white"
                                                                     )}>
                                                                         {getStatusLabel(schedule.status)}
                                                                     </Badge>
@@ -1458,12 +1458,12 @@ export function BackendScheduleList({
                                     <div className="grid grid-cols-2 gap-4">
                                         <div><strong>Ngày bắt đầu:</strong> {formatDate(scheduleDetail.startDate)}</div>
                                         <div><strong>Ngày kết thúc:</strong> {formatDate(scheduleDetail.endDate)}</div>
-                                        <div>
-                                            <strong>Trạng thái:</strong>{' '}
-                                            <Badge variant={isActiveStatus(scheduleDetail.status) ? 'success' : 'destructive'}>
-                                                {getStatusLabel(scheduleDetail.status)}
-                                            </Badge>
-                                        </div>
+                <div>
+                    <strong>Trạng thái:</strong>{' '}
+                    <Badge variant={isActiveStatus(scheduleDetail.status) ? 'golden' : 'destructive'}>
+                        {getStatusLabel(scheduleDetail.status)}
+                    </Badge>
+                </div>
                                         <div><strong>Thuốc BVTV:</strong> {scheduleDetail.pesticideUsed ? 'Có' : 'Không'}</div>
                                         <div><strong>Tình trạng bệnh:</strong> {getDiseaseLabel(scheduleDetail.diseaseStatus)}</div>
                                         <div>

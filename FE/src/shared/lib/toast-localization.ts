@@ -53,11 +53,15 @@ export const localizeToastText = (text?: ReactNode, fallback?: string): ReactNod
   if (VIETNAMESE_CHAR_PATTERN.test(text)) {
     return text
   }
+  const wordCount = text.trim().split(/\s+/).length
+  const shouldApplyGenericTranslations = wordCount <= 6
 
-  for (const rule of GENERIC_TRANSLATIONS) {
-    const execResult = rule.pattern.exec(text)
-    if (execResult) {
-      return 'replacer' in rule ? rule.replacer(execResult) : rule.replacement
+  if (shouldApplyGenericTranslations) {
+    for (const rule of GENERIC_TRANSLATIONS) {
+      const execResult = rule.pattern.exec(text)
+      if (execResult) {
+        return 'replacer' in rule ? rule.replacer(execResult) : rule.replacement
+      }
     }
   }
 

@@ -45,9 +45,11 @@ async function request<T>(
     const message =
       (data as any)?.message || (data as any)?.Message || (data as any)?.error || `HTTP ${status}`
 
-    const error = Object.assign(new Error(message), {
+    const safeData =
+      data && typeof data === 'object' ? (JSON.parse(JSON.stringify(data)) as T) : data
+    const error = Object.assign(new Error(String(message)), {
       status,
-      data,
+      data: safeData,
       url: path,
       method: options.method || 'GET',
     })

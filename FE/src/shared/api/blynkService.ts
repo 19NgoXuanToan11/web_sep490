@@ -26,6 +26,7 @@ interface SensorData {
   light: number
   servoAngle: number
   pumpState: boolean
+  manualMode?: boolean
   lightState?: boolean
   dataQuality: 'good' | 'poor' | 'error'
   lastUpdated: Date
@@ -116,6 +117,7 @@ class BlynkService {
         light,
         servoAngle,
         pumpState: data.v5 === '1',
+        manualMode: data.v7 === '1',
         lightState: data.v12 === '1',
         dataQuality,
         lastUpdated: new Date(),

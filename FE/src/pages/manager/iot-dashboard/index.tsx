@@ -30,6 +30,7 @@ const RealTimeIoTDashboard: React.FC = () => {
     light: 0,
     servoAngle: 90,
     pumpState: false,
+    manualMode: false,
     lightState: false,
     dataQuality: 'good',
     lastUpdated: new Date(),
@@ -86,6 +87,7 @@ const RealTimeIoTDashboard: React.FC = () => {
       setIsLoading(true)
       const data = await blynkService.getBlynkData()
       setSensorData(data)
+      setManualControl(data.manualMode ?? false)
       setPumpControl(data.pumpState)
       setLightControl(data.lightState ?? false)
       setServoAngle([data.servoAngle])

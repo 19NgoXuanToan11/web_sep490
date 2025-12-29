@@ -5,42 +5,25 @@ import { cn } from '@/shared/lib/utils'
 import { Pagination } from './pagination'
 
 export interface StaffDataTableColumn<T> {
-    /** Unique column key */
     id: string
-    /** Header label or custom node */
     header: React.ReactNode
-    /** Optional custom class for header cell */
     headerClassName?: string
-    /** Optional custom class for body cell */
     cellClassName?: string
-    /** Render function for cell content */
     render: (item: T, index: number, ordinal: number) => React.ReactNode
 }
 
 export interface StaffDataTableProps<T> {
-    /** Dữ liệu hiển thị trong bảng */
     data: T[]
-    /** Cấu hình các cột */
     columns: StaffDataTableColumn<T>[]
-    /** Lấy key duy nhất cho mỗi dòng */
     getRowKey: (item: T, index: number) => React.Key
-    /** Số trang hiện tại (bắt đầu từ 1) */
     currentPage?: number
-    /** Kích thước trang */
     pageSize?: number
-    /** Tổng số trang */
     totalPages?: number
-    /** Đổi trang */
     onPageChange?: (page: number) => void
-    /** Lớp CSS bổ sung cho wrapper */
     className?: string
-    /** Tiêu đề khi không có dữ liệu */
     emptyTitle?: string
-    /** Mô tả khi không có dữ liệu */
     emptyDescription?: string
-    /** Hàm render nội dung mở rộng cho mỗi dòng */
     renderExpandedContent?: (item: T, index: number, ordinal: number) => React.ReactNode
-    /** Hàm kiểm tra xem dòng có thể mở rộng không */
     canExpand?: (item: T) => boolean
 }
 

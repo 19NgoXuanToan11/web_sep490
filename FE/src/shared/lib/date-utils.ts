@@ -1,11 +1,6 @@
 import { format } from 'date-fns'
 import { vi } from 'date-fns/locale'
 
-/**
- * Formats a date string or Date object to DD/MM/YYYY format (Vietnamese/European standard)
- * @param date - Date string (ISO format or any valid date string) or Date object
- * @returns Formatted date string in DD/MM/YYYY format, or '-' if date is invalid/null/undefined
- */
 export function formatDate(date: string | Date | null | undefined): string {
   if (!date) return '-'
 
@@ -23,11 +18,6 @@ export function formatDate(date: string | Date | null | undefined): string {
   }
 }
 
-/**
- * Formats a date string or Date object to DD/MM/YYYY HH:mm format (with time)
- * @param date - Date string (ISO format or any valid date string) or Date object
- * @returns Formatted date string in DD/MM/YYYY HH:mm format, or '-' if date is invalid/null/undefined
- */
 export function formatDateTime(date: string | Date | null | undefined): string {
   if (!date) return '-'
 
@@ -44,12 +34,7 @@ export function formatDateTime(date: string | Date | null | undefined): string {
     return '-'
   }
 }
-
-/**
- * Formats a date string or Date object to DD/MM/YYYY HH:mm:ss format (with seconds)
- * @param date - Date string (ISO format or any valid date string) or Date object
- * @returns Formatted date string in DD/MM/yyyy HH:mm:ss format, or '-' if date is invalid/null/undefined
- */
+  
 export function formatDateTimeWithSeconds(date: string | Date | null | undefined): string {
   if (!date) return '-'
 

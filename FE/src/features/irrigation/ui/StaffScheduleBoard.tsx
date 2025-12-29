@@ -89,7 +89,7 @@ export function StaffScheduleBoard({ className }: StaffScheduleBoardProps) {
             const start = s.startDate ? new Date(s.startDate) : undefined
             const end = s.endDate ? new Date(s.endDate) : undefined
 
-            const color = isActiveStatus(s.status) ? '#16a34a' /* green */ : '#dc2626' /* red */
+            const color = isActiveStatus(s.status) ? '#16a34a'  : '#dc2626'
 
             return {
                 id: String(s.scheduleId ?? `${s.farmId}-${s.startDate}`),

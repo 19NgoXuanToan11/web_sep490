@@ -223,15 +223,58 @@ const StaffSchedulesPage: React.FC = () => {
     }, [])
 
 
+    const parseDateString = useCallback((dateStr?: string | null) => {
+        if (!dateStr) return null
+
+        const iso = new Date(dateStr)
+        if (!Number.isNaN(iso.getTime())) return iso
+
+        const m = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/)
+        if (m) {
+            const p1 = Number(m[1])
+            const p2 = Number(m[2])
+            const y = Number(m[3])
+            if (p1 > 12) {
+                return new Date(y, p2 - 1, p1)
+            }
+            if (p2 > 12) {
+                return new Date(y, p1 - 1, p2)
+            }
+            return new Date(y, p1 - 1, p2)
+        }
+
+        return null
+    }, [])
+
+    const statusToColor = useCallback((status?: string) => {
+        if (!status) return '#f59e0b'
+        if (status === 'ACTIVE') return '#f59e0b'
+        if (status === 'COMPLETED') return '#10B981'
+        if (status === 'DEACTIVATED') return '#9CA3AF'
+        return '#f59e0b'
+    }, [])
+
+    const calendarSchedules = useMemo(() => {
+        return filteredSchedules.filter(s => {
+            const fv = s.farmActivityView
+            if (!fv) return false
+            const start = parseDateString(fv.startDate)
+            const end = parseDateString(fv.endDate)
+            return !!start && !!end
+        })
+    }, [filteredSchedules, parseDateString])
+
     const calendarEvents = useMemo(() => {
-        return filteredSchedules.map(s => {
-            const activityTitle = s.farmActivityView?.activityType ? translateActivityType(s.farmActivityView.activityType) : ''
+        return calendarSchedules.map(s => {
+            const fv = s.farmActivityView!
+            const activityTitle = fv.activityType ? translateActivityType(fv.activityType) : ''
             const title = activityTitle || (s.cropView?.cropName ?? `Cây #${s.cropId ?? ''}`)
 
-            const start = s.startDate ? new Date(s.startDate) : undefined
-            const end = s.endDate ? new Date(s.endDate) : undefined
+            const start = parseDateString(fv.startDate) ?? undefined
+            const endRaw = parseDateString(fv.endDate)
+            const end = endRaw ?? undefined
 
-            const color = (typeof s.status === 'string' ? s.status === 'ACTIVE' : s.status === 1) ? '#f59e0b' : '#dc2626'
+            const color = statusToColor(fv.status)
 
             return {
                 id: String(s.id),
@@ -244,7 +287,7 @@ const StaffSchedulesPage: React.FC = () => {
                 extendedProps: { original: s },
             }
         })
-    }, [filteredSchedules])
+    }, [calendarSchedules, parseDateString, statusToColor])
 
     return (
         <StaffLayout>

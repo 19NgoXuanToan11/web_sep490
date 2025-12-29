@@ -1,7 +1,3 @@
-/**
- * Cloudinary configuration and upload utilities for web frontend
- */
-
 export const CLOUDINARY = {
   cloudName: 'dlfitbaqd',
   unsignedPreset: 'sep490',
@@ -25,11 +21,7 @@ export interface UploadImageOptions {
   onProgress?: (percent: number) => void
   signal?: AbortSignal
 }
-
-/**
- * Upload image directly to Cloudinary using unsigned preset.
- * Returns secure_url string.
- */
+  
 export async function uploadImageToCloudinary(options: UploadImageOptions): Promise<string> {
   const { file, folder, onProgress, signal } = options
 

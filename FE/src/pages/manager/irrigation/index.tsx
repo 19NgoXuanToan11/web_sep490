@@ -28,8 +28,6 @@ export default function IrrigationPage() {
   const [, setAllSchedules] = useState<ScheduleListItem[]>([])
   const [, setAllSchedulesLoading] = useState(false)
 
-
-
   const loadAllSchedules = useCallback(async (): Promise<ScheduleListItem[]> => {
     setAllSchedulesLoading(true)
     try {
@@ -46,7 +44,14 @@ export default function IrrigationPage() {
           items = items.concat(res.data.items)
         })
       }
+      items.sort((a, b) => {
+        const aTime = Number.isNaN(new Date(a.createdAt).getTime()) ? 0 : new Date(a.createdAt).getTime()
+        const bTime = Number.isNaN(new Date(b.createdAt).getTime()) ? 0 : new Date(b.createdAt).getTime()
+        return bTime - aTime
+      })
+
       setAllSchedules(items)
+      setFilteredItems(prev => (prev === null ? items : prev))
       return items
     } catch (e) {
       const normalized = normalizeError(e)

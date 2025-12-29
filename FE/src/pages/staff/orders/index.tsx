@@ -851,54 +851,61 @@ const StaffOrdersPage: React.FC = () => {
                     {
                       id: 'actions',
                       header: '',
-                      render: order => (
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent>
-                            <DropdownMenuItem onClick={() => fetchOrderDetail(order.id)}>
-                              Xem chi tiết
-                            </DropdownMenuItem>
-                            {order.status === 0 && (
-                              <DropdownMenuItem
-                                onClick={() => handleUpdateStatus(order.id, 'CONFIRMED')}
-                              >
-                                <CheckCircle className="h-4 w-4 mr-2" />
-                                Xác nhận đơn hàng
-                              </DropdownMenuItem>
-                            )}
-                            {(order.status === 1 || order.status === 2) && (
-                              <DropdownMenuItem onClick={() => handleDeliveryStatus(order.id)}>
-                                Đánh dấu đang giao
-                              </DropdownMenuItem>
-                            )}
-                            {order.status === 3 && (
-                              <DropdownMenuItem onClick={() => handleCompleteStatus(order.id)}>
-                                Đánh dấu hoàn thành
-                              </DropdownMenuItem>
-                            )}
-                            {order.status === 6 && (
-                              <DropdownMenuItem onClick={() => handleCompleteStatus(order.id)}>
-                                Hoàn thành đơn hàng
-                              </DropdownMenuItem>
-                            )}
-                            {order.status !== 4 && order.status !== 5 && order.status !== 6 && (
-                              <DropdownMenuItem onClick={() => handleCancelStatus(order.id)}>
-                                Hủy đơn hàng
-                              </DropdownMenuItem>
-                            )}
-                            {order.status === 4 && (
-                              <DropdownMenuItem onClick={() => handleCreatePayment(order.id)}>
-                                <CreditCard className="h-4 w-4 mr-2" />
-                                Thanh toán lại
-                              </DropdownMenuItem>
-                            )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      ),
+                      render: order => {
+                        const isFailedPayment = order.paymentStatus === 'failed' && order.status === 2
+                        return (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                              {isFailedPayment ? (
+                                <>
+                                  <DropdownMenuItem onClick={() => fetchOrderDetail(order.id)}>
+                                    Xem chi tiết
+                                  </DropdownMenuItem>
+                                </>
+                              ) : (
+                                <>
+                                  <DropdownMenuItem onClick={() => fetchOrderDetail(order.id)}>
+                                    Xem chi tiết
+                                  </DropdownMenuItem>
+                                  {order.status === 0 && (
+                                    <DropdownMenuItem
+                                      onClick={() => handleUpdateStatus(order.id, 'CONFIRMED')}
+                                    >
+                                      <CheckCircle className="h-4 w-4 mr-2" />
+                                      Xác nhận đơn hàng
+                                    </DropdownMenuItem>
+                                  )}
+                                  {(order.status === 1 || order.status === 2) && (
+                                    <DropdownMenuItem onClick={() => handleDeliveryStatus(order.id)}>
+                                      Đánh dấu đang giao
+                                    </DropdownMenuItem>
+                                  )}
+                                  {order.status === 3 && (
+                                    <DropdownMenuItem onClick={() => handleCompleteStatus(order.id)}>
+                                      Đánh dấu hoàn thành
+                                    </DropdownMenuItem>
+                                  )}
+                                  {order.status === 6 && (
+                                    <DropdownMenuItem onClick={() => handleCompleteStatus(order.id)}>
+                                      Hoàn thành đơn hàng
+                                    </DropdownMenuItem>
+                                  )}
+                                  {order.status !== 4 && order.status !== 5 && order.status !== 6 && (
+                                    <DropdownMenuItem onClick={() => handleCancelStatus(order.id)}>
+                                      Hủy đơn hàng
+                                    </DropdownMenuItem>
+                                  )}
+                                </>
+                              )}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )
+                      },
                     },
                   ] satisfies StaffDataTableColumn<DisplayOrder>[]}
                 />

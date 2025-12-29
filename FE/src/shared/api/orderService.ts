@@ -267,7 +267,7 @@ export const derivePaymentStatus = (
 export const getOrderStatusLabel = (status: number): string => {
   const statusMap: Record<number, string> = {
     0: 'Chờ xử lý',
-    1: 'Đã xác nhận', 
+    1: 'Đã xác nhận',
     2: 'Thất bại',
     3: 'Đang giao',
     4: 'Đã hủy',
@@ -277,7 +277,9 @@ export const getOrderStatusLabel = (status: number): string => {
   return statusMap[status] || 'Không xác định'
 }
 
-export const getOrderStatusVariant = (status: number): 'default' | 'secondary' | 'destructive' => {
+export const getOrderStatusVariant = (
+  status: number
+): 'default' | 'secondary' | 'destructive' | 'teal' | 'golden' => {
   switch (status) {
     case 0:
     case 2:
@@ -285,6 +287,7 @@ export const getOrderStatusVariant = (status: number): 'default' | 'secondary' |
     case 6:
       return 'secondary'
     case 1:
+      return 'golden'
     case 5:
       return 'default'
     case 4:

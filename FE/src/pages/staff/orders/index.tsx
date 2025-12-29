@@ -210,6 +210,9 @@ const StaffOrdersPage: React.FC = () => {
         statusParam = undefined
         break
       case 'completed':
+        statusParam = 5
+        break
+      case 'cancelled':
         statusParam = 4
         break
       default:
@@ -716,6 +719,12 @@ const StaffOrdersPage: React.FC = () => {
           <TabsContent value="completed">
             <div className="text-center py-8 text-gray-500">
               Hiển thị các đơn hàng đã hoàn thành ({orderStats.delivered} đơn)
+            </div>
+          </TabsContent>
+
+          <TabsContent value="cancelled">
+            <div className="text-center py-8 text-gray-500">
+              Hiển thị các đơn hàng đã hủy ({orderStats.cancelled} đơn)
             </div>
           </TabsContent>
         </Tabs>

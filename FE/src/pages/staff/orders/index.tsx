@@ -1,5 +1,5 @@
 ﻿import React, { useEffect, useState, useCallback, useMemo } from 'react'
-import { CheckCircle, RefreshCw, Search, MoreHorizontal, Loader2, CreditCard } from 'lucide-react'
+import { CheckCircle, RefreshCw, Search, MoreHorizontal, Loader2 } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
 import { Badge } from '@/shared/ui/badge'
@@ -531,28 +531,6 @@ const StaffOrdersPage: React.FC = () => {
     }
   }
 
-  const handleCreatePayment = async (orderId: string) => {
-    try {
-      setLoading(true)
-      await orderService.createOrderPayment(orderId)
-
-      toast({
-        title: 'Thành công',
-        description: 'Đã tạo yêu cầu thanh toán lại',
-        variant: 'success',
-      })
-
-      await fetchOrders()
-    } catch (error) {
-      toast({
-        title: 'Lỗi tạo thanh toán',
-        description: 'Không thể tạo yêu cầu thanh toán. Vui lòng thử lại.',
-        variant: 'destructive',
-      })
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('vi-VN', {

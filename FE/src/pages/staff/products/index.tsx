@@ -9,7 +9,6 @@ import { ProductFilters } from '@/features/products-management/ui/ProductFilters
 import { ProductModal } from '@/features/products-management/ui/ProductModal'
 import { UpdateProductInfoModal } from '@/features/products-management/ui/UpdateProductInfoModal'
 import { ChangeProductStatusModal } from '@/features/products-management/ui/ChangeProductStatusModal'
-import { UpdateProductQuantityModal } from '@/features/products-management/ui/UpdateProductQuantityModal'
 import { useProductStore } from '@/features/products-management/store/productStore'
 import type { Product } from '@/shared/api/productService'
 import { ManagementPageHeader } from '@/shared/ui/management-page-header'
@@ -65,13 +64,6 @@ export function StaffProductsPage() {
         product: null,
     })
 
-    const [updateQuantityModal, setUpdateQuantityModal] = React.useState<{
-        isOpen: boolean
-        product?: Product | null
-    }>({
-        isOpen: false,
-        product: null,
-    })
 
     React.useEffect(() => {
         fetchAllProducts().catch(() => {
@@ -136,20 +128,6 @@ export function StaffProductsPage() {
 
     const handleChangeStatusModalClose = () => {
         setChangeStatusModal({
-            isOpen: false,
-            product: null,
-        })
-    }
-
-    const handleUpdateProductQuantity = (product: Product) => {
-        setUpdateQuantityModal({
-            isOpen: true,
-            product,
-        })
-    }
-
-    const handleUpdateQuantityModalClose = () => {
-        setUpdateQuantityModal({
             isOpen: false,
             product: null,
         })
@@ -241,7 +219,6 @@ export function StaffProductsPage() {
                                 onViewProduct={handleViewProduct}
                                 onUpdateProductInfo={handleUpdateProductInfo}
                                 onChangeProductStatus={handleChangeProductStatus}
-                                onUpdateProductQuantity={handleUpdateProductQuantity}
                                 mode="staff"
                             />
                         )}
@@ -272,13 +249,6 @@ export function StaffProductsPage() {
                 />
             )}
 
-            {updateQuantityModal.product && (
-                <UpdateProductQuantityModal
-                    isOpen={updateQuantityModal.isOpen}
-                    onClose={handleUpdateQuantityModalClose}
-                    product={updateQuantityModal.product}
-                />
-            )}
         </StaffLayout>
     )
 }

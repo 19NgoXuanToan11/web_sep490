@@ -15,6 +15,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { RefreshCw, Search, MoreHorizontal } from 'lucide-react'
 import { useToast } from '@/shared/ui/use-toast'
+import { formatDate } from '@/shared/lib/date-utils'
 import {
   ManagementPageHeader,
   StaffFilterBar,
@@ -946,6 +947,9 @@ export default function FarmActivitiesPage() {
               {dateErrors.startDate && (
                 <p className="text-sm text-red-600 mt-1">{dateErrors.startDate}</p>
               )}
+              {formData.startDate && !dateErrors.startDate && (
+                <p className="text-sm text-gray-500 mt-1">Định dạng hiển thị: {formatDate(formData.startDate)}</p>
+              )}
             </div>
             <div>
               <Label htmlFor="endDate">Ngày kết thúc *</Label>
@@ -964,6 +968,9 @@ export default function FarmActivitiesPage() {
               />
               {dateErrors.endDate && (
                 <p className="text-sm text-red-600 mt-1">{dateErrors.endDate}</p>
+              )}
+              {formData.endDate && !dateErrors.endDate && (
+                <p className="text-sm text-gray-500 mt-1">Định dạng hiển thị: {formatDate(formData.endDate)}</p>
               )}
             </div>
             <div>
@@ -1031,6 +1038,9 @@ export default function FarmActivitiesPage() {
               {dateErrors.startDate && (
                 <p className="text-sm text-red-600 mt-1">{dateErrors.startDate}</p>
               )}
+              {formData.startDate && !dateErrors.startDate && (
+                <p className="text-sm text-gray-500 mt-1">Định dạng hiển thị: {formatDate(formData.startDate)}</p>
+              )}
             </div>
             <div>
               <Label htmlFor="editEndDate">Ngày kết thúc *</Label>
@@ -1049,6 +1059,9 @@ export default function FarmActivitiesPage() {
               />
               {dateErrors.endDate && (
                 <p className="text-sm text-red-600 mt-1">{dateErrors.endDate}</p>
+              )}
+              {formData.endDate && !dateErrors.endDate && (
+                <p className="text-sm text-gray-500 mt-1">Định dạng hiển thị: {formatDate(formData.endDate)}</p>
               )}
             </div>
             <div>

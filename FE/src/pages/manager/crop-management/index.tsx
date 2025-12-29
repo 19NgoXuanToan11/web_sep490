@@ -38,6 +38,7 @@ import {
   type CropRequest,
   type CreateCropWithProductRequest,
 } from '@/shared/api/cropService'
+import { normalizeError } from '@/shared/lib/error-handler'
 import { categoryService, type Category } from '@/shared/api/categoryService'
 import { uploadImageToCloudinary, CloudinaryUploadError } from '@/shared/lib/cloudinary'
 
@@ -170,6 +171,7 @@ export default function CropManagementPage() {
   const [formDialogOpen, setFormDialogOpen] = useState(false)
   const [formMode, setFormMode] = useState<'create' | 'edit'>('create')
   const [formData, setFormData] = useState<CropFormData>(INITIAL_FORM_STATE)
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({})
   const [selectedCrop, setSelectedCrop] = useState<Crop | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [categories, setCategories] = useState<Category[]>([])
@@ -230,6 +232,7 @@ export default function CropManagementPage() {
 
   const handleResetForm = () => {
     setFormData(INITIAL_FORM_STATE)
+    setFormErrors({})
     setSelectedCrop(null)
     setImagePreview(null)
     setUploadProgress(0)
@@ -340,11 +343,26 @@ export default function CropManagementPage() {
         await loadCrops()
       }
     } catch (error: any) {
-      toast({
-        title: 'Lỗi',
-        description: error?.response?.data?.message || 'Không thể lưu cây trồng',
-        variant: 'destructive',
-      })
+      try {
+        const normalized = normalizeError(error)
+        const fe: Record<string, string> = {}
+        for (const [k, v] of Object.entries(normalized.fieldErrors || {})) {
+          if (Array.isArray(v) && v.length > 0) fe[k] = v[0]
+        }
+        setFormErrors(fe)
+        const display = normalized.backendMessage ?? error?.response?.data?.message ?? 'Không thể lưu cây trồng'
+        toast({
+          title: 'Lỗi',
+          description: display,
+          variant: 'destructive',
+        })
+      } catch (err) {
+        toast({
+          title: 'Lỗi',
+          description: error?.response?.data?.message || 'Không thể lưu cây trồng',
+          variant: 'destructive',
+        })
+      }
     } finally {
       setIsSubmitting(false)
     }
@@ -784,6 +802,7 @@ export default function CropManagementPage() {
                   className="mt-1"
                   placeholder="Ví dụ: Rau cải xanh"
                 />
+                {formErrors.cropName && <p className="text-sm text-red-600 mt-1">{formErrors.cropName}</p>}
               </div>
               <div>
                 <Label>Xuất xứ *</Label>
@@ -793,6 +812,7 @@ export default function CropManagementPage() {
                   className="mt-1"
                   placeholder="Ví dụ: Việt Nam"
                 />
+                {formErrors.origin && <p className="text-sm text-red-600 mt-1">{formErrors.origin}</p>}
               </div>
             </div>
 
@@ -845,6 +865,7 @@ export default function CropManagementPage() {
                         className="mt-1"
                         placeholder="Tên sản phẩm"
                       />
+                      {formErrors.productName && <p className="text-sm text-red-600 mt-1">{formErrors.productName}</p>}
                     </div>
                     <div>
                       <Label>Giá *</Label>
@@ -859,6 +880,7 @@ export default function CropManagementPage() {
                         className="mt-1"
                         placeholder="0"
                       />
+                      {formErrors.price && <p className="text-sm text-red-600 mt-1">{formErrors.price}</p>}
                     </div>
                   </div>
                 </div>

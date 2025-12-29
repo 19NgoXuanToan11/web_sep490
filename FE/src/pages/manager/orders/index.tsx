@@ -996,41 +996,50 @@ const ManagerOrdersPage: React.FC = () => {
                                   </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent>
-                                  <DropdownMenuItem onClick={() => fetchOrderDetail(order.id)}>
-                                    <Eye className="h-4 w-4 mr-2" />
-                                    Xem chi tiết
-                                  </DropdownMenuItem>
-                                  {order.status === 0 && (
-                                    <DropdownMenuItem
-                                      onClick={() => handleUpdateStatus(order.id, 'CONFIRMED')}
-                                    >
-                                      <CheckCircle className="h-4 w-4 mr-2" />
-                                      Xác nhận đơn hàng
+                                  {order.paymentStatus === 'failed' && order.status === 2 ? (
+                                    <DropdownMenuItem onClick={() => fetchOrderDetail(order.id)}>
+                                      <Eye className="h-4 w-4 mr-2" />
+                                      Xem chi tiết
                                     </DropdownMenuItem>
-                                  )}
-                                  {(order.status === 1 || order.status === 2) && (
-                                    <DropdownMenuItem
-                                      onClick={() => handleUpdateStatus(order.id, 'DELIVERED')}
-                                    >
-                                      <Truck className="h-4 w-4 mr-2" />
-                                      Đánh dấu đang giao
-                                    </DropdownMenuItem>
-                                  )}
-                                  {(order.status === 3 || order.status === 6) && (
-                                    <DropdownMenuItem
-                                      onClick={() => handleUpdateStatus(order.id, 'COMPLETED')}
-                                    >
-                                      <CheckCircle className="h-4 w-4 mr-2" />
-                                      Hoàn thành đơn hàng
-                                    </DropdownMenuItem>
-                                  )}
-                                  {order.status !== 4 && order.status !== 5 && order.status !== 6 && (
-                                    <DropdownMenuItem
-                                      onClick={() => handleUpdateStatus(order.id, 'CANCELLED')}
-                                    >
-                                      <XCircle className="h-4 w-4 mr-2" />
-                                      Hủy đơn hàng
-                                    </DropdownMenuItem>
+                                  ) : (
+                                    <>
+                                      <DropdownMenuItem onClick={() => fetchOrderDetail(order.id)}>
+                                        <Eye className="h-4 w-4 mr-2" />
+                                        Xem chi tiết
+                                      </DropdownMenuItem>
+                                      {order.status === 0 && (
+                                        <DropdownMenuItem
+                                          onClick={() => handleUpdateStatus(order.id, 'CONFIRMED')}
+                                        >
+                                          <CheckCircle className="h-4 w-4 mr-2" />
+                                          Xác nhận đơn hàng
+                                        </DropdownMenuItem>
+                                      )}
+                                      {(order.status === 1 || order.status === 2) && (
+                                        <DropdownMenuItem
+                                          onClick={() => handleUpdateStatus(order.id, 'DELIVERED')}
+                                        >
+                                          <Truck className="h-4 w-4 mr-2" />
+                                          Đánh dấu đang giao
+                                        </DropdownMenuItem>
+                                      )}
+                                      {(order.status === 3 || order.status === 6) && (
+                                        <DropdownMenuItem
+                                          onClick={() => handleUpdateStatus(order.id, 'COMPLETED')}
+                                        >
+                                          <CheckCircle className="h-4 w-4 mr-2" />
+                                          Hoàn thành đơn hàng
+                                        </DropdownMenuItem>
+                                      )}
+                                      {order.status !== 4 && order.status !== 5 && order.status !== 6 && (
+                                        <DropdownMenuItem
+                                          onClick={() => handleUpdateStatus(order.id, 'CANCELLED')}
+                                        >
+                                          <XCircle className="h-4 w-4 mr-2" />
+                                          Hủy đơn hàng
+                                        </DropdownMenuItem>
+                                      )}
+                                    </>
                                   )}
                                 </DropdownMenuContent>
                               </DropdownMenu>

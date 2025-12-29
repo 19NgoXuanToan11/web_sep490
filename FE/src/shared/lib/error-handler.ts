@@ -41,6 +41,14 @@ const coerceToStringArray = (value: unknown): string[] => {
   return []
 }
 
+const normalizeFieldKey = (rawKey: string): string => {
+  if (!rawKey || typeof rawKey !== 'string') return rawKey
+  const parts = rawKey.split('.')
+  let key = parts[parts.length - 1]
+  key = key.replace(/\[\d+\]$/, '')
+  return key.charAt(0).toLowerCase() + key.slice(1)
+}
+
 export const normalizeError = (error: unknown): NormalizedError => {
   const normalized: NormalizedError = {
     backendMessage: null,
@@ -100,7 +108,8 @@ export const normalizeError = (error: unknown): NormalizedError => {
   if (errs && typeof errs === 'object') {
     if (!Array.isArray(errs)) {
       for (const [k, v] of Object.entries(errs)) {
-        normalized.fieldErrors[k] = coerceToStringArray(v)
+        const normalizedKey = normalizeFieldKey(k)
+        normalized.fieldErrors[normalizedKey] = coerceToStringArray(v)
       }
     } else {
       for (const it of errs) {
@@ -108,7 +117,8 @@ export const normalizeError = (error: unknown): NormalizedError => {
           normalized.fieldErrors._general = normalized.fieldErrors._general ?? []
           normalized.fieldErrors._general.push(it)
         } else if (it && typeof it === 'object') {
-          const field = (it as any).field ?? (it as any).key ?? '_general'
+          const rawField = (it as any).field ?? (it as any).key ?? '_general'
+          const field = normalizeFieldKey(rawField)
           const msg = (it as any).message ?? (it as any).msg ?? (it as any).detail
           if (msg) {
             normalized.fieldErrors[field] = normalized.fieldErrors[field] ?? []

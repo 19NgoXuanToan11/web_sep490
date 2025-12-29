@@ -1,14 +1,4 @@
-import {
-  startOfWeek,
-  addDays,
-  startOfMonth,
-  endOfMonth,
-  endOfWeek,
-  startOfDay,
-  addMinutes,
-  differenceInMinutes,
-  format,
-} from 'date-fns'
+import { startOfWeek, addDays, startOfDay, addMinutes, differenceInMinutes, format } from 'date-fns'
 
 export type ViewMode = 'day' | 'week' | 'month'
 
@@ -29,14 +19,14 @@ export const defaultEngineState: EngineState = {
 }
 
 export function getMonthMatrix(anchorDate: Date): Date[][] {
-  const start = startOfWeek(startOfMonth(anchorDate), { weekStartsOn: 1 })
-  const end = endOfWeek(endOfMonth(anchorDate), { weekStartsOn: 1 })
   const matrix: Date[][] = []
-  let cur = start
-  while (cur <= end) {
+  const start = new Date(anchorDate.getFullYear(), anchorDate.getMonth(), 1)
+  let cur = new Date(start)
+
+  for (let w = 0; w < 5; w++) {
     const week: Date[] = []
     for (let i = 0; i < 7; i++) {
-      week.push(cur)
+      week.push(new Date(cur))
       cur = addDays(cur, 1)
     }
     matrix.push(week)

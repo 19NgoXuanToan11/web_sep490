@@ -238,16 +238,19 @@ interface CalendarGridProps {
 
 function CalendarGrid({ selectedDate, schedules, onEditSchedule }: CalendarGridProps) {
 
-  const startOfMonth = new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1)
-  const startOfWeek = new Date(startOfMonth)
-  startOfWeek.setDate(startOfMonth.getDate() - startOfMonth.getDay())
+  const days: Date[] = []
+  const year = selectedDate.getFullYear()
+  const month = selectedDate.getMonth()
 
-  const days = []
-  const currentDate = new Date(startOfWeek)
+  const daysInMonth = new Date(year, month + 1, 0).getDate()
+  for (let d = 1; d <= daysInMonth; d++) {
+    days.push(new Date(year, month, d))
+  }
 
-  for (let i = 0; i < 42; i++) {
-    days.push(new Date(currentDate))
-    currentDate.setDate(currentDate.getDate() + 1)
+  let nextMonthDate = new Date(year, month + 1, 1)
+  while (days.length < 35) {
+    days.push(new Date(nextMonthDate))
+    nextMonthDate.setDate(nextMonthDate.getDate() + 1)
   }
 
   const weekdays = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7']

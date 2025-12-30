@@ -19,8 +19,8 @@ export const Header: React.FC<Props> = ({ onPrev, onNext, onToday, label }) => {
                 <button
                     className={styles.navBtn}
                     onClick={onPrev}
-                    aria-label="Previous month"
-                    title="Previous month"
+                    aria-label="Tháng trước"
+                    title="Tháng trước"
                 >
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
                         <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
@@ -30,8 +30,8 @@ export const Header: React.FC<Props> = ({ onPrev, onNext, onToday, label }) => {
                 <button
                     className={styles.navBtn}
                     onClick={onNext}
-                    aria-label="Next month"
-                    title="Next month"
+                    aria-label="Tháng sau"
+                    title="Tháng sau"
                 >
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
                         <path d="M9 6l6 6-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />

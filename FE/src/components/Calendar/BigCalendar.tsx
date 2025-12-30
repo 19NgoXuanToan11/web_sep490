@@ -21,6 +21,7 @@ interface Props {
 
 const locales: Record<string, any> = {
   "vi-VN": vi,
+  vi: vi,
 };
 
 const localizer = dateFnsLocalizer({
@@ -60,6 +61,40 @@ const BigCalendar: React.FC<Props> = ({ events = [], onEventClick, onDayClick })
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
 
   const mapped = (events || []).map(toRbcEvent).filter((ev) => !!ev.start);
+
+  const capitalize = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
+
+  const messages = {
+    date: "Ngày",
+    time: "Thời gian",
+    event: "Sự kiện",
+    allDay: "Cả ngày",
+    previous: "Trước",
+    next: "Sau",
+    today: "Hôm nay",
+    month: "Tháng",
+    week: "Tuần",
+    day: "Ngày",
+    agenda: "Lịch",
+    showMore: (total: number) => `+${total} thêm`,
+  };
+
+  const formats = {
+    weekdayFormat: (date: Date) =>
+      capitalize(date.toLocaleDateString("vi-VN", { weekday: "long" })),
+    monthHeaderFormat: (date: Date) =>
+      capitalize(date.toLocaleDateString("vi-VN", { month: "long", year: "numeric" })),
+    dayHeaderFormat: (date: Date) =>
+      capitalize(
+        date.toLocaleDateString("vi-VN", {
+          weekday: "long",
+          day: "numeric",
+          month: "long",
+          year: "numeric",
+        })
+      ),
+    dayFormat: (date: Date) => date.getDate().toString(),
+  };
 
   const handleToday = useCallback(() => {
     setCurrentDate(new Date());
@@ -123,13 +158,15 @@ const BigCalendar: React.FC<Props> = ({ events = [], onEventClick, onDayClick })
         onPrev={handlePrev}
         onNext={handleNext}
         onToday={handleToday}
-        label={format(currentDate, "LLLL yyyy")}
+        label={capitalize(currentDate.toLocaleDateString("vi-VN", { month: "long", year: "numeric" }))}
       />
 
       <RBC
         localizer={localizer}
         events={mapped}
         date={currentDate}
+        messages={messages}
+        formats={formats as any}
         onNavigate={handleNavigate}
         toolbar={false}
         startAccessor="start"

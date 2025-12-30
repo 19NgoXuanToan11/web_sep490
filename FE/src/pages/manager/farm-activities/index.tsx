@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useCallback, useMemo } from 'react'
+﻿import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { ManagerLayout } from '@/shared/layouts/ManagerLayout'
 import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
@@ -13,14 +13,13 @@ import {
   DialogTitle,
 } from '@/shared/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
-import { RefreshCw, Search, MoreHorizontal } from 'lucide-react'
+import { RefreshCw, Search, MoreHorizontal, ChevronDown, ChevronUp } from 'lucide-react'
 import { useToast } from '@/shared/ui/use-toast'
 import { formatDate } from '@/shared/lib/date-utils'
 import {
   ManagementPageHeader,
   StaffFilterBar,
 } from '@/shared/ui'
-import { Pagination } from '@/shared/ui/pagination'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -137,14 +136,14 @@ export default function FarmActivitiesPage() {
   const [activities, setActivities] = useState<FarmActivity[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
+  const [searchDebounced, setSearchDebounced] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [activityTypeFilter, setActivityTypeFilter] = useState<string>('all')
-  const [sortBy, setSortBy] = useState<'newest' | 'startDate' | 'status'>('newest')
+  const [showLatestOnly, setShowLatestOnly] = useState<boolean>(false)
 
-  const [pageIndex, setPageIndex] = useState(1)
-  const pageSize = 10
-  const [totalPages, setTotalPages] = useState(0)
-
+  const [activeTab, setActiveTab] = useState<'ACTIVE' | 'UPCOMING' | 'COMPLETED'>('ACTIVE')
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({})
+  const latestRequestIdRef = useRef(0)
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [editingActivity, setEditingActivity] = useState<FarmActivity | null>(null)
@@ -216,6 +215,154 @@ export default function FarmActivitiesPage() {
     return raw
   }
 
+  const pickLatestPerType = (items: FarmActivity[]) => {
+    const latestByType = new Map<string, FarmActivity>()
+    for (const item of items) {
+      const key = (item.activityType ?? '').toString()
+      const itemCreatedAt = (item as any).createdAt
+      const itemTime = itemCreatedAt
+        ? new Date(itemCreatedAt).getTime()
+        : item.farmActivitiesId
+          ? Number(item.farmActivitiesId)
+          : item.startDate
+            ? new Date(item.startDate).getTime()
+            : 0
+
+      const existing = latestByType.get(key)
+      if (!existing) {
+        latestByType.set(key, item)
+        continue
+      }
+
+      const existingCreatedAt = (existing as any).createdAt
+      const existingTime = existingCreatedAt
+        ? new Date(existingCreatedAt).getTime()
+        : existing.farmActivitiesId
+          ? Number(existing.farmActivitiesId)
+          : existing.startDate
+            ? new Date(existing.startDate).getTime()
+            : 0
+
+      if (itemTime > existingTime) {
+        latestByType.set(key, item)
+      }
+    }
+    return Array.from(latestByType.values())
+  }
+
+  const parseDate = (dateString?: string | null): Date | null => {
+    if (!dateString) return null
+    try {
+      const mmddyyyy = /^\s*(\d{1,2})\/(\d{1,2})\/(\d{4})\s*$/
+      const yyyymmdd = /^\s*(\d{4})-(\d{1,2})-(\d{1,2})\s*$/
+      const m = mmddyyyy.exec(dateString)
+      if (m) {
+        const month = Number(m[1])
+        const day = Number(m[2])
+        const year = Number(m[3])
+        if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+          const d = new Date(year, month - 1, day)
+          d.setHours(0, 0, 0, 0)
+          return d
+        }
+        return null
+      }
+      const y = yyyymmdd.exec(dateString)
+      if (y) {
+        const year = Number(y[1])
+        const month = Number(y[2])
+        const day = Number(y[3])
+        if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+          const d = new Date(year, month - 1, day)
+          d.setHours(0, 0, 0, 0)
+          return d
+        }
+        return null
+      }
+      if (dateString.includes('T')) {
+        const iso = new Date(dateString)
+        if (!isNaN(iso.getTime())) {
+          iso.setHours(0, 0, 0, 0)
+          return iso
+        }
+        return null
+      }
+      return null
+    } catch {
+      return null
+    }
+  }
+
+  const mapActivityTypeToLabelVi = (type?: string | null): string => {
+    if (!type) return 'Không có dữ liệu'
+    const mapping: Record<string, string> = {
+      Sowing: 'Gieo hạt',
+      SoilPreparation: 'Chuẩn bị đất trước gieo',
+      FertilizingDiluted: 'Bón phân pha loãng (NPK 20–30%)',
+      CleaningFarmArea: 'Dọn dẹp khu vực nông trại',
+    }
+    return mapping[type] || activityTypeMap[type] || type
+  }
+
+  const getTodayStart = () => {
+    const d = new Date()
+    d.setHours(0, 0, 0, 0)
+    return d
+  }
+
+  const getTabForActivity = (activity: FarmActivity): 'ACTIVE' | 'UPCOMING' | 'COMPLETED' => {
+    const status = (activity.status || '').toUpperCase()
+    if (status === 'COMPLETED') return 'COMPLETED'
+    const start = parseDate(activity.startDate)
+    const today = getTodayStart()
+    if (start && start.getTime() > today.getTime()) return 'UPCOMING'
+    return 'ACTIVE'
+  }
+
+  const sortRules = (tab: 'ACTIVE' | 'UPCOMING' | 'COMPLETED', a: FarmActivity, b: FarmActivity) => {
+    const parse = (v?: string | null) => {
+      const d = parseDate(v)
+      return d ? d.getTime() : 0
+    }
+    if (tab === 'ACTIVE') {
+      const activityPriority: Record<string, number> = {
+        SoilPreparation: 0,
+        Sowing: 1,
+      }
+      const aPri = activityPriority[a.activityType || ''] ?? 99
+      const bPri = activityPriority[b.activityType || ''] ?? 99
+      if (aPri !== bPri) return aPri - bPri
+      const aStart = parse(a.startDate)
+      const bStart = parse(b.startDate)
+      if (aStart !== bStart) return aStart - bStart
+      return (b.farmActivitiesId || 0) - (a.farmActivitiesId || 0)
+    }
+    if (tab === 'UPCOMING') {
+      const aStart = parse(a.startDate)
+      const bStart = parse(b.startDate)
+      if (aStart !== bStart) return aStart - bStart
+      return (b.farmActivitiesId || 0) - (a.farmActivitiesId || 0)
+    }
+    const aEnd = parse(a.endDate)
+    const bEnd = parse(b.endDate)
+    if (aEnd !== bEnd) return bEnd - aEnd
+    return (b.farmActivitiesId || 0) - (a.farmActivitiesId || 0)
+  }
+
+  const groupByActivityType = (items: FarmActivity[]) => {
+    const groups = new Map<string, FarmActivity[]>()
+    const order: string[] = []
+    items.forEach(item => {
+      const key = item.activityType ?? 'unknown'
+      if (!groups.has(key)) {
+        groups.set(key, [])
+        order.push(key)
+      }
+      groups.get(key)!.push(item)
+    })
+    return order.map(key => [key, groups.get(key)!] as [string, FarmActivity[]])
+  }
+
   const statusOptions = [
     { value: 'ACTIVE', label: 'Hoạt động', variant: 'success' as const },
     { value: 'IN_PROGRESS', label: 'Đang thực hiện', variant: 'processing' as const },
@@ -237,29 +384,61 @@ export default function FarmActivitiesPage() {
   }
 
   const loadActivities = useCallback(async () => {
+    const requestId = ++latestRequestIdRef.current
     try {
       setLoading(true)
-      const params: any = {
-        pageIndex,
-        pageSize,
+      const pageSizeLarge = 1000
+      const baseParams: any = {
+        pageIndex: 1,
+        pageSize: pageSizeLarge,
       }
-      if (activityTypeFilter !== 'all') {
-        params.type = activityTypeFilter
-      }
-      if (statusFilter !== 'all') {
-        params.status = statusFilter
-      }
-      const response = await farmActivityService.getAllFarmActivities(params)
+      if (activityTypeFilter !== 'all') baseParams.type = activityTypeFilter
+      if (statusFilter !== 'all') baseParams.status = statusFilter
+      if (showLatestOnly) baseParams.pageSize = 1000
 
-      const normalizedActivities = Array.isArray(response.items)
-        ? response.items.map(activity => ({
-          ...activity,
-          activityType: activity.activityType || '',
-        }))
+      const firstResp = await farmActivityService.getAllFarmActivities(baseParams)
+      if (requestId !== latestRequestIdRef.current) return
+
+      let allItems: FarmActivity[] = Array.isArray(firstResp.items)
+        ? firstResp.items.map(a => ({ ...a, activityType: a.activityType || '' }))
         : []
-      setActivities(normalizedActivities)
-      setTotalPages(response.totalPagesCount || 1)
+
+      const totalPagesCount = firstResp.totalPagesCount || 1
+      if (totalPagesCount > 1) {
+        const promises = []
+        for (let p = 2; p <= totalPagesCount; p++) {
+          promises.push(farmActivityService.getAllFarmActivities({ ...baseParams, pageIndex: p }))
+        }
+        const responses = await Promise.all(promises)
+        if (requestId !== latestRequestIdRef.current) return
+        for (const r of responses) {
+          if (Array.isArray(r.items)) {
+            allItems = allItems.concat(r.items.map(a => ({ ...a, activityType: a.activityType || '' })))
+          }
+        }
+      }
+
+      if (requestId !== latestRequestIdRef.current) return
+
+      const finalItems = showLatestOnly ? pickLatestPerType(allItems) : allItems
+      if (requestId === latestRequestIdRef.current) {
+        setActivities(finalItems)
+        const stats = (allItems || []).reduce(
+          (acc, activity) => {
+            const status = (activity.status || '').toUpperCase()
+            acc.total += 1
+            if (status === 'ACTIVE') acc.active += 1
+            else if (status === 'IN_PROGRESS') acc.inProgress += 1
+            else if (status === 'COMPLETED') acc.completed += 1
+            else if (status === 'DEACTIVATED') acc.deactivated += 1
+            return acc
+          },
+          { total: 0, active: 0, inProgress: 0, completed: 0, deactivated: 0 }
+        )
+        setActivityStats({ ...stats, total: stats.total })
+      }
     } catch (error: any) {
+      if (requestId !== latestRequestIdRef.current) return
       setActivities([])
       const { normalizeError } = await import('@/shared/lib/error-handler')
       const normalized = normalizeError(error)
@@ -270,101 +449,50 @@ export default function FarmActivitiesPage() {
         variant: 'destructive',
       })
     } finally {
-      setLoading(false)
+      if (requestId === latestRequestIdRef.current) setLoading(false)
     }
-  }, [pageIndex, statusFilter, activityTypeFilter, toast])
+  }, [statusFilter, activityTypeFilter, toast, showLatestOnly])
 
-  const loadActivityStats = useCallback(async () => {
-    try {
-      const response = await farmActivityService.getAllFarmActivities({
-        pageIndex: 1,
-        pageSize: 1000,
-      })
-
-      const items = Array.isArray(response.items) ? response.items : []
-
-      const stats = items.reduce(
-        (acc, activity) => {
-          const status = (activity.status || '').toUpperCase()
-          acc.total += 1
-          if (status === 'ACTIVE') acc.active += 1
-          else if (status === 'IN_PROGRESS') acc.inProgress += 1
-          else if (status === 'COMPLETED') acc.completed += 1
-          else if (status === 'DEACTIVATED') acc.deactivated += 1
-          return acc
-        },
-        {
-          total: 0,
-          active: 0,
-          inProgress: 0,
-          completed: 0,
-          deactivated: 0,
-        }
-      )
-
-      setActivityStats({
-        ...stats,
-        total: response.totalItemCount || stats.total,
-      })
-    } catch {
-    }
-  }, [])
 
   const filteredActivities = useMemo(() => {
-    const normalizedSearch = searchTerm.trim().toLowerCase()
+    const normalizedSearch = searchDebounced.trim().toLowerCase()
     return (Array.isArray(activities) ? activities : []).filter(activity => {
       if (!activity || typeof activity !== 'object') return false
+      if (activityTypeFilter !== 'all' && activity.activityType !== activityTypeFilter) return false
       if (!normalizedSearch) return true
       const rawType = (activity.activityType || '').toLowerCase()
-      const localizedType = getActivityTypeLabel(activity.activityType).toLowerCase()
+      const localizedType = mapActivityTypeToLabelVi(activity.activityType).toLowerCase()
       return rawType.includes(normalizedSearch) || localizedType.includes(normalizedSearch)
     })
-  }, [activities, searchTerm])
+  }, [activities, searchDebounced, activityTypeFilter])
 
-  const sortedActivities = useMemo(() => {
-    const sorted = [...filteredActivities]
-    const statusOrder: Record<string, number> = {
-      ACTIVE: 0,
-      IN_PROGRESS: 1,
-      COMPLETED: 2,
-      DEACTIVATED: 3,
+  useEffect(() => {
+    const t = setTimeout(() => setSearchDebounced(searchTerm), 300)
+    return () => clearTimeout(t)
+  }, [searchTerm])
+
+
+
+  const processedByTab = useMemo(() => {
+    const byTab: Record<'ACTIVE' | 'UPCOMING' | 'COMPLETED', FarmActivity[]> = {
+      ACTIVE: [],
+      UPCOMING: [],
+      COMPLETED: [],
     }
-
-    switch (sortBy) {
-      case 'newest':
-        return sorted.sort((a, b) => (b.farmActivitiesId || 0) - (a.farmActivitiesId || 0))
-      case 'startDate': {
-        const parseDate = (v?: string | null) => {
-          const d = v ? new Date(v) : null
-          return d && !Number.isNaN(d.getTime()) ? d.getTime() : 0
-        }
-        return sorted.sort((a, b) => parseDate(a.startDate) - parseDate(b.startDate))
-      }
-      case 'status':
-        return sorted.sort((a, b) => {
-          const aOrder = statusOrder[(a.status || '').toUpperCase()] ?? 99
-          const bOrder = statusOrder[(b.status || '').toUpperCase()] ?? 99
-          if (aOrder === bOrder) return (b.farmActivitiesId || 0) - (a.farmActivitiesId || 0)
-          return aOrder - bOrder
-        })
-      default:
-        return sorted
+    for (const act of filteredActivities) {
+      const tab = getTabForActivity(act)
+      byTab[tab].push(act)
     }
-  }, [filteredActivities, sortBy])
-
-  const groupedActivities = useMemo(() => {
-    const groups = new Map<string, FarmActivity[]>()
-    const order: string[] = []
-    sortedActivities.forEach(activity => {
-      const label = getActivityTypeLabel(activity.activityType)
-      if (!groups.has(label)) {
-        groups.set(label, [])
-        order.push(label)
-      }
-      groups.get(label)!.push(activity)
+    ; (['ACTIVE', 'UPCOMING', 'COMPLETED'] as const).forEach(tab => {
+      byTab[tab].sort((a, b) => sortRules(tab, a, b))
     })
-    return order.map(key => [key, groups.get(key)!] as [string, FarmActivity[]])
-  }, [sortedActivities])
+    return byTab
+  }, [filteredActivities])
+
+  const groupedData = useMemo(() => {
+    const itemsForTab = processedByTab[activeTab] || []
+    return groupByActivityType(itemsForTab)
+  }, [processedByTab, activeTab])
 
   const handleCreateActivity = async () => {
     try {
@@ -598,7 +726,6 @@ export default function FarmActivitiesPage() {
         description: `Hoạt động ${nextStatusLabel}`,
       })
       await loadActivities()
-      await loadActivityStats()
     } catch (error: any) {
       toast({
         title: 'Lỗi',
@@ -657,20 +784,11 @@ export default function FarmActivitiesPage() {
     setDetailsDialogOpen(true)
   }
 
-  useEffect(() => {
-    setPageIndex(1)
-  }, [statusFilter, activityTypeFilter, searchTerm, sortBy])
 
   useEffect(() => {
     loadActivities()
-    loadActivityStats()
-  }, [loadActivities, loadActivityStats])
+  }, [activityTypeFilter, statusFilter, showLatestOnly])
 
-  const handlePageChange = (newPage: number) => {
-    if (newPage >= 1 && newPage <= totalPages) {
-      setPageIndex(newPage)
-    }
-  }
 
   return (
     <ManagerLayout>
@@ -769,24 +887,39 @@ export default function FarmActivitiesPage() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="w-full sm:w-48">
-              <Select value={sortBy} onValueChange={(value) => setSortBy(value as typeof sortBy)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Sắp xếp" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="newest">Mới nhất</SelectItem>
-                  <SelectItem value="startDate">Ngày bắt đầu</SelectItem>
-                  <SelectItem value="status">Trạng thái</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex gap-2">
+            <div className="flex gap-2 items-center">
+              <Button
+                variant="outline"
+                onClick={() => setShowLatestOnly(prev => !prev)}
+                className={`flex items-center gap-2 ${showLatestOnly ? 'bg-green-600 hover:bg-green-700 text-white' : ''}`}
+              >
+                {showLatestOnly ? 'Chỉ mục mới nhất mỗi loại' : 'Toàn bộ hoạt động'}
+              </Button>
               <Button onClick={() => setCreateDialogOpen(true)} className="flex items-center gap-2 bg-green-600 hover:bg-green-700">
                 Tạo
               </Button>
             </div>
           </StaffFilterBar>
+          <div className="flex items-center gap-2">
+            <button
+              className={`px-3 py-2 rounded ${activeTab === 'ACTIVE' ? 'bg-green-600 text-white' : 'bg-white border'}`}
+              onClick={() => setActiveTab('ACTIVE')}
+            >
+              Đang chạy ({processedByTab.ACTIVE ? processedByTab.ACTIVE.length : 0})
+            </button>
+            <button
+              className={`px-3 py-2 rounded ${activeTab === 'UPCOMING' ? 'bg-green-600 text-white' : 'bg-white border'}`}
+              onClick={() => setActiveTab('UPCOMING')}
+            >
+              Sắp tới ({processedByTab.UPCOMING ? processedByTab.UPCOMING.length : 0})
+            </button>
+            <button
+              className={`px-3 py-2 rounded ${activeTab === 'COMPLETED' ? 'bg-green-600 text-white' : 'bg-white border'}`}
+              onClick={() => setActiveTab('COMPLETED')}
+            >
+              Hoàn thành ({processedByTab.COMPLETED ? processedByTab.COMPLETED.length : 0})
+            </button>
+          </div>
 
           <Card>
             <CardContent className="p-0">
@@ -795,7 +928,7 @@ export default function FarmActivitiesPage() {
                   <RefreshCw className="h-8 w-8 animate-spin text-green-600" />
                   <span className="ml-2 text-gray-600">Đang tải dữ liệu...</span>
                 </div>
-              ) : sortedActivities.length === 0 ? (
+              ) : (processedByTab[activeTab] || []).length === 0 ? (
                 <div className="py-12 text-center space-y-2">
                   <p className="text-lg font-semibold text-gray-900">
                     {(() => {
@@ -818,49 +951,59 @@ export default function FarmActivitiesPage() {
                 </div>
               ) : (
                 <div className="space-y-6">
-                  {groupedActivities.map(([typeLabel, items]) => (
-                    <div key={typeLabel} className="space-y-3">
-                      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
-                        <h3 className="text-lg font-semibold text-gray-900">{typeLabel}</h3>
-                      </div>
-                      <div className="grid gap-3 px-4 pb-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-                        {items.map(activity => (
-                          <Card
-                            key={activity.farmActivitiesId ?? `${activity.activityType}-${activity.startDate}`}
-                            className="hover:shadow-md transition-all cursor-pointer"
-                            onClick={() => handleViewDetailsClick(activity)}
-                          >
-                            <CardContent className="p-4">
-                              <div className="flex items-start justify-between">
-                                <div className="space-y-3">
-                                  <p className="text-sm font-medium text-gray-900">
-                                    {formatDisplayDate(activity.startDate)} - {formatDisplayDate(activity.endDate)}
-                                  </p>
-                                  <div className="flex items-center gap-2">
-                                    {getStatusBadge(activity.status)}
+                  {groupedData.map(([typeKey, items]) => {
+                    const collapsed = collapsedSections[typeKey] ?? false
+                    const displayLabel = mapActivityTypeToLabelVi(typeKey)
+                    return (
+                      <div key={typeKey} className="space-y-3">
+                        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
+                          <div className="flex items-center gap-3">
+                            <button
+                              className="p-1 rounded hover:bg-gray-100"
+                              onClick={() => setCollapsedSections(prev => ({ ...prev, [typeKey]: !collapsed }))}
+                              aria-expanded={!collapsed}
+                            >
+                              {collapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+                            </button>
+                            <h3 className="text-lg font-semibold text-gray-900">{displayLabel}</h3>
+                            <span className="text-sm text-gray-500">({items.length})</span>
+                          </div>
+                        </div>
+                        {!collapsed && (
+                          <div className="grid gap-3 px-4 pb-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+                            {items.map(activity => (
+                              <Card
+                                key={activity.farmActivitiesId ?? `${activity.activityType}-${activity.startDate}`}
+                                className="hover:shadow-md transition-all cursor-pointer"
+                                onClick={() => handleViewDetailsClick(activity)}
+                              >
+                                <CardContent className="p-4">
+                                  <div className="flex items-start justify-between">
+                                    <div className="space-y-3">
+                                      <p className="text-sm font-medium text-gray-900">
+                                        {formatDisplayDate(activity.startDate)} - {formatDisplayDate(activity.endDate)}
+                                      </p>
+                                      <div className="flex items-center gap-2">
+                                        {getStatusBadge(activity.status)}
+                                      </div>
+                                    </div>
+                                    <div onClick={(e) => e.stopPropagation()}>
+                                      <ActivityActionMenu
+                                        activity={activity}
+                                        onView={handleViewDetailsClick}
+                                        onEdit={handleEditClick}
+                                        onToggleStatus={handleToggleStatus}
+                                      />
+                                    </div>
                                   </div>
-                                </div>
-                                <div onClick={(e) => e.stopPropagation()}>
-                                  <ActivityActionMenu
-                                    activity={activity}
-                                    onView={handleViewDetailsClick}
-                                    onEdit={handleEditClick}
-                                    onToggleStatus={handleToggleStatus}
-                                  />
-                                </div>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        ))}
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  ))}
-
-                  {totalPages > 1 && (
-                    <div className="px-4 pb-4">
-                      <Pagination currentPage={pageIndex} totalPages={totalPages} onPageChange={handlePageChange} />
-                    </div>
-                  )}
+                    )
+                  })}
                 </div>
               )}
             </CardContent>

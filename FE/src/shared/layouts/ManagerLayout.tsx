@@ -49,6 +49,12 @@ const navigationItems: NavItem[] = [
     description: 'Quản lý danh mục sản phẩm',
   },
   {
+    name: 'Thiết bị IoT',
+    href: '/manager/iot-devices',
+    icon: Cpu,
+    description: 'Quản lý thiết bị IoT & cảm biến',
+  },
+  {
     name: 'Cây trồng',
     href: '/manager/crop-management',
     icon: Wheat,
@@ -71,12 +77,6 @@ const navigationItems: NavItem[] = [
     href: '/manager/irrigation',
     icon: Calendar,
     description: 'Quản lý lịch tưới',
-  },
-  {
-    name: 'Thiết bị IoT',
-    href: '/manager/iot-devices',
-    icon: Cpu,
-    description: 'Quản lý thiết bị IoT & cảm biến',
   },
   {
     name: 'Bảng điều khiển IoT',

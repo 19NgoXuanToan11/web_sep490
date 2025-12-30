@@ -4,7 +4,7 @@ import { Sprout } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
 import type { CropRequirementView, PlantStage } from '@/shared/api/cropRequirementService'
 
-    const PLANT_STAGE_CONFIG: Record<PlantStage, { label: string; color: string; description: string }> = {
+const PLANT_STAGE_CONFIG: Record<PlantStage, { label: string; color: string; description: string }> = {
     Germination: {
         label: 'Gieo hạt',
         color: 'bg-blue-500',
@@ -58,13 +58,6 @@ export const CropGrowthStagesWidget: React.FC<CropGrowthStagesWidgetProps> = ({
         }
     }, [requirements])
 
-    const topStages = React.useMemo(() => {
-        return stageDistribution.stages
-            .filter((s) => s.count > 0)
-            .sort((a, b) => b.count - a.count)
-            .slice(0, 3)
-    }, [stageDistribution])
-
     return (
         <Card className={`border-0 shadow-lg bg-white ${className}`}>
             <CardHeader className="border-b border-gray-100">
@@ -110,7 +103,7 @@ export const CropGrowthStagesWidget: React.FC<CropGrowthStagesWidgetProps> = ({
                             </motion.div>
                         ))}
                     </div>
-                    
+
                     {stageDistribution.total === 0 && (
                         <div className="text-center py-8 text-gray-500">
                             <Sprout className="h-12 w-12 mx-auto mb-2 text-gray-400" />

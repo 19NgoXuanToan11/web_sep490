@@ -8,11 +8,7 @@ import { Label } from '@/shared/ui/label'
 import { Loader2, RefreshCw } from 'lucide-react'
 import { handleFetchError } from '@/shared/lib/error-handler'
 import { formatDate } from '@/shared/lib/date-utils'
-import FullCalendar from '@fullcalendar/react'
-import dayGridPlugin from '@fullcalendar/daygrid'
-import timeGridPlugin from '@fullcalendar/timegrid'
-import interactionPlugin from '@fullcalendar/interaction'
-import viLocale from '@fullcalendar/core/locales/vi'
+import CalendarShell from '@/components/Calendar'
 
 interface StaffScheduleBoardProps {
     className?: string
@@ -97,15 +93,14 @@ export function StaffScheduleBoard({ className }: StaffScheduleBoardProps) {
                 start,
                 end,
                 allDay: true,
-                backgroundColor: color,
-                borderColor: color,
-                extendedProps: { original: s },
+                color,
+                raw: s,
             }
         })
     }, [filteredSchedules])
 
     const handleEventClick = (arg: any) => {
-        const original: ScheduleListItem | undefined = arg.event.extendedProps?.original
+        const original: ScheduleListItem | undefined = arg as any
         if (!original) return
         toast({
             title: original.farmView?.farmName ?? `Nông trại #${original.farmId}`,
@@ -156,18 +151,22 @@ export function StaffScheduleBoard({ className }: StaffScheduleBoardProps) {
             </CardHeader>
             <CardContent>
                 <div>
-                    <FullCalendar
-                        plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-                        initialView="dayGridMonth"
-                        headerToolbar={{
-                            left: 'prev,next today',
-                            center: 'title',
-                            right: 'dayGridMonth,timeGridWeek,timeGridDay',
-                        }}
-                        locale={viLocale}
+                    <CalendarShell
                         events={events}
-                        eventClick={handleEventClick}
-                        height="auto"
+                        onEventClick={(raw) => {
+                            handleEventClick(raw)
+                        }}
+                        onDayClick={(_date, dayEvents) => {
+                            if (!dayEvents || dayEvents.length === 0) {
+                                toast({ title: 'Không có hoạt động trong ngày này' })
+                                return
+                            }
+                            const titles = dayEvents.map((e: any) => e.title ?? e.cropView?.cropName ?? 'Hoạt động').slice(0, 5)
+                            toast({
+                                title: `Hoạt động trong ngày (${dayEvents.length})`,
+                                description: titles.join('\n'),
+                            })
+                        }}
                     />
                 </div>
                 {loading && (

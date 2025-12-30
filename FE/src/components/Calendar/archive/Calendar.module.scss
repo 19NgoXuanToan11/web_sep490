@@ -47,6 +47,41 @@
   color: #334155;
 }
 
+.navBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 8px;
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  color: #374151;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(2, 6, 23, 0.04);
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease,
+    background 0.12s ease,
+    color 0.12s ease;
+}
+.navBtn svg {
+  display: block;
+  color: inherit;
+}
+.navBtn:hover {
+  transform: translateY(-2px);
+  background: #f8fafc;
+  box-shadow: 0 8px 20px rgba(2, 6, 23, 0.06);
+  color: #0f172a;
+}
+.navBtn:active {
+  transform: translateY(0);
+  background: #eef2f7;
+  box-shadow: 0 4px 12px rgba(2, 6, 23, 0.06);
+}
+
 .label {
   font-size: 18px;
   font-weight: 700;
@@ -91,7 +126,7 @@
   font-weight: 600;
   color: #374151;
 }
-.today {      
+.today {
   box-shadow:
     0 6px 18px rgba(51, 65, 85, 0.06),
     inset 0 0 0 2px rgba(51, 65, 85, 0.04);

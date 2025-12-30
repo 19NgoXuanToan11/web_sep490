@@ -234,7 +234,6 @@ const ProductRow = React.memo(
                     Thay đổi trạng thái
                   </DropdownMenuItem>
                 )}
-                {/* Quantity updates removed from staff UI per business flow */}
               </DropdownMenuContent>
             </DropdownMenu>
           </TableCell>

@@ -78,7 +78,6 @@ const StaffSchedulesPage: React.FC = () => {
     const { toast } = useToast()
     const [schedules, setSchedules] = useState<DisplaySchedule[]>([])
     const [loading, setLoading] = useState(true)
-    const [isRefreshing, setIsRefreshing] = useState(false)
     const [pageIndex, setPageIndex] = useState(1)
     const [pageSize] = useState(10)
 
@@ -134,15 +133,7 @@ const StaffSchedulesPage: React.FC = () => {
         setPageIndex(1)
     }, [schedules])
 
-    const handleRefresh = async () => {
-        setIsRefreshing(true)
-        await fetchSchedules()
-        setIsRefreshing(false)
-        toast({
-            title: 'Dữ liệu đã được cập nhật',
-            description: 'Thông tin lịch làm việc đã được làm mới.',
-        })
-    }
+
 
     const [isCompleting, setIsCompleting] = useState(false)
     const [isConfirmCompleteOpen, setIsConfirmCompleteOpen] = useState(false)
@@ -296,17 +287,6 @@ const StaffSchedulesPage: React.FC = () => {
                     className="mb-8"
                     title="Quản lý lịch làm việc"
                     description="Xem và quản lý lịch làm việc được giao cho bạn"
-                    actions={
-                        <Button
-                            variant="outline"
-                            onClick={handleRefresh}
-                            disabled={isRefreshing}
-                            className="flex items-center gap-2"
-                        >
-                            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-                            Làm mới
-                        </Button>
-                    }
                 />
 
                 <div className="mb-6">

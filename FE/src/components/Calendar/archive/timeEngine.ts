@@ -103,3 +103,5 @@ export function formatTimeRange(start?: Date | null, end?: Date | null) {
   if (!start || !end) return ''
   return `${format(start, 'HH:mm')} - ${format(end, 'HH:mm')}`
 }
+
+

@@ -891,7 +891,10 @@ export default function FarmActivitiesPage() {
               <Button
                 variant="outline"
                 onClick={() => setShowLatestOnly(prev => !prev)}
-                className={`flex items-center gap-2 ${showLatestOnly ? 'bg-green-600 hover:bg-green-700 text-white' : ''}`}
+                className={`flex items-center gap-2 px-3 py-2 rounded-md transition duration-200 ease-out focus:outline-none ${showLatestOnly
+                  ? 'bg-green-600 text-white hover:bg-green-700 hover:shadow-lg hover:ring-2 hover:ring-green-200 hover:text-white'
+                  : 'bg-white border border-gray-200 text-black hover:bg-green-50 hover:shadow-md hover:text-white hover:bg-green-600 hover:ring-1 hover:ring-green-100'
+                  }`}
               >
                 {showLatestOnly ? 'Chỉ mục mới nhất mỗi loại' : 'Toàn bộ hoạt động'}
               </Button>
@@ -900,25 +903,65 @@ export default function FarmActivitiesPage() {
               </Button>
             </div>
           </StaffFilterBar>
-          <div className="flex items-center gap-2">
-            <button
-              className={`px-3 py-2 rounded ${activeTab === 'ACTIVE' ? 'bg-green-600 text-white' : 'bg-white border'}`}
-              onClick={() => setActiveTab('ACTIVE')}
-            >
-              Đang chạy ({processedByTab.ACTIVE ? processedByTab.ACTIVE.length : 0})
-            </button>
-            <button
-              className={`px-3 py-2 rounded ${activeTab === 'UPCOMING' ? 'bg-green-600 text-white' : 'bg-white border'}`}
-              onClick={() => setActiveTab('UPCOMING')}
-            >
-              Sắp tới ({processedByTab.UPCOMING ? processedByTab.UPCOMING.length : 0})
-            </button>
-            <button
-              className={`px-3 py-2 rounded ${activeTab === 'COMPLETED' ? 'bg-green-600 text-white' : 'bg-white border'}`}
-              onClick={() => setActiveTab('COMPLETED')}
-            >
-              Hoàn thành ({processedByTab.COMPLETED ? processedByTab.COMPLETED.length : 0})
-            </button>
+          <div className="flex items-center gap-2" role="tablist" aria-label="Activity tabs">
+            <div className="inline-flex items-center gap-3 bg-white/60 backdrop-blur-sm border border-gray-100 rounded-xl shadow-sm p-2">
+              <button
+                role="tab"
+                aria-selected={activeTab === 'ACTIVE'}
+                onClick={() => setActiveTab('ACTIVE')}
+                title="Hoạt động"
+                className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-400 ${activeTab === 'ACTIVE'
+                  ? 'bg-gradient-to-r from-emerald-700 to-green-600 text-white shadow-md'
+                  : 'bg-white/60 text-gray-700 hover:shadow-sm'
+                  }`}
+              >
+                <span className="ml-1">Hoạt động</span>
+                <span
+                  className={`ml-3 inline-flex items-center justify-center px-3 py-0.5 rounded-full text-xs font-semibold ${activeTab === 'ACTIVE' ? 'bg-white/20' : 'bg-gray-100 text-gray-800'
+                    }`}
+                >
+                  {processedByTab.ACTIVE ? processedByTab.ACTIVE.length : 0}
+                </span>
+              </button>
+
+              <button
+                role="tab"
+                aria-selected={activeTab === 'UPCOMING'}
+                onClick={() => setActiveTab('UPCOMING')}
+                title="Sắp tới"
+                className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-400 ${activeTab === 'UPCOMING'
+                  ? 'bg-gradient-to-r from-emerald-700 to-green-600 text-white shadow-md'
+                  : 'bg-white/60 text-gray-700 hover:shadow-sm'
+                  }`}
+              >
+                <span className="ml-1">Sắp tới</span>
+                <span
+                  className={`ml-3 inline-flex items-center justify-center px-3 py-0.5 rounded-full text-xs font-semibold ${activeTab === 'UPCOMING' ? 'bg-white/20' : 'bg-gray-100 text-gray-800'
+                    }`}
+                >
+                  {processedByTab.UPCOMING ? processedByTab.UPCOMING.length : 0}
+                </span>
+              </button>
+
+              <button
+                role="tab"
+                aria-selected={activeTab === 'COMPLETED'}
+                onClick={() => setActiveTab('COMPLETED')}
+                title="Hoàn thành"
+                className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-400 ${activeTab === 'COMPLETED'
+                  ? 'bg-gradient-to-r from-emerald-700 to-green-600 text-white shadow-md'
+                  : 'bg-white/60 text-gray-700 hover:shadow-sm'
+                  }`}
+              >
+                <span className="ml-1">Hoàn thành</span>
+                <span
+                  className={`ml-3 inline-flex items-center justify-center px-3 py-0.5 rounded-full text-xs font-semibold ${activeTab === 'COMPLETED' ? 'bg-white/20' : 'bg-gray-100 text-gray-800'
+                    }`}
+                >
+                  {processedByTab.COMPLETED ? processedByTab.COMPLETED.length : 0}
+                </span>
+              </button>
+            </div>
           </div>
 
           <Card>
@@ -974,13 +1017,13 @@ export default function FarmActivitiesPage() {
                             {items.map(activity => (
                               <Card
                                 key={activity.farmActivitiesId ?? `${activity.activityType}-${activity.startDate}`}
-                                className="hover:shadow-md transition-all cursor-pointer"
+                                className="group transition-all cursor-pointer transform hover:-translate-y-1 hover:shadow-lg"
                                 onClick={() => handleViewDetailsClick(activity)}
                               >
                                 <CardContent className="p-4">
                                   <div className="flex items-start justify-between">
                                     <div className="space-y-3">
-                                      <p className="text-sm font-medium text-gray-900">
+                                      <p className="text-sm font-medium text-gray-900 group-hover:text-green-700 transition-colors">
                                         {formatDisplayDate(activity.startDate)} - {formatDisplayDate(activity.endDate)}
                                       </p>
                                       <div className="flex items-center gap-2">

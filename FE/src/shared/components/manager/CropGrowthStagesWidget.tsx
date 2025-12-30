@@ -110,36 +110,7 @@ export const CropGrowthStagesWidget: React.FC<CropGrowthStagesWidgetProps> = ({
                             </motion.div>
                         ))}
                     </div>
-
-                    {topStages.length > 0 && (
-                        <div className="pt-4 border-t border-gray-100">
-                            <div className="flex items-center gap-2 mb-3">
-                                <span className="text-sm font-semibold text-gray-700">
-                                    Giai đoạn phổ biến
-                                </span>
-                            </div>
-                            <div className="grid grid-cols-3 gap-3">
-                                {topStages.map((stage, index) => (
-                                    <motion.div
-                                        key={stage.stage}
-                                        className="p-3 rounded-lg bg-gray-50 border border-gray-200"
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: 0.3 + index * 0.1 }}
-                                    >
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <span className="text-xs font-medium text-gray-700 truncate">
-                                                {stage.config.label}
-                                            </span>
-                                        </div>
-                                        <div className="text-lg font-bold text-gray-900">{stage.count}</div>
-                                        <div className="text-xs text-gray-500">lô đang hoạt động</div>
-                                    </motion.div>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
+                    
                     {stageDistribution.total === 0 && (
                         <div className="text-center py-8 text-gray-500">
                             <Sprout className="h-12 w-12 mx-auto mb-2 text-gray-400" />

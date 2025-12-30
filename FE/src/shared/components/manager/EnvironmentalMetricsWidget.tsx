@@ -153,7 +153,7 @@ export const EnvironmentalMetricsWidget: React.FC<EnvironmentalMetricsWidgetProp
 
         return (
             <motion.div
-                className={`p-4 rounded-lg border-2 ${config.border} hover:shadow-md transition-all`}
+                className={`p-4 rounded-lg ${config.bg} hover:shadow-md transition-all`}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 whileHover={{ scale: 1.02 }}

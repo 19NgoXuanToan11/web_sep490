@@ -13,6 +13,8 @@ const badgeVariants = cva(
           'border-slate-200 bg-gradient-to-r from-slate-50 to-slate-100 text-slate-700 hover:from-slate-100 hover:to-slate-200 shadow-slate-500/10',
         teal:
           'border-transparent bg-gradient-to-r from-teal-400 to-emerald-500 text-white hover:from-teal-500 hover:to-emerald-600 shadow-teal-500/20',
+        sage:
+          'border-transparent bg-[#E0F2FE] text-[#0369A1] hover:bg-[#CFEFFD] shadow-[#0369A1]/10 border border-[#D1EEFF]',
         destructive:
           'border-transparent bg-[#8B0000] text-white hover:bg-[#7B0000] shadow-[#8B0000]/25',
         outline: 'text-foreground border-slate-300',

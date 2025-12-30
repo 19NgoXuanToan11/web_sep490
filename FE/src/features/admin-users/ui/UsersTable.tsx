@@ -48,7 +48,7 @@ export const UsersTable: React.FC<UsersTableProps> = ({
     const roleConfig = availableRoles.find(r => r.value === role)
     return (
       <Badge
-        variant={role === 'CUSTOMER' ? 'default' : role === 'MANAGER' ? 'golden' : 'destructive'}
+        variant={role === 'CUSTOMER' ? 'secondary' : role === 'MANAGER' ? 'golden' : 'sage'}
         className="text-xs"
       >
         {roleConfig?.label || role}

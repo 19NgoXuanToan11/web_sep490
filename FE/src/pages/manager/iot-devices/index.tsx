@@ -326,7 +326,7 @@ const ManagerIoTDevicesPage: React.FC = () => {
             }
           />
 
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
@@ -369,22 +369,6 @@ const ManagerIoTDevicesPage: React.FC = () => {
                 </div>
                 <p className="text-xs text-gray-500 mt-2">
                   Thiết bị chưa cấu hình hoặc đang tạm dừng
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-500">Cần kiểm tra</p>
-                    <p className="text-2xl font-semibold mt-1 text-orange-600">
-                      {computedStats.maintenance + computedStats.error}
-                    </p>
-                  </div>
-                </div>
-                <p className="text-xs text-gray-500 mt-2">
-                  Gồm {computedStats.maintenance} đang bảo trì và {computedStats.error} lỗi
                 </p>
               </CardContent>
             </Card>

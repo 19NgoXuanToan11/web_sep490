@@ -118,17 +118,7 @@ interface MetricCardProps {
 }
 
 const MetricCard = React.memo<MetricCardProps>(
-  ({ title, value, change, changeType = 'increase', description, color = 'green', onClick }) => {
-    const colorClasses = {
-      green: 'from-green-500 to-green-600',
-      'green-light': 'from-green-400 to-green-500',
-      'green-medium': 'from-green-600 to-green-700',
-      'green-dark': 'from-green-700 to-green-800',
-      purple: 'from-purple-500 to-purple-600',
-      blue: 'from-blue-500 to-blue-600',
-      orange: 'from-orange-500 to-orange-600',
-    }
-
+  ({ title, value, change, changeType = 'increase', description, onClick }) => {
     const ChangeIcon = changeType === 'increase' ? ArrowUpRight : ArrowDownRight
 
     return (
@@ -139,7 +129,6 @@ const MetricCard = React.memo<MetricCardProps>(
         className={onClick ? 'cursor-pointer' : ''}
       >
         <Card className="relative overflow-hidden border-0 shadow-lg bg-white h-full">
-          <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${colorClasses[color]}`} />
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-600">{title}</CardTitle>
           </CardHeader>
@@ -292,7 +281,7 @@ export default function ManagerDashboard() {
   }, [])
 
   const cropStats = useMemo(() => {
-    const active = crops.filter(crop => crop.status?.toLowerCase() === 'active').length 
+    const active = crops.filter(crop => crop.status?.toLowerCase() === 'active').length
     const nearingHarvest = 0
 
     return {
@@ -631,9 +620,6 @@ export default function ManagerDashboard() {
             <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
               Theo dõi cây trồng
             </h2>
-            <p className="text-gray-600 mt-1">
-              Phân tích chi tiết về giai đoạn tăng trưởng và chỉ số môi trường
-            </p>
           </div>
 
           <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-1 mb-6">

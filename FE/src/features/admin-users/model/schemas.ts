@@ -65,10 +65,10 @@ export const availableRoles: { value: UserRole; label: string; description: stri
 export const statusOptions: {
   value: UserStatus
   label: string
-  variant: 'default' | 'secondary'
+  variant: 'default' | 'secondary' | 'destructive'
 }[] = [
   { value: 'Active', label: 'Hoạt động', variant: 'default' },
-  { value: 'Inactive', label: 'Ngưng hoạt động', variant: 'secondary' },
+  { value: 'Inactive', label: 'Ngưng hoạt động', variant: 'destructive' },
 ]
 
 export const genderOptions: {

@@ -136,7 +136,7 @@ const AdminDashboard: React.FC = () => {
       if (farmsResult.status === 'fulfilled') {
         const farms = Array.isArray(farmsResult.value) ? farmsResult.value : []
         totalFarms = farms.length
-        activeFarms = farms.length 
+        activeFarms = farms.length
       }
 
       let totalDevices = 0
@@ -144,7 +144,13 @@ const AdminDashboard: React.FC = () => {
       if (devicesResult.status === 'fulfilled') {
         const devices = devicesResult.value.items || []
         totalDevices = devices.length
-        onlineDevices = devices.filter(d => d.status === 1 || d.status === '1').length
+        onlineDevices = devices.filter(d => {
+          const s = d.status
+          if (s === undefined || s === null) return false
+          if (typeof s === 'number') return s === 1
+          const normalized = String(s).toUpperCase()
+          return normalized === '1' || normalized === 'ACTIVE'
+        }).length
       }
 
       let totalOrders = 0

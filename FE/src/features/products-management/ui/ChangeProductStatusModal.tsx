@@ -23,7 +23,6 @@ export function ChangeProductStatusModal({ isOpen, onClose, product }: ChangePro
 
   const currentStatus = product.status
   const newStatus = currentStatus === 'Active' ? 'Inactive' : 'Active'
-  const statusText = newStatus === 'Active' ? 'kích hoạt' : 'vô hiệu hóa'
 
   const handleConfirm = async () => {
     try {

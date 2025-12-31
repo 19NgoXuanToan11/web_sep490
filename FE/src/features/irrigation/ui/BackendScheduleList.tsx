@@ -10,13 +10,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/shared/ui/badge'
 import { Pagination } from '@/shared/ui/pagination'
 import { cn } from '@/shared/lib/utils'
-import { Loader2, MoreHorizontal, RefreshCw, Search, Settings } from 'lucide-react'
+import { Loader2, MoreHorizontal, RefreshCw, Search, Settings, Edit } from 'lucide-react'
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/shared/ui/dropdown-menu'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/ui/tabs'
+import { scheduleLogService, type ScheduleLogItem } from '@/shared/api/scheduleLogService'
 import ThresholdPanel from '@/features/thresholds/ThresholdPanel'
 import { farmService } from '@/shared/api/farmService'
 import { cropService } from '@/shared/api/cropService'
@@ -130,6 +132,138 @@ const getDiseaseSelectValue = (value: number | null | undefined): string => {
     return String(value)
 }
 
+function ScheduleLogPanel({ scheduleId, onEdit, registerUpdater }: { scheduleId: number; onEdit: (log: ScheduleLogItem) => void; registerUpdater?: (fn: (item: ScheduleLogItem | { id: number }, mode: 'create' | 'update' | 'delete') => void) => void }) {
+    const { toast } = useToast()
+    const [logs, setLogs] = useState<ScheduleLogItem[]>([])
+    const [page, setPage] = useState(1)
+    const [hasMore, setHasMore] = useState(true)
+    const [loading, setLoading] = useState(false)
+    const [total, setTotal] = useState<number | null>(null)
+
+    const PAGE_SIZE = 5
+    const containerRef = React.useRef<HTMLDivElement | null>(null)
+    const loadingRef = React.useRef(false)
+
+    const safeFormat = (iso?: string) => {
+        if (!iso) return '—'
+        const d = new Date(iso)
+        if (Number.isNaN(d.getTime())) return '—'
+        const hh = String(d.getHours()).padStart(2, '0')
+        const mm = String(d.getMinutes()).padStart(2, '0')
+        const dd = String(d.getDate()).padStart(2, '0')
+        const mmth = String(d.getMonth() + 1).padStart(2, '0')
+        const yyyy = String(d.getFullYear())
+        return `${hh}:${mm} • ${dd}/${mmth}/${yyyy}`
+    }
+
+    const load = useCallback(async (p = 1) => {
+        setLoading(true)
+        loadingRef.current = true
+        try {
+            const data = await scheduleLogService.getLogsBySchedule(scheduleId, p, PAGE_SIZE)
+            if (p === 1) {
+                setLogs(data.items || [])
+            } else {
+                setLogs(prev => [...prev, ...(data.items || [])])
+            }
+            const more = (data.pageIndex || 0) < (data.totalPagesCount || 1)
+            setHasMore(more)
+            setPage(p)
+            setTotal(data.totalItemCount ?? 0)
+        } catch {
+            toast({ title: 'Không thể tải nhật ký', variant: 'destructive' })
+        } finally {
+            setLoading(false)
+            loadingRef.current = false
+        }
+    }, [scheduleId, toast])
+
+    useEffect(() => {
+        if (!scheduleId) return
+        load(1)
+    }, [scheduleId, load])
+
+    useEffect(() => {
+        if (!registerUpdater) return
+        const fn = (item: ScheduleLogItem | { id: number }, mode: 'create' | 'update' | 'delete') => {
+            if (mode === 'create') {
+                const el = containerRef.current
+                const prevSH = el?.scrollHeight || 0
+                const prevST = el?.scrollTop || 0
+                setLogs(prev => [item as ScheduleLogItem, ...prev])
+                setTimeout(() => {
+                    const newSH = el?.scrollHeight || 0
+                    if (el) el.scrollTop = prevST + (newSH - prevSH)
+                }, 0)
+                return
+            }
+            if (mode === 'update') {
+                const it = item as ScheduleLogItem
+                setLogs(prev => prev.map(p => (p.id === it.id ? it : p)))
+                return
+            }
+            if (mode === 'delete') {
+                const it = item as { id: number }
+                setLogs(prev => prev.filter(p => p.id !== it.id))
+                return
+            }
+        }
+        registerUpdater(fn)
+    }, [registerUpdater])
+
+    const isEmptyState = (total === 0 && logs.length === 0)
+
+    return (
+        <div>
+            {isEmptyState ? (
+                <div className="py-6 text-center text-muted-foreground">Không có ghi nhận</div>
+            ) : (
+                <>
+                    <div
+                        className="space-y-2 max-h-[360px] overflow-y-auto"
+                        ref={containerRef}
+                        onScroll={() => {
+                            const el = containerRef.current
+                            if (!el) return
+                            const threshold = 200
+                            if (el.scrollHeight - el.scrollTop - el.clientHeight < threshold) {
+                                if (!loadingRef.current && hasMore) {
+                                    load(page + 1)
+                                }
+                            }
+                        }}
+                    >
+                        {logs.map(l => {
+                            const ts = l.updatedAt ?? l.createdAt
+                            return (
+                                <div key={l.id} className="p-3 border rounded-md flex items-start justify-between">
+                                    <div className="min-w-0">
+                                        <div className="text-xs text-muted-foreground">{safeFormat(ts)}</div>
+                                        <div className="font-medium truncate">{(l.notes || '').split('\n')[0]}</div>
+                                        <div className="text-xs text-muted-foreground mt-1">Bởi: {l.updatedBy ?? l.createdBy ?? 'Hệ thống'}</div>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <Button size="sm" variant="outline" onClick={() => onEdit(l)}><Edit className="h-4 w-4" /></Button>
+                                    </div>
+                                </div>
+                            )
+                        })}
+                    </div>
+                    <div className="mt-3 text-center">
+                        {loading ? (
+                            <Loader2 className="h-5 w-5 animate-spin text-muted-foreground mx-auto" />
+                        ) : hasMore ? (
+                            <div className="text-xs text-muted-foreground">Kéo xuống để xem thêm</div>
+                        ) : (
+                            <div className="text-xs text-muted-foreground">Đã xem hết ghi nhận</div>
+                        )}
+                    </div>
+                </>
+            )}
+        </div>
+    )
+}
+
 const diseaseEnumMap: Record<string, number> = {
     DownyMildew: 0,
     PowderyMildew: 1,
@@ -178,6 +312,8 @@ interface ScheduleActionMenuProps {
     onEdit: (schedule: ScheduleListItem) => void
     onAssignStaff: (schedule: ScheduleListItem) => void
     onUpdateStatus: (schedule: ScheduleListItem, nextStatus: ScheduleStatusString) => void
+    onViewLogs?: (schedule: ScheduleListItem) => void
+    onAddLog?: (schedule: ScheduleListItem) => void
     actionLoading: { [key: string]: boolean }
 }
 
@@ -187,12 +323,15 @@ const ScheduleActionMenu: React.FC<ScheduleActionMenuProps> = React.memo(({
     onEdit,
     onAssignStaff,
     onUpdateStatus,
+    onViewLogs,
+    onAddLog,
     actionLoading,
 }) => {
     const [open, setOpen] = useState(false)
     const isLoading = actionLoading[`detail-${schedule.scheduleId}`] ||
         actionLoading[`edit-${schedule.scheduleId}`] ||
         actionLoading[`status-${schedule.scheduleId}`]
+
 
     const handleView = useCallback(
         (e: React.MouseEvent) => {
@@ -269,6 +408,53 @@ const ScheduleActionMenu: React.FC<ScheduleActionMenuProps> = React.memo(({
                 onCloseAutoFocus={(e) => e.preventDefault()}
             >
                 <DropdownMenuItem
+                    onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        setOpen(false)
+                        setTimeout(() => {
+                            if (typeof (onViewLogs as any) === 'function') {
+                                (onViewLogs as any)(schedule)
+                            } else {
+                                onView(schedule)
+                            }
+                        }, 0)
+                    }}
+                    className="cursor-pointer focus:bg-gray-100"
+                    onSelect={(e) => e.preventDefault()}
+                    disabled={actionLoading[`detail-${schedule.scheduleId}`]}
+                >
+                    <span className="flex items-center gap-2">Xem Nhật ký</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                    onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        setOpen(false)
+                        setTimeout(() => {
+                            if (typeof (onAddLog as any) === 'function') {
+                                (onAddLog as any)(schedule)
+                            } else {
+                                onEdit(schedule)
+                            }
+                        }, 0)
+                    }}
+                    className="cursor-pointer focus:bg-gray-100"
+                    onSelect={(e) => e.preventDefault()}
+                >
+                    <span className="flex items-center gap-2">Thêm Ghi nhận</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                    onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        setOpen(false)
+                    }}
+                    className="cursor-pointer focus:bg-gray-100"
+                    onSelect={(e) => e.preventDefault()}
+                >
+                </DropdownMenuItem>
+                <DropdownMenuItem
                     onClick={handleView}
                     className="cursor-pointer focus:bg-gray-100"
                     onSelect={(e) => e.preventDefault()}
@@ -342,6 +528,7 @@ export function BackendScheduleList({
     const setFilteredItems = onFilteredItemsChange ?? setInternalFilteredItems
 
     const [showDetail, setShowDetail] = useState(false)
+    const [detailActiveTab, setDetailActiveTab] = useState<'info' | 'logs'>('info')
     const [showEdit, setShowEdit] = useState(false)
     const [showAssignStaff, setShowAssignStaff] = useState(false)
     const [showUpdateStageModal, setShowUpdateStageModal] = useState(false)
@@ -352,6 +539,10 @@ export function BackendScheduleList({
     const [editDetailActivityType, setEditDetailActivityType] = useState<string | null>(null)
     const [assignStaffId, setAssignStaffId] = useState<number>(0)
     const [actionLoading, setActionLoading] = useState<{ [key: string]: boolean }>({})
+    const [showLogModal, setShowLogModal] = useState(false)
+    const [logModalMode, setLogModalMode] = useState<'create' | 'edit'>('create')
+    const [editingLog, setEditingLog] = useState<ScheduleLogItem | null>(null)
+    const externalLogUpdaterRef = useRef<((item: ScheduleLogItem | { id: number }, mode: 'create' | 'update' | 'delete') => void) | null>(null)
     const [editingScheduleId, setEditingScheduleId] = useState<number | null>(null)
     const [editLoading, setEditLoading] = useState(false)
     const [customToday, setCustomToday] = useState<string>('')
@@ -762,6 +953,7 @@ export function BackendScheduleList({
             const normalized = { ...(res.data || {}), diseaseStatus: parseDiseaseStatus((res.data as any)?.diseaseStatus) }
             setScheduleDetail(normalized)
             setSelectedSchedule(schedule)
+            setDetailActiveTab('info')
             setShowDetail(true)
         } catch (e) {
             const normalized = normalizeError(e)
@@ -770,6 +962,18 @@ export function BackendScheduleList({
         } finally {
             setActionLoading({ [`detail-${schedule.scheduleId}`]: false })
         }
+    }
+
+    const handleViewDetailWithTab = async (schedule: ScheduleListItem, tab: 'info' | 'logs') => {
+        await handleViewDetail(schedule)
+        setDetailActiveTab(tab)
+    }
+
+    const openCreateLogForSchedule = (schedule: ScheduleListItem) => {
+        setSelectedSchedule(schedule)
+        setLogModalMode('create')
+        setEditingLog(null)
+        setShowLogModal(true)
     }
 
     useEffect(() => {
@@ -1026,15 +1230,17 @@ export function BackendScheduleList({
         if (!ensureScheduleValidity(editForm, selectedSchedule.scheduleId)) return
         setActionLoading({ [`update-${selectedSchedule.scheduleId}`]: true })
         try {
-            await scheduleService.updateSchedule(selectedSchedule.scheduleId, editForm)
-            toast({ title: 'Cập nhật lịch thành công', variant: 'success' })
+            const response = await scheduleService.updateSchedule(selectedSchedule.scheduleId, editForm)
+            if (response?.message) {
+                toast({ title: response.message })
+            }
             handleEditDialogChange(false)
             await load()
             await loadAllSchedules()
-        } catch (e) {
-            const normalized = normalizeError(e)
-            const display = normalized.backendMessage ?? mapErrorToVietnamese(e).vietnamese
-            toast({ title: 'Cập nhật lịch thất bại', description: display, variant: 'destructive' })
+        } catch (e: any) {
+            if (e?.message) {
+                toast({ title: e.message, variant: 'destructive' })
+            }
         } finally {
             setActionLoading({ [`update-${selectedSchedule.scheduleId}`]: false })
         }
@@ -1045,15 +1251,17 @@ export function BackendScheduleList({
         if (!selectedSchedule?.scheduleId || !assignStaffId) return
         setActionLoading({ [`assign-${selectedSchedule.scheduleId}`]: true })
         try {
-            await scheduleService.assignStaff(selectedSchedule.scheduleId, assignStaffId)
-            toast({ title: 'Phân công nhân viên thành công', variant: 'success' })
+            const response = await scheduleService.assignStaff(selectedSchedule.scheduleId, assignStaffId)
+            if (response?.message) {
+                toast({ title: response.message })
+            }
             handleAssignStaffDialogChange(false)
             await load()
             await loadAllSchedules()
-        } catch (e) {
-            const normalized = normalizeError(e)
-            const display = normalized.backendMessage ?? mapErrorToVietnamese(e).vietnamese
-            toast({ title: 'Phân công nhân viên thất bại', description: display, variant: 'destructive' })
+        } catch (e: any) {
+            if (e?.message) {
+                toast({ title: e.message, variant: 'destructive' })
+            }
         } finally {
             setActionLoading({ [`assign-${selectedSchedule.scheduleId}`]: false })
         }
@@ -1063,18 +1271,20 @@ export function BackendScheduleList({
         if (!schedule.scheduleId) return
         setActionLoading({ [`status-${schedule.scheduleId}`]: true })
         try {
-            await scheduleService.updateScheduleStatus(schedule.scheduleId, nextStatus)
-            toast({ title: 'Cập nhật trạng thái lịch thành công', variant: 'success' })
+            const response = await scheduleService.updateScheduleStatus(schedule.scheduleId, nextStatus)
+            if (response?.message) {
+                toast({ title: response.message })
+            }
             if (showDetail && scheduleDetail?.scheduleId === schedule.scheduleId) {
                 const res = await scheduleService.getScheduleById(schedule.scheduleId)
                 setScheduleDetail(res.data)
             }
             await load()
             await loadAllSchedules()
-        } catch (e) {
-            const normalized = normalizeError(e)
-            const display = normalized.backendMessage ?? mapErrorToVietnamese(e).vietnamese
-            toast({ title: 'Cập nhật trạng thái thất bại', description: display, variant: 'destructive' })
+        } catch (e: any) {
+            if (e?.message) {
+                toast({ title: e.message, variant: 'destructive' })
+            }
         } finally {
             setActionLoading({ [`status-${schedule.scheduleId}`]: false })
         }
@@ -1244,6 +1454,8 @@ export function BackendScheduleList({
                                                                         schedule={schedule}
                                                                         onView={handleViewDetail}
                                                                         onEdit={handleEdit}
+                                                                        onViewLogs={(s) => handleViewDetailWithTab(s, 'logs')}
+                                                                        onAddLog={(s) => openCreateLogForSchedule(s)}
                                                                         onAssignStaff={(s) => {
                                                                             setSelectedSchedule(s)
                                                                             handleAssignStaffDialogChange(true)
@@ -1451,185 +1663,309 @@ export function BackendScheduleList({
                         )}
                     </DialogHeader>
                     {scheduleDetail && (
-                        <div className={`grid grid-cols-1 ${showThresholdInline ? 'lg:grid-cols-[1fr_360px]' : 'lg:grid-cols-1'} gap-6`}>
-                            <div className="space-y-6">
-                                <div>
-                                    <h3 className="text-lg font-semibold mb-3">Thông tin cơ bản</h3>
-                                    <div className="grid grid-cols-2 gap-4">
-                                        <div><strong>Ngày bắt đầu:</strong> {formatDate(scheduleDetail.startDate)}</div>
-                                        <div><strong>Ngày kết thúc:</strong> {formatDate(scheduleDetail.endDate)}</div>
-                <div>
-                    <strong>Trạng thái:</strong>{' '}
-                    <Badge variant={isActiveStatus(scheduleDetail.status) ? 'golden' : 'destructive'}>
-                        {getStatusLabel(scheduleDetail.status)}
-                    </Badge>
-                </div>
-                                        <div><strong>Thuốc BVTV:</strong> {scheduleDetail.pesticideUsed ? 'Có' : 'Không'}</div>
-                                        <div><strong>Tình trạng bệnh:</strong> {getDiseaseLabel(scheduleDetail.diseaseStatus)}</div>
-                                        <div>
-                                            <strong>Giai đoạn hiện tại:</strong>{' '}
-                                            {scheduleDetail.currentPlantStage
-                                                ? translatePlantStage(scheduleDetail.currentPlantStage)
-                                                : scheduleDetail.cropView?.plantStage
-                                                    ? translatePlantStage(scheduleDetail.cropView.plantStage)
-                                                    : '-'}
-                                        </div>
-                                        <div>
-                                            <strong>Tạo lúc:</strong>{' '}
-                                            {scheduleDetail.createdAt ? formatDate(scheduleDetail.createdAt) : '-'}
-                                        </div>
-                                    </div>
-                                </div>
+                        <div>
+                            <Tabs value={detailActiveTab} onValueChange={(v) => setDetailActiveTab(v as any)}>
+                                <TabsList>
+                                    <TabsTrigger value="info">Thông tin</TabsTrigger>
+                                    <TabsTrigger value="logs">Nhật ký</TabsTrigger>
+                                </TabsList>
 
-                                {scheduleDetail.staff && (
-                                    <div>
-                                        <h3 className="text-lg font-semibold mb-3">Thông tin nhân viên</h3>
-                                        <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
-                                            <div><strong>Họ tên:</strong> {scheduleDetail.staff.fullname ?? scheduleDetail.staffName ?? '-'}</div>
-                                            <div><strong>Số điện thoại:</strong> {scheduleDetail.staff.phone ?? '-'}</div>
-                                            {scheduleDetail.staff.email && (
-                                                <div><strong>Email:</strong> {scheduleDetail.staff.email}</div>
-                                            )}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {scheduleDetail.farmView && (
-                                    <div>
-                                        <h3 className="text-lg font-semibold mb-3">Thông tin nông trại</h3>
-                                        <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
-                                            <div><strong>Tên nông trại:</strong> {scheduleDetail.farmView.farmName ?? `#${scheduleDetail.farmView.farmId}`}</div>
-                                            <div><strong>Địa điểm:</strong> {scheduleDetail.farmView.location ?? '-'}</div>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {scheduleDetail.cropView && (
-                                    <div>
-                                        <h3 className="text-lg font-semibold mb-3">Thông tin cây trồng</h3>
-                                        <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
-                                            <div><strong>Tên cây trồng:</strong> {scheduleDetail.cropView.cropName ?? `#${scheduleDetail.cropView.cropId}`}</div>
-                                            <div><strong>Số lượng cây trồng:</strong> {scheduleDetail.quantity}</div>
-                                            {scheduleDetail.cropView.origin && (
-                                                <div><strong>Nguồn gốc:</strong> {scheduleDetail.cropView.origin}</div>
-                                            )}
-                                            {scheduleDetail.cropView.description && (
-                                                <div className="col-span-2">
-                                                    <strong>Mô tả:</strong>
-                                                    <p className="mt-1 text-sm text-muted-foreground">{scheduleDetail.cropView.description}</p>
-                                                </div>
-                                            )}
-                                        </div>
-                                        {(() => {
-                                            const allReqs = (scheduleDetail.cropRequirement ?? scheduleDetail.cropView?.cropRequirement) || []
-                                            if (!allReqs || allReqs.length === 0) return null
-
-                                            const sortedReqs = [...allReqs].sort((a, b) => {
-                                                const aActive = (a as unknown as { isActive?: boolean }).isActive ? 1 : 0
-                                                const bActive = (b as unknown as { isActive?: boolean }).isActive ? 1 : 0
-                                                return bActive - aActive
-                                            })
-
-
-
-                                            return (
-                                                <div className="mt-4">
-                                                    <h4 className="text-md font-semibold mb-3">Yêu cầu cây trồng</h4>
-                                                    <div className="space-y-3">
-                                                        {sortedReqs.map((req, idx) => {
-                                                            const r = req as any
-                                                            const reqIsActive = r.isActive
-                                                            return (
-                                                                <div key={r.cropRequirementId ?? idx} className="relative p-4 bg-muted/30 rounded-lg border border-muted">
-                                                                    <div className="absolute right-3 top-3">
-                                                                        <Badge
-                                                                            variant={reqIsActive ? 'success' : 'destructive'}
-                                                                            className="text-xs"
-                                                                        >
-                                                                            {reqIsActive ? 'Hoạt động' : 'Tạm dừng'}
-                                                                        </Badge>
-                                                                    </div>
-                                                                    <div className="flex items-center justify-between mb-2">
-                                                                        <div className="flex items-center gap-2">
-                                                                            <Badge variant="outline" className="text-xs bg-white">
-                                                                                {translatePlantStage(r.plantStage)}
-                                                                            </Badge>
-                                                                            {r.estimatedDate && (
-                                                                                <span className="text-sm text-muted-foreground">
-                                                                                    Ước tính: {r.estimatedDate} ngày
-                                                                                </span>
-                                                                            )}
-                                                                        </div>
-                                                                    </div>
-                                                                    <div className="grid grid-cols-2 gap-3 text-sm">
-                                                                        {r.temperature !== null && r.temperature !== undefined && (
-                                                                            <div><strong>Nhiệt độ:</strong> {r.temperature}°C</div>
-                                                                        )}
-                                                                        {r.moisture !== null && r.moisture !== undefined && (
-                                                                            <div><strong>Độ ẩm:</strong> {r.moisture}%</div>
-                                                                        )}
-                                                                        {r.lightRequirement !== null && r.lightRequirement !== undefined && (
-                                                                            <div><strong>Ánh sáng:</strong> {r.lightRequirement}</div>
-                                                                        )}
-                                                                        {r.wateringFrequency && (
-                                                                            <div><strong>Tưới nước:</strong> {r.wateringFrequency} lần/ngày</div>
-                                                                        )}
-                                                                        {r.fertilizer && (
-                                                                            <div className="col-span-2"><strong>Phân bón:</strong> {r.fertilizer}</div>
-                                                                        )}
-                                                                        {r.notes && (
-                                                                            <div className="col-span-2">
-                                                                                <strong>Ghi chú:</strong>
-                                                                                <div className="mt-1 text-sm text-muted-foreground">{r.notes}</div>
-                                                                            </div>
-                                                                        )}
-                                                                    </div>
-                                                                </div>
-                                                            )
-                                                        })}
-                                                    </div>
-                                                </div>
-                                            )
-                                        })()}
-                                    </div>
-                                )}
-
-                                {scheduleDetail.farmActivityView && (
-                                    <div>
-                                        <h3 className="text-lg font-semibold mb-3">Thông tin hoạt động nông trại</h3>
-                                        <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
+                                <TabsContent value="info">
+                                    <div className={`grid grid-cols-1 ${showThresholdInline ? 'lg:grid-cols-[1fr_360px]' : 'lg:grid-cols-1'} gap-6`}>
+                                        <div className="space-y-6">
                                             <div>
-                                                <strong>Loại hoạt động:</strong>{' '}
-                                                {scheduleDetail.farmActivityView.activityType
-                                                    ? translateActivityType(scheduleDetail.farmActivityView.activityType)
-                                                    : `#${scheduleDetail.farmActivityView.farmActivitiesId}`}
-                                            </div>
-                                            {scheduleDetail.farmActivityView.status && (() => {
-                                                const statusInfo = getFarmActivityStatusInfo(scheduleDetail.farmActivityView.status)
-                                                return (
+                                                <h3 className="text-lg font-semibold mb-3">Thông tin cơ bản</h3>
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <div><strong>Ngày bắt đầu:</strong> {formatDate(scheduleDetail.startDate)}</div>
+                                                    <div><strong>Ngày kết thúc:</strong> {formatDate(scheduleDetail.endDate)}</div>
                                                     <div>
                                                         <strong>Trạng thái:</strong>{' '}
-                                                        <Badge variant={statusInfo.variant}>
-                                                            {statusInfo.label}
+                                                        <Badge variant={isActiveStatus(scheduleDetail.status) ? 'golden' : 'destructive'}>
+                                                            {getStatusLabel(scheduleDetail.status)}
                                                         </Badge>
                                                     </div>
-                                                )
-                                            })()}
+                                                    <div><strong>Thuốc BVTV:</strong> {scheduleDetail.pesticideUsed ? 'Có' : 'Không'}</div>
+                                                    <div><strong>Tình trạng bệnh:</strong> {getDiseaseLabel(scheduleDetail.diseaseStatus)}</div>
+                                                    <div>
+                                                        <strong>Giai đoạn hiện tại:</strong>{' '}
+                                                        {scheduleDetail.currentPlantStage
+                                                            ? translatePlantStage(scheduleDetail.currentPlantStage)
+                                                            : scheduleDetail.cropView?.plantStage
+                                                                ? translatePlantStage(scheduleDetail.cropView.plantStage)
+                                                                : '-'}
+                                                    </div>
+                                                    <div>
+                                                        <strong>Tạo lúc:</strong>{' '}
+                                                        {scheduleDetail.createdAt ? formatDate(scheduleDetail.createdAt) : '-'}
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {scheduleDetail.staff && (
+                                                <div>
+                                                    <h3 className="text-lg font-semibold mb-3">Thông tin nhân viên</h3>
+                                                    <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
+                                                        <div><strong>Họ tên:</strong> {scheduleDetail.staff.fullname ?? scheduleDetail.staffName ?? '-'}</div>
+                                                        <div><strong>Số điện thoại:</strong> {scheduleDetail.staff.phone ?? '-'}</div>
+                                                        {scheduleDetail.staff.email && (
+                                                            <div><strong>Email:</strong> {scheduleDetail.staff.email}</div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {scheduleDetail.farmView && (
+                                                <div>
+                                                    <h3 className="text-lg font-semibold mb-3">Thông tin nông trại</h3>
+                                                    <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
+                                                        <div><strong>Tên nông trại:</strong> {scheduleDetail.farmView.farmName ?? `#${scheduleDetail.farmView.farmId}`}</div>
+                                                        <div><strong>Địa điểm:</strong> {scheduleDetail.farmView.location ?? '-'}</div>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {scheduleDetail.cropView && (
+                                                <div>
+                                                    <h3 className="text-lg font-semibold mb-3">Thông tin cây trồng</h3>
+                                                    <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
+                                                        <div><strong>Tên cây trồng:</strong> {scheduleDetail.cropView.cropName ?? `#${scheduleDetail.cropView.cropId}`}</div>
+                                                        <div><strong>Số lượng cây trồng:</strong> {scheduleDetail.quantity}</div>
+                                                        {scheduleDetail.cropView.origin && (
+                                                            <div><strong>Nguồn gốc:</strong> {scheduleDetail.cropView.origin}</div>
+                                                        )}
+                                                        {scheduleDetail.cropView.description && (
+                                                            <div className="col-span-2">
+                                                                <strong>Mô tả:</strong>
+                                                                <p className="mt-1 text-sm text-muted-foreground">{scheduleDetail.cropView.description}</p>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    {(() => {
+                                                        const allReqs = (scheduleDetail.cropRequirement ?? scheduleDetail.cropView?.cropRequirement) || []
+                                                        if (!allReqs || allReqs.length === 0) return null
+
+                                                        const sortedReqs = [...allReqs].sort((a, b) => {
+                                                            const aActive = (a as unknown as { isActive?: boolean }).isActive ? 1 : 0
+                                                            const bActive = (b as unknown as { isActive?: boolean }).isActive ? 1 : 0
+                                                            return bActive - aActive
+                                                        })
+
+                                                        return (
+                                                            <div className="mt-4">
+                                                                <h4 className="text-md font-semibold mb-3">Yêu cầu cây trồng</h4>
+                                                                <div className="space-y-3">
+                                                                    {sortedReqs.map((req, idx) => {
+                                                                        const r = req as any
+                                                                        const reqIsActive = r.isActive
+                                                                        return (
+                                                                            <div key={r.cropRequirementId ?? idx} className="relative p-4 bg-muted/30 rounded-lg border border-muted">
+                                                                                <div className="absolute right-3 top-3">
+                                                                                    <Badge
+                                                                                        variant={reqIsActive ? 'success' : 'destructive'}
+                                                                                        className="text-xs"
+                                                                                    >
+                                                                                        {reqIsActive ? 'Hoạt động' : 'Tạm dừng'}
+                                                                                    </Badge>
+                                                                                </div>
+                                                                                <div className="flex items-center justify-between mb-2">
+                                                                                    <div className="flex items-center gap-2">
+                                                                                        <Badge variant="outline" className="text-xs bg-white">
+                                                                                            {translatePlantStage(r.plantStage)}
+                                                                                        </Badge>
+                                                                                        {r.estimatedDate && (
+                                                                                            <span className="text-sm text-muted-foreground">
+                                                                                                Ước tính: {r.estimatedDate} ngày
+                                                                                            </span>
+                                                                                        )}
+                                                                                    </div>
+                                                                                </div>
+                                                                                <div className="grid grid-cols-2 gap-3 text-sm">
+                                                                                    {r.temperature !== null && r.temperature !== undefined && (
+                                                                                        <div><strong>Nhiệt độ:</strong> {r.temperature}°C</div>
+                                                                                    )}
+                                                                                    {r.moisture !== null && r.moisture !== undefined && (
+                                                                                        <div><strong>Độ ẩm:</strong> {r.moisture}%</div>
+                                                                                    )}
+                                                                                    {r.lightRequirement !== null && r.lightRequirement !== undefined && (
+                                                                                        <div><strong>Ánh sáng:</strong> {r.lightRequirement}</div>
+                                                                                    )}
+                                                                                    {r.wateringFrequency && (
+                                                                                        <div><strong>Tưới nước:</strong> {r.wateringFrequency} lần/ngày</div>
+                                                                                    )}
+                                                                                    {r.fertilizer && (
+                                                                                        <div className="col-span-2"><strong>Phân bón:</strong> {r.fertilizer}</div>
+                                                                                    )}
+                                                                                    {r.notes && (
+                                                                                        <div className="col-span-2">
+                                                                                            <strong>Ghi chú:</strong>
+                                                                                            <div className="mt-1 text-sm text-muted-foreground">{r.notes}</div>
+                                                                                        </div>
+                                                                                    )}
+                                                                                </div>
+                                                                            </div>
+                                                                        )
+                                                                    })}
+                                                                </div>
+                                                            </div>
+                                                        )
+                                                    })()}
+                                                </div>
+                                            )}
+
+                                            {scheduleDetail.farmActivityView && (
+                                                <div>
+                                                    <h3 className="text-lg font-semibold mb-3">Thông tin hoạt động nông trại</h3>
+                                                    <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
+                                                        <div>
+                                                            <strong>Loại hoạt động:</strong>{' '}
+                                                            {scheduleDetail.farmActivityView.activityType
+                                                                ? translateActivityType(scheduleDetail.farmActivityView.activityType)
+                                                                : `#${scheduleDetail.farmActivityView.farmActivitiesId}`}
+                                                        </div>
+                                                        {scheduleDetail.farmActivityView.status && (() => {
+                                                            const statusInfo = getFarmActivityStatusInfo(scheduleDetail.farmActivityView.status)
+                                                            return (
+                                                                <div>
+                                                                    <strong>Trạng thái:</strong>{' '}
+                                                                    <Badge variant={statusInfo.variant}>
+                                                                        {statusInfo.label}
+                                                                    </Badge>
+                                                                </div>
+                                                            )
+                                                        })()}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+
+                                        <div className="hidden lg:block">
+                                            {showThresholdInline && (
+                                                <div className="sticky top-6 self-start p-4 bg-white rounded-lg border">
+                                                    <h3 className="text-lg font-semibold mb-3">Cấu hình ngưỡng</h3>
+                                                    <ThresholdPanel />
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
-                                )}
-                            </div>
+                                </TabsContent>
 
-                            <div className="hidden lg:block">
-                                {showThresholdInline && (
-                                    <div className="sticky top-6 self-start p-4 bg-white rounded-lg border">
-                                        <h3 className="text-lg font-semibold mb-3">Cấu hình ngưỡng</h3>
-                                        <ThresholdPanel />
+                                <TabsContent value="logs">
+                                    <div className="space-y-4">
+                                        <div className="flex items-center justify-between">
+                                            <h3 className="text-lg font-semibold">Nhật ký</h3>
+                                            <div>
+                                                <Button size="sm" onClick={() => {
+                                                    if (selectedSchedule) openCreateLogForSchedule(selectedSchedule)
+                                                }}>Ghi nhận mới
+                                                </Button>
+                                            </div>
+                                        </div>
+                                        <ScheduleLogPanel scheduleId={scheduleDetail.scheduleId} onEdit={(log) => {
+                                            setEditingLog(log)
+                                            setLogModalMode('edit')
+                                            setShowLogModal(true)
+                                        }} registerUpdater={(fn) => { externalLogUpdaterRef.current = fn }} />
                                     </div>
-                                )}
-                            </div>
+                                </TabsContent>
+                            </Tabs>
                         </div>
                     )}
+                </DialogContent>
+            </Dialog>
+            <Dialog open={showLogModal} onOpenChange={setShowLogModal}>
+                <DialogContent className="sm:max-w-lg">
+                    <DialogHeader>
+                        <DialogTitle>{logModalMode === 'create' ? 'Tạo ghi nhận' : 'Chỉnh sửa ghi nhận'}</DialogTitle>
+                    </DialogHeader>
+                    <form onSubmit={async (e) => {
+                        e.preventDefault()
+                        const form = e.target as HTMLFormElement
+                        const notes = (form.elements.namedItem('notes') as HTMLTextAreaElement).value.trim()
+                        const timestamp = (form.elements.namedItem('timestamp') as HTMLInputElement).value
+                        if (!notes) {
+                            toast({ title: 'Vui lòng nhập nội dung ghi nhận', variant: 'destructive' })
+                            return
+                        }
+                        try {
+                            if (logModalMode === 'create' && selectedSchedule?.scheduleId) {
+                                const res: any = await scheduleLogService.createLog({
+                                    scheduleId: selectedSchedule.scheduleId,
+                                    notes,
+                                    timestamp: timestamp || undefined,
+                                })
+                                if (res?.status === 1) {
+                                    if (res?.message) toast({ title: res.message })
+                                } else {
+                                    const msg = res?.message
+                                    if (msg) throw new Error(msg)
+                                }
+                                try {
+                                    const created = res?.data ?? res
+                                    const id = created?.cropLogId ?? created?.id ?? -Date.now()
+                                    const createdAt = ((created?.createdAt ?? created?.created_at ?? timestamp) || new Date().toISOString())
+                                    const createdBy = created?.createdBy ?? created?.created_by ?? null
+                                    const updatedAt = created?.updatedAt ?? created?.updated_at ?? createdAt
+                                    const updatedBy = created?.updatedBy ?? created?.updated_by ?? createdBy
+                                    const newItem: ScheduleLogItem = {
+                                        id,
+                                        notes,
+                                        createdAt,
+                                        createdBy,
+                                        updatedAt,
+                                        updatedBy,
+                                    }
+                                    externalLogUpdaterRef.current?.(newItem, 'create')
+                                } catch (e) {
+                                }
+                            } else if (logModalMode === 'edit' && editingLog) {
+                                const res: any = await scheduleLogService.updateLog({
+                                    id: editingLog.id,
+                                    notes,
+                                })
+                                if (res?.status === 1) {
+                                    if (res?.message) toast({ title: res.message })
+                                } else {
+                                    const msg = res?.message
+                                    if (msg) throw new Error(msg)
+                                }
+                                try {
+                                    const updated = res?.data ?? res
+                                    const id = editingLog.id
+                                    const updatedAt = updated?.updatedAt ?? updated?.updated_at ?? new Date().toISOString()
+                                    const updatedBy = updated?.updatedBy ?? updated?.updated_by ?? null
+                                    const newItem: ScheduleLogItem = {
+                                        id,
+                                        notes,
+                                        createdAt: editingLog.createdAt,
+                                        createdBy: editingLog.createdBy,
+                                        updatedAt,
+                                        updatedBy,
+                                    }
+                                    externalLogUpdaterRef.current?.(newItem, 'update')
+                                } catch (e) {
+                                }
+                            }
+                            setShowLogModal(false)
+                        } catch (err) {
+                            const msg = (err as any)?.message
+                            if (msg) toast({ title: msg, variant: 'destructive' })
+                        }
+                    }}>
+                        <div className="grid gap-3">
+                            <div>
+                                <Label>Nội dung</Label>
+                                <textarea name="notes" defaultValue={editingLog?.notes ?? ''} className="w-full p-2 border rounded" rows={4} />
+                            </div>
+                            <div>
+                                <Label>Thời gian (tùy chọn)</Label>
+                                <Input name="timestamp" type="datetime-local" defaultValue={editingLog?.updatedAt ? new Date(editingLog.updatedAt).toISOString().slice(0, 16) : (editingLog?.createdAt ? new Date(editingLog.createdAt).toISOString().slice(0, 16) : '')} />
+                            </div>
+                        </div>
+                        <DialogFooter className="mt-4">
+                            <Button type="button" variant="outline" onClick={() => setShowLogModal(false)}>Hủy</Button>
+                            <Button type="submit">{logModalMode === 'create' ? 'Lưu' : 'Lưu'}</Button>
+                        </DialogFooter>
+                    </form>
                 </DialogContent>
             </Dialog>
 

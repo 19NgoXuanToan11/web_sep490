@@ -141,6 +141,7 @@ function ScheduleLogPanel({ scheduleId, onEdit, registerUpdater }: { scheduleId:
     const [total, setTotal] = useState<number | null>(null)
 
     const PAGE_SIZE = 5
+    const VISIBLE_THRESHOLD = PAGE_SIZE
     const containerRef = React.useRef<HTMLDivElement | null>(null)
     const loadingRef = React.useRef(false)
 
@@ -161,15 +162,21 @@ function ScheduleLogPanel({ scheduleId, onEdit, registerUpdater }: { scheduleId:
         loadingRef.current = true
         try {
             const data = await scheduleLogService.getLogsBySchedule(scheduleId, p, PAGE_SIZE)
+            const incomingItems = data.items || []
             if (p === 1) {
-                setLogs(data.items || [])
+                setLogs(incomingItems)
             } else {
-                setLogs(prev => [...prev, ...(data.items || [])])
+                setLogs(prev => {
+                    const existingIds = new Set(prev.map(i => i.id))
+                    const incoming = incomingItems.filter(it => !existingIds.has(it.id))
+                    return [...prev, ...incoming]
+                })
             }
-            const more = (data.pageIndex || 0) < (data.totalPagesCount || 1)
+            const totalItems = data.totalItemCount ?? 0
+            const more = p * PAGE_SIZE < totalItems
             setHasMore(more)
             setPage(p)
-            setTotal(data.totalItemCount ?? 0)
+            setTotal(totalItems)
         } catch {
             toast({ title: 'Không thể tải nhật ký', variant: 'destructive' })
         } finally {
@@ -220,7 +227,7 @@ function ScheduleLogPanel({ scheduleId, onEdit, registerUpdater }: { scheduleId:
             ) : (
                 <>
                     <div
-                        className="space-y-2 max-h-[360px] overflow-y-auto"
+                        className={`space-y-2 ${hasMore || logs.length > VISIBLE_THRESHOLD ? 'max-h-[360px] overflow-y-auto' : ''}`}
                         ref={containerRef}
                         onScroll={() => {
                             const el = containerRef.current

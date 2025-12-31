@@ -30,7 +30,7 @@ export const scheduleLogService = {
       totalItemCount: data.totalItemCount ?? 0,
       pageSize: data.pageSize ?? pageSize,
       totalPagesCount: data.totalPagesCount ?? 1,
-      pageIndex: data.pageIndex ?? pageIndex - 1,
+      pageIndex: data.pageIndex ?? pageIndex,
       next: data.next ?? false,
       previous: data.previous ?? false,
       items: (data.items || []).map((it: any) => ({

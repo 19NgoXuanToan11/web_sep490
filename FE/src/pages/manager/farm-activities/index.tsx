@@ -365,8 +365,6 @@ export default function FarmActivitiesPage() {
 
   const statusOptions = [
     { value: 'ACTIVE', label: 'Hoạt động', variant: 'success' as const },
-    { value: 'IN_PROGRESS', label: 'Đang thực hiện', variant: 'processing' as const },
-    { value: 'COMPLETED', label: 'Hoàn thành', variant: 'completed' as const },
     { value: 'DEACTIVATED', label: 'Tạm dừng', variant: 'destructive' as const },
   ]
 
@@ -867,21 +865,6 @@ export default function FarmActivitiesPage() {
                   {activityTypes.map(type => (
                     <SelectItem key={type.value} value={type.value}>
                       {type.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="w-full sm:w-48">
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Tất cả trạng thái" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tất cả</SelectItem>
-                  {statusOptions.map(status => (
-                    <SelectItem key={status.value} value={status.value}>
-                      {status.label}
                     </SelectItem>
                   ))}
                 </SelectContent>

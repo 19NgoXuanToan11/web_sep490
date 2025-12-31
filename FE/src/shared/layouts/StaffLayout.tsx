@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Cpu, Menu, X, ChevronRight, Home, Package, ShoppingCart, MessageSquare, BarChart3, Calendar } from 'lucide-react'
+import { Menu, X, ChevronRight, Home, Package, ShoppingCart, MessageSquare, BarChart3, Calendar, Leaf } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import LogoutButton from '@/shared/ui/LogoutButton'
 import { Badge } from '@/shared/ui/badge'
@@ -84,7 +84,7 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({ children }) => {
         })
         setImageError(false)
       } catch (error) {
-        console.error('Failed to fetch staff profile:', error)  
+        console.error('Failed to fetch staff profile:', error)
       } finally {
         setIsLoadingProfile(false)
       }
@@ -177,8 +177,8 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({ children }) => {
           {isSidebarOpen ? (
             <div className="flex items-center justify-between px-6 py-6">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
-                  <Cpu className="w-6 h-6 text-white" />
+                <div className="w-10 h-10 bg-brand rounded-full flex items-center justify-center shadow-lg">
+                  <Leaf className="w-6 h-6 text-white" />
                 </div>
                 <motion.div
                   initial={{ opacity: 0, x: -10 }}
@@ -200,8 +200,8 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({ children }) => {
             </div>
           ) : (
             <div className="flex flex-col items-center py-4 space-y-4">
-              <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-                <Cpu className="w-6 h-6 text-white" />
+              <div className="w-10 h-10 bg-brand rounded-full flex items-center justify-center shadow-lg">
+                <Leaf className="w-6 h-6 text-white" />
               </div>
               <Button
                 variant="outline"
@@ -291,8 +291,8 @@ export const StaffLayout: React.FC<StaffLayoutProps> = ({ children }) => {
             >
               <div className="flex items-center justify-between px-6 py-6 border-b border-gray-200">
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-                    <Cpu className="w-6 h-6 text-white" />
+                  <div className="w-10 h-10 bg-brand rounded-full flex items-center justify-center shadow-lg">
+                    <Leaf className="w-6 h-6 text-white" />
                   </div>
                   <div>
                     <h1 className="text-xl font-bold text-gray-900">Cổng nhân viên</h1>

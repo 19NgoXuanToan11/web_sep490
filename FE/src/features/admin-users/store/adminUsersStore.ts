@@ -401,7 +401,6 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
       statusFilter: status === '__all__' ? '' : status,
       paginationState: { ...state.paginationState, page: 1 },
     }))
-    get().initializeData()
   },
 
   setPagination: (page: number, pageSize?: number) => {
@@ -480,7 +479,7 @@ export const useAdminUsersStore = create<AdminUsersState>((set, get) => ({
     filtered = filtered.sort((a, b) => {
       const aRolePriority = getRolePriority(a.roles[0] || 'STAFF')
       const bRolePriority = getRolePriority(b.roles[0] || 'STAFF')
-      
+
       if (aRolePriority !== bRolePriority) {
         return aRolePriority - bRolePriority
       }

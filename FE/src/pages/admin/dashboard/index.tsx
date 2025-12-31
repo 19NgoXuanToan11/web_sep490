@@ -388,7 +388,6 @@ const AdminDashboard: React.FC = () => {
             whileHover={{ scale: 1.02, y: -2 }}
           >
             <Card className="relative overflow-hidden border-0 shadow-lg bg-white">
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 to-green-600" />
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-gray-600">Tổng số người dùng</CardTitle>
               </CardHeader>
@@ -427,7 +426,6 @@ const AdminDashboard: React.FC = () => {
             whileHover={{ scale: 1.02, y: -2 }}
           >
             <Card className="relative overflow-hidden border-0 shadow-lg bg-white">
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 to-green-600" />
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-gray-600">Trang trại</CardTitle>
               </CardHeader>
@@ -460,7 +458,6 @@ const AdminDashboard: React.FC = () => {
             whileHover={{ scale: 1.02, y: -2 }}
           >
             <Card className="relative overflow-hidden border-0 shadow-lg bg-white">
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 to-green-600" />
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-gray-600">Thiết bị IoT</CardTitle>
               </CardHeader>
@@ -506,7 +503,6 @@ const AdminDashboard: React.FC = () => {
             whileHover={{ scale: 1.02, y: -2 }}
           >
             <Card className="relative overflow-hidden border-0 shadow-lg bg-white">
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 to-green-600" />
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-gray-600">Đơn hàng</CardTitle>
               </CardHeader>
@@ -541,7 +537,6 @@ const AdminDashboard: React.FC = () => {
             whileHover={{ scale: 1.02, y: -2 }}
           >
             <Card className="relative overflow-hidden border-0 shadow-lg bg-white">
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 to-green-600" />
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-gray-600">Sản phẩm</CardTitle>
               </CardHeader>
@@ -580,7 +575,6 @@ const AdminDashboard: React.FC = () => {
             whileHover={{ scale: 1.02, y: -2 }}
           >
             <Card className="relative overflow-hidden border-0 shadow-lg bg-white">
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 to-green-600" />
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-gray-600">Doanh thu</CardTitle>
               </CardHeader>
@@ -613,7 +607,6 @@ const AdminDashboard: React.FC = () => {
             whileHover={{ scale: 1.02, y: -2 }}
           >
             <Card className="relative overflow-hidden border-0 shadow-lg bg-white">
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 to-green-600" />
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-gray-600">Đánh giá</CardTitle>
               </CardHeader>
@@ -642,7 +635,6 @@ const AdminDashboard: React.FC = () => {
             whileHover={{ scale: 1.02, y: -2 }}
           >
             <Card className="relative overflow-hidden border-0 shadow-lg bg-white">
-              <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 to-green-600" />
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-gray-600">Tỷ lệ hoàn thành</CardTitle>
               </CardHeader>

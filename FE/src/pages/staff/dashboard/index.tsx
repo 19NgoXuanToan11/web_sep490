@@ -72,7 +72,6 @@ const MetricCard = React.memo<MetricCardProps>(
                 className={onClick ? 'cursor-pointer' : ''}
             >
                 <Card className="relative overflow-hidden border-0 shadow-lg bg-white">
-                    <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${colorClasses[color]}`} />
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium text-gray-600">{title}</CardTitle>
                     </CardHeader>
@@ -818,14 +817,9 @@ export default function StaffDashboard() {
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
                             >
-                                <div className="flex items-center space-x-3">
-                                    <div className="p-2 rounded-lg bg-gradient-to-br from-green-500 to-green-600 shadow-lg">
-                                        <ShoppingCart className="w-5 h-5 text-white" />
-                                    </div>
-                                    <div>
-                                        <h3 className="font-medium text-gray-900">Quản lý đơn hàng</h3>
-                                        <p className="text-sm text-gray-600">Xem & xử lý đơn hàng</p>
-                                    </div>
+                                <div>
+                                    <h3 className="font-medium text-gray-900">Quản lý đơn hàng</h3>
+                                    <p className="text-sm text-gray-600">Xem & xử lý đơn hàng</p>
                                 </div>
                             </motion.button>
 
@@ -835,14 +829,9 @@ export default function StaffDashboard() {
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
                             >
-                                <div className="flex items-center space-x-3">
-                                    <div className="p-2 rounded-lg bg-gradient-to-br from-green-500 to-green-600 shadow-lg">
-                                        <Package className="w-5 h-5 text-white" />
-                                    </div>
-                                    <div>
-                                        <h3 className="font-medium text-gray-900">Quản lý sản phẩm</h3>
-                                        <p className="text-sm text-gray-600">Cập nhật kho hàng</p>
-                                    </div>
+                                <div>
+                                    <h3 className="font-medium text-gray-900">Quản lý sản phẩm</h3>
+                                    <p className="text-sm text-gray-600">Cập nhật kho hàng</p>
                                 </div>
                             </motion.button>
 
@@ -852,14 +841,9 @@ export default function StaffDashboard() {
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.98 }}
                             >
-                                <div className="flex items-center space-x-3">
-                                    <div className="p-2 rounded-lg bg-gradient-to-br from-orange-500 to-orange-600 shadow-lg">
-                                        <Star className="w-5 h-5 text-white" />
-                                    </div>
-                                    <div>
-                                        <h3 className="font-medium text-gray-900">Xem đánh giá</h3>
-                                        <p className="text-sm text-gray-600">Phản hồi khách hàng</p>
-                                    </div>
+                                <div>
+                                    <h3 className="font-medium text-gray-900">Xem đánh giá</h3>
+                                    <p className="text-sm text-gray-600">Phản hồi khách hàng</p>
                                 </div>
                             </motion.button>
                         </div>

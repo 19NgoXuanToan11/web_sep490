@@ -107,7 +107,6 @@ const AdminUsersPage: React.FC = () => {
         { }
         <div className="grid gap-4 mb-6 md:grid-cols-2 lg:grid-cols-4">
           <Card className="relative overflow-hidden border-0 shadow-lg bg-white">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 to-green-600" />
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -122,7 +121,6 @@ const AdminUsersPage: React.FC = () => {
           </Card>
 
           <Card className="relative overflow-hidden border-0 shadow-lg bg-white">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 to-green-600" />
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -139,12 +137,11 @@ const AdminUsersPage: React.FC = () => {
           </Card>
 
           <Card className="relative overflow-hidden border-0 shadow-lg bg-white">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-gray-400 to-gray-500" />
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 font-medium">Bị vô hiệu hóa</p>
-                  <p className="text-2xl font-bold text-gray-700 mt-1">{stats.inactive}</p>
+                  <p className="text-2xl font-bold text-red-600 mt-1">{stats.inactive}</p>
                 </div>
               </div>
               <p className="text-xs text-gray-500 mt-2">
@@ -154,13 +151,17 @@ const AdminUsersPage: React.FC = () => {
           </Card>
 
           <Card className="relative overflow-hidden border-0 shadow-lg bg-white">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 to-green-600" />
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-600 font-medium">Vai trò</p>
                   <p className="text-sm font-semibold mt-1 text-gray-900">
-                    {stats.managers} quản lý • {stats.staffs} nhân viên • {stats.customers} khách hàng
+                    <span className="font-bold text-yellow-500">{stats.managers}</span>{' '}
+                    quản lý •{' '}
+                    <span className="font-bold text-[#0369A1]">{stats.staffs}</span>{' '}
+                    nhân viên •{' '}
+                    <span className="font-bold text-slate-700">{stats.customers}</span>{' '}
+                    khách hàng
                   </p>
                 </div>
               </div>

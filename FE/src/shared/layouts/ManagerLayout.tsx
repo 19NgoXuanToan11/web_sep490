@@ -10,11 +10,11 @@ import {
   Wheat,
   ScanLine,
   User,
-  Activity,
   Cpu,
+  Activity,
   Monitor,
   History,
-  Sprout,
+  Leaf,
 } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import LogoutButton from '@/shared/ui/LogoutButton'
@@ -202,8 +202,8 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
 
             <div className="flex items-center justify-between px-6 py-6">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
-                  <Sprout className="w-6 h-6 text-white" />
+                <div className="w-10 h-10 bg-brand rounded-full flex items-center justify-center">
+                  <Leaf className="w-6 h-6 text-white" />
                 </div>
                 <motion.div
                   initial={{ opacity: 0, x: -10 }}
@@ -227,8 +227,8 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
           ) : (
 
             <div className="flex flex-col items-center py-4 space-y-4">
-              <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
-                <Sprout className="w-6 h-6 text-white" />
+              <div className="w-10 h-10 bg-brand rounded-full flex items-center justify-center">
+                <Leaf className="w-6 h-6 text-white" />
               </div>
               <Button
                 variant="outline"
@@ -321,8 +321,8 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
             >
               <div className="flex items-center justify-between px-6 py-6 border-b border-gray-200">
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-xl flex items-center justify-center shadow-lg">
-                    <Sprout className="w-6 h-6 text-white" />
+                  <div className="w-10 h-10 bg-brand rounded-full flex items-center justify-center shadow-lg">
+                    <Leaf className="w-6 h-6 text-white" />
                   </div>
                   <div>
                     <h1 className="text-xl font-bold text-gray-900">Farm Manager</h1>

@@ -92,15 +92,17 @@ export const QuickStatsWidget: React.FC<QuickStatsWidgetProps> = ({
           'grid-cols-3'
         }`}>
           {stats.map((stat, index) => {
-            const colors = colorConfig[stat.color || 'green']
             const Icon = stat.icon
             const TrendIcon = stat.change ? trendConfig[stat.change.trend].icon : null
-            const trendStyle = stat.change ? trendConfig[stat.change.trend] : null
+            const neutralCardBg = 'bg-white'
+            const neutralRing = 'ring-gray-100'
+            const neutralIconBg = 'bg-gray-100'
+            const neutralTrendColor = 'text-gray-500'
 
             return (
               <motion.div
                 key={index}
-                className={`p-${compact ? '3' : '4'} rounded-lg ${colors.bg} ${colors.ring} ring-1 hover:ring-2 transition-all duration-200`}
+                className={`p-${compact ? '3' : '4'} rounded-lg ${neutralCardBg} ring-1 ${neutralRing} hover:ring-2 hover:ring-gray-200 transition-all duration-200`}
                 whileHover={{ scale: 1.02 }}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -111,8 +113,8 @@ export const QuickStatsWidget: React.FC<QuickStatsWidgetProps> = ({
                     {stat.label}
                   </span>
                   {Icon && (
-                    <div className={`p-1 rounded-md bg-gradient-to-br ${colors.gradient} shadow-sm`}>
-                      <Icon className="h-3 w-3 text-white" />
+                    <div className={`p-1 rounded-md ${neutralIconBg} shadow-sm`}>
+                      <Icon className="h-3 w-3 text-gray-700" />
                     </div>
                   )}
                 </div>
@@ -123,7 +125,7 @@ export const QuickStatsWidget: React.FC<QuickStatsWidgetProps> = ({
 
                 {stat.change && (
                   <div className="flex items-center justify-between">
-                    <div className={`flex items-center text-xs ${trendStyle?.color}`}>
+                    <div className={`flex items-center text-xs ${neutralTrendColor}`}>
                       {TrendIcon && <TrendIcon className="h-3 w-3 mr-1" />}
                       <span className="font-medium">{stat.change.value}</span>
                     </div>

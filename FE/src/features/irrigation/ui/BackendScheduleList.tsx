@@ -445,16 +445,6 @@ const ScheduleActionMenu: React.FC<ScheduleActionMenuProps> = React.memo(({
                     <span className="flex items-center gap-2">Thêm Ghi nhận</span>
                 </DropdownMenuItem>
                 <DropdownMenuItem
-                    onClick={(e) => {
-                        e.preventDefault()
-                        e.stopPropagation()
-                        setOpen(false)
-                    }}
-                    className="cursor-pointer focus:bg-gray-100"
-                    onSelect={(e) => e.preventDefault()}
-                >
-                </DropdownMenuItem>
-                <DropdownMenuItem
                     onClick={handleView}
                     className="cursor-pointer focus:bg-gray-100"
                     onSelect={(e) => e.preventDefault()}

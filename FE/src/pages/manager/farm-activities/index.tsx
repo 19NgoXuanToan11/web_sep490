@@ -137,7 +137,7 @@ export default function FarmActivitiesPage() {
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [searchDebounced, setSearchDebounced] = useState('')
-  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [statusFilter] = useState<string>('all')
   const [activityTypeFilter, setActivityTypeFilter] = useState<string>('all')
   const [showLatestOnly, setShowLatestOnly] = useState<boolean>(false)
 

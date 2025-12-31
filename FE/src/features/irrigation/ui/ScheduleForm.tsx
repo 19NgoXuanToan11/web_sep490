@@ -19,6 +19,7 @@ import { useIrrigationStore } from '../store/irrigationStore'
 import type { IrrigationSchedule } from '@/shared/lib/localData'
 import { scheduleFormSchema } from '../model/schemas'
 import type { ScheduleFormData } from '../model/schemas'
+import { withBackendToast } from '@/shared/lib/backend-toast'
 
 interface ScheduleFormProps {
   open: boolean
@@ -76,35 +77,39 @@ export function ScheduleForm({ open, onOpenChange, editingSchedule, onClose }: S
   const onSubmit = async (data: ScheduleFormData) => {
     try {
       if (isEditing && editingSchedule) {
-        await updateSchedule(editingSchedule.id, {
-          title: data.title,
-          deviceId: data.deviceId,
-          startTime: data.startTime,
-          endTime: data.endTime,
-          moistureThresholdPct: data.moistureThresholdPct,
-          enabled: data.enabled,
-          recurrenceText: generateRecurrenceText(data.recurrenceType, data.startTime),
-        })
-        toast({
-          title: 'Lịch đã được cập nhật',
-          description: `"${data.title}" cập nhật thành công.`,
-          variant: 'success',
-        })
+        await withBackendToast(
+          () => updateSchedule(editingSchedule.id, {
+            title: data.title,
+            deviceId: data.deviceId,
+            startTime: data.startTime,
+            endTime: data.endTime,
+            moistureThresholdPct: data.moistureThresholdPct,
+            enabled: data.enabled,
+            recurrenceText: generateRecurrenceText(data.recurrenceType, data.startTime),
+          }),
+          {
+            onSuccess: () => handleClose(),
+            fallbackErrorToast: () => toast({
+              title: 'Cập nhật thất bại',
+              description: 'Đã xảy ra lỗi không xác định.',
+              variant: 'destructive',
+            })
+          }
+        )
       } else {
-        await createSchedule(data)
-        toast({
-          title: 'Tạo lịch thành công',
-          description: `"${data.title}" đã được tạo.`,
-          variant: 'success',
-        })
+        await withBackendToast(
+          () => createSchedule(data),
+          {
+            onSuccess: () => handleClose(),
+            fallbackErrorToast: () => toast({
+              title: 'Tạo mới thất bại',
+              description: 'Đã xảy ra lỗi không xác định.',
+              variant: 'destructive',
+            })
+          }
+        )
       }
-      handleClose()
     } catch (error) {
-      toast({
-        title: isEditing ? 'Cập nhật thất bại' : 'Tạo mới thất bại',
-        description: error instanceof Error ? error.message : 'Đã xảy ra lỗi không xác định.',
-        variant: 'destructive',
-      })
     }
   }
 

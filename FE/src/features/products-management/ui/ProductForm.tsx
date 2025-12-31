@@ -10,6 +10,7 @@ import { useToast } from '@/shared/ui/use-toast'
 import { Loader2, Upload, X } from 'lucide-react'
 import { productSchema, type ProductFormData } from '../model/schemas'
 import { useProductStore } from '../store/productStore'
+import { withBackendToast } from '@/shared/lib/backend-toast'
 import type { Product } from '@/shared/api/productService'
 
 interface ProductFormProps {
@@ -71,39 +72,41 @@ export function ProductForm({ editingProduct, onSuccess, onCancel, className }: 
   const onSubmit = async (data: ProductFormData) => {
     try {
       if (isEditMode && editingProduct) {
-        await updateProduct(editingProduct.productId, {
-          productName: data.productName,
-          productDescription: data.productDescription,
-          price: data.price,
-          categoryId: data.categoryId,
-          imageUrl: data.imageUrl,
-        })
-
-        toast({
-          title: 'Cập nhật thành công',
-          description: `Sản phẩm ${data.productName} đã được cập nhật`,
-          variant: 'success',
-        })
+        await withBackendToast(
+          () => updateProduct(editingProduct.productId, {
+            productName: data.productName,
+            productDescription: data.productDescription,
+            price: data.price,
+            categoryId: data.categoryId,
+            imageUrl: data.imageUrl,
+          }),
+          {
+            onSuccess: () => onSuccess?.(),
+            fallbackErrorToast: () => toast({
+              title: 'Cập nhật thất bại',
+              description: 'Có lỗi xảy ra khi cập nhật sản phẩm',
+              variant: 'destructive',
+            })
+          }
+        )
       } else {
-        await createProduct(data)
-
-        toast({
-          title: 'Tạo thành công',
-          description: `Sản phẩm ${data.productName} đã được tạo`,
-          variant: 'success',
-        })
-
-        reset()
-        setImagePreview(null)
+        await withBackendToast(
+          () => createProduct(data),
+          {
+            onSuccess: () => {
+              reset()
+              setImagePreview(null)
+              onSuccess?.()
+            },
+            fallbackErrorToast: () => toast({
+              title: 'Tạo thất bại',
+              description: 'Có lỗi xảy ra khi tạo sản phẩm',
+              variant: 'destructive',
+            })
+          }
+        )
       }
-
-      onSuccess?.()
     } catch (error) {
-      toast({
-        title: isEditMode ? 'Cập nhật thất bại' : 'Tạo thất bại',
-        description: error instanceof Error ? error.message : 'Có lỗi xảy ra',
-        variant: 'destructive',
-      })
     }
   }
 

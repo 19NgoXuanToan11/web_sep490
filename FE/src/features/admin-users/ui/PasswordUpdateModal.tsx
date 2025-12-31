@@ -11,6 +11,7 @@ import { useToast } from '@/shared/ui/use-toast'
 import { z } from 'zod'
 import type { User } from '@/shared/lib/localData'
 import { accountApi } from '@/shared/api/auth'
+import { withBackendToast } from '@/shared/lib/backend-toast'
 
 const passwordUpdateSchema = z
   .object({
@@ -60,20 +61,18 @@ export const PasswordUpdateModal: React.FC<PasswordUpdateModalProps> = ({
 
     setIsLoading(true)
     try {
-      await accountApi.updatePasswordBy(Number(user.id), data.newPassword)
-
-      toast({
-        title: 'Cập nhật mật khẩu thành công',
-        description: `Mật khẩu cho ${user.email} đã được cập nhật.`,
-      })
-      handleClose()
+      await withBackendToast(
+        () => accountApi.updatePasswordBy(Number(user.id), data.newPassword),
+        {
+          onSuccess: () => handleClose(),
+          fallbackErrorToast: () => toast({
+            title: 'Lỗi cập nhật mật khẩu',
+            description: 'Có lỗi xảy ra khi cập nhật mật khẩu.',
+            variant: 'destructive',
+          })
+        }
+      )
     } catch (error) {
-      toast({
-        title: 'Lỗi cập nhật mật khẩu',
-        description:
-          error instanceof Error ? error.message : 'Có lỗi xảy ra khi cập nhật mật khẩu.',
-        variant: 'destructive',
-      })
     } finally {
       setIsLoading(false)
     }

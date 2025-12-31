@@ -15,6 +15,7 @@ import { useToast } from '@/shared/ui/use-toast'
 import { Loader2 } from 'lucide-react'
 import { useProductStore } from '../store/productStore'
 import type { Product } from '@/shared/api/productService'
+import { withBackendToast } from '@/shared/lib/backend-toast'
 
 const updateQuantitySchema = z.object({
   quantity: z.number().min(0, 'Số lượng không được âm').int('Số lượng phải là số nguyên'),
@@ -54,22 +55,21 @@ export function UpdateProductQuantityModal({ isOpen, onClose, product }: UpdateP
 
   const onSubmit = async (data: UpdateQuantityFormData) => {
     try {
-      await changeProductQuantity(product.productId, data.quantity)
-      await fetchAllProducts()
-
-      toast({
-        title: 'Cập nhật thành công',
-        description: `Số lượng sản phẩm ${product.productName} đã được cập nhật thành ${data.quantity}`,
-        variant: 'success',
-      })
-
-      onClose()
+      await withBackendToast(
+        () => changeProductQuantity(product.productId, data.quantity),
+        {
+          onSuccess: async () => {
+            await fetchAllProducts()
+            onClose()
+          },
+          fallbackErrorToast: () => toast({
+            title: 'Cập nhật thất bại',
+            description: 'Có lỗi xảy ra khi cập nhật số lượng',
+            variant: 'destructive',
+          })
+        }
+      )
     } catch (error) {
-      toast({
-        title: 'Cập nhật thất bại',
-        description: error instanceof Error ? error.message : 'Có lỗi xảy ra khi cập nhật số lượng',
-        variant: 'destructive',
-      })
     }
   }
 

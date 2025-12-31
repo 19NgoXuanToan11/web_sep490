@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { blynkService } from '@/shared/api/blynkService'
 import { useToast } from '@/shared/ui/use-toast'
+import { withBackendToast } from '@/shared/lib/backend-toast'
 
 export const ThresholdPanel: React.FC = () => {
     const { toast } = useToast()
@@ -31,43 +32,52 @@ export const ThresholdPanel: React.FC = () => {
 
     const handleUpdate = async (type: string) => {
         try {
-            let result
+            let apiCall: () => Promise<{ success: boolean; message: string }>
             switch (type) {
                 case 'soil-low':
                     if (soilLow === '') throw new Error('Giá trị không hợp lệ')
-                    result = await blynkService.setSoilLowThreshold(Number(soilLow))
+                    apiCall = () => blynkService.setSoilLowThreshold(Number(soilLow))
                     break
                 case 'soil-high':
                     if (soilHigh === '') throw new Error('Giá trị không hợp lệ')
-                    result = await blynkService.setSoilHighThreshold(Number(soilHigh))
+                    apiCall = () => blynkService.setSoilHighThreshold(Number(soilHigh))
                     break
                 case 'ldr-low':
                     if (ldrLow === '') throw new Error('Giá trị không hợp lệ')
-                    result = await blynkService.setLdrLowThreshold(Number(ldrLow))
+                    apiCall = () => blynkService.setLdrLowThreshold(Number(ldrLow))
                     break
                 case 'ldr-high':
                     if (ldrHigh === '') throw new Error('Giá trị không hợp lệ')
-                    result = await blynkService.setLdrHighThreshold(Number(ldrHigh))
+                    apiCall = () => blynkService.setLdrHighThreshold(Number(ldrHigh))
                     break
                 case 'light-on':
                     if (lightOn === '') throw new Error('Giá trị không hợp lệ')
-                    result = await blynkService.setLightOnThreshold(Number(lightOn))
+                    apiCall = () => blynkService.setLightOnThreshold(Number(lightOn))
                     break
                 case 'light-off':
                     if (lightOff === '') throw new Error('Giá trị không hợp lệ')
-                    result = await blynkService.setLightOffThreshold(Number(lightOff))
+                    apiCall = () => blynkService.setLightOffThreshold(Number(lightOff))
                     break
                 default:
                     throw new Error('Loại không xác định')
             }
 
-            if (result?.success) {
-                toast({ title: 'Cập nhật thành công', description: result.message })
-            } else {
-                toast({ title: 'Lỗi cập nhật', description: result?.message || 'Không cập nhật được' })
-            }
-        } catch (err: any) {
-            toast({ title: 'Lỗi', description: err?.message || String(err) })
+            await withBackendToast(
+                apiCall,
+                {
+                    onSuccess: (result) => {
+                        if (result.message?.trim()) {
+                            toast({ title: result.message, variant: 'success' })
+                        }
+                    },
+                    fallbackErrorToast: () => toast({
+                        title: 'Lỗi cập nhật',
+                        description: 'Không cập nhật được',
+                        variant: 'destructive',
+                    })
+                }
+            )
+        } catch (error) {
         }
     }
 

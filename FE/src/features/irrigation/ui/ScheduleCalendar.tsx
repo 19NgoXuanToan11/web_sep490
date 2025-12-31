@@ -17,6 +17,7 @@ import {
 } from 'lucide-react'
 import { useIrrigationStore } from '../store/irrigationStore'
 import type { IrrigationSchedule } from '@/shared/lib/localData'
+import { withBackendToast } from '@/shared/lib/backend-toast'
 import { formatTime, isToday } from '@/shared/lib/localData/storage'
 import { ScheduleForm } from './ScheduleForm'
 
@@ -38,35 +39,33 @@ export function ScheduleCalendar({ className, showScheduleForm: externalShowSche
 
   const handleDeleteSchedule = async (schedule: IrrigationSchedule) => {
     try {
-      await deleteSchedule(schedule.id)
-      toast({
-        title: 'Đã xóa lịch',
-        description: `"${schedule.title}" đã được xóa thành công.`,
-        variant: 'success',
-      })
+      await withBackendToast(
+        () => deleteSchedule(schedule.id),
+        {
+          fallbackErrorToast: () => toast({
+            title: 'Xóa thất bại',
+            description: 'Đã xảy ra lỗi không xác định.',
+            variant: 'destructive',
+          })
+        }
+      )
     } catch (error) {
-      toast({
-        title: 'Xóa thất bại',
-        description: error instanceof Error ? error.message : 'Đã xảy ra lỗi không xác định.',
-        variant: 'destructive',
-      })
     }
   }
 
   const handleToggleSchedule = async (schedule: IrrigationSchedule) => {
     try {
-      await toggleSchedule(schedule.id, !schedule.enabled)
-      toast({
-        title: 'Đã cập nhật lịch',
-        description: `"${schedule.title}" đã được ${!schedule.enabled ? 'kích hoạt' : 'tắt'}.`,
-        variant: 'success',
-      })
+      await withBackendToast(
+        () => toggleSchedule(schedule.id, !schedule.enabled),
+        {
+          fallbackErrorToast: () => toast({
+            title: 'Cập nhật thất bại',
+            description: 'Đã xảy ra lỗi không xác định.',
+            variant: 'destructive',
+          })
+        }
+      )
     } catch (error) {
-      toast({
-        title: 'Cập nhật thất bại',
-        description: error instanceof Error ? error.message : 'Đã xảy ra lỗi không xác định.',
-        variant: 'destructive',
-      })
     }
   }
 

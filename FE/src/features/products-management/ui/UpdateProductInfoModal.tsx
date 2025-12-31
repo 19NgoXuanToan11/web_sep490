@@ -18,6 +18,7 @@ import { Loader2, Upload, X } from 'lucide-react'
 import { useProductStore } from '../store/productStore'
 import type { Product, UpdateProductRequest } from '@/shared/api/productService'
 import { uploadImageToCloudinary, CloudinaryUploadError } from '@/shared/lib/cloudinary'
+import { withBackendToast } from '@/shared/lib/backend-toast'
 
 const updateProductInfoSchema = z.object({
   productName: z.string().min(1, 'Tên sản phẩm là bắt buộc'),
@@ -165,27 +166,25 @@ export function UpdateProductInfoModal({ isOpen, onClose, product: initialProduc
         imageUrl: imageUrl,
       }
 
-      const updatedProduct = await updateProduct(currentProduct.productId, updatePayload)
-
-      setCurrentProduct(prev => ({
-        ...prev,
-        ...updatedProduct,
-        productId: updatedProduct.productId || prev?.productId || currentProduct.productId,
-      }))
-
-      toast({
-        title: 'Cập nhật thành công',
-        description: `Thông tin sản phẩm ${data.productName} đã được cập nhật`,
-        variant: 'success',
-      })
-
-      onClose()
+      await withBackendToast(
+        () => updateProduct(currentProduct.productId, updatePayload),
+        {
+          onSuccess: (updatedProduct) => {
+            setCurrentProduct(prev => ({
+              ...prev,
+              ...updatedProduct,
+              productId: updatedProduct.productId || prev?.productId || currentProduct.productId,
+            }))
+            onClose()
+          },
+          fallbackErrorToast: () => toast({
+            title: 'Cập nhật thất bại',
+            description: 'Có lỗi xảy ra khi cập nhật sản phẩm',
+            variant: 'destructive',
+          })
+        }
+      )
     } catch (error) {
-      toast({
-        title: 'Cập nhật thất bại',
-        description: error instanceof Error ? error.message : 'Có lỗi xảy ra khi cập nhật sản phẩm',
-        variant: 'destructive',
-      })
     }
   }
 

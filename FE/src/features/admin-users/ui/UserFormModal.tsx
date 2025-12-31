@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/shared/ui/dialog'
 import { useToast } from '@/shared/ui/use-toast'
 import { useAdminUsersStore } from '../store/adminUsersStore'
+import { withBackendToast } from '@/shared/lib/backend-toast'
 import {
   userFormSchema,
   availableRoles,
@@ -211,25 +212,31 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
           throw new Error('User ID is missing')
         }
 
-        await updateUser(user.id, data)
-        toast({
-          title: 'Cập nhật người dùng thành công',
-          description: `${data.name} đã được cập nhật.`,
-        })
+        await withBackendToast(
+          () => updateUser(user.id, data),
+          {
+            onSuccess: () => handleClose(),
+            fallbackErrorToast: () => toast({
+              title: 'Không thể lưu thay đổi',
+              description: 'Vui lòng thử lại sau.',
+              variant: 'destructive',
+            })
+          }
+        )
       } else {
-        await createUser(data)
-        toast({
-          title: 'Tạo người dùng thành công',
-          description: `${data.name} đã được thêm vào hệ thống.`,
-        })
+        await withBackendToast(
+          () => createUser(data),
+          {
+            onSuccess: () => handleClose(),
+            fallbackErrorToast: () => toast({
+              title: 'Không thể lưu thay đổi',
+              description: 'Vui lòng thử lại sau.',
+              variant: 'destructive',
+            })
+          }
+        )
       }
-      handleClose()
     } catch (error: unknown) {
-      toast({
-        title: 'Không thể lưu thay đổi',
-        description: error instanceof Error ? error.message : 'Vui lòng thử lại sau.',
-        variant: 'destructive',
-      })
     }
   }
 

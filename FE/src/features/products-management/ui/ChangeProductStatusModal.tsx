@@ -9,6 +9,7 @@ import { useToast } from '@/shared/ui/use-toast'
 import { Loader2 } from 'lucide-react'
 import { useProductStore } from '../store/productStore'
 import type { Product } from '@/shared/api/productService'
+import { withBackendToast } from '@/shared/lib/backend-toast'
 
 interface ChangeProductStatusModalProps {
   isOpen: boolean
@@ -26,22 +27,21 @@ export function ChangeProductStatusModal({ isOpen, onClose, product }: ChangePro
 
   const handleConfirm = async () => {
     try {
-      await changeProductStatus(product.productId)
-      await fetchAllProducts()
-
-      toast({
-        title: 'Cập nhật thành công',
-        description: `Đã ${statusText} sản phẩm ${product.productName}`,
-        variant: 'success',
-      })
-
-      onClose()
+      await withBackendToast(
+        () => changeProductStatus(product.productId),
+        {
+          onSuccess: async () => {
+            await fetchAllProducts()
+            onClose()
+          },
+          fallbackErrorToast: () => toast({
+            title: 'Cập nhật thất bại',
+            description: 'Không thể thay đổi trạng thái sản phẩm',
+            variant: 'destructive',
+          })
+        }
+      )
     } catch (error) {
-      toast({
-        title: 'Cập nhật thất bại',
-        description: error instanceof Error ? error.message : 'Không thể thay đổi trạng thái sản phẩm',
-        variant: 'destructive',
-      })
     }
   }
 

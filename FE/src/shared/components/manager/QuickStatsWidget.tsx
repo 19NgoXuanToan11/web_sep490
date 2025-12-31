@@ -86,18 +86,18 @@ export const QuickStatsWidget: React.FC<QuickStatsWidgetProps> = ({
         <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
       </CardHeader>
       <CardContent className={compact ? 'p-4' : 'p-6'}>
-        <div className={`grid gap-${compact ? '3' : '4'} ${
-          stats.length <= 2 ? 'grid-cols-1' :
-          stats.length <= 4 ? 'grid-cols-2' :
-          'grid-cols-3'
-        }`}>
+        <div className={`grid gap-${compact ? '3' : '4'} ${stats.length <= 2 ? 'grid-cols-1' :
+            stats.length <= 4 ? 'grid-cols-2' :
+              'grid-cols-3'
+          }`}>
           {stats.map((stat, index) => {
             const Icon = stat.icon
             const TrendIcon = stat.change ? trendConfig[stat.change.trend].icon : null
-            const neutralCardBg = 'bg-white'
-            const neutralRing = 'ring-gray-100'
-            const neutralIconBg = 'bg-gray-100'
-            const neutralTrendColor = 'text-gray-500'
+            const statColor = stat.color ? colorConfig[stat.color] : null
+            const neutralCardBg = statColor ? statColor.bg : 'bg-white'
+            const neutralRing = statColor ? statColor.ring : 'ring-gray-100'
+            const neutralIconBg = statColor ? `bg-${stat.color}-100` : 'bg-gray-100'
+            const neutralTrendColor = statColor ? statColor.text : 'text-gray-500'
 
             return (
               <motion.div
@@ -114,7 +114,7 @@ export const QuickStatsWidget: React.FC<QuickStatsWidgetProps> = ({
                   </span>
                   {Icon && (
                     <div className={`p-1 rounded-md ${neutralIconBg} shadow-sm`}>
-                      <Icon className="h-3 w-3 text-gray-700" />
+                      <Icon className={`h-3 w-3 ${statColor ? statColor.text : 'text-gray-700'}`} />
                     </div>
                   )}
                 </div>

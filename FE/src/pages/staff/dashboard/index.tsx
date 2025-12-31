@@ -61,6 +61,8 @@ const MetricCard = React.memo<MetricCardProps>(
             red: 'from-red-500 to-red-600',
         }
 
+        const selectedColorClass = colorClasses[color] || colorClasses.green
+
         const changeIcon = changeType === 'increase' ? ArrowUpRight : ArrowDownRight
         const ChangeIcon = changeIcon
 
@@ -72,6 +74,7 @@ const MetricCard = React.memo<MetricCardProps>(
                 className={onClick ? 'cursor-pointer' : ''}
             >
                 <Card className="relative overflow-hidden border-0 shadow-lg bg-white">
+                    <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${selectedColorClass}`}></div>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium text-gray-600">{title}</CardTitle>
                     </CardHeader>

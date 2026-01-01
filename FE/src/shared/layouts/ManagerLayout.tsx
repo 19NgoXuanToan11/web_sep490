@@ -73,10 +73,10 @@ const navigationItems: NavItem[] = [
     description: 'Lập kế hoạch & quản lý hoạt động',
   },
   {
-    name: 'Lịch',
-    href: '/manager/irrigation',
+    name: 'Thời vụ',
+    href: '/manager/season',
     icon: Calendar,
-    description: 'Quản lý lịch tưới',
+    description: 'Quản lý thời vụ gieo trồng',
   },
   {
     name: 'Bảng điều khiển IoT',

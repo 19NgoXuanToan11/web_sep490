@@ -7,7 +7,7 @@ const STORAGE_KEYS = {
 export interface UserPreferences {
   tableDensity: 'compact' | 'comfortable'
   lastSelectedTab: {
-    irrigation?: string
+    season?: string
   }
   language: string
   theme: 'light' | 'dark' | 'system'

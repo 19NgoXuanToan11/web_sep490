@@ -50,21 +50,21 @@ const toDateOnly = (value?: string) => {
 const rangesOverlap = (startA: Date, endA: Date, startB: Date, endB: Date) => startA <= endB && startB <= endA
 
 const activityTypeLabels: Record<string, string> = {
-  SoilPreparation: 'Chuẩn bị đất',
+  SoilPreparation: 'Chuẩn bị đất trước gieo',
   Sowing: 'Gieo hạt',
-  Thinning: 'Tỉa cây con',
-  FertilizingDiluted: 'Bón phân (pha loãng)',
-  Weeding: 'Nhổ cỏ',
-  PestControl: 'Phòng trừ sâu bệnh',
-  FertilizingLeaf: 'Bón phân cho lá',
+  Thinning: 'Tỉa cây con cho đều',
+  FertilizingDiluted: 'Bón phân pha loãng (NPK 20–30%)',
+  Weeding: 'Nhổ cỏ nhỏ',
+  PestControl: 'Phòng trừ sâu bằng thuốc sinh học',
+  FertilizingLeaf: 'Bón phân cho lá (N, hữu cơ)',
   Harvesting: 'Thu hoạch',
-  CleaningFarmArea: 'Dọn dẹp nông trại',
+  CleaningFarmArea: 'Dọn dẹp đồng ruộng',
 }
 
 const plantStageLabels: Record<string, string> = {
   Germination: 'Gieo hạt',
   Seedling: 'Nảy mầm',
-  Vegetative: 'Tăng trưởng',
+  Vegetative: 'Tăng trưởng lá',
   Harvest: 'Thu hoạch',
 }
 
@@ -223,7 +223,7 @@ function ScheduleLogPanel({ scheduleId, onEdit, registerUpdater }: { scheduleId:
   return (
     <div>
       {isEmptyState ? (
-        <div className="py-6 text-center text-muted-foreground">Chưa có ghi nhận</div>
+        <div className="py-6 text-center text-muted-foreground">Không có ghi nhận</div>
       ) : (
         <>
           <div
@@ -247,7 +247,7 @@ function ScheduleLogPanel({ scheduleId, onEdit, registerUpdater }: { scheduleId:
                   <div className="min-w-0">
                     <div className="text-xs text-muted-foreground">{safeFormat(ts ?? undefined)}</div>
                     <div className="font-medium truncate">{(l.notes || '').split('\n')[0]}</div>
-                    <div className="text-xs text-muted-foreground mt-1">Người: {l.updatedBy ?? l.createdBy ?? 'Không xác định'}</div>
+                    <div className="text-xs text-muted-foreground mt-1">Bởi: {l.updatedBy ?? l.createdBy ?? 'Hệ thống'}</div>
                   </div>
                   <div className="flex items-center gap-2">
                     <Button size="sm" variant="outline" onClick={() => onEdit(l)}><Edit className="h-4 w-4" /></Button>
@@ -449,7 +449,7 @@ const ScheduleActionMenu: React.FC<ScheduleActionMenuProps> = React.memo(({
           className="cursor-pointer focus:bg-gray-100"
           onSelect={(e) => e.preventDefault()}
         >
-          <span className="flex items-center gap-2">Thêm ghi nhận</span>
+          <span className="flex items-center gap-2">Thêm Ghi nhận</span>
         </DropdownMenuItem>
         <DropdownMenuItem
           onClick={handleView}
@@ -685,7 +685,7 @@ export function BackendScheduleList({
       setData(res)
       setFilteredItems(null)
     } catch (e) {
-      handleFetchError(e, toast, 'lịch thời vụ')
+      handleFetchError(e, toast, 'thời vụ')
     } finally {
       setLoading(false)
     }
@@ -710,7 +710,7 @@ export function BackendScheduleList({
       return items
     } catch (e) {
       if (!silent) {
-        handleFetchError(e, toast, 'lßïch tß¢i (toán bßÖ)')
+        handleFetchError(e, toast, 'thời vụ (toàn bộ)')
       }
       return []
     }
@@ -726,7 +726,7 @@ export function BackendScheduleList({
     today.setHours(0, 0, 0, 0)
 
     if (!payload.farmId) errors.push('Vui lòng chọn nông trại.')
-    if (!payload.cropId) errors.push('Vui lòng chọn cây trồng.')
+    if (!payload.cropId) errors.push('Vui lòng chọn mùa vụ.')
     if (!payload.staffId) errors.push('Vui lòng chọn nhân viên.')
     if (!payload.quantity || payload.quantity <= 0) errors.push('Số lượng phải lớn hơn 0.')
     if (!start) errors.push('Ngày bắt đầu không hợp lệ.')
@@ -734,7 +734,7 @@ export function BackendScheduleList({
 
     const ensureFuture = (date: Date | null, label: string) => {
       if (date && date < today) {
-        errors.push(`${label} không nằm trong khoảng hợp lệ.`)
+        errors.push(`${label} không được nằm trong quá khứ.`)
       }
     }
 
@@ -744,7 +744,7 @@ export function BackendScheduleList({
     if (harvest) ensureFuture(harvest, 'Ngày thu hoạch')
 
     if (start && end && start >= end) {
-      errors.push('Ngày bắt đầu phải trước ngày kết thúc.')
+      errors.push('Ngày bắt đầu phải trước ngày kết thúc và không trùng nhau.')
     }
 
     if (planting && harvest && planting >= harvest) {
@@ -760,11 +760,11 @@ export function BackendScheduleList({
     }
 
     if (start && harvest && harvest < start) {
-      errors.push('Ngáy thu hoßích phßúi nßm sau ngáy bß»t æßºu.')
+      errors.push('Ngày thu hoạch phải nằm sau ngày bắt đầu.')
     }
 
     if (end && harvest && harvest > end) {
-      errors.push('Ngáy thu hoßích phßúi nßm trong khoßúng cßºa lßïch.')
+      errors.push('Ngày thu hoạch phải nằm trong khoảng của lịch.')
     }
 
     if (start && end && payload.farmId && payload.cropId && allSchedules.length) {
@@ -778,7 +778,7 @@ export function BackendScheduleList({
         return rangesOverlap(existingStart, existingEnd, start, end)
       })
       if (hasOverlap) {
-        errors.push('Khoßúng thß¥i gian bßï trng vß¢i lßïch khíc cßºa cng nng trßíi/cây trồng.')
+        errors.push('Khoảng thời gian bị trùng với lịch khác của cùng nông trại/cây trồng.')
       }
     }
 
@@ -786,7 +786,7 @@ export function BackendScheduleList({
       const daysDiff = Math.floor((planting.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
       if (daysDiff >= 0 || (daysDiff >= -7 && daysDiff < 0)) {
         if (payload.diseaseStatus >= 0) {
-          errors.push('Cây mới gieo trồng (trong vòng 7 ngày gần đây hoặc trong tương lai) không thể ở tình trạng bệnh. Vui lòng chọn "Không có bệnh".')
+          errors.push('Cây mới gieo trồng (trong vòng 7 ngày gần đây hoặc trong tương lai) không thể có tình trạng bệnh. Vui lòng chọn "Không có bệnh".')
         }
       }
     }
@@ -801,7 +801,7 @@ export function BackendScheduleList({
     const result = validateSchedulePayload(payload, currentScheduleId)
     if (!result.valid) {
       toast({
-        title: 'Dß» lißçu khng hßúp lßç',
+        title: 'Dữ liệu không hợp lệ',
         description: result.errors.map(err => `• ${err}`).join('\n'),
         variant: 'destructive',
       })
@@ -861,7 +861,7 @@ export function BackendScheduleList({
       activityOptions: validActivities.map((a: FarmActivity) => {
         const start = formatDateSafe(a.startDate)
         const end = formatDateSafe(a.endDate)
-        const dateLabel = start || end ? ` (${start || '...'} ΓåÆ ${end || '...'})` : ''
+        const dateLabel = start || end ? ` (${start || '...'} → ${end || '...'})` : ''
         return {
           id: a.farmActivitiesId,
           name: `${translateActivityType(a.activityType)}${dateLabel}`,
@@ -933,12 +933,12 @@ export function BackendScheduleList({
     if (!ensureScheduleValidity(payload)) return
     try {
       await scheduleService.createSchedule(payload)
-      handleApiSuccess('Tạo lịch thành công', toast)
+      handleApiSuccess('Tạo thời vụ thành công', toast)
       handleCreateDialogChange(false)
       await load()
       await loadAllSchedules()
     } catch (e) {
-      handleCreateError(e, toast, 'lßïch tß¢i')
+      handleCreateError(e, toast, 'thời vụ')
     }
   }
 
@@ -955,7 +955,7 @@ export function BackendScheduleList({
     } catch (e) {
       const normalized = normalizeError(e)
       const display = normalized.backendMessage ?? mapErrorToVietnamese(e).vietnamese
-      toast({ title: 'Không thể tải chi tiết lịch', description: display, variant: 'destructive' })
+      toast({ title: 'Không thể tải chi tiết thời vụ', description: display, variant: 'destructive' })
     } finally {
       setActionLoading({ [`detail-${schedule.scheduleId}`]: false })
     }
@@ -1010,7 +1010,7 @@ export function BackendScheduleList({
     setActionLoading({ [`update-today-${scheduleId}`]: true })
     try {
       await scheduleService.updateToday(scheduleId, customDate)
-      handleApiSuccess('Cß¡p nhß¡t giai æoßín theo ngáy thánh cng', toast)
+      handleApiSuccess('Cập nhật giai đoạn theo ngày thành công', toast)
       const res = await scheduleService.getScheduleById(scheduleId)
       setScheduleDetail(res.data)
       await load()
@@ -1023,7 +1023,7 @@ export function BackendScheduleList({
       const normalized = normalizeError(e)
       const display = normalized.backendMessage ?? mapErrorToVietnamese(e).vietnamese
       toast({
-        title: 'Cß¡p nhß¡t giai æoßín thßÑt bßíi',
+        title: 'Cập nhật giai đoạn thất bại',
         description: display,
         variant: 'destructive'
       })
@@ -1036,7 +1036,7 @@ export function BackendScheduleList({
     if (!customToday) {
       toast({
         title: 'Vui lòng chọn ngày',
-        description: 'Bßín cßºn chßìn mßÖt ngáy æßâ cß¡p nhß¡t giai æoßín.',
+        description: 'Bạn cần chọn một ngày để cập nhật giai đoạn.',
         variant: 'destructive',
       })
       return
@@ -1076,7 +1076,7 @@ export function BackendScheduleList({
           } catch (metaErr) {
             console.error('Failed to load metadata for edit dialog:', metaErr)
             if (!cancelled) {
-              handleFetchError(metaErr, toast, 'danh sích tham chißu')
+              handleFetchError(metaErr, toast, 'danh sách tham chiếu')
             }
           } finally {
             if (!cancelled) setMetaLoading(false)
@@ -1161,7 +1161,7 @@ export function BackendScheduleList({
               }
               const start = fav.startDate ? formatDateSafeLocal(fav.startDate) : ''
               const end = fav.endDate ? formatDateSafeLocal(fav.endDate) : ''
-              const dateLabel = start || end ? ` (${start || '...'} ΓåÆ ${end || '...'})` : ''
+              const dateLabel = start || end ? ` (${start || '...'} → ${end || '...'})` : ''
               const name = `${translateActivityType(fav.activityType ?? '')}${dateLabel}`
               setActivities(prev => {
                 if (prev.some(p => p.id === activityIdFromDetail)) return prev
@@ -1190,7 +1190,7 @@ export function BackendScheduleList({
             const normalized = normalizeError(e)
             const display = normalized.backendMessage ?? mapErrorToVietnamese(e).vietnamese
             toast({
-              title: 'Khng thßâ tßúi thng tin lßïch',
+              title: 'Không thể tải thông tin lịch',
               description: display,
               variant: 'destructive',
             })
@@ -1308,7 +1308,7 @@ export function BackendScheduleList({
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
-                placeholder="T¼m kißm theo cây trồng, nng trßíi..."
+                placeholder="Tìm kiếm theo cây trồng, nông trại..."
                 value={searchTerm}
                 onChange={e => setSearchTerm(e.target.value)}
                 className="pl-9"
@@ -1353,7 +1353,7 @@ export function BackendScheduleList({
           <CardContent className="p-12">
             <div className="flex items-center justify-center">
               <RefreshCw className="h-8 w-8 animate-spin text-green-600" />
-              <span className="ml-2 text-gray-600">Đang tßúi dß» lißçu...</span>
+              <span className="ml-2 text-gray-600">Đang tải dữ liệu...</span>
             </div>
           </CardContent>
         </Card>
@@ -1362,18 +1362,18 @@ export function BackendScheduleList({
           <CardContent className="p-12 text-center">
             <p className="text-lg font-semibold text-gray-900">
               {(() => {
-                if (searchTerm) return 'Không tìm thấy lịch thời vụ nào'
-                if (statusFilter === 'active') return 'Chưa có lịch thời vụ đang hoạt động'
-                if (statusFilter === 'inactive') return 'Chưa có lịch thời vụ ở trạng thái tạm dừng'
-                return 'Chưa có lịch thời vụ'
+                if (searchTerm) return 'Không tìm thấy thời vụ nào'
+                if (statusFilter === 'active') return 'Chưa có thời vụ đang hoạt động'
+                if (statusFilter === 'inactive') return 'Chưa có thời vụ đã tạm dừng'
+                return 'Chưa có thời vụ'
               })()}
             </p>
             <p className="text-sm text-gray-600 mt-2">
               {(() => {
-                if (searchTerm) return 'Không có lịch thời vụ phù hợp với điều kiện hiện tại.'
-                if (statusFilter === 'active') return 'Húy tßío lßïch tß¢i mß¢i hoßc k¡ch hoßít cíc lßïch æú tßím dß½ng.'
-                if (statusFilter === 'inactive') return 'Húy tßío lßïch tß¢i mß¢i hoßc k¡ch hoßít cíc lßïch æú tßím dß½ng.'
-                return 'Húy tßío lßïch tß¢i æßºu ti¬n.'
+                if (searchTerm) return 'Không có thời vụ nào phù hợp với điều kiện lọc hiện tại.'
+                if (statusFilter === 'active') return 'Hãy tạo thời vụ mới hoặc kích hoạt các thời vụ đã tạm dừng.'
+                if (statusFilter === 'inactive') return 'Hãy tạo thời vụ mới hoặc kích hoạt các thời vụ đã tạm dừng.'
+                return 'Hãy tạo thời vụ đầu tiên.'
               })()}
             </p>
           </CardContent>
@@ -1416,7 +1416,7 @@ export function BackendScheduleList({
                                   </Badge>
                                   {isNewlyCreated && (
                                     <Badge className="h-6 items-center whitespace-nowrap text-xs bg-green-500 text-white">
-                                      Mß¢i
+                                      Mới
                                     </Badge>
                                   )}
                                 </div>
@@ -1436,12 +1436,12 @@ export function BackendScheduleList({
                                 )}
                                 {schedule.quantity && (
                                   <p className="text-xs text-gray-600 mb-1">
-                                    Số lßúng cây trồng: {schedule.quantity}
+                                    Số lượng cây trồng: {schedule.quantity}
                                   </p>
                                 )}
                                 {schedule.currentPlantStage && (
                                   <p className="text-xs text-gray-600">
-                                    Giai æoßín hißçn tßíi: {translatePlantStage(schedule.currentPlantStage)}
+                                    Giai đoạn hiện tại: {translatePlantStage(schedule.currentPlantStage)}
                                   </p>
                                 )}
                               </div>
@@ -1475,7 +1475,7 @@ export function BackendScheduleList({
 
           <div className="mt-6 flex items-center justify-between">
             <div className="text-sm text-gray-600">
-              Hißân thßï {paginatedSchedules.length} / {serverTotalItems}
+              Hiển thị {paginatedSchedules.length} / {serverTotalItems}
             </div>
             {serverTotalPages > 1 && (
               <div>
@@ -1493,7 +1493,7 @@ export function BackendScheduleList({
       <Dialog open={showCreate} onOpenChange={handleCreateDialogChange}>
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Tạo lịch thời vụ mới</DialogTitle>
+            <DialogTitle>Tạo thời vụ mới</DialogTitle>
           </DialogHeader>
           <form className="grid grid-cols-2 md:grid-cols-3 gap-3" onSubmit={submit}>
             <div>
@@ -1548,7 +1548,7 @@ export function BackendScheduleList({
               </Select>
             </div>
             <div>
-              <Label>Ngáy bß»t æßºu</Label>
+              <Label>Ngày bắt đầu</Label>
               <Input
                 type="date"
                 min={todayString}
@@ -1557,7 +1557,7 @@ export function BackendScheduleList({
               />
             </div>
             <div>
-              <Label>Ngáy kßt thc</Label>
+              <Label>Ngày kết thúc</Label>
               <Input
                 type="date"
                 min={form.startDate || todayString}
@@ -1566,7 +1566,7 @@ export function BackendScheduleList({
               />
             </div>
             <div>
-              <Label>Số lßúng</Label>
+              <Label>Số lượng</Label>
               <Input
                 type="number"
                 min={1}
@@ -1575,7 +1575,7 @@ export function BackendScheduleList({
               />
             </div>
             <div>
-              <Label>Trßíng thíi</Label>
+              <Label>Trạng thái</Label>
               <Select
                 value={String(form.status)}
                 onValueChange={v => setForm({ ...form, status: Number(v) })}
@@ -1592,18 +1592,18 @@ export function BackendScheduleList({
               </Select>
             </div>
             <div>
-              <Label>T¼nh trßíng bßçnh</Label>
+              <Label>Tình trạng bệnh</Label>
               <div className="mt-2 text-sm text-gray-700">Không có bệnh</div>
             </div>
             <div>
-              <Label>Hoạt æßÖng nng trßíi</Label>
+              <Label>Hoạt động nông trại</Label>
               <Select
                 value={form.farmActivitiesId ? String(form.farmActivitiesId) : ''}
                 onValueChange={v => setForm({ ...form, farmActivitiesId: Number(v) })}
                 disabled={metaLoading}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder={metaLoading ? 'Đang tải...' : 'Chọn trạng thái'} />
+                  <SelectValue placeholder={metaLoading ? 'Đang tải...' : 'Chọn hoạt động'} />
                 </SelectTrigger>
                 <SelectContent>
                   {activities.map(a => (
@@ -1619,7 +1619,7 @@ export function BackendScheduleList({
                   checked={form.pesticideUsed}
                   onChange={e => setForm({ ...form, pesticideUsed: e.target.checked })}
                 />
-                <span>Xem dng thußæc BVTV</span>
+                <span>Đã dùng thuốc BVTV</span>
               </label>
               <div className="ml-auto flex gap-2">
                 {metaLoading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
@@ -1634,7 +1634,7 @@ export function BackendScheduleList({
       <Dialog open={showDetail} onOpenChange={setShowDetail}>
         <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader className="flex flex-row items-center justify-between gap-4 pr-8">
-            <DialogTitle>Chi tißt lßïch tß¢i</DialogTitle>
+            <DialogTitle>Chi tiết thời vụ</DialogTitle>
             {scheduleDetail?.scheduleId && (
               <div className="flex items-center gap-2">
                 <Button
@@ -1654,7 +1654,7 @@ export function BackendScheduleList({
                   onClick={() => setShowUpdateStageModal(true)}
                   className="flex items-center gap-2"
                 >
-                  Cß¡p nhß¡t giai æoßín theo ngáy
+                  Cập nhật giai đoạn theo ngày
                 </Button>
               </div>
             )}
@@ -1671,20 +1671,20 @@ export function BackendScheduleList({
                   <div className={`grid grid-cols-1 ${showThresholdInline ? 'lg:grid-cols-[1fr_360px]' : 'lg:grid-cols-1'} gap-6`}>
                     <div className="space-y-6">
                       <div>
-                        <h3 className="text-lg font-semibold mb-3">Thông tin cí bßún</h3>
+                        <h3 className="text-lg font-semibold mb-3">Thông tin cơ bản</h3>
                         <div className="grid grid-cols-2 gap-4">
-                          <div><strong>Ngáy bß»t æßºu:</strong> {formatDate(scheduleDetail.startDate)}</div>
-                          <div><strong>Ngáy kßt thc:</strong> {formatDate(scheduleDetail.endDate)}</div>
+                          <div><strong>Ngày bắt đầu:</strong> {formatDate(scheduleDetail.startDate)}</div>
+                          <div><strong>Ngày kết thúc:</strong> {formatDate(scheduleDetail.endDate)}</div>
                           <div>
-                            <strong>Trßíng thíi:</strong>{' '}
+                            <strong>Trạng thái:</strong>{' '}
                             <Badge variant={isActiveStatus(scheduleDetail.status) ? 'golden' : 'destructive'}>
                               {getStatusLabel(scheduleDetail.status)}
                             </Badge>
                           </div>
                           <div><strong>Thuốc BVTV:</strong> {scheduleDetail.pesticideUsed ? 'Có' : 'Không'}</div>
-                          <div><strong>T¼nh trßíng bßçnh:</strong> {getDiseaseLabel(scheduleDetail.diseaseStatus)}</div>
+                          <div><strong>Tình trạng bệnh:</strong> {getDiseaseLabel(scheduleDetail.diseaseStatus)}</div>
                           <div>
-                            <strong>Giai æoßín hißçn tßíi:</strong>{' '}
+                            <strong>Giai đoạn hiện tại:</strong>{' '}
                             {scheduleDetail.currentPlantStage
                               ? translatePlantStage(scheduleDetail.currentPlantStage)
                               : scheduleDetail.cropView?.plantStage
@@ -1700,10 +1700,10 @@ export function BackendScheduleList({
 
                       {scheduleDetail.staff && (
                         <div>
-                          <h3 className="text-lg font-semibold mb-3">Thông tin nhón vi¬n</h3>
+                          <h3 className="text-lg font-semibold mb-3">Thông tin nhân viên</h3>
                           <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
                             <div><strong>Họ tên:</strong> {scheduleDetail.staff.fullname ?? scheduleDetail.staffName ?? '-'}</div>
-                            <div><strong>Số æißçn thoßíi:</strong> {scheduleDetail.staff.phone ?? '-'}</div>
+                            <div><strong>Số điện thoại:</strong> {scheduleDetail.staff.phone ?? '-'}</div>
                             {scheduleDetail.staff.email && (
                               <div><strong>Email:</strong> {scheduleDetail.staff.email}</div>
                             )}
@@ -1713,10 +1713,10 @@ export function BackendScheduleList({
 
                       {scheduleDetail.farmView && (
                         <div>
-                          <h3 className="text-lg font-semibold mb-3">Thông tin nng trßíi</h3>
+                          <h3 className="text-lg font-semibold mb-3">Thông tin nông trại</h3>
                           <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
-                            <div><strong>T¬n nng trßíi:</strong> {scheduleDetail.farmView.farmName ?? `#${scheduleDetail.farmView.farmId}`}</div>
-                            <div><strong>Éßïa æißâm:</strong> {scheduleDetail.farmView.location ?? '-'}</div>
+                            <div><strong>Tên nông trại:</strong> {scheduleDetail.farmView.farmName ?? `#${scheduleDetail.farmView.farmId}`}</div>
+                            <div><strong>Địa điểm:</strong> {scheduleDetail.farmView.location ?? '-'}</div>
                           </div>
                         </div>
                       )}
@@ -1725,14 +1725,14 @@ export function BackendScheduleList({
                         <div>
                           <h3 className="text-lg font-semibold mb-3">Thông tin cây trồng</h3>
                           <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
-                            <div><strong>T¬n cây trồng:</strong> {scheduleDetail.cropView.cropName ?? `#${scheduleDetail.cropView.cropId}`}</div>
-                            <div><strong>Số lßúng cây trồng:</strong> {scheduleDetail.quantity}</div>
+                            <div><strong>Tên cây trồng:</strong> {scheduleDetail.cropView.cropName ?? `#${scheduleDetail.cropView.cropId}`}</div>
+                            <div><strong>Số lượng cây trồng:</strong> {scheduleDetail.quantity}</div>
                             {scheduleDetail.cropView.origin && (
                               <div><strong>Nguồn gốc:</strong> {scheduleDetail.cropView.origin}</div>
                             )}
                             {scheduleDetail.cropView.description && (
                               <div className="col-span-2">
-                                <strong>M tßú:</strong>
+                                <strong>Mô tả:</strong>
                                 <p className="mt-1 text-sm text-muted-foreground">{scheduleDetail.cropView.description}</p>
                               </div>
                             )}
@@ -1749,7 +1749,7 @@ export function BackendScheduleList({
 
                             return (
                               <div className="mt-4">
-                                <h4 className="text-md font-semibold mb-3">Y¬u cßºu cây trồng</h4>
+                                <h4 className="text-md font-semibold mb-3">Yêu cầu cây trồng</h4>
                                 <div className="space-y-3">
                                   {sortedReqs.map((req, idx) => {
                                     const r = req as any
@@ -1771,7 +1771,7 @@ export function BackendScheduleList({
                                             </Badge>
                                             {r.estimatedDate && (
                                               <span className="text-sm text-muted-foreground">
-                                                Dự kiến: {r.estimatedDate} ngày
+                                                Ước tính: {r.estimatedDate} ngày
                                               </span>
                                             )}
                                           </div>
@@ -1787,7 +1787,7 @@ export function BackendScheduleList({
                                             <div><strong>Ánh sáng:</strong> {r.lightRequirement}</div>
                                           )}
                                           {r.wateringFrequency && (
-                                            <div><strong>Tần suất tưới:</strong> {r.wateringFrequency} lần/ngày</div>
+                                            <div><strong>Tưới nước:</strong> {r.wateringFrequency} lần/ngày</div>
                                           )}
                                           {r.fertilizer && (
                                             <div className="col-span-2"><strong>Phân bón:</strong> {r.fertilizer}</div>
@@ -1811,10 +1811,10 @@ export function BackendScheduleList({
 
                       {scheduleDetail.farmActivityView && (
                         <div>
-                          <h3 className="text-lg font-semibold mb-3">Thông tin hoßít æßÖng nng trßíi</h3>
+                          <h3 className="text-lg font-semibold mb-3">Thông tin hoạt động nông trại</h3>
                           <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
                             <div>
-                              <strong>Loßíi hoßít æßÖng:</strong>{' '}
+                              <strong>Loại hoạt động:</strong>{' '}
                               {scheduleDetail.farmActivityView.activityType
                                 ? translateActivityType(scheduleDetail.farmActivityView.activityType)
                                 : `#${scheduleDetail.farmActivityView.farmActivitiesId}`}
@@ -1823,7 +1823,7 @@ export function BackendScheduleList({
                               const statusInfo = getFarmActivityStatusInfo(scheduleDetail.farmActivityView.status)
                               return (
                                 <div>
-                                  <strong>Trßíng thíi:</strong>{' '}
+                                  <strong>Trạng thái:</strong>{' '}
                                   <Badge variant={statusInfo.variant}>
                                     {statusInfo.label}
                                   </Badge>
@@ -1838,7 +1838,7 @@ export function BackendScheduleList({
                     <div className="hidden lg:block">
                       {showThresholdInline && (
                         <div className="sticky top-6 self-start p-4 bg-white rounded-lg border">
-                          <h3 className="text-lg font-semibold mb-3">CßÑu h¼nh ngßíng</h3>
+                          <h3 className="text-lg font-semibold mb-3">Cấu hình ngưỡng</h3>
                           <ThresholdPanel />
                         </div>
                       )}
@@ -1853,7 +1853,7 @@ export function BackendScheduleList({
                       <div>
                         <Button size="sm" onClick={() => {
                           if (selectedSchedule) openCreateLogForSchedule(selectedSchedule)
-                        }}>Ghi nhận mß¢i
+                        }}>Ghi nhận mới
                         </Button>
                       </div>
                     </div>
@@ -1969,14 +1969,14 @@ export function BackendScheduleList({
       <Dialog open={showEdit} onOpenChange={handleEditDialogChange}>
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Chỉnh sửa lịch thời vụ</DialogTitle>
+            <DialogTitle>Chỉnh sửa lịch tưới</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleUpdateSchedule}>
             <fieldset className="grid grid-cols-2 md:grid-cols-3 gap-3" disabled={editLoading}>
               {editLoading && (
                 <div className="col-span-2 md:col-span-3 flex items-center gap-2 text-sm text-muted-foreground">
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  Đang tßúi dß» lißçu lßïch...
+                  Đang tải dữ liệu lịch...
                 </div>
               )}
               <div>
@@ -2031,7 +2031,7 @@ export function BackendScheduleList({
                 </Select>
               </div>
               <div>
-                <Label>Ngáy bß»t æßºu</Label>
+                <Label>Ngày bắt đầu</Label>
                 <Input
                   type="date"
                   min={todayString}
@@ -2040,7 +2040,7 @@ export function BackendScheduleList({
                 />
               </div>
               <div>
-                <Label>Ngáy kßt thc</Label>
+                <Label>Ngày kết thúc</Label>
                 <Input
                   type="date"
                   min={editForm.startDate || todayString}
@@ -2049,7 +2049,7 @@ export function BackendScheduleList({
                 />
               </div>
               <div>
-                <Label>Số lßúng</Label>
+                <Label>Số lượng</Label>
                 <Input
                   type="number"
                   min={1}
@@ -2058,7 +2058,7 @@ export function BackendScheduleList({
                 />
               </div>
               <div>
-                <Label>Trßíng thíi</Label>
+                <Label>Trạng thái</Label>
                 <Select
                   value={String(editForm.status)}
                   onValueChange={v => setEditForm({ ...editForm, status: Number(v) })}
@@ -2093,14 +2093,14 @@ export function BackendScheduleList({
                 </Select>
               </div>
               <div>
-                <Label>Hoạt æßÖng</Label>
+                <Label>Hoạt động</Label>
                 <Select
                   value={editForm.farmActivitiesId != null && editForm.farmActivitiesId > 0 ? String(editForm.farmActivitiesId) : ''}
                   onValueChange={v => setEditForm({ ...editForm, farmActivitiesId: Number(v) })}
                   disabled={metaLoading || editLoading}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder={metaLoading || editLoading ? 'Đang tải...' : 'Chọn trạng thái'} />
+                    <SelectValue placeholder={metaLoading || editLoading ? 'Đang tải...' : 'Chọn hoạt động'} />
                   </SelectTrigger>
                   <SelectContent>
                     {activities.map(a => (
@@ -2116,7 +2116,7 @@ export function BackendScheduleList({
                   checked={editForm.pesticideUsed}
                   onChange={e => setEditForm({ ...editForm, pesticideUsed: e.target.checked })}
                 />
-                <Label htmlFor="editPesticide">Số¡ dßÑng thußæc BVTV</Label>
+                <Label htmlFor="editPesticide">Sử dụng thuốc BVTV</Label>
               </div>
             </fieldset>
           </form>
@@ -2132,7 +2132,7 @@ export function BackendScheduleList({
               {actionLoading[`update-${selectedSchedule?.scheduleId}`] && (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               )}
-              Cß¡p nhß¡t
+              Cập nhật
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -2141,7 +2141,7 @@ export function BackendScheduleList({
       <Dialog open={showAssignStaff} onOpenChange={handleAssignStaffDialogChange}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Phón cng nhón vi¬n</DialogTitle>
+            <DialogTitle>Phân công nhân viên</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -2172,7 +2172,7 @@ export function BackendScheduleList({
               {actionLoading[`assign-${selectedSchedule?.scheduleId}`] && (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               )}
-              Phón cng
+              Phân công
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -2182,7 +2182,7 @@ export function BackendScheduleList({
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="text-xl font-semibold text-gray-900">
-              Cß¡p nhß¡t giai æoßín theo ngáy
+              Cập nhật giai đoạn theo ngày
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 mt-4">
@@ -2216,10 +2216,10 @@ export function BackendScheduleList({
               {actionLoading[`update-today-${scheduleDetail?.scheduleId}`] ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Đang cß¡p nhß¡t...
+                  Đang cập nhật...
                 </>
               ) : (
-                'Cß¡p nhß¡t giai æoßín'
+                'Cập nhật giai đoạn'
               )}
             </Button>
           </DialogFooter>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { StaffLayout } from '@/shared/layouts/StaffLayout'
-import { StaffScheduleBoard } from '@/features/irrigation/ui/StaffScheduleBoard'
+import { StaffScheduleBoard } from '@/features/season'
 import { Card, CardContent } from '@/shared/ui/card'
 import { scheduleService, type ScheduleListItem } from '@/shared/api/scheduleService'
 import { useToast } from '@/shared/ui/use-toast'
@@ -57,7 +57,7 @@ const StaffOperationsPage: React.FC = () => {
         <div className="max-w-6xl mx-auto space-y-6">
           <div>
             <h1 className="text-2xl font-semibold text-gray-900">Lịch công việc</h1>
-            <p className="text-muted-foreground">Theo dõi các lịch tưới và hoạt động được giao.</p>
+            <p className="text-muted-foreground">Theo dõi các thời vụ và hoạt động được giao.</p>
           </div>
 
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -84,7 +84,7 @@ const StaffOperationsPage: React.FC = () => {
                   </div>
                 </div>
                 <p className="text-xs text-gray-500 mt-2">
-                  Lịch đang ở trạng thái hoạt động (ACTIVE)
+                  Lịch đang ở trạng thái hoạt động
                 </p>
               </CardContent>
             </Card>

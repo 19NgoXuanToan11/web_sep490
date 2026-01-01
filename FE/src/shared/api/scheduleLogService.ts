@@ -3,10 +3,12 @@ import { http } from '@/shared/api/client'
 export interface ScheduleLogItem {
   id: number
   notes: string
-  createdAt?: string
-  createdBy?: number
-  updatedAt?: string
-  updatedBy?: number
+  createdAt?: string | null
+  createdBy?: number | null
+  updatedAt?: string | null
+  updatedBy?: number | null
+  staffNameCreate?: string | null
+  staffNameUpdate?: string | null
 }
 
 export interface PaginatedLogs {
@@ -40,6 +42,8 @@ export const scheduleLogService = {
         createdBy: it.createdBy ?? it.created_by ?? null,
         updatedAt: it.updatedAt ?? it.updated_at ?? null,
         updatedBy: it.updatedBy ?? it.updated_by ?? null,
+        staffNameCreate: it.staffNameCreate ?? it.staff_name_create ?? it.staffName ?? null,
+        staffNameUpdate: it.staffNameUpdate ?? it.staff_name_update ?? null,
       })),
     }
     return mapped

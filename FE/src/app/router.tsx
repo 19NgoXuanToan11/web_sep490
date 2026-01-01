@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react'
-import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom'
 import { RoleGuard } from '@/shared/ui/router/RoleGuard'
 import { RouteErrorElement } from '@/shared/ui/router/RouteErrorElement'
 
@@ -10,7 +10,7 @@ const AdminUsersPage = React.lazy(() => import('@/pages/admin/users'))
 const AdminDashboard = React.lazy(() => import('@/pages/admin/dashboard'))
 
 const ManagerDashboard = React.lazy(() => import('@/pages/manager/dashboard'))
-const IrrigationPage = React.lazy(() => import('@/pages/manager/irrigation'))
+const SeasonPage = React.lazy(() => import('@/pages/manager/season'))
 const ManagerCategoriesPage = React.lazy(() => import('@/pages/manager/categories'))
 const ManagerCropsPage = React.lazy(() => import('@/pages/manager/crops'))
 const CropManagementPage = React.lazy(() =>
@@ -93,11 +93,21 @@ const routerConfig = [
     ),
   },
   {
+    path: '/manager/season',
+    element: (
+      <LazyWrapper>
+        <RoleGuard allowed={['Manager']}>
+          <SeasonPage />
+        </RoleGuard>
+      </LazyWrapper>
+    ),
+  },
+  {
     path: '/manager/irrigation',
     element: (
       <LazyWrapper>
         <RoleGuard allowed={['Manager']}>
-          <IrrigationPage />
+          <Navigate to="/manager/season" replace />
         </RoleGuard>
       </LazyWrapper>
     ),

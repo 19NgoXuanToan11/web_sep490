@@ -1,6 +1,6 @@
 export type ScheduleStatus = 'Scheduled' | 'Running' | 'Paused'
 
-export interface IrrigationSchedule {
+export interface SeasonSchedule {
   id: string
   deviceId: string
   title: string

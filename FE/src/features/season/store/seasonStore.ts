@@ -1,19 +1,19 @@
 import { create } from 'zustand'
 import { mapErrorToVietnamese } from '@/shared/lib/error-handler'
-import type { IrrigationSchedule, LoadingState } from '@/shared/lib/localData'
-import { irrigationSchedules as initialSchedules } from '@/shared/lib/localData/fixtures'
+import type { SeasonSchedule, LoadingState } from '@/shared/lib/localData'
+import { seasonSchedules as initialSchedules } from '@/shared/lib/localData/fixtures'
 import { simulateLatency, simulateError, addDays } from '@/shared/lib/localData/storage'
-import type { ScheduleFormData } from '../model/schemas'
+import type { ScheduleFormData } from '@/features/season/model/schemas'
 
-interface IrrigationState {
-  schedules: IrrigationSchedule[]
+interface SeasonState {
+  schedules: SeasonSchedule[]
   loadingStates: Record<string, LoadingState>
   selectedTab: string
 
   initializeData: () => void
 
   createSchedule: (data: ScheduleFormData) => Promise<void>
-  updateSchedule: (id: string, data: Partial<IrrigationSchedule>) => Promise<void>
+  updateSchedule: (id: string, data: Partial<SeasonSchedule>) => Promise<void>
   deleteSchedule: (id: string) => Promise<void>
   toggleSchedule: (id: string, enabled: boolean) => Promise<void>
 
@@ -21,7 +21,7 @@ interface IrrigationState {
   setLoadingState: (key: string, state: LoadingState) => void
 }
 
-export const useIrrigationStore = create<IrrigationState>((set, get) => ({
+export const useSeasonStore = create<SeasonState>((set, get) => ({
   schedules: [],
   loadingStates: {},
   selectedTab: 'calendar',
@@ -43,7 +43,7 @@ export const useIrrigationStore = create<IrrigationState>((set, get) => ({
         throw new Error('Failed to create schedule. Please try again.')
       }
 
-      const newSchedule: IrrigationSchedule = {
+      const newSchedule: SeasonSchedule = {
         id: `sched-${Date.now()}`,
         deviceId: data.deviceId,
         title: data.title,
@@ -70,7 +70,7 @@ export const useIrrigationStore = create<IrrigationState>((set, get) => ({
     }
   },
 
-  updateSchedule: async (id: string, data: Partial<IrrigationSchedule>) => {
+  updateSchedule: async (id: string, data: Partial<SeasonSchedule>) => {
     const key = `update-schedule-${id}`
     get().setLoadingState(key, { isLoading: true })
 
@@ -130,7 +130,7 @@ export const useIrrigationStore = create<IrrigationState>((set, get) => ({
     set({ selectedTab: tab })
 
     import('@/shared/lib/localData/storage').then(({ userPreferences }) => {
-      userPreferences.set({ lastSelectedTab: { irrigation: tab } })
+      userPreferences.set({ lastSelectedTab: { season: tab } })
     })
   },
 
@@ -178,3 +178,5 @@ function calculateNextRun(_type: string, startTime: string): string {
 
   return nextRun.toISOString()
 }
+
+

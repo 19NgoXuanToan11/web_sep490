@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { normalizeError, mapErrorToVietnamese } from '@/shared/lib/error-handler'
 import { Tabs, TabsContent } from '@/shared/ui/tabs'
 import { ManagerLayout } from '@/shared/layouts/ManagerLayout'
-import { BackendScheduleList } from '@/features/irrigation/ui/BackendScheduleList'
+import { BackendScheduleList } from '@/features/season'
 import { Button } from '@/shared/ui/button'
 import { Card, CardContent } from '@/shared/ui/card'
 import { scheduleService, type PaginatedSchedules, type ScheduleListItem } from '@/shared/api/scheduleService'
@@ -11,7 +11,7 @@ import { ManagementPageHeader } from '@/shared/ui/management-page-header'
 
 const BULK_PAGE_SIZE = 50
 
-export default function IrrigationPage() {
+export default function SeasonPage() {
   const selectedTab = 'calendar'
   const handleTabChange = (_tab: string) => { }
   const [showCreate, setShowCreate] = useState(false)
@@ -57,7 +57,7 @@ export default function IrrigationPage() {
       const normalized = normalizeError(e)
       const display = normalized.backendMessage ?? mapErrorToVietnamese(e).vietnamese
       toast({
-        title: 'Không thể tải danh sách lịch',
+        title: 'Không thể tải danh sách thời vụ',
         description: display,
         variant: 'destructive',
       })
@@ -103,8 +103,8 @@ export default function IrrigationPage() {
       })
     } catch (error) {
       toast({
-        title: 'Không thể tải thống kê lịch tưới',
-        description: 'Vẫn có thể sử dụng danh sách lịch, nhưng số liệu tổng quan chưa được cập nhật.',
+        title: 'Không thể tải thống kê thời vụ',
+        description: 'Vẫn có thể sử dụng danh sách, nhưng số liệu tổng quan chưa được cập nhật.',
         variant: 'destructive',
       })
     }
@@ -119,7 +119,7 @@ export default function IrrigationPage() {
     await loadAllSchedules()
     toast({
       title: 'Đã làm mới',
-      description: 'Dữ liệu lịch tưới đã được cập nhật',
+      description: 'Dữ liệu thời vụ đã được cập nhật',
     })
   }, [loadStats, loadAllSchedules, toast])
 
@@ -128,8 +128,8 @@ export default function IrrigationPage() {
       <div className="container mx-auto px-4 py-8">
         <div className="space-y-6">
           <ManagementPageHeader
-            title="Quản lý lịch tưới"
-            description="Quản lý và lập lịch tưới nước"
+            title="Quản lý thời vụ gieo trồng"
+            description="Quản lý và lập thời vụ gieo trồng"
             actions={
               <Button onClick={handleRefresh} variant="outline">
                 Làm mới
@@ -142,12 +142,12 @@ export default function IrrigationPage() {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-500">Tổng lịch tưới</p>
+                    <p className="text-sm text-gray-500">Tổng thời vụ</p>
                     <p className="text-2xl font-semibold mt-1">{stats.total}</p>
                   </div>
                 </div>
                 <p className="text-xs text-gray-500 mt-2">
-                  Tất cả lịch tưới đã được tạo trong hệ thống
+                  Tất cả thời vụ đã được tạo trong hệ thống
                 </p>
               </CardContent>
             </Card>
@@ -161,7 +161,7 @@ export default function IrrigationPage() {
                   </div>
                 </div>
                 <p className="text-xs text-gray-500 mt-2">
-                  Lịch tưới ở trạng thái hoạt động/được sử dụng
+                  Thời vụ ở trạng thái hoạt động/đang áp dụng
                 </p>
               </CardContent>
             </Card>
@@ -175,7 +175,7 @@ export default function IrrigationPage() {
                   </div>
                 </div>
                 <p className="text-xs text-gray-500 mt-2">
-                  Các lịch tưới đã bị vô hiệu hóa
+                  Các thời vụ đã bị vô hiệu hóa
                 </p>
               </CardContent>
             </Card>
@@ -196,3 +196,5 @@ export default function IrrigationPage() {
     </ManagerLayout>
   )
 }
+
+

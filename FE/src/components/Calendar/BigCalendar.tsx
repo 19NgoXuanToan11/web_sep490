@@ -4,6 +4,8 @@ import { format, parse, startOfWeek, getDay, addDays } from "date-fns";
 import Header from "./archive/Header";
 import { vi } from "date-fns/locale";
 import "react-big-calendar/lib/css/react-big-calendar.css";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/shared/ui/dropdown-menu'
+import { MoreHorizontal } from 'lucide-react'
 
 interface Props {
   events?: Array<{
@@ -17,6 +19,7 @@ interface Props {
   }>;
   onEventClick?: (raw?: any) => void;
   onDayClick?: (date: Date, events: any[]) => void;
+  onEventMenuAction?: (action: 'logs' | 'create', raw?: any) => void;
 }
 
 const locales: Record<string, any> = {
@@ -57,7 +60,7 @@ const toRbcEvent = (e: any) => {
   };
 };
 
-const BigCalendar: React.FC<Props> = ({ events = [], onEventClick, onDayClick }) => {
+const BigCalendar: React.FC<Props> = ({ events = [], onEventClick, onDayClick, onEventMenuAction }) => {
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
 
   const mapped = (events || []).map(toRbcEvent).filter((ev) => !!ev.start);
@@ -127,6 +130,30 @@ const BigCalendar: React.FC<Props> = ({ events = [], onEventClick, onDayClick })
     [onEventClick]
   );
 
+  const CustomEvent = (props: any) => {
+    const ev = props.event || props.eventData || {}
+    const title = ev.title ?? ''
+    const raw = ev.raw ?? ev
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+        <div style={{ overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', flex: 1 }}>
+          {title}
+        </div>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button onClick={(e) => { e.stopPropagation() }} className="p-1 rounded hover:bg-muted/50">
+              <MoreHorizontal className="h-4 w-4" />
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onSelect={() => { onEventMenuAction && onEventMenuAction('logs', raw) }}>Nhật ký</DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => { onEventMenuAction && onEventMenuAction('create', raw) }}>Ghi nhận</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    )
+  }
+
   const handleShowMore = useCallback(
     (eventsList: any[], date: Date) => {
       if (onDayClick) {
@@ -178,6 +205,7 @@ const BigCalendar: React.FC<Props> = ({ events = [], onEventClick, onDayClick })
         popup={false}
         selectable={false}
         eventPropGetter={eventStyleGetter}
+        components={{ event: CustomEvent }}
         style={{ minHeight: 500 }}
       />
     </div>

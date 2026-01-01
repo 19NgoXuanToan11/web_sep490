@@ -47,12 +47,11 @@ interface MetricCardProps {
     change?: string
     changeType?: 'increase' | 'decrease'
     description?: string
-    color?: 'purple' | 'blue' | 'green' | 'orange' | 'red'
     onClick?: () => void
 }
 
 const MetricCard = React.memo<MetricCardProps>(
-    ({ title, value, change, changeType = 'increase', description, color = 'green', onClick }) => {
+    ({ title, value, change, changeType = 'increase', description, onClick }) => {
         const changeIcon = changeType === 'increase' ? ArrowUpRight : ArrowDownRight
         const ChangeIcon = changeIcon
 
@@ -405,7 +404,6 @@ export default function StaffDashboard() {
                         title="Tổng đơn hàng"
                         value={stats.totalOrders}
                         change={`${stats.recentOrders} đơn mới`}
-                        color="green"
                         description={`Trong ${timeRange === 'week' ? '7 ngày' : '30 ngày'} qua`}
                         onClick={() => navigate('/staff/orders')}
                     />
@@ -414,7 +412,6 @@ export default function StaffDashboard() {
                         value={stats.pendingOrders}
                         change={stats.deliveringOrders > 0 ? `${stats.deliveringOrders} đang giao` : 'Tất cả đã xử lý'}
                         changeType={stats.pendingOrders > 0 ? 'decrease' : 'increase'}
-                        color="orange"
                         description="Đơn hàng chưa thanh toán hoặc đang xử lý"
                         onClick={() => navigate('/staff/orders')}
                     />
@@ -422,7 +419,6 @@ export default function StaffDashboard() {
                         title="Sản phẩm"
                         value={stats.activeProducts}
                         change={`${stats.totalProducts} tổng sản phẩm`}
-                        color="blue"
                         description="Sản phẩm đang hoạt động"
                         onClick={() => navigate('/staff/products')}
                     />
@@ -430,7 +426,6 @@ export default function StaffDashboard() {
                         title="Đánh giá trung bình"
                         value={`${stats.avgRating} ⭐`}
                         change={`${stats.totalFeedbacks} đánh giá`}
-                        color="green"
                         description="Mức độ hài lòng khách hàng"
                         onClick={() => navigate('/staff/feedbacks')}
                     />

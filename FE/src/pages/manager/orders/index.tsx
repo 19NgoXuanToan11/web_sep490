@@ -39,7 +39,13 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs'
 import { ManagerLayout } from '@/shared/layouts/ManagerLayout'
 import { useToast } from '@/shared/ui/use-toast'
-import { orderService, getOrderStatusLabel, getOrderStatusVariant } from '@/shared/api/orderService'
+import {
+  orderService,
+  getOrderStatusLabel,
+  getOrderStatusVariant,
+  normalizeOrderStatus,
+  derivePaymentStatus,
+} from '@/shared/api/orderService'
 import type { Order as ApiOrder, OrderItem } from '@/shared/api/orderService'
 import { Pagination } from '@/shared/ui/pagination'
 
@@ -144,7 +150,16 @@ const ManagerOrdersPage: React.FC = () => {
         const transformedOrders = response.items
           .map((apiOrder: any) => {
             try {
-              const transformed = transformApiOrder(apiOrder)
+              const normalizedStatus = normalizeOrderStatus(apiOrder.status)
+              const paymentStatus = derivePaymentStatus({
+                status: normalizedStatus,
+                payments: apiOrder.payments,
+              })
+              const transformed = {
+                ...transformApiOrder(apiOrder),
+                status: normalizedStatus,
+                paymentStatus,
+              }
               return transformed
             } catch (error) {
               return null
@@ -428,6 +443,11 @@ const ManagerOrdersPage: React.FC = () => {
       statusIcon = <XCircle className="h-4 w-4 text-red-500" />
     }
 
+    if (paymentStatus === 'pending' && ![2, 4, 5].includes(status)) {
+      label = 'Chờ thanh toán'
+      variant = 'secondary'
+    }
+
     return (
       <Badge variant={variant} className="flex items-center gap-1">
         {statusIcon}
@@ -564,7 +584,7 @@ const ManagerOrdersPage: React.FC = () => {
               <CardContent>
                 <div className="text-2xl font-bold">{orderStats.total}</div>
                 <p className="text-xs text-muted-foreground">
-                  <span className="text-yellow-600">{orderStats.pending} chờ xử lý</span>
+                  <span className="text-yellow-600">{orderStats.pending} chờ thanh toán</span>
                 </p>
               </CardContent>
             </Card>
@@ -646,7 +666,7 @@ const ManagerOrdersPage: React.FC = () => {
             <Tabs value={selectedTab} onValueChange={handleTabChange} className="space-y-4">
               <TabsList>
                 <TabsTrigger value="all">Tất cả</TabsTrigger>
-                <TabsTrigger value="pending">Chờ xử lý</TabsTrigger>
+                <TabsTrigger value="pending">Chờ thanh toán</TabsTrigger>
                 <TabsTrigger value="processing">Đang xử lý</TabsTrigger>
                 <TabsTrigger value="completed">Hoàn thành</TabsTrigger>
               </TabsList>
@@ -1067,7 +1087,7 @@ const ManagerOrdersPage: React.FC = () => {
               { }
               <TabsContent value="pending">
                 <div className="text-center py-8 text-gray-500">
-                  Hiển thị các đơn hàng chờ xử lý ({orderStats.pending} đơn)
+                  Hiển thị các đơn hàng chờ thanh toán ({orderStats.pending} đơn)
                 </div>
               </TabsContent>
               <TabsContent value="processing">

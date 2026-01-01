@@ -440,6 +440,11 @@ export default function ManagerDashboard() {
       variant = 'destructive'
     }
 
+    if (paymentStatus === 'pending' && ![2, 4, 5].includes(status)) {
+      label = 'Chờ thanh toán'
+      variant = 'secondary'
+    }
+
     return <Badge variant={variant}>{label}</Badge>
   }
 

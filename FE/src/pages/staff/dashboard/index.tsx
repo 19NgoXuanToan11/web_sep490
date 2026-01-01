@@ -53,16 +53,6 @@ interface MetricCardProps {
 
 const MetricCard = React.memo<MetricCardProps>(
     ({ title, value, change, changeType = 'increase', description, color = 'green', onClick }) => {
-        const colorClasses = {
-            purple: 'from-purple-500 to-purple-600',
-            blue: 'from-blue-500 to-blue-600',
-            green: 'from-green-500 to-green-600',
-            orange: 'from-orange-500 to-orange-600',
-            red: 'from-red-500 to-red-600',
-        }
-
-        const selectedColorClass = colorClasses[color] || colorClasses.green
-
         const changeIcon = changeType === 'increase' ? ArrowUpRight : ArrowDownRight
         const ChangeIcon = changeIcon
 
@@ -74,7 +64,6 @@ const MetricCard = React.memo<MetricCardProps>(
                 className={onClick ? 'cursor-pointer' : ''}
             >
                 <Card className="relative overflow-hidden border-0 shadow-lg bg-white">
-                    <div className={`absolute inset-x-0 top-0 h-1 bg-gradient-to-r ${selectedColorClass}`}></div>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium text-gray-600">{title}</CardTitle>
                     </CardHeader>
@@ -210,7 +199,7 @@ export default function StaffDashboard() {
 
     const orderStatusData = useMemo(() => {
         const statusMap: Record<number, { label: string; color: string }> = {
-            0: { label: 'Chưa thanh toán', color: '#F59E0B' },
+            0: { label: 'Chờ thanh toán', color: '#F59E0B' },
             1: { label: 'Đã xác nhận', color: '#4CAF50' },
             3: { label: 'Đang giao', color: '#9C27B0' },
             5: { label: 'Hoàn thành', color: '#10B981' },
@@ -341,6 +330,11 @@ export default function StaffDashboard() {
         if (paymentStatus === 'failed' && status === 2) {
             label = 'Thất bại'
             variant = 'destructive'
+        }
+
+        if (paymentStatus === 'pending' && ![2, 4, 5].includes(status)) {
+            label = 'Chờ thanh toán'
+            variant = 'secondary'
         }
 
         return <Badge variant={variant}>{label}</Badge>

@@ -371,6 +371,12 @@ const StaffOrdersPage: React.FC = () => {
       variant = 'destructive'
     }
 
+    if (paymentStatus === 'pending' && ![2, 4, 5].includes(status)) {
+      label = 'Chờ thanh toán'
+      variant = 'secondary'
+      return <Badge variant={variant}>{label}</Badge>
+    }
+
     return <Badge variant={variant}>{label}</Badge>
   }
 

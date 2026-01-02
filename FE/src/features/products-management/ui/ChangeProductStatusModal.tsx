@@ -5,7 +5,6 @@ import {
   DialogTitle,
 } from '@/shared/ui/dialog'
 import { Button } from '@/shared/ui/button'
-import { useToast } from '@/shared/ui/use-toast'
 import { Loader2 } from 'lucide-react'
 import { useProductStore } from '../store/productStore'
 import type { Product } from '@/shared/api/productService'
@@ -19,7 +18,6 @@ interface ChangeProductStatusModalProps {
 
 export function ChangeProductStatusModal({ isOpen, onClose, product }: ChangeProductStatusModalProps) {
   const { isUpdating, changeProductStatus, fetchAllProducts } = useProductStore()
-  const { toast } = useToast()
 
   const currentStatus = product.status
   const newStatus = currentStatus === 'Active' ? 'Inactive' : 'Active'
@@ -33,11 +31,6 @@ export function ChangeProductStatusModal({ isOpen, onClose, product }: ChangePro
             await fetchAllProducts()
             onClose()
           },
-          fallbackErrorToast: () => toast({
-            title: 'Cập nhật thất bại',
-            description: 'Không thể thay đổi trạng thái sản phẩm',
-            variant: 'destructive',
-          })
         }
       )
     } catch (error) {

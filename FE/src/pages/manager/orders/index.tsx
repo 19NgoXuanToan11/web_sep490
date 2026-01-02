@@ -38,7 +38,6 @@ import {
 } from '@/shared/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/shared/ui/tabs'
 import { ManagerLayout } from '@/shared/layouts/ManagerLayout'
-import { useToast } from '@/shared/ui/use-toast'
 import {
   orderService,
   getOrderStatusLabel,
@@ -48,6 +47,7 @@ import {
 } from '@/shared/api/orderService'
 import type { Order as ApiOrder, OrderItem } from '@/shared/api/orderService'
 import { Pagination } from '@/shared/ui/pagination'
+import { showSuccessToast, showErrorToast } from '@/shared/lib/toast-manager'
 
 interface DisplayOrder {
   id: string
@@ -70,7 +70,6 @@ interface DisplayOrder {
 }
 
 const ManagerOrdersPage: React.FC = () => {
-  const { toast } = useToast()
   const [orders, setOrders] = useState<DisplayOrder[]>([])
   const [loading, setLoading] = useState(true)
   const [totalItems, setTotalItems] = useState(0)
@@ -172,16 +171,12 @@ const ManagerOrdersPage: React.FC = () => {
         setTotalPages(response.totalPageCount)
         setCurrentPage(response.pageIndex)
       } catch (error) {
-        toast({
-          title: 'Lỗi tải dữ liệu',
-          description: 'Không thể tải danh sách đơn hàng. Vui lòng thử lại.',
-          variant: 'destructive',
-        })
+        showErrorToast(error)
       } finally {
         setLoading(false)
       }
     },
-    [pageSize, toast]
+    [pageSize]
   )
 
   useEffect(() => {
@@ -228,16 +223,8 @@ const ManagerOrdersPage: React.FC = () => {
       setTotalPages(searchResult.totalPageCount)
       setCurrentPage(1)
 
-      toast({
-        title: 'Tìm kiếm thành công',
-        description: `Tìm thấy ${searchResult.totalItemCount} đơn hàng trong ngày ${formatDate(date)}`,
-      })
     } catch (error) {
-      toast({
-        title: 'Lỗi tìm kiếm',
-        description: 'Không thể tìm kiếm đơn hàng theo ngày. Vui lòng thử lại.',
-        variant: 'destructive',
-      })
+      showErrorToast(error)
     } finally {
       setIsSearching(false)
     }
@@ -282,11 +269,6 @@ const ManagerOrdersPage: React.FC = () => {
               next: false,
               previous: false,
             }
-            toast({
-              title: 'Không tìm thấy đơn hàng',
-              description: `Không tìm thấy đơn hàng với mã "${searchQuery.trim()}"`,
-              variant: 'destructive',
-            })
           }
           break
         case 'customerName':
@@ -301,11 +283,6 @@ const ManagerOrdersPage: React.FC = () => {
             const dateString = format(selectedDate, 'yyyy-MM-dd')
             searchResult = await orderService.getOrdersByDate(dateString)
           } else {
-            toast({
-              title: 'Chưa chọn ngày',
-              description: 'Vui lòng chọn ngày để tìm kiếm đơn hàng',
-              variant: 'destructive',
-            })
             return
           }
           break
@@ -322,17 +299,8 @@ const ManagerOrdersPage: React.FC = () => {
       setTotalItems(searchResult.totalItemCount)
       setTotalPages(searchResult.totalPageCount)
       setCurrentPage(1)
-
-      toast({
-        title: 'Tìm kiếm hoàn tất',
-        description: `Tìm thấy ${searchResult.totalItemCount} đơn hàng`,
-      })
     } catch (error) {
-      toast({
-        title: 'Lỗi tìm kiếm',
-        description: 'Không thể thực hiện tìm kiếm. Vui lòng thử lại.',
-        variant: 'destructive',
-      })
+      showErrorToast(error)
     } finally {
       setIsSearching(false)
     }
@@ -405,10 +373,6 @@ const ManagerOrdersPage: React.FC = () => {
     setIsRefreshing(true)
     await fetchOrders(currentPage)
     setIsRefreshing(false)
-    toast({
-      title: 'Dữ liệu đã được cập nhật',
-      description: 'Thông tin tất cả đơn hàng đã được làm mới.',
-    })
   }
 
   const getStatusIcon = (status: number) => {
@@ -489,11 +453,7 @@ const ManagerOrdersPage: React.FC = () => {
       setSelectedOrderDetail(orderDetail)
       setIsOrderDetailOpen(true)
     } catch (error) {
-      toast({
-        title: 'Lỗi tải dữ liệu',
-        description: 'Không thể tải chi tiết đơn hàng. Vui lòng thử lại.',
-        variant: 'destructive',
-      })
+      showErrorToast(error)
     } finally {
       setLoadingOrderDetail(false)
     }
@@ -521,20 +481,12 @@ const ManagerOrdersPage: React.FC = () => {
       const response = await orderService.updateOrderStatus(orderId, statusNumber)
 
       if (response) {
-        toast({
-          title: 'Thành công',
-          description: `Đã cập nhật trạng thái đơn hàng thành ${getOrderStatusLabel(statusNumber)}`,
-          variant: 'success',
-        })
+        showSuccessToast(response)
 
         await fetchOrders()
       }
     } catch (error) {
-      toast({
-        title: 'Lỗi cập nhật',
-        description: 'Không thể cập nhật trạng thái đơn hàng. Vui lòng thử lại.',
-        variant: 'destructive',
-      })
+      showErrorToast(error)
     } finally {
       setLoading(false)
     }

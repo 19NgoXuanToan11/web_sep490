@@ -57,7 +57,7 @@ export const scheduleLogService = {
   },
 
   async updateLog(payload: { id: number; notes: string }) {
-    const body = { cropLogId: payload.id, notes: payload.notes }
+    const body = { logId: payload.id, notes: payload.notes }
     const res = await http.put('/v1/schedule-log/update-log', body)
     return res.data
   },

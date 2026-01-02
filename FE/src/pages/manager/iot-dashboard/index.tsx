@@ -12,7 +12,7 @@ import { Slider } from '@/shared/ui/slider'
 import { Input } from '@/shared/ui/input'
 import { blynkService, type SensorData } from '@/shared/api/blynkService'
 import Gauge from '@/components/iot-dashboard/Gauge'
-import { useToast } from '@/shared/ui/use-toast'
+import { showSuccessToast, showErrorToast } from '@/shared/lib/toast-manager'
 import {
   Dialog,
   DialogContent,
@@ -21,7 +21,6 @@ import {
 } from '@/shared/ui/dialog'
 
 const RealTimeIoTDashboard: React.FC = () => {
-  const { toast } = useToast()
   const [sensorData, setSensorData] = useState<SensorData>({
     temperature: 0,
     humidity: 0,
@@ -98,17 +97,11 @@ const RealTimeIoTDashboard: React.FC = () => {
       setRetryCount(prev => prev + 1)
 
       if (retryCount < 3) {
-
-        toast({
-          title: 'Mất kết nối',
-          description: 'Đang thử kết nối lại với thiết bị IoT...',
-          variant: 'destructive',
-        })
       }
     } finally {
       setIsLoading(false)
     }
-  }, [toast, retryCount])
+  }, [retryCount])
 
   useEffect(() => {
     fetchSensorData()
@@ -152,11 +145,7 @@ const RealTimeIoTDashboard: React.FC = () => {
             if (!isNaN(v14)) setLightOffThreshold(v14)
           }
         } catch (error) {
-          toast({
-            title: 'Lỗi tải dữ liệu',
-            description: 'Không thể tải giá trị ngưỡng từ máy chủ',
-            variant: 'destructive',
-          })
+          showErrorToast(error)
         } finally {
           setIsLoadingThresholds(false)
         }
@@ -168,7 +157,7 @@ const RealTimeIoTDashboard: React.FC = () => {
       setLdrValidationError(null)
       setLightValidationError(null)
     }
-  }, [isThresholdModalOpen, toast])
+  }, [isThresholdModalOpen])
 
   useEffect(() => {
     if (isThresholdModalOpen && !isLoadingThresholds) {
@@ -195,31 +184,20 @@ const RealTimeIoTDashboard: React.FC = () => {
       showSuccessToast?: boolean
     }
   ) => {
-    const showSuccessToast = options?.showSuccessToast ?? true
+    const shouldShowSuccess = options?.showSuccessToast ?? true
 
     try {
       const result = await blynkService.controlPump(newState)
       if (result.success) {
         setPumpControl(newState)
-        if (showSuccessToast) {
-          toast({
-            title: newState ? 'Máy bơm đã bật' : 'Máy bơm đã tắt',
-            description: result.message || `Trạng thái máy bơm: ${newState ? 'Hoạt động' : 'Tắt'}`,
-          })
+        if (shouldShowSuccess) {
+          showSuccessToast(result)
         }
       } else {
-        toast({
-          title: 'Lỗi điều khiển',
-          description: result.message || 'Không thể điều khiển máy bơm',
-          variant: 'destructive',
-        })
+        showErrorToast(result)
       }
     } catch (error) {
-      toast({
-        title: 'Lỗi kết nối',
-        description: 'Không thể gửi lệnh điều khiển',
-        variant: 'destructive',
-      })
+      showErrorToast(error)
     }
   }
 
@@ -234,25 +212,12 @@ const RealTimeIoTDashboard: React.FC = () => {
           await handlePumpControl(true)
         }
 
-        toast({
-          title: newState ? 'Chế độ thủ công đã bật' : 'Chế độ tự động đã bật',
-          description:
-            result.message ||
-            `Hệ thống đã chuyển sang chế độ ${newState ? 'thủ công' : 'tự động'}`,
-        })
+        showSuccessToast(result)
       } else {
-        toast({
-          title: 'Lỗi điều khiển',
-          description: result.message || 'Không thể thay đổi chế độ điều khiển',
-          variant: 'destructive',
-        })
+        showErrorToast(result)
       }
     } catch (error) {
-      toast({
-        title: 'Lỗi kết nối',
-        description: 'Không thể gửi lệnh điều khiển',
-        variant: 'destructive',
-      })
+      showErrorToast(error)
     }
   }
 
@@ -262,23 +227,12 @@ const RealTimeIoTDashboard: React.FC = () => {
       if (result.success) {
         setServoAngle(angle)
         const isOpen = angle[0] >= 90
-        toast({
-          title: 'Mái che đã điều chỉnh',
-          description: result.message || `Mái che: ${isOpen ? 'Mở' : 'Đóng'}`,
-        })
+        showSuccessToast(result)
       } else {
-        toast({
-          title: 'Lỗi điều khiển',
-          description: result.message || 'Không thể điều chỉnh mái che',
-          variant: 'destructive',
-        })
+        showErrorToast(result)
       }
     } catch (error) {
-      toast({
-        title: 'Lỗi kết nối',
-        description: 'Không thể gửi lệnh điều khiển',
-        variant: 'destructive',
-      })
+      showErrorToast(error)
     }
   }
 
@@ -287,23 +241,12 @@ const RealTimeIoTDashboard: React.FC = () => {
       const result = await blynkService.controlLight(newState)
       if (result.success) {
         setLightControl(newState)
-        toast({
-          title: newState ? 'Đèn đã bật' : 'Đèn đã tắt',
-          description: result.message || `Trạng thái đèn: ${newState ? 'Hoạt động' : 'Tắt'}`,
-        })
+        showSuccessToast(result)
       } else {
-        toast({
-          title: 'Lỗi điều khiển',
-          description: result.message || 'Không thể điều khiển đèn',
-          variant: 'destructive',
-        })
+        showErrorToast(result)
       }
     } catch (error) {
-      toast({
-        title: 'Lỗi kết nối',
-        description: 'Không thể gửi lệnh điều khiển',
-        variant: 'destructive',
-      })
+      showErrorToast(error)
     }
   }
 
@@ -320,11 +263,6 @@ const RealTimeIoTDashboard: React.FC = () => {
       setSoilValidationError(validationError)
 
       if (validationError) {
-        toast({
-          title: 'Lỗi xác thực',
-          description: validationError,
-          variant: 'destructive',
-        })
         return
       }
     }
@@ -336,11 +274,6 @@ const RealTimeIoTDashboard: React.FC = () => {
       setLdrValidationError(validationError)
 
       if (validationError) {
-        toast({
-          title: 'Lỗi xác thực',
-          description: validationError,
-          variant: 'destructive',
-        })
         return
       }
     }
@@ -352,11 +285,6 @@ const RealTimeIoTDashboard: React.FC = () => {
       setLightValidationError(validationError)
 
       if (validationError) {
-        toast({
-          title: 'Lỗi xác thực',
-          description: validationError,
-          variant: 'destructive',
-        })
         return
       }
     }
@@ -410,23 +338,12 @@ const RealTimeIoTDashboard: React.FC = () => {
       }
 
       if (result.success) {
-        toast({
-          title: 'Cập nhật thành công',
-          description: result.message,
-        })
+        showSuccessToast(result)
       } else {
-        toast({
-          title: 'Lỗi cập nhật',
-          description: result.message || 'Không thể cập nhật ngưỡng',
-          variant: 'destructive',
-        })
+        showErrorToast(result)
       }
     } catch (error) {
-      toast({
-        title: 'Lỗi kết nối',
-        description: 'Không thể gửi lệnh cập nhật ngưỡng',
-        variant: 'destructive',
-      })
+      showErrorToast(error)
     } finally {
       setIsUpdatingThreshold(null)
     }

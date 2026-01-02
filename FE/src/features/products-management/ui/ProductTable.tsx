@@ -1,9 +1,9 @@
 import React, { useCallback, useMemo, useState } from 'react'
+import { showErrorToast } from '@/shared/lib/toast-manager'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/shared/ui/table'
 import { Button } from '@/shared/ui/button'
 import { Badge } from '@/shared/ui/badge'
 import { Skeleton } from '@/shared/ui/skeleton'
-import { useToast } from '@/shared/ui/use-toast'
 import {
   Edit,
   Trash2,
@@ -277,7 +277,6 @@ export function ProductTable({
   } = useProductStore()
 
   const isReadOnly = mode === 'staff'
-  const { toast } = useToast()
   const [openDropdownId, setOpenDropdownId] = useState<number | null>(null)
 
   const hasSelection = useMemo(
@@ -302,21 +301,11 @@ export function ProductTable({
       try {
         const newStatus = product.status === 'Active' ? 'Inactive' : 'Active'
         await changeProductStatus(product.productId)
-
-        toast({
-          title: 'Cập nhật thành công',
-          description: `Đã ${newStatus === 'Active' ? 'kích hoạt' : 'vô hiệu hóa'} sản phẩm ${product.productName}`,
-          variant: 'success',
-        })
       } catch (error) {
-        toast({
-          title: 'Cập nhật thất bại',
-          description: error instanceof Error ? error.message : 'Không thể cập nhật trạng thái sản phẩm',
-          variant: 'destructive',
-        })
+        showErrorToast(error)
       }
     },
-    [changeProductStatus, isReadOnly, toast],
+    [changeProductStatus, isReadOnly],
   )
 
   const handleDropdownAction = useCallback(

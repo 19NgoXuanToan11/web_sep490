@@ -6,8 +6,8 @@ import { BackendScheduleList } from '@/features/season'
 import { Button } from '@/shared/ui/button'
 import { Card, CardContent } from '@/shared/ui/card'
 import { scheduleService, type PaginatedSchedules, type ScheduleListItem } from '@/shared/api/scheduleService'
-import { useToast } from '@/shared/ui/use-toast'
 import { ManagementPageHeader } from '@/shared/ui/management-page-header'
+import { showErrorToast } from '@/shared/lib/toast-manager'
 
 const BULK_PAGE_SIZE = 50
 
@@ -22,7 +22,6 @@ export default function SeasonPage() {
     upcoming: 0,
     ongoing: 0,
   })
-  const { toast } = useToast()
 
   const [filteredItems, setFilteredItems] = useState<ScheduleListItem[] | null>(null)
   const [, setAllSchedules] = useState<ScheduleListItem[]>([])
@@ -54,18 +53,12 @@ export default function SeasonPage() {
       setFilteredItems(prev => (prev === null ? items : prev))
       return items
     } catch (e) {
-      const normalized = normalizeError(e)
-      const display = normalized.backendMessage ?? mapErrorToVietnamese(e).vietnamese
-      toast({
-        title: 'Không thể tải danh sách thời vụ',
-        description: display,
-        variant: 'destructive',
-      })
+      showErrorToast(e)
       return []
     } finally {
       setAllSchedulesLoading(false)
     }
-  }, [toast])
+  }, [])
 
   useEffect(() => {
     loadAllSchedules()
@@ -102,13 +95,9 @@ export default function SeasonPage() {
         ongoing,
       })
     } catch (error) {
-      toast({
-        title: 'Không thể tải thống kê thời vụ',
-        description: 'Vẫn có thể sử dụng danh sách, nhưng số liệu tổng quan chưa được cập nhật.',
-        variant: 'destructive',
-      })
+      showErrorToast(error)
     }
-  }, [toast])
+  }, [])
 
   useEffect(() => {
     loadStats()
@@ -117,11 +106,7 @@ export default function SeasonPage() {
   const handleRefresh = useCallback(async () => {
     await loadStats()
     await loadAllSchedules()
-    toast({
-      title: 'Đã làm mới',
-      description: 'Dữ liệu thời vụ đã được cập nhật',
-    })
-  }, [loadStats, loadAllSchedules, toast])
+  }, [loadStats, loadAllSchedules])
 
   return (
     <ManagerLayout>

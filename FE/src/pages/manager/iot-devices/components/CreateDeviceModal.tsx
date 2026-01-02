@@ -6,8 +6,8 @@ import { Input } from '@/shared/ui/input'
 import { Label } from '@/shared/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
-import { useToast } from '@/shared/ui/use-toast'
 import { iotDeviceService, type IoTDeviceRequest } from '@/shared/api/iotDeviceService'
+import { showErrorToast, toastManager } from '@/shared/lib/toast-manager'
 
 interface CreateDeviceModalProps {
   isOpen: boolean
@@ -53,7 +53,6 @@ export const CreateDeviceModal: React.FC<CreateDeviceModalProps> = ({
   onClose,
   onSuccess,
 }) => {
-  const { toast } = useToast()
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState<CreateDeviceFormState>({
     deviceName: '',
@@ -67,11 +66,6 @@ export const CreateDeviceModal: React.FC<CreateDeviceModalProps> = ({
     e.preventDefault()
 
     if (!formData.deviceName || !formData.deviceType) {
-      toast({
-        title: 'Lỗi',
-        description: 'Vui lòng điền đầy đủ thông tin bắt buộc',
-        variant: 'destructive',
-      })
       return
     }
 
@@ -93,12 +87,8 @@ export const CreateDeviceModal: React.FC<CreateDeviceModalProps> = ({
         expiryDate: formattedExpiryDate,
       }
 
-      const createdDevice = await iotDeviceService.createDevice(payload)
-
-      toast({
-        title: 'Thành công',
-        description: `Đã tạo thiết bị IoT "${createdDevice.deviceName || formData.deviceName}" thành công`,
-      })
+      await iotDeviceService.createDevice(payload)
+      toastManager.success('Tạo thiết bị thành công')
 
       setFormData({
         deviceName: '',
@@ -112,14 +102,8 @@ export const CreateDeviceModal: React.FC<CreateDeviceModalProps> = ({
       onClose()
     } catch (error: any) {
       console.error('Error creating IoT device:', error)
-      const { normalizeError } = await import('@/shared/lib/error-handler')
-      const normalized = normalizeError(error)
-      const display = normalized.backendMessage ?? 'Không thể tạo thiết bị IoT'
-      toast({
-        title: 'Lỗi',
-        description: display,
-        variant: 'destructive',
-      })
+      console.error('Error creating IoT device:', error)
+      showErrorToast(error)
     } finally {
       setLoading(false)
     }

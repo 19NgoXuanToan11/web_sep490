@@ -18,9 +18,9 @@ import {
   DropdownMenuTrigger,
 } from '@/shared/ui/dropdown-menu'
 import { ManagerLayout } from '@/shared/layouts/ManagerLayout'
-import { useToast } from '@/shared/ui/use-toast'
 import { iotDeviceService, type IoTDevice } from '@/shared/api/iotDeviceService'
 import { CreateDeviceModal } from './components/CreateDeviceModal'
+import { showErrorToast, toastManager } from '@/shared/lib/toast-manager'
 import { DeviceDetailsModal } from './components/DeviceDetailsModal'
 import { UpdateDeviceModal } from './components/UpdateDeviceModal'
 import { ManagementPageHeader, StaffFilterBar, StaffDataTable, type StaffDataTableColumn } from '@/shared/ui'
@@ -119,7 +119,6 @@ const DeviceActionMenu: React.FC<DeviceActionMenuProps> = React.memo(({
 DeviceActionMenu.displayName = 'DeviceActionMenu'
 
 const ManagerIoTDevicesPage: React.FC = () => {
-  const { toast } = useToast()
   const [devices, setDevices] = useState<IoTDevice[]>([])
   const [loading, setLoading] = useState(true)
   const [statusUpdatingId, setStatusUpdatingId] = useState<number | null>(null)
@@ -187,11 +186,7 @@ const ManagerIoTDevicesPage: React.FC = () => {
       const response = await iotDeviceService.getAllDevices(1, 100)
       setDevices(response.items)
     } catch (error) {
-      toast({
-        title: 'Lỗi',
-        description: 'Không thể tải danh sách thiết bị IoT',
-        variant: 'destructive',
-      })
+      showErrorToast(error)
     } finally {
       setLoading(false)
     }
@@ -208,10 +203,6 @@ const ManagerIoTDevicesPage: React.FC = () => {
   const handleRefresh = () => {
     fetchDevices()
     fetchStatistics()
-    toast({
-      title: 'Đã làm mới',
-      description: 'Dữ liệu thiết bị đã được cập nhật',
-    })
   }
 
   const handleCreateSuccess = () => {
@@ -237,11 +228,6 @@ const ManagerIoTDevicesPage: React.FC = () => {
   const handleToggleDeviceStatus = async (device: IoTDevice) => {
     const deviceId = device.ioTdevicesId ?? device.devicesId
     if (deviceId === undefined || deviceId === null) {
-      toast({
-        title: 'Lỗi',
-        description: 'Không tìm thấy thiết bị để cập nhật trạng thái',
-        variant: 'destructive',
-      })
       return
     }
 
@@ -250,7 +236,7 @@ const ManagerIoTDevicesPage: React.FC = () => {
 
     try {
       setStatusUpdatingId(normalizedId)
-      await iotDeviceService.updateDeviceStatus(normalizedId, nextStatus)
+      const res = await iotDeviceService.updateDeviceStatus(normalizedId, nextStatus)
 
       setDevices(prev => prev.map(d => {
         const currentId = Number(d.ioTdevicesId ?? d.devicesId)
@@ -261,16 +247,9 @@ const ManagerIoTDevicesPage: React.FC = () => {
       }))
 
       fetchStatistics()
-      toast({
-        title: 'Thành công',
-        description: nextStatus === 1 ? 'Đã kích hoạt thiết bị' : 'Đã vô hiệu hóa thiết bị',
-      })
+      toastManager.success('Cập nhật trạng thái thiết bị thành công')
     } catch (error) {
-      toast({
-        title: 'Lỗi',
-        description: 'Không thể cập nhật trạng thái thiết bị',
-        variant: 'destructive',
-      })
+      showErrorToast(error)
     } finally {
       setStatusUpdatingId(null)
     }

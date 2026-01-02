@@ -2,7 +2,6 @@ import React from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
 import { Button } from '@/shared/ui/button'
 import { Badge } from '@/shared/ui/badge'
-import { useToast } from '@/shared/ui/use-toast'
 import {
     Calendar,
     Clock,
@@ -29,7 +28,6 @@ interface ScheduleCalendarProps {
 
 export function ScheduleCalendar({ className, showScheduleForm: externalShowScheduleForm, onShowScheduleFormChange }: ScheduleCalendarProps) {
     const { schedules, loadingStates, deleteSchedule, toggleSchedule } = useSeasonStore()
-    const { toast } = useToast()
     const [selectedDate, setSelectedDate] = React.useState(new Date())
     const [internalShowScheduleForm, setInternalShowScheduleForm] = React.useState(false)
     const [editingSchedule, setEditingSchedule] = React.useState<SeasonSchedule | null>(null)
@@ -42,11 +40,6 @@ export function ScheduleCalendar({ className, showScheduleForm: externalShowSche
             await withBackendToast(
                 () => deleteSchedule(schedule.id),
                 {
-                    fallbackErrorToast: () => toast({
-                        title: 'Xóa thất bại',
-                        description: 'Đã xảy ra lỗi không xác định.',
-                        variant: 'destructive',
-                    })
                 }
             )
         } catch (error) {
@@ -58,11 +51,6 @@ export function ScheduleCalendar({ className, showScheduleForm: externalShowSche
             await withBackendToast(
                 () => toggleSchedule(schedule.id, !schedule.enabled),
                 {
-                    fallbackErrorToast: () => toast({
-                        title: 'Cập nhật thất bại',
-                        description: 'Đã xảy ra lỗi không xác định.',
-                        variant: 'destructive',
-                    })
                 }
             )
         } catch (error) {

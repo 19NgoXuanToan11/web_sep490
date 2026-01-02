@@ -3,11 +3,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
 import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
 import { Label } from '@/shared/ui/label'
-import { useToast } from '@/shared/ui/use-toast'
 import { accountApi } from '@/shared/api/auth'
+import { toastManager } from '@/shared/lib/toast-manager'
 
 const ProfilePage: React.FC = () => {
-  const { toast } = useToast()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [changingPass, setChangingPass] = useState(false)
@@ -34,13 +33,9 @@ const ProfilePage: React.FC = () => {
     e.preventDefault()
     setSaving(true)
     try {
-      toast({ title: 'Cập nhật hồ sơ thành công' })
+      toastManager.success('Cập nhật hồ sơ thành công')
     } catch (e: any) {
-      toast({
-        title: 'Cập nhật thất bại',
-        description: e?.message || 'Vui lòng thử lại',
-        variant: 'destructive',
-      })
+      toastManager.error(e?.message || 'Vui lòng thử lại')
     } finally {
       setSaving(false)
     }
@@ -57,13 +52,9 @@ const ProfilePage: React.FC = () => {
         confirmPassword: passwordForm.newPassword,
       })
       setPasswordForm({ oldPassword: '', newPassword: '' })
-      toast({ title: 'Đổi mật khẩu thành công' })
+      toastManager.success('Đổi mật khẩu thành công')
     } catch (e: any) {
-      toast({
-        title: 'Đổi mật khẩu thất bại',
-        description: e?.message || 'Vui lòng thử lại',
-        variant: 'destructive',
-      })
+      toastManager.error(e?.message || 'Vui lòng thử lại')
     } finally {
       setChangingPass(false)
     }

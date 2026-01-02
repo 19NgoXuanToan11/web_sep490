@@ -6,8 +6,8 @@ import { Input } from '@/shared/ui/input'
 import { Label } from '@/shared/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
-import { useToast } from '@/shared/ui/use-toast'
 import { iotDeviceService, type IoTDeviceRequest, type IoTDevice } from '@/shared/api/iotDeviceService'
+import { showErrorToast, toastManager } from '@/shared/lib/toast-manager'
 
 interface UpdateDeviceModalProps {
     isOpen: boolean
@@ -41,7 +41,6 @@ export const UpdateDeviceModal: React.FC<UpdateDeviceModalProps> = ({
     onSuccess,
     device,
 }) => {
-    const { toast } = useToast()
     const [loading, setLoading] = useState(false)
     const [formData, setFormData] = useState<UpdateDeviceFormState>({
         deviceName: '',
@@ -76,20 +75,10 @@ export const UpdateDeviceModal: React.FC<UpdateDeviceModalProps> = ({
 
         const deviceId = device?.devicesId || device?.ioTdevicesId
         if (!deviceId) {
-            toast({
-                title: 'Lỗi',
-                description: 'Không tìm thấy thiết bị để cập nhật',
-                variant: 'destructive',
-            })
             return
         }
 
         if (!formData.deviceName || !formData.deviceType) {
-            toast({
-                title: 'Lỗi',
-                description: 'Vui lòng điền đầy đủ thông tin bắt buộc',
-                variant: 'destructive',
-            })
             return
         }
 
@@ -107,27 +96,17 @@ export const UpdateDeviceModal: React.FC<UpdateDeviceModalProps> = ({
             const payload: IoTDeviceRequest = {
                 deviceName: formData.deviceName,
                 deviceType: formData.deviceType,
-                expiryDate: formattedExpiryDate,        
+                expiryDate: formattedExpiryDate,
             }
 
             const deviceId = device?.devicesId || device?.ioTdevicesId
             const updatedDevice = await iotDeviceService.updateDevice(deviceId!, payload)
-
-            toast({
-                title: 'Thành công',
-                description: `Đã cập nhật thiết bị IoT "${updatedDevice.deviceName || formData.deviceName}" thành công`,
-            })
-
+            toastManager.success('Cập nhật thiết bị thành công')
             onSuccess()
             onClose()
         } catch (error: any) {
             console.error('Error updating IoT device:', error)
-            const errorMessage = error?.response?.data?.message || error?.message || 'Không thể cập nhật thiết bị IoT'
-            toast({
-                title: 'Lỗi',
-                description: errorMessage,
-                variant: 'destructive',
-            })
+            showErrorToast(error)
         } finally {
             setLoading(false)
         }

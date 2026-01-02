@@ -20,9 +20,10 @@ import { scheduleLogService, type ScheduleLogItem } from '@/shared/api/scheduleL
 import { useRef } from 'react'
 import { StaffLayout } from '@/shared/layouts/StaffLayout'
 import { ManagementPageHeader } from '@/shared/ui'
-import { useToast } from '@/shared/ui/use-toast'
+import { showSuccessToast, showErrorToast } from '@/shared/lib/toast-manager'
 import { scheduleService, type ScheduleListItem } from '@/shared/api/scheduleService'
 import { farmActivityService } from '@/shared/api/farmActivityService'
+import { toast } from 'sonner'
 
 interface DisplaySchedule extends Omit<ScheduleListItem, 'diseaseStatus'> {
     id: string
@@ -81,7 +82,6 @@ const translateActivityType = (type?: string | null) => {
 }
 
 const StaffSchedulesPage: React.FC = () => {
-    const { toast } = useToast()
     const [schedules, setSchedules] = useState<DisplaySchedule[]>([])
     const [loading, setLoading] = useState(true)
     const [pageIndex, setPageIndex] = useState(1)
@@ -119,16 +119,12 @@ const StaffSchedulesPage: React.FC = () => {
 
                 setSchedules(transformedSchedules)
             } catch (error) {
-                toast({
-                    title: 'Lỗi tải dữ liệu',
-                    description: 'Không thể tải danh sách lịch làm việc. Vui lòng thử lại.',
-                    variant: 'destructive',
-                })
+                showErrorToast(error)
             } finally {
                 setLoading(false)
             }
         },
-        [toast]
+        []
     )
 
     useEffect(() => {
@@ -139,8 +135,6 @@ const StaffSchedulesPage: React.FC = () => {
         setPageIndex(1)
     }, [schedules])
 
-
-
     const [isCompleting, setIsCompleting] = useState(false)
     const [isConfirmCompleteOpen, setIsConfirmCompleteOpen] = useState(false)
 
@@ -150,7 +144,6 @@ const StaffSchedulesPage: React.FC = () => {
         setIsCompleting(true)
         try {
             await farmActivityService.completeFarmActivity(activityId, selectedScheduleDetail.farmView?.location)
-            toast({ title: 'Hoàn thành', description: 'Hoạt động đã được đánh dấu hoàn thành', variant: 'success' })
 
             await fetchSchedules()
 
@@ -173,7 +166,7 @@ const StaffSchedulesPage: React.FC = () => {
                 setIsScheduleDetailOpen(false)
             }
         } catch (error: any) {
-            toast({ title: 'Lỗi', description: error?.message || 'Không thể hoàn thành hoạt động', variant: 'destructive' })
+            showErrorToast(error)
         } finally {
             setIsCompleting(false)
         }
@@ -610,7 +603,6 @@ const StaffSchedulesPage: React.FC = () => {
                             const form = e.target as HTMLFormElement
                             const notes = (form.elements.namedItem('notes') as HTMLTextAreaElement).value.trim()
                             if (!notes) {
-                                toast({ title: 'Vui lòng nhập nội dung ghi nhận', variant: 'destructive' })
                                 return
                             }
                             try {
@@ -620,7 +612,7 @@ const StaffSchedulesPage: React.FC = () => {
                                         notes,
                                     })
                                     if (res?.status === 1) {
-                                        if (res?.message) toast({ title: res.message })
+                                        showSuccessToast(res)
                                     } else {
                                         const msg = res?.message
                                         if (msg) throw new Error(msg)
@@ -649,7 +641,7 @@ const StaffSchedulesPage: React.FC = () => {
                                         notes,
                                     })
                                     if (res?.status === 1) {
-                                        if (res?.message) toast({ title: res.message })
+                                        showSuccessToast(res)
                                     } else {
                                         const msg = res?.message
                                         if (msg) throw new Error(msg)
@@ -673,8 +665,7 @@ const StaffSchedulesPage: React.FC = () => {
                                 }
                                 setShowLogModal(false)
                             } catch (err) {
-                                const msg = (err as any)?.message
-                                if (msg) toast({ title: msg, variant: 'destructive' })
+                                showErrorToast(err)
                             }
                         }}>
                             <div className="grid gap-3">

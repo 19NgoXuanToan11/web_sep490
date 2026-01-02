@@ -6,8 +6,8 @@ import { Input } from '@/shared/ui/input'
 import { Label } from '@/shared/ui/label'
 import { Textarea } from '@/shared/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
-import { useToast } from '@/shared/ui/use-toast'
 import { Loader2, Upload, X } from 'lucide-react'
+import { toastManager, showErrorToast } from '@/shared/lib/toast-manager'
 import { productSchema, type ProductFormData } from '../model/schemas'
 import { useProductStore } from '../store/productStore'
 import { withBackendToast } from '@/shared/lib/backend-toast'
@@ -23,7 +23,6 @@ interface ProductFormProps {
 export function ProductForm({ editingProduct, onSuccess, onCancel, className }: ProductFormProps) {
   const { categories, isCreating, isUpdating, createProduct, updateProduct, fetchCategories } =
     useProductStore()
-  const { toast } = useToast()
   const [imagePreview, setImagePreview] = React.useState<string | null>(
     editingProduct?.imageUrl || null
   )
@@ -61,13 +60,9 @@ export function ProductForm({ editingProduct, onSuccess, onCancel, className }: 
 
   React.useEffect(() => {
     fetchCategories().catch(() => {
-      toast({
-        title: 'Lỗi tải danh mục',
-        description: 'Không thể tải danh sách danh mục',
-        variant: 'destructive',
-      })
+      toastManager.error('Không thể tải danh sách danh mục')
     })
-  }, [fetchCategories, toast])
+  }, [fetchCategories])
 
   const onSubmit = async (data: ProductFormData) => {
     try {
@@ -82,11 +77,6 @@ export function ProductForm({ editingProduct, onSuccess, onCancel, className }: 
           }),
           {
             onSuccess: () => onSuccess?.(),
-            fallbackErrorToast: () => toast({
-              title: 'Cập nhật thất bại',
-              description: 'Có lỗi xảy ra khi cập nhật sản phẩm',
-              variant: 'destructive',
-            })
           }
         )
       } else {
@@ -98,11 +88,6 @@ export function ProductForm({ editingProduct, onSuccess, onCancel, className }: 
               setImagePreview(null)
               onSuccess?.()
             },
-            fallbackErrorToast: () => toast({
-              title: 'Tạo thất bại',
-              description: 'Có lỗi xảy ra khi tạo sản phẩm',
-              variant: 'destructive',
-            })
           }
         )
       }
@@ -115,20 +100,12 @@ export function ProductForm({ editingProduct, onSuccess, onCancel, className }: 
     if (file) {
 
       if (!file.type.startsWith('image/')) {
-        toast({
-          title: 'File không hợp lệ',
-          description: 'Vui lòng chọn file hình ảnh',
-          variant: 'destructive',
-        })
+        toastManager.error('Vui lòng chọn file hình ảnh')
         return
       }
 
       if (file.size > 5 * 1024 * 1024) {
-        toast({
-          title: 'File quá lớn',
-          description: 'Kích thước file không được vượt quá 5MB',
-          variant: 'destructive',
-        })
+        toastManager.error('Kích thước file không được vượt quá 5MB')
         return
       }
 

@@ -9,8 +9,8 @@ import { Input } from '@/shared/ui/input'
 import { Label } from '@/shared/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/shared/ui/dialog'
-import { useToast } from '@/shared/ui/use-toast'
 import { useAdminUsersStore } from '../store/adminUsersStore'
+import { showErrorToast } from '@/shared/lib/toast-manager'
 import { withBackendToast } from '@/shared/lib/backend-toast'
 import {
   userFormSchema,
@@ -31,7 +31,6 @@ interface UserFormModalProps {
 
 export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, user }) => {
   const { createUser, updateUser, loadingStates } = useAdminUsersStore()
-  const { toast } = useToast()
 
   const isEditing = Boolean(user)
   const loadingKey = isEditing ? `update-user-${user?.id}` : 'create-user'
@@ -117,11 +116,6 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
     if (!file) return
 
     if (!file.type.startsWith('image/')) {
-      toast({
-        title: 'File không hợp lệ',
-        description: 'Vui lòng chọn file hình ảnh (JPG, PNG, GIF, etc.)',
-        variant: 'destructive',
-      })
       if (fileInputRef.current) {
         fileInputRef.current.value = ''
       }
@@ -129,11 +123,6 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      toast({
-        title: 'File quá lớn',
-        description: 'Kích thước file không được vượt quá 5MB',
-        variant: 'destructive',
-      })
       if (fileInputRef.current) {
         fileInputRef.current.value = ''
       }
@@ -167,17 +156,9 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
         if (error.message.includes('aborted')) {
           return
         }
-        toast({
-          title: 'Tải ảnh lên thất bại',
-          description: error.message || 'Có lỗi xảy ra khi tải ảnh lên',
-          variant: 'destructive',
-        })
+        showErrorToast(error)
       } else {
-        toast({
-          title: 'Tải ảnh lên thất bại',
-          description: 'Có lỗi xảy ra khi tải ảnh lên',
-          variant: 'destructive',
-        })
+        showErrorToast(error)
       }
       setImagePreview(null)
       setValue('images', '', { shouldValidate: true })
@@ -216,11 +197,6 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
           () => updateUser(user.id, data),
           {
             onSuccess: () => handleClose(),
-            fallbackErrorToast: () => toast({
-              title: 'Không thể lưu thay đổi',
-              description: 'Vui lòng thử lại sau.',
-              variant: 'destructive',
-            })
           }
         )
       } else {
@@ -228,11 +204,6 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
           () => createUser(data),
           {
             onSuccess: () => handleClose(),
-            fallbackErrorToast: () => toast({
-              title: 'Không thể lưu thay đổi',
-              description: 'Vui lòng thử lại sau.',
-              variant: 'destructive',
-            })
           }
         )
       }
@@ -375,7 +346,7 @@ export const UserFormModal: React.FC<UserFormModalProps> = ({ isOpen, onClose, u
                   className="flex items-center gap-2"
                 >
                   {isUploading ? (
-                    <>
+                  <>
                       <Loader2 className="h-4 w-4 animate-spin" />
                       Đang tải lên... {uploadProgress}%
                     </>

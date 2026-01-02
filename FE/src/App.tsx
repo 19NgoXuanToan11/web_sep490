@@ -1,5 +1,5 @@
 import AppRouter from './app/router'
-import { Toaster } from '@/shared/ui/toaster'
+import { Toaster } from 'sonner'
 import { useEffect } from 'react'
 import { useAuthStore } from '@/shared/store/authStore'
 import '@/shared/ui/AutofillFix.css'

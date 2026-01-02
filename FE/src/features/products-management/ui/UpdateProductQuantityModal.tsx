@@ -11,7 +11,6 @@ import {
 import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
 import { Label } from '@/shared/ui/label'
-import { useToast } from '@/shared/ui/use-toast'
 import { Loader2 } from 'lucide-react'
 import { useProductStore } from '../store/productStore'
 import type { Product } from '@/shared/api/productService'
@@ -31,7 +30,6 @@ interface UpdateProductQuantityModalProps {
 
 export function UpdateProductQuantityModal({ isOpen, onClose, product }: UpdateProductQuantityModalProps) {
   const { isUpdating, changeProductQuantity, fetchAllProducts } = useProductStore()
-  const { toast } = useToast()
 
   const {
     register,
@@ -62,11 +60,6 @@ export function UpdateProductQuantityModal({ isOpen, onClose, product }: UpdateP
             await fetchAllProducts()
             onClose()
           },
-          fallbackErrorToast: () => toast({
-            title: 'Cập nhật thất bại',
-            description: 'Có lỗi xảy ra khi cập nhật số lượng',
-            variant: 'destructive',
-          })
         }
       )
     } catch (error) {

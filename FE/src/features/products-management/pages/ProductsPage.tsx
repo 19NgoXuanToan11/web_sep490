@@ -1,6 +1,6 @@
 ﻿import React from 'react'
 import { Button } from '@/shared/ui/button'
-import { useToast } from '@/shared/ui/use-toast'
+import { showSuccessToast, showErrorToast } from '@/shared/lib/toast-manager'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card'
 import { Plus, Trash2, RefreshCw, Package, AlertTriangle, CheckCircle } from 'lucide-react'
 import { ManagerLayout } from '@/shared/layouts/ManagerLayout'
@@ -24,7 +24,6 @@ export function ProductsPage() {
     filters,
   } = useProductStore()
 
-  const { toast } = useToast()
 
   const hasActiveFilters = () => {
     return !!(
@@ -66,14 +65,8 @@ export function ProductsPage() {
   })
 
   React.useEffect(() => {
-    fetchAllProducts().catch(() => {
-      toast({
-        title: 'Lỗi tải dữ liệu',
-        description: 'Không thể tải danh sách sản phẩm',
-        variant: 'destructive',
-      })
-    })
-  }, [fetchAllProducts, toast])
+    fetchAllProducts().catch(showErrorToast)
+  }, [fetchAllProducts])
 
   const handleCreateProduct = () => {
     setModalState({
@@ -112,19 +105,9 @@ export function ProductsPage() {
     try {
       await deleteProduct(deleteConfirm.product.productId)
 
-      toast({
-        title: 'Xóa thành công',
-        description: `Đã xóa sản phẩm ${deleteConfirm.product.productName}`,
-        variant: 'success',
-      })
-
       setDeleteConfirm({ isOpen: false, product: null })
     } catch (error) {
-      toast({
-        title: 'Xóa thất bại',
-        description: error instanceof Error ? error.message : 'Không thể xóa sản phẩm',
-        variant: 'destructive',
-      })
+      showErrorToast(error)
     }
   }
 
@@ -135,36 +118,17 @@ export function ProductsPage() {
 
       await Promise.all(selectedProductIds.map(id => deleteProduct(id)))
 
-      toast({
-        title: 'Xóa thành công',
-        description: `Đã xóa ${selectedProductIds.length} sản phẩm`,
-        variant: 'success',
-      })
-
       clearSelection()
     } catch (error) {
-      toast({
-        title: 'Xóa thất bại',
-        description: error instanceof Error ? error.message : 'Không thể xóa sản phẩm',
-        variant: 'destructive',
-      })
+      showErrorToast(error)
     }
   }
 
   const handleRefresh = async () => {
     try {
       await fetchAllProducts()
-      toast({
-        title: 'Tải lại thành công',
-        description: 'Đã cập nhật danh sách sản phẩm',
-        variant: 'success',
-      })
     } catch (error) {
-      toast({
-        title: 'Lỗi tải dữ liệu',
-        description: 'Không thể tải lại danh sách sản phẩm',
-        variant: 'destructive',
-      })
+      showErrorToast(error)
     }
   }
 

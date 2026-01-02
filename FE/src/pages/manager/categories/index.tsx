@@ -19,9 +19,9 @@ import {
   DropdownMenuTrigger,
 } from '@/shared/ui/dropdown-menu'
 import { Search, RefreshCw, MoreHorizontal } from 'lucide-react'
-import { useToast } from '@/shared/ui/use-toast'
 import { categoryService } from '@/shared/api/categoryService'
 import { ManagementPageHeader, StaffFilterBar, StaffDataTable, type StaffDataTableColumn } from '@/shared/ui'
+import { showErrorToast } from '@/shared/lib/toast-manager'
 
 interface Category {
   categoryId: number
@@ -104,7 +104,6 @@ export default function CategoriesPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [selectedCategory, setSelectedCategory] = useState<Category | null>(null)
   const [categoryName, setCategoryName] = useState('')
-  const { toast } = useToast()
 
   const filteredCategories = categories.filter(category =>
     category.categoryName.toLowerCase().includes(searchTerm.toLowerCase())
@@ -128,14 +127,7 @@ export default function CategoriesPage() {
       const data = await categoryService.getAllCategories()
       setCategories(data)
     } catch (error) {
-      const { normalizeError } = await import('@/shared/lib/error-handler')
-      const normalized = normalizeError(error)
-      const display = normalized.backendMessage ?? 'Không thể tải danh mục'
-      toast({
-        title: 'Lỗi',
-        description: display,
-        variant: 'destructive',
-      })
+      showErrorToast(error)
     } finally {
       setLoading(false)
     }
@@ -143,66 +135,32 @@ export default function CategoriesPage() {
 
   const handleCreate = async () => {
     if (!categoryName.trim()) {
-      toast({
-        title: 'Lỗi xác thực',
-        description: 'Tên danh mục là bắt buộc',
-        variant: 'destructive',
-      })
       return
     }
 
     try {
       await categoryService.createCategory(categoryName.trim())
-      toast({
-        title: 'Thành công',
-        description: 'Đã tạo danh mục thành công',
-        variant: 'success',
-      })
       setIsCreateDialogOpen(false)
       setCategoryName('')
       loadCategories()
     } catch (error) {
-      const { normalizeError } = await import('@/shared/lib/error-handler')
-      const normalized = normalizeError(error)
-      const display = normalized.backendMessage ?? 'Không thể tạo danh mục'
-      toast({
-        title: 'Lỗi',
-        description: display,
-        variant: 'destructive',
-      })
+      showErrorToast(error)
     }
   }
 
   const handleEdit = async () => {
     if (!selectedCategory || !categoryName.trim()) {
-      toast({
-        title: 'Lỗi xác thực',
-        description: 'Tên danh mục là bắt buộc',
-        variant: 'destructive',
-      })
       return
     }
 
     try {
       await categoryService.updateCategory(selectedCategory.categoryId, categoryName.trim())
-      toast({
-        title: 'Thành công',
-        description: 'Đã cập nhật danh mục thành công',
-        variant: 'success',
-      })
       setIsEditDialogOpen(false)
       setCategoryName('')
       setSelectedCategory(null)
       loadCategories()
     } catch (error) {
-      const { normalizeError } = await import('@/shared/lib/error-handler')
-      const normalized = normalizeError(error)
-      const display = normalized.backendMessage ?? 'Không thể cập nhật danh mục'
-      toast({
-        title: 'Lỗi',
-        description: display,
-        variant: 'destructive',
-      })
+      showErrorToast(error)
     }
   }
 
@@ -211,23 +169,11 @@ export default function CategoriesPage() {
 
     try {
       await categoryService.deleteCategory(selectedCategory.categoryId)
-      toast({
-        title: 'Thành công',
-        description: 'Đã xóa danh mục thành công',
-        variant: 'success',
-      })
       setIsDeleteDialogOpen(false)
       setSelectedCategory(null)
       loadCategories()
     } catch (error) {
-      const { normalizeError } = await import('@/shared/lib/error-handler')
-      const normalized = normalizeError(error)
-      const display = normalized.backendMessage ?? 'Không thể xóa danh mục. Có thể đang được sử dụng bởi sản phẩm.'
-      toast({
-        title: 'Lỗi',
-        description: display,
-        variant: 'destructive',
-      })
+      showErrorToast(error)
     }
   }
 

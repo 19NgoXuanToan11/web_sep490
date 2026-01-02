@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { ManagerLayout } from '@/shared/layouts/ManagerLayout'
 import { blynkService, type BlynkLogEntry } from '@/shared/api/blynkService'
-import { useToast } from '@/shared/ui/use-toast'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
 import { Button } from '@/shared/ui/button'
 import { Badge } from '@/shared/ui/badge'
@@ -9,6 +8,7 @@ import { Input } from '@/shared/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { RefreshCw, Download, Search } from 'lucide-react'
 import { StaffFilterBar, StaffDataTable, type StaffDataTableColumn, ManagementPageHeader } from '@/shared/ui'
+import { showSuccessToast, showErrorToast } from '@/shared/lib/toast-manager'
 
 const formatSensorValue = (value: number) => {
     if (Number.isNaN(value)) return '--'
@@ -29,7 +29,6 @@ const translateSensorName = (sensorName: string): string => {
 }
 
 const ManagerIoTLogsPage: React.FC = () => {
-    const { toast } = useToast()
     const [logs, setLogs] = useState<BlynkLogEntry[]>([])
     const [loading, setLoading] = useState(false)
     const [sensorFilter, setSensorFilter] = useState<string>('all')
@@ -53,15 +52,11 @@ const ManagerIoTLogsPage: React.FC = () => {
             const data = await blynkService.getLogs()
             setLogs(data)
         } catch (error) {
-            toast({
-                title: 'Không thể tải nhật ký',
-                description: 'Vui lòng thử lại sau hoặc kiểm tra kết nối.',
-                variant: 'destructive',
-            })
+            showErrorToast(error)
         } finally {
             setLoading(false)
         }
-    }, [syncLatestBlynkData, toast])
+    }, [syncLatestBlynkData])
 
     useEffect(() => {
         fetchLogs()
@@ -146,11 +141,7 @@ const ManagerIoTLogsPage: React.FC = () => {
 
     const handleRefresh = useCallback(async () => {
         await fetchLogs()
-        toast({
-            title: 'Đã làm mới',
-            description: 'Dữ liệu nhật ký đã được cập nhật',
-        })
-    }, [fetchLogs, toast])
+    }, [fetchLogs])
 
     const handleExportToCSV = async () => {
         try {
@@ -166,17 +157,8 @@ const ManagerIoTLogsPage: React.FC = () => {
             link.click()
             document.body.removeChild(link)
             URL.revokeObjectURL(url)
-
-            toast({
-                title: 'Xuất CSV thành công',
-                description: 'Đã xuất dữ liệu nhật ký IoT ra file CSV từ máy chủ.',
-            })
         } catch (error) {
-            toast({
-                title: 'Xuất CSV thất bại',
-                description: 'Không thể tải file CSV từ máy chủ. Vui lòng thử lại sau.',
-                variant: 'destructive',
-            })
+            showErrorToast(error)
         }
     }
 

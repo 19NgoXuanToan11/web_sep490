@@ -21,7 +21,6 @@ import {
   RefreshCw,
   MoreHorizontal,
 } from 'lucide-react'
-import { useToast } from '@/shared/ui/use-toast'
 import {
   ManagementPageHeader,
   StaffFilterBar,
@@ -39,6 +38,7 @@ import {
   type PlantStage,
 } from '@/shared/api/cropRequirementService'
 import { cropService, type Crop, type CropRequirement } from '@/shared/api/cropService'
+import { showSuccessToast, showErrorToast } from '@/shared/lib/toast-manager'
 
 type RequirementFormState = {
   cropId: number | ''
@@ -250,8 +250,6 @@ export default function CropsPage() {
   const [detailRequirement, setDetailRequirement] = useState<CropRequirementRow | null>(null)
   const [detailCrop, setDetailCrop] = useState<Crop | null>(null)
 
-  const { toast } = useToast()
-
   const requirementRows: CropRequirementRow[] = useMemo(() => {
     const cropMap = new Map<number, Crop>()
     crops.forEach(crop => cropMap.set(crop.cropId, crop))
@@ -450,11 +448,7 @@ export default function CropsPage() {
 
       setRequirements(data)
     } catch (error) {
-      toast({
-        title: 'Lỗi',
-        description: 'Không thể tải dữ liệu yêu cầu cây trồng',
-        variant: 'destructive',
-      })
+      showErrorToast(error)
     } finally {
       setLoading(false)
     }
@@ -466,11 +460,7 @@ export default function CropsPage() {
       const response = await cropService.getAllCrops(1, 1000)
       setCrops(response.items || [])
     } catch (error) {
-      toast({
-        title: 'Lỗi',
-        description: 'Không thể tải danh sách cây trồng',
-        variant: 'destructive',
-      })
+      showErrorToast(error)
     } finally {
       setCropsLoading(false)
     }
@@ -482,11 +472,7 @@ export default function CropsPage() {
       const response = await cropService.getAllCrops(1, 1000)
       setAvailableCrops(response.items || [])
     } catch (error) {
-      toast({
-        title: 'Lỗi',
-        description: 'Không thể tải danh sách cây trồng',
-        variant: 'destructive',
-      })
+      showErrorToast(error)
     } finally {
       setLoadingCrops(false)
     }
@@ -536,19 +522,9 @@ export default function CropsPage() {
 
   const handleSubmitForm = async () => {
     if (formMode === 'create' && !formData.cropId) {
-      toast({
-        title: 'Thiếu thông tin',
-        description: 'Vui lòng chọn cây trồng',
-        variant: 'destructive',
-      })
       return
     }
     if (!formData.plantStage) {
-      toast({
-        title: 'Thiếu thông tin',
-        description: 'Vui lòng chọn giai đoạn phát triển',
-        variant: 'destructive',
-      })
       return
     }
 
@@ -558,39 +534,29 @@ export default function CropsPage() {
       if (formMode === 'create') {
         const currentMaxId = Math.max(...requirements.map(r => r.cropRequirementId || 0), 0)
         previousMaxIdRef.current = currentMaxId
-
-        await cropRequirementService.create(formData.cropId as number, payload, formData.plantStage)
-        toast({ title: 'Thành công', description: 'Đã thêm yêu cầu cây trồng mới' })
+        const res = await cropRequirementService.create(formData.cropId as number, payload, formData.plantStage)
+        showSuccessToast(res)
         setFormDialogOpen(false)
         handleResetForm()
-
         await loadRequirements()
       } else if (selectedRequirement) {
         const requirementId = selectedRequirement.cropRequirementId
         if (!requirementId) {
-          toast({
-            title: 'Thiếu ID',
-            description: 'Không tìm thấy ID yêu cầu để cập nhật',
-            variant: 'destructive',
-          })
+          return
           return
         }
-        await cropRequirementService.update(
+        const res = await cropRequirementService.update(
           requirementId,
           payload,
           formData.plantStage
         )
-        toast({ title: 'Thành công', description: 'Đã cập nhật yêu cầu cây trồng' })
+        showSuccessToast(res)
         setFormDialogOpen(false)
         handleResetForm()
         loadRequirements()
       }
     } catch (error) {
-      toast({
-        title: 'Lỗi',
-        description: 'Không thể lưu yêu cầu cây trồng',
-        variant: 'destructive',
-      })
+      showErrorToast(error)
     } finally {
       setIsSubmitting(false)
     }
@@ -598,10 +564,6 @@ export default function CropsPage() {
 
   const openEditRequirement = (requirement: CropRequirementView | CropRequirement | CropRequirementRow) => {
     if (!requirement.cropRequirementId) {
-      toast({
-        title: 'Chưa có yêu cầu',
-        description: 'Vui lòng tạo yêu cầu trước khi chỉnh sửa.',
-      })
       return
     }
     setFormMode('edit')
@@ -612,28 +574,16 @@ export default function CropsPage() {
 
   const handleToggleRequirementStatus = async (requirement: CropRequirementView | CropRequirement | CropRequirementRow) => {
     if (!requirement.cropRequirementId) {
-      toast({
-        title: 'Chưa có yêu cầu',
-        description: 'Không thể đổi trạng thái vì chưa có yêu cầu.',
-        variant: 'destructive',
-      })
       return
     }
     const isActive = requirement.isActive ?? true
     try {
       setStatusUpdatingId(requirement.cropRequirementId ?? null)
-      await cropRequirementService.updateStatus(requirement.cropRequirementId as number)
-      toast({
-        title: 'Thành công',
-        description: isActive ? 'Đã tạm dừng yêu cầu cây trồng' : 'Đã kích hoạt yêu cầu cây trồng',
-      })
+      const res = await cropRequirementService.updateStatus(requirement.cropRequirementId as number)
+      showSuccessToast(res)
       await loadRequirements()
     } catch (error) {
-      toast({
-        title: 'Lỗi',
-        description: 'Không thể cập nhật trạng thái yêu cầu cây trồng',
-        variant: 'destructive',
-      })
+      showErrorToast(error)
     } finally {
       setStatusUpdatingId(null)
     }

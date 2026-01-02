@@ -30,9 +30,9 @@ import {
     DropdownMenuTrigger,
 } from '@/shared/ui/dropdown-menu'
 import { StaffLayout } from '@/shared/layouts/StaffLayout'
-import { useToast } from '@/shared/ui/use-toast'
 import { feedbackService, type Feedback } from '@/shared/api/feedbackService'
 import { ManagementPageHeader, StaffFilterBar } from '@/shared/ui'
+import { showSuccessToast, showErrorToast } from '@/shared/lib/toast-manager'
 
 const formatPrice = (price?: number) => {
     if (price == null) return '0'
@@ -44,7 +44,6 @@ const formatPrice = (price?: number) => {
 }
 
 const StaffFeedbacksPage: React.FC = () => {
-    const { toast } = useToast()
     const [feedbacks, setFeedbacks] = useState<Feedback[]>([])
     const [loading, setLoading] = useState(true)
     const [totalItems, setTotalItems] = useState(0)
@@ -95,15 +94,11 @@ const StaffFeedbacksPage: React.FC = () => {
             setTotalItems(validatedTotalItems)
             setCurrentPage(validPage)
         } catch (error) {
-            toast({
-                title: 'Lỗi tải dữ liệu',
-                description: 'Không thể tải danh sách đánh giá. Vui lòng thử lại.',
-                variant: 'destructive',
-            })
+            showErrorToast(error)
         } finally {
             setLoading(false)
         }
-    }, [pageSize, toast])
+    }, [pageSize])
 
     useEffect(() => {
         fetchFeedbacks(currentPage)
@@ -126,10 +121,6 @@ const StaffFeedbacksPage: React.FC = () => {
         setIsRefreshing(true)
         await fetchFeedbacks(currentPage)
         setIsRefreshing(false)
-        toast({
-            title: 'Đã làm mới',
-            description: 'Dữ liệu đã được cập nhật.',
-        })
     }
 
     const filteredFeedbacks = feedbacks.filter(feedback => {
@@ -165,12 +156,8 @@ const StaffFeedbacksPage: React.FC = () => {
     const handleUpdateStatus = async (feedbackId: number) => {
         try {
             setUpdatingStatus(true)
-            await feedbackService.updateFeedbackStatus(feedbackId)
-
-            toast({
-                title: 'Thành công',
-                description: 'Đã cập nhật trạng thái đánh giá.',
-            })
+            const res = await feedbackService.updateFeedbackStatus(feedbackId)
+            showSuccessToast(res)
 
             await fetchFeedbacks(currentPage)
 
@@ -184,11 +171,7 @@ const StaffFeedbacksPage: React.FC = () => {
                 }
             }
         } catch (error) {
-            toast({
-                title: 'Lỗi',
-                description: 'Không thể cập nhật trạng thái. Vui lòng thử lại.',
-                variant: 'destructive',
-            })
+            showErrorToast(error)
         } finally {
             setUpdatingStatus(false)
         }
@@ -369,7 +352,7 @@ const StaffFeedbacksPage: React.FC = () => {
                                         const validPage = Math.max(1, Math.min(page, totalPages))
                                         if (currentPage === 1 && feedbacks.length < pageSize && page > 1) {
                                             return
-                                        }   
+                                        }
                                         if (validPage >= 1 && validPage <= totalPages && validPage !== currentPage) {
                                             setCurrentPage(validPage)
                                         }

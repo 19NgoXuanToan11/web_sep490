@@ -6,13 +6,6 @@ import {
   DEFAULT_ERROR_MESSAGE,
   type ErrorMessage,
 } from './error-messages'
-import type { ToastProps } from '@/shared/ui/toast'
-
-type ToastVariant = ToastProps['variant']
-
-interface ToastFunction {
-  (options: { title: string; description?: string; variant?: ToastVariant }): void
-}
 
 interface ApiError extends Error {
   status?: number
@@ -205,7 +198,7 @@ export const mapErrorToVietnamese = (error: unknown, _context?: ErrorContext): E
   return errorMessage
 }
 
-export const handleApiError = (error: unknown, toast?: ToastFunction, context?: ErrorContext) => {
+export const handleApiError = (error: unknown, toast?: any, context?: ErrorContext) => {
   const errorMessage = mapErrorToVietnamese(error, context)
 
   if (toast) {
@@ -219,17 +212,13 @@ export const handleApiError = (error: unknown, toast?: ToastFunction, context?: 
   return errorMessage.vietnamese
 }
 
-export const handleApiSuccess = (message: string, toast?: ToastFunction) => {
+export const handleApiSuccess = (message: string, toast?: any) => {
   if (toast) {
-    toast({
-      title: 'Thành công',
-      description: message,
-      variant: 'success',
-    })
+    toast.success(message)
   }
 }
 
-export const handleFetchError = (error: unknown, toast?: ToastFunction, resourceName?: string) => {
+export const handleFetchError = (error: unknown, toast?: any, resourceName?: string) => {
   const errorMessage = mapErrorToVietnamese(error)
   const isBackend = errorMessage.code === 'BACKEND_MESSAGE'
   const contextualMessage = isBackend
@@ -239,17 +228,13 @@ export const handleFetchError = (error: unknown, toast?: ToastFunction, resource
       : errorMessage.vietnamese
 
   if (toast) {
-    toast({
-      title: 'Lỗi tải dữ liệu',
-      description: contextualMessage,
-      variant: 'destructive',
-    })
+    toast.error(contextualMessage)
   }
 
   return contextualMessage
 }
 
-export const handleCreateError = (error: unknown, toast?: ToastFunction, resourceName?: string) => {
+export const handleCreateError = (error: unknown, toast?: any, resourceName?: string) => {
   const errorMessage = mapErrorToVietnamese(error)
   const isBackend = errorMessage.code === 'BACKEND_MESSAGE'
   const contextualMessage = isBackend
@@ -259,17 +244,13 @@ export const handleCreateError = (error: unknown, toast?: ToastFunction, resourc
       : errorMessage.vietnamese
 
   if (toast) {
-    toast({
-      title: 'Lỗi tạo mới',
-      description: contextualMessage,
-      variant: 'destructive',
-    })
+    toast.error(contextualMessage)
   }
 
   return contextualMessage
 }
 
-export const handleUpdateError = (error: unknown, toast?: ToastFunction, resourceName?: string) => {
+export const handleUpdateError = (error: unknown, toast?: any, resourceName?: string) => {
   const errorMessage = mapErrorToVietnamese(error)
   const isBackend = errorMessage.code === 'BACKEND_MESSAGE'
   const contextualMessage = isBackend
@@ -289,7 +270,7 @@ export const handleUpdateError = (error: unknown, toast?: ToastFunction, resourc
   return contextualMessage
 }
 
-export const handleDeleteError = (error: unknown, toast?: ToastFunction, resourceName?: string) => {
+export const handleDeleteError = (error: unknown, toast?: any, resourceName?: string) => {
   const errorMessage = mapErrorToVietnamese(error)
   const isBackend = errorMessage.code === 'BACKEND_MESSAGE'
   const contextualMessage = isBackend
@@ -309,7 +290,7 @@ export const handleDeleteError = (error: unknown, toast?: ToastFunction, resourc
   return contextualMessage
 }
 
-export const handleValidationError = (error: unknown, toast?: ToastFunction) => {
+export const handleValidationError = (error: unknown, toast?: any) => {
   const errorMessage = mapErrorToVietnamese(error)
 
   if (toast) {
@@ -323,7 +304,7 @@ export const handleValidationError = (error: unknown, toast?: ToastFunction) => 
   return errorMessage.vietnamese
 }
 
-export const handleAuthError = (error: unknown, toast?: ToastFunction) => {
+export const handleAuthError = (error: unknown, toast?: any) => {
   const errorMessage = mapErrorToVietnamese(error)
 
   if (toast) {

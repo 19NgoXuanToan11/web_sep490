@@ -1,11 +1,9 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { blynkService } from '@/shared/api/blynkService'
-import { useToast } from '@/shared/ui/use-toast'
 import { withBackendToast } from '@/shared/lib/backend-toast'
+import { showErrorToast, toastManager } from '@/shared/lib/toast-manager'
 
 export const ThresholdPanel: React.FC = () => {
-    const { toast } = useToast()
-
     const [soilLow, setSoilLow] = useState<number | ''>('')
     const [soilHigh, setSoilHigh] = useState<number | ''>('')
     const [ldrLow, setLdrLow] = useState<number | ''>('')
@@ -22,9 +20,9 @@ export const ThresholdPanel: React.FC = () => {
             setLightOn(raw.v13 ? parseInt(raw.v13, 10) || '' : '')
             setLightOff(raw.v14 ? parseInt(raw.v14, 10) || '' : '')
         } catch (error: any) {
-            toast({ title: 'Không tải được giá trị hiện tại', description: error?.message || String(error) })
+            showErrorToast(error)
         }
-    }, [toast])
+    }, [])
 
     useEffect(() => {
         void loadCurrentValues()
@@ -67,14 +65,9 @@ export const ThresholdPanel: React.FC = () => {
                 {
                     onSuccess: (result) => {
                         if (result.message?.trim()) {
-                            toast({ title: result.message, variant: 'success' })
+                            toastManager.success(result.message)
                         }
                     },
-                    fallbackErrorToast: () => toast({
-                        title: 'Lỗi cập nhật',
-                        description: 'Không cập nhật được',
-                        variant: 'destructive',
-                    })
                 }
             )
         } catch (error) {

@@ -1,6 +1,6 @@
 import { storage } from '@/shared/lib/localData/storage'
 import { useAuthStore } from '@/shared/store/authStore'
-import { toast } from '@/shared/ui/use-toast'
+import { toastManager } from '@/shared/lib/toast-manager'
 
 type SessionTerminationReason = 'expired' | 'manual'
 
@@ -28,14 +28,17 @@ export const terminateSession = (options: TerminateSessionOptions = {}) => {
     logout()
 
     if (options.notify !== false) {
-      toast({
-        status: options.reason === 'manual' ? 'info' : 'warning',
-        variant: options.reason === 'manual' ? 'info' : 'warning',
-        title: options.title ?? 'Phiên đăng nhập đã hết hạn',
-        description:
-          options.description ??
-          'Phiên làm việc đã vượt quá thời hạn 30 phút. Vui lòng đăng nhập lại để tiếp tục.',
-      })
+      const title = options.title ?? 'Phiên đăng nhập đã hết hạn'
+      const description =
+        options.description ??
+        'Phiên làm việc đã vượt quá thời hạn 30 phút. Vui lòng đăng nhập lại để tiếp tục.'
+      const message = `${title}: ${description}`
+
+      if (options.reason === 'manual') {
+        toastManager.info(message)
+      } else {
+        toastManager.warning(message)
+      }
     }
   } finally {
     setTimeout(() => {

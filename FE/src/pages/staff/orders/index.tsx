@@ -22,7 +22,7 @@ import {
 import { Tabs, TabsContent } from '@/shared/ui/tabs'
 import { StaffLayout } from '@/shared/layouts/StaffLayout'
 import { ManagementPageHeader, StaffFilterBar } from '@/shared/ui'
-import { useToast } from '@/shared/ui/use-toast'
+import { showErrorToast } from '@/shared/lib/backend-toast'
 import {
   orderService,
   getOrderStatusLabel,
@@ -57,7 +57,6 @@ type ApiOrderWithFullname = ApiOrder & {
 }
 
 const StaffOrdersPage: React.FC = () => {
-  const { toast } = useToast()
   const [orders, setOrders] = useState<DisplayOrder[]>([])
   const [loading, setLoading] = useState(true)
   const [totalPages, setTotalPages] = useState(0)
@@ -140,16 +139,12 @@ const StaffOrdersPage: React.FC = () => {
           setMaxOrderId(prevMax => Math.max(prevMax, maxId))
         }
       } catch (error) {
-        toast({
-          title: 'Lỗi tải dữ liệu',
-          description: 'Không thể tải danh sách đơn hàng. Vui lòng thử lại.',
-          variant: 'destructive',
-        })
+        showErrorToast(error)
       } finally {
         setLoading(false)
       }
     },
-    [pageSize, toast]
+    [pageSize]
   )
 
   useEffect(() => {
@@ -173,11 +168,6 @@ const StaffOrdersPage: React.FC = () => {
 
           if (latestOrderId > maxOrderId && maxOrderId > 0) {
             await fetchOrders(currentPage)
-
-            toast({
-              title: 'Có đơn hàng mới',
-              description: 'Danh sách đơn hàng đã được cập nhật.',
-            })
           } else if (maxOrderId === 0 && latestOrderId > 0) {
             setMaxOrderId(latestOrderId)
           }
@@ -192,7 +182,7 @@ const StaffOrdersPage: React.FC = () => {
     return () => {
       window.clearInterval(intervalId)
     }
-  }, [maxOrderId, currentPage, statusFilter, searchQuery, fetchOrders, toast])
+  }, [maxOrderId, currentPage, statusFilter, searchQuery, fetchOrders])
 
   const handleStatusFilterChange = (status: string) => {
     setStatusFilter(status)
@@ -255,11 +245,6 @@ const StaffOrdersPage: React.FC = () => {
           next: false,
           previous: false,
         }
-        toast({
-          title: 'Không tìm thấy đơn hàng',
-          description: `Không tìm thấy đơn hàng với mã "${searchQuery.trim()}"`,
-          variant: 'destructive',
-        })
       }
 
       if (!searchResult || !searchResult.items) {
@@ -273,16 +258,8 @@ const StaffOrdersPage: React.FC = () => {
       setTotalPages(Math.max(1, Math.ceil(total / pageSize)))
       setCurrentPage(1)
 
-      toast({
-        title: 'Tìm kiếm hoàn tất',
-        description: `Tìm thấy ${searchResult.totalItemCount || 0} đơn hàng`,
-      })
     } catch (error) {
-      toast({
-        title: 'Lỗi tìm kiếm',
-        description: 'Không thể thực hiện tìm kiếm. Vui lòng thử lại.',
-        variant: 'destructive',
-      })
+      showErrorToast(error)
       console.error('Search error:', error)
     }
   }
@@ -356,10 +333,6 @@ const StaffOrdersPage: React.FC = () => {
     setIsRefreshing(true)
     await fetchOrders(currentPage)
     setIsRefreshing(false)
-    toast({
-      title: 'Dữ liệu đã được cập nhật',
-      description: 'Thông tin tất cả đơn hàng đã được làm mới.',
-    })
   }
 
   const getStatusBadge = (status: number, paymentStatus?: string) => {
@@ -417,11 +390,7 @@ const StaffOrdersPage: React.FC = () => {
       setSelectedOrderDetail(orderDetail)
       setIsOrderDetailOpen(true)
     } catch (error) {
-      toast({
-        title: 'Lỗi tải dữ liệu',
-        description: 'Không thể tải chi tiết đơn hàng. Vui lòng thử lại.',
-        variant: 'destructive',
-      })
+      showErrorToast(error)
     } finally {
       setLoadingOrderDetail(false)
     }
@@ -449,20 +418,10 @@ const StaffOrdersPage: React.FC = () => {
       const response = await orderService.updateOrderStatus(orderId, statusNumber)
 
       if (response) {
-        toast({
-          title: 'Thành công',
-          description: `Đã cập nhật trạng thái đơn hàng thành ${getOrderStatusLabel(statusNumber)}`,
-          variant: 'success',
-        })
-
         await fetchOrders()
       }
     } catch (error) {
-      toast({
-        title: 'Lỗi cập nhật',
-        description: 'Không thể cập nhật trạng thái đơn hàng. Vui lòng thử lại.',
-        variant: 'destructive',
-      })
+      showErrorToast(error)
     } finally {
       setLoading(false)
     }
@@ -473,19 +432,9 @@ const StaffOrdersPage: React.FC = () => {
       setLoading(true)
       await orderService.updateDeliveryStatus(orderId)
 
-      toast({
-        title: 'Thành công',
-        description: 'Đã cập nhật trạng thái đang giao hàng',
-        variant: 'success',
-      })
-
       await fetchOrders()
     } catch (error) {
-      toast({
-        title: 'Lỗi cập nhật',
-        description: 'Không thể cập nhật trạng thái giao hàng. Vui lòng thử lại.',
-        variant: 'destructive',
-      })
+      showErrorToast(error)
     } finally {
       setLoading(false)
     }
@@ -496,19 +445,9 @@ const StaffOrdersPage: React.FC = () => {
       setLoading(true)
       await orderService.updateCompleteStatus(orderId)
 
-      toast({
-        title: 'Thành công',
-        description: 'Đã đánh dấu đơn hàng hoàn thành',
-        variant: 'success',
-      })
-
       await fetchOrders()
     } catch (error) {
-      toast({
-        title: 'Lỗi cập nhật',
-        description: 'Không thể cập nhật trạng thái hoàn thành. Vui lòng thử lại.',
-        variant: 'destructive',
-      })
+      showErrorToast(error)
     } finally {
       setLoading(false)
     }
@@ -519,19 +458,9 @@ const StaffOrdersPage: React.FC = () => {
       setLoading(true)
       await orderService.updateCancelStatus(orderId)
 
-      toast({
-        title: 'Thành công',
-        description: 'Đã hủy đơn hàng',
-        variant: 'success',
-      })
-
       await fetchOrders()
     } catch (error) {
-      toast({
-        title: 'Lỗi hủy đơn',
-        description: 'Không thể hủy đơn hàng. Vui lòng thử lại.',
-        variant: 'destructive',
-      })
+      showErrorToast(error)
     } finally {
       setLoading(false)
     }

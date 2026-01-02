@@ -31,7 +31,6 @@ import {
   MoreHorizontal,
   RefreshCw,
 } from 'lucide-react'
-import { useToast } from '@/shared/ui/use-toast'
 import {
   cropService,
   type Crop,
@@ -39,6 +38,7 @@ import {
   type CreateCropWithProductRequest,
 } from '@/shared/api/cropService'
 import { normalizeError } from '@/shared/lib/error-handler'
+import { showSuccessToast, showErrorToast } from '@/shared/lib/toast-manager'
 import { categoryService, type Category } from '@/shared/api/categoryService'
 import { uploadImageToCloudinary, CloudinaryUploadError } from '@/shared/lib/cloudinary'
 
@@ -184,19 +184,13 @@ export default function CropManagementPage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const abortControllerRef = useRef<AbortController | null>(null)
 
-  const { toast } = useToast()
-
   const loadCategories = async () => {
     try {
       setLoadingCategories(true)
       const data = await categoryService.getAllCategories()
       setCategories(Array.isArray(data) ? data : [])
     } catch (error) {
-      toast({
-        title: 'Lỗi',
-        description: 'Không thể tải danh sách danh mục',
-        variant: 'destructive',
-      })
+      showErrorToast(error)
     } finally {
       setLoadingCategories(false)
     }
@@ -219,11 +213,7 @@ export default function CropManagementPage() {
 
       setAllCrops(loadedCrops)
     } catch (error: any) {
-      toast({
-        title: 'Lỗi',
-        description: error?.response?.data?.message || 'Không thể tải danh sách cây trồng',
-        variant: 'destructive',
-      })
+      showErrorToast(error)
       setAllCrops([])
     } finally {
       setLoading(false)
@@ -269,37 +259,17 @@ export default function CropManagementPage() {
 
   const handleSubmitForm = async () => {
     if (!formData.cropName.trim()) {
-      toast({
-        title: 'Thiếu thông tin',
-        description: 'Vui lòng nhập tên cây trồng',
-        variant: 'destructive',
-      })
       return
     }
 
     if (formMode === 'create') {
       if (!formData.categoryId) {
-        toast({
-          title: 'Thiếu thông tin',
-          description: 'Vui lòng chọn danh mục',
-          variant: 'destructive',
-        })
         return
       }
       if (!formData.productName.trim()) {
-        toast({
-          title: 'Thiếu thông tin',
-          description: 'Vui lòng nhập tên sản phẩm',
-          variant: 'destructive',
-        })
         return
       }
       if (!formData.price || Number(formData.price) <= 0) {
-        toast({
-          title: 'Thiếu thông tin',
-          description: 'Vui lòng nhập giá sản phẩm hợp lệ',
-          variant: 'destructive',
-        })
         return
       }
     }
@@ -323,8 +293,8 @@ export default function CropManagementPage() {
           },
         }
 
-        await cropService.createCrop(payload)
-        toast({ title: 'Thành công', description: 'Đã tạo cây trồng mới' })
+        const res = await cropService.createCrop(payload)
+        showSuccessToast(res)
         setFormDialogOpen(false)
         handleResetForm()
         await loadCrops()
@@ -336,8 +306,8 @@ export default function CropManagementPage() {
           categoryId: formData.categoryId as number || 0,
         }
 
-        await cropService.updateCrop(selectedCrop.cropId, payload)
-        toast({ title: 'Thành công', description: 'Đã cập nhật cây trồng' })
+        const res = await cropService.updateCrop(selectedCrop.cropId, payload)
+        showSuccessToast(res)
         setFormDialogOpen(false)
         handleResetForm()
         await loadCrops()
@@ -350,18 +320,9 @@ export default function CropManagementPage() {
           if (Array.isArray(v) && v.length > 0) fe[k] = v[0]
         }
         setFormErrors(fe)
-        const display = normalized.backendMessage ?? error?.response?.data?.message ?? 'Không thể lưu cây trồng'
-        toast({
-          title: 'Lỗi',
-          description: display,
-          variant: 'destructive',
-        })
+        showErrorToast(error)
       } catch (err) {
-        toast({
-          title: 'Lỗi',
-          description: error?.response?.data?.message || 'Không thể lưu cây trồng',
-          variant: 'destructive',
-        })
+        showErrorToast(error)
       }
     } finally {
       setIsSubmitting(false)
@@ -399,33 +360,21 @@ export default function CropManagementPage() {
       const currentIsActive = isActiveStatus(crop.status)
       const newStatus = currentIsActive ? 1 : 0
 
-      await cropService.changeStatus(crop.cropId, newStatus)
+      const res = await cropService.changeStatus(crop.cropId, newStatus)
 
-      toast({
-        title: 'Thành công',
-        description: `Đã ${currentIsActive ? 'tạm dừng' : 'kích hoạt'} cây trồng "${crop.cropName}"`,
-      })
+      showSuccessToast(res)
 
       await loadCrops()
     } catch (error: any) {
-      toast({
-        title: 'Lỗi',
-        description: error?.response?.data?.message || 'Không thể cập nhật trạng thái cây trồng',
-        variant: 'destructive',
-      })
+      showErrorToast(error)
     }
-  }, [toast])
+  }, [])
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (!file) return
 
     if (!file.type.startsWith('image/')) {
-      toast({
-        title: 'File không hợp lệ',
-        description: 'Vui lòng chọn file hình ảnh (JPG, PNG, GIF, etc.)',
-        variant: 'destructive',
-      })
       if (fileInputRef.current) {
         fileInputRef.current.value = ''
       }
@@ -433,11 +382,6 @@ export default function CropManagementPage() {
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      toast({
-        title: 'File quá lớn',
-        description: 'Kích thước file không được vượt quá 5MB',
-        variant: 'destructive',
-      })
       if (fileInputRef.current) {
         fileInputRef.current.value = ''
       }
@@ -466,26 +410,14 @@ export default function CropManagementPage() {
 
       setFormData(prev => ({ ...prev, images: cloudinaryUrl }))
       setImagePreview(cloudinaryUrl)
-      toast({
-        title: 'Thành công',
-        description: 'Đã tải ảnh lên thành công',
-      })
     } catch (error) {
       if (error instanceof CloudinaryUploadError) {
         if (error.message.includes('aborted')) {
           return
         }
-        toast({
-          title: 'Tải ảnh lên thất bại',
-          description: error.message || 'Có lỗi xảy ra khi tải ảnh lên',
-          variant: 'destructive',
-        })
+        showErrorToast(error)
       } else {
-        toast({
-          title: 'Tải ảnh lên thất bại',
-          description: 'Có lỗi xảy ra khi tải ảnh lên',
-          variant: 'destructive',
-        })
+        showErrorToast(error)
       }
       setImagePreview(null)
       setFormData(prev => ({ ...prev, images: '' }))

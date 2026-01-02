@@ -7,7 +7,6 @@ import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
 import { Label } from '@/shared/ui/label'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/shared/ui/dialog'
-import { useToast } from '@/shared/ui/use-toast'
 import { z } from 'zod'
 import type { User } from '@/shared/lib/localData'
 import { accountApi } from '@/shared/api/auth'
@@ -36,7 +35,6 @@ export const PasswordUpdateModal: React.FC<PasswordUpdateModalProps> = ({
   onClose,
   user,
 }) => {
-  const { toast } = useToast()
   const [isLoading, setIsLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -64,12 +62,7 @@ export const PasswordUpdateModal: React.FC<PasswordUpdateModalProps> = ({
       await withBackendToast(
         () => accountApi.updatePasswordBy(Number(user.id), data.newPassword),
         {
-          onSuccess: () => handleClose(),
-          fallbackErrorToast: () => toast({
-            title: 'Lỗi cập nhật mật khẩu',
-            description: 'Có lỗi xảy ra khi cập nhật mật khẩu.',
-            variant: 'destructive',
-          })
+          onSuccess: () => handleClose()
         }
       )
     } catch (error) {

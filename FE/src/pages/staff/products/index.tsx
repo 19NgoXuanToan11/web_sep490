@@ -1,6 +1,5 @@
 ﻿import React from 'react'
 import { Button } from '@/shared/ui/button'
-import { useToast } from '@/shared/ui/use-toast'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
 import { RefreshCw, Package } from 'lucide-react'
 import { StaffLayout } from '@/shared/layouts/StaffLayout'
@@ -12,12 +11,11 @@ import { ChangeProductStatusModal } from '@/features/products-management/ui/Chan
 import { useProductStore } from '@/features/products-management/store/productStore'
 import type { Product } from '@/shared/api/productService'
 import { ManagementPageHeader } from '@/shared/ui/management-page-header'
+import { showSuccessToast, showErrorToast } from '@/shared/lib/toast-manager'
 
 export function StaffProductsPage() {
     const { products = [], filteredProducts = [], allProducts = [], totalCount = 0, fetchAllProducts, isLoading, filters } =
         useProductStore()
-
-    const { toast } = useToast()
 
     const hasActiveFilters = () => {
         return !!(
@@ -66,28 +64,16 @@ export function StaffProductsPage() {
 
 
     React.useEffect(() => {
-        fetchAllProducts().catch(() => {
-            toast({
-                title: 'Lỗi tải dữ liệu',
-                description: 'Không thể tải danh sách sản phẩm. Vui lòng thử lại.',
-                variant: 'destructive',
-            })
+        fetchAllProducts().catch((err) => {
+            showErrorToast(err)
         })
-    }, [fetchAllProducts, toast])
+    }, [fetchAllProducts])
 
     const handleRefreshProducts = async () => {
         try {
             await fetchAllProducts()
-            toast({
-                title: 'Làm mới thành công',
-                description: 'Danh sách sản phẩm đã được cập nhật.',
-            })
         } catch (error) {
-            toast({
-                title: 'Lỗi làm mới',
-                description: 'Không thể làm mới danh sách sản phẩm.',
-                variant: 'destructive',
-            })
+            showErrorToast(error)
         }
     }
 

@@ -3,11 +3,10 @@ import { motion } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { Button } from '@/shared/ui'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui'
-import { useToast } from '@/shared/ui/use-toast'
+import { showErrorToast } from '@/shared/lib/toast-manager'
 import { Mail, Lock } from 'lucide-react'
 import { authApi } from '@/shared/api/auth'
 import { useAuthStore } from '@/shared/store/authStore'
-import { handleAuthError } from '@/shared/lib/error-handler'
 import { APP_CONFIG, ROUTES } from '@/shared/constants/app'
 
 const ROLE_REDIRECTS: Record<string, string> = {
@@ -19,7 +18,6 @@ const ROLE_REDIRECTS: Record<string, string> = {
 export const LoginPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const navigate = useNavigate()
-  const { toast } = useToast()
 
   const [form, setForm] = useState({ email: '', password: '' })
   const setToken = useAuthStore(s => s.setToken)
@@ -38,7 +36,7 @@ export const LoginPage: React.FC = () => {
         navigate(redirectPath ?? ROUTES.HOME)
       }
     } catch (err) {
-      handleAuthError(err, toast)
+      showErrorToast(err)
     } finally {
       setIsSubmitting(false)
     }

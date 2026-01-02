@@ -10,8 +10,8 @@ import { iotDeviceService } from '@/shared/api/iotDeviceService'
 import { orderService } from '@/shared/api/orderService'
 import { productService } from '@/shared/api/productService'
 import { feedbackService } from '@/shared/api/feedbackService'
-import { useToast } from '@/shared/ui/use-toast'
 import { calculateRevenue } from '@/shared/lib/revenue'
+import { showErrorToast } from '@/shared/lib/toast-manager'
 import {
   BarChart,
   Bar,
@@ -46,7 +46,6 @@ interface SystemMetrics {
 }
 
 const AdminDashboard: React.FC = () => {
-  const { toast } = useToast()
   const [metrics, setMetrics] = useState<SystemMetrics>({
     totalUsers: 0,
     activeUsers: 0,
@@ -205,16 +204,12 @@ const AdminDashboard: React.FC = () => {
     } catch (err: any) {
       const errorMessage = err?.message || 'Không thể tải dữ liệu bảng điều khiển'
       setError(errorMessage)
-      toast({
-        title: 'Lỗi',
-        description: errorMessage,
-        variant: 'destructive',
-      })
+      showErrorToast(err)
     } finally {
       setIsRefreshing(false)
       setIsLoading(false)
     }
-  }, [calculateSystemHealth, toast])
+  }, [calculateSystemHealth])
 
   useEffect(() => {
     fetchDashboardData()
@@ -222,10 +217,6 @@ const AdminDashboard: React.FC = () => {
 
   const handleRefresh = async () => {
     await fetchDashboardData()
-    toast({
-      title: 'Đã làm mới',
-      description: 'Dữ liệu đã được cập nhật',
-    })
   }
 
   const formatCurrency = (amount: number) => {

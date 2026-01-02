@@ -14,7 +14,6 @@ import {
 } from '@/shared/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { RefreshCw, Search, MoreHorizontal, ChevronDown, ChevronUp } from 'lucide-react'
-import { useToast } from '@/shared/ui/use-toast'
 import { formatDate } from '@/shared/lib/date-utils'
 import {
   ManagementPageHeader,
@@ -32,6 +31,7 @@ import {
   type FarmActivityRequest,
   type FarmActivityUpdate,
 } from '@/shared/api/farmActivityService'
+import { showSuccessToast, showErrorToast } from '@/shared/lib/toast-manager'
 
 interface ActivityActionMenuProps {
   activity: FarmActivity
@@ -159,8 +159,6 @@ export default function FarmActivitiesPage() {
   const [formActivityType, setFormActivityType] = useState<string>('')
   const [formStatus, setFormStatus] = useState<string>('ACTIVE')
   const [dateErrors, setDateErrors] = useState<{ startDate?: string; endDate?: string }>({})
-
-  const { toast } = useToast()
 
   const [activityStats, setActivityStats] = useState({
     total: 0,
@@ -438,18 +436,11 @@ export default function FarmActivitiesPage() {
     } catch (error: any) {
       if (requestId !== latestRequestIdRef.current) return
       setActivities([])
-      const { normalizeError } = await import('@/shared/lib/error-handler')
-      const normalized = normalizeError(error)
-      const display = normalized.backendMessage ?? 'Không thể tải danh sách hoạt động nông trại'
-      toast({
-        title: 'Lỗi',
-        description: display,
-        variant: 'destructive',
-      })
+      showErrorToast(error)
     } finally {
       if (requestId === latestRequestIdRef.current) setLoading(false)
     }
-  }, [statusFilter, activityTypeFilter, toast, showLatestOnly])
+  }, [statusFilter, activityTypeFilter, showLatestOnly])
 
 
   const filteredActivities = useMemo(() => {
@@ -497,11 +488,6 @@ export default function FarmActivitiesPage() {
       setDateErrors({})
 
       if (!formActivityType || !formData.startDate || !formData.endDate) {
-        toast({
-          title: 'Lỗi',
-          description: 'Vui lòng điền đầy đủ thông tin bắt buộc',
-          variant: 'destructive',
-        })
         return
       }
 
@@ -514,52 +500,27 @@ export default function FarmActivitiesPage() {
 
       if (startDate < today) {
         setDateErrors({ startDate: 'Ngày bắt đầu không thể trước ngày hiện tại' })
-        toast({
-          title: 'Lỗi',
-          description: 'Ngày bắt đầu không thể trước ngày hiện tại',
-          variant: 'destructive',
-        })
         return
       }
 
       if (endDate < today) {
         setDateErrors({ endDate: 'Ngày kết thúc không thể trước ngày hiện tại' })
-        toast({
-          title: 'Lỗi',
-          description: 'Ngày kết thúc không thể trước ngày hiện tại',
-          variant: 'destructive',
-        })
         return
       }
 
       if (startDate > endDate) {
         setDateErrors({ startDate: 'Ngày bắt đầu không thể sau ngày kết thúc' })
-        toast({
-          title: 'Lỗi',
-          description: 'Ngày bắt đầu không thể sau ngày kết thúc',
-          variant: 'destructive',
-        })
         return
       }
 
-      await farmActivityService.createFarmActivity(formData, formActivityType)
-      toast({
-        title: 'Thành công',
-        description: 'Đã tạo hoạt động nông trại mới',
-      })
+      const res = await farmActivityService.createFarmActivity(formData, formActivityType)
+      showSuccessToast(res)
 
       setCreateDialogOpen(false)
       resetForm()
       loadActivities()
     } catch (error: any) {
-      const { normalizeError } = await import('@/shared/lib/error-handler')
-      const normalized = normalizeError(error)
-      const display = normalized.backendMessage ?? 'Không thể tạo hoạt động nông trại mới'
-      toast({
-        title: 'Lỗi',
-        description: display,
-        variant: 'destructive',
-      })
+      showErrorToast(error)
     }
   }
 
@@ -570,11 +531,6 @@ export default function FarmActivitiesPage() {
       setDateErrors({})
 
       if (!formActivityType || !formData.startDate || !formData.endDate) {
-        toast({
-          title: 'Lỗi',
-          description: 'Vui lòng điền đầy đủ thông tin bắt buộc',
-          variant: 'destructive',
-        })
         return
       }
 
@@ -587,31 +543,16 @@ export default function FarmActivitiesPage() {
 
       if (startDate < today) {
         setDateErrors({ startDate: 'Ngày bắt đầu không thể trước ngày hiện tại' })
-        toast({
-          title: 'Lỗi',
-          description: 'Ngày bắt đầu không thể trước ngày hiện tại',
-          variant: 'destructive',
-        })
         return
       }
 
       if (endDate < today) {
         setDateErrors({ endDate: 'Ngày kết thúc không thể trước ngày hiện tại' })
-        toast({
-          title: 'Lỗi',
-          description: 'Ngày kết thúc không thể trước ngày hiện tại',
-          variant: 'destructive',
-        })
         return
       }
 
       if (startDate > endDate) {
         setDateErrors({ startDate: 'Ngày bắt đầu không thể sau ngày kết thúc' })
-        toast({
-          title: 'Lỗi',
-          description: 'Ngày bắt đầu không thể sau ngày kết thúc',
-          variant: 'destructive',
-        })
         return
       }
 
@@ -620,30 +561,20 @@ export default function FarmActivitiesPage() {
         endDate: formData.endDate,
       }
 
-      await farmActivityService.updateFarmActivity(
+      const res = await farmActivityService.updateFarmActivity(
         editingActivity.farmActivitiesId,
         updateData,
         formActivityType,
         formStatus,
       )
-      toast({
-        title: 'Thành công',
-        description: 'Đã cập nhật thông tin hoạt động nông trại',
-      })
+      showSuccessToast(res)
 
       setEditDialogOpen(false)
       setEditingActivity(null)
       resetForm()
       loadActivities()
     } catch (error: any) {
-      const { normalizeError } = await import('@/shared/lib/error-handler')
-      const normalized = normalizeError(error)
-      const display = normalized.backendMessage ?? 'Không thể cập nhật hoạt động nông trại'
-      toast({
-        title: 'Lỗi',
-        description: display,
-        variant: 'destructive',
-      })
+      showErrorToast(error)
     }
   }
 
@@ -678,14 +609,7 @@ export default function FarmActivitiesPage() {
       setFormStatus(fullActivity.status || activity.status)
       setEditDialogOpen(true)
     } catch (error: any) {
-      const { normalizeError } = await import('@/shared/lib/error-handler')
-      const normalized = normalizeError(error)
-      const display = normalized.backendMessage ?? 'Không thể tải thông tin chi tiết hoạt động'
-      toast({
-        title: 'Lỗi',
-        description: display,
-        variant: 'destructive',
-      })
+      showErrorToast(error)
       setEditingActivity(activity)
 
       const startDate = formatDateForInput(activity.startDate)
@@ -706,11 +630,6 @@ export default function FarmActivitiesPage() {
   const handleToggleStatus = async (activity: FarmActivity) => {
     const currentStatus = (activity.status || '').toUpperCase()
     if (currentStatus !== 'ACTIVE' && currentStatus !== 'DEACTIVATED') {
-      toast({
-        title: 'Không thể đổi trạng thái',
-        description: 'Chỉ có thể bật/tắt các hoạt động đang hoạt động hoặc tạm dừng.',
-        variant: 'destructive',
-      })
       return
     }
 
@@ -718,18 +637,11 @@ export default function FarmActivitiesPage() {
 
     try {
       setLoading(true)
-      await farmActivityService.changeStatus(activity.farmActivitiesId)
-      toast({
-        title: 'Thành công',
-        description: `Hoạt động ${nextStatusLabel}`,
-      })
+      const res = await farmActivityService.changeStatus(activity.farmActivitiesId)
+      showSuccessToast(res)
       await loadActivities()
     } catch (error: any) {
-      toast({
-        title: 'Lỗi',
-        description: error?.message || 'Không thể đổi trạng thái hoạt động',
-        variant: 'destructive',
-      })
+      showErrorToast(error)
     } finally {
       setLoading(false)
     }

@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { motion } from 'framer-motion'
 import { Play, Square, Pause, Zap, Wrench, AlertTriangle, Clock, MessageSquare } from 'lucide-react'
+import { toastManager, showErrorToast } from '@/shared/lib/toast-manager'
 import {
   Dialog,
   DialogContent,
@@ -16,7 +17,6 @@ import { Input } from '@/shared/ui/input'
 import { Label } from '@/shared/ui/label'
 import { Textarea } from '@/shared/ui/textarea'
 import { Badge } from '@/shared/ui/badge'
-import { useToast } from '@/shared/ui/use-toast'
 import { deviceActionSchema, actionConfig } from '../model/schemas'
 import type { DeviceActionData } from '../model/schemas'
 import type { StaffDevice } from '@/shared/lib/localData'
@@ -37,7 +37,6 @@ export const DeviceActionModal: React.FC<DeviceActionModalProps> = ({
   action,
   onConfirm,
 }) => {
-  const { toast } = useToast()
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const {
@@ -115,16 +114,9 @@ export const DeviceActionModal: React.FC<DeviceActionModalProps> = ({
       await onConfirm(data)
       reset()
       onClose()
-      toast({
-        title: 'Thao tác hoàn thành',
-        description: `Đã ${action === 'start' ? 'khởi động' : action === 'stop' ? 'dừng' : action === 'pause' ? 'tạm dừng' : action === 'run-now' ? 'chạy ngay' : 'bảo trì'} thiết bị "${device.name}" thành công.`,
-      })
+      toastManager.success(`Đã ${action === 'start' ? 'khởi động' : action === 'stop' ? 'dừng' : action === 'pause' ? 'tạm dừng' : action === 'run-now' ? 'chạy ngay' : 'bảo trì'} thiết bị "${device.name}" thành công.`)
     } catch (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Thao tác thất bại',
-        description: error instanceof Error ? error.message : 'Đã xảy ra lỗi không mong muốn.',
-      })
+      showErrorToast(error)
     } finally {
       setIsSubmitting(false)
     }
@@ -153,7 +145,7 @@ export const DeviceActionModal: React.FC<DeviceActionModalProps> = ({
           </DialogHeader>
 
           <div className="space-y-4 py-4">
-            {}
+            { }
             <div className="p-3 bg-gray-50 rounded-lg space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-gray-700">Thiết bị:</span>
@@ -169,7 +161,7 @@ export const DeviceActionModal: React.FC<DeviceActionModalProps> = ({
               </div>
             </div>
 
-            {}
+            { }
             {showWarning && (
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
@@ -184,10 +176,10 @@ export const DeviceActionModal: React.FC<DeviceActionModalProps> = ({
               </motion.div>
             )}
 
-            {}
+            { }
             {!showWarning && <div className="text-sm text-gray-600">{getActionDescription()}</div>}
 
-            {}
+            { }
             {showDurationInput && (
               <div className="space-y-2">
                 <Label htmlFor="duration" className="text-sm font-medium flex items-center gap-2">
@@ -213,7 +205,7 @@ export const DeviceActionModal: React.FC<DeviceActionModalProps> = ({
               </div>
             )}
 
-            {}
+            { }
             {showNotesInput && (
               <div className="space-y-2">
                 <Label htmlFor="notes" className="text-sm font-medium flex items-center gap-2">

@@ -4,13 +4,13 @@ import { Card, CardContent } from '@/shared/ui/card'
 import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
 import { Label } from '@/shared/ui/label'
-import { useToast } from '@/shared/ui/use-toast'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/shared/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { Badge } from '@/shared/ui/badge'
 import { Pagination } from '@/shared/ui/pagination'
 import { cn } from '@/shared/lib/utils'
 import { Loader2, MoreHorizontal, RefreshCw, Search, Settings, Edit } from 'lucide-react'
+import { toastManager, showErrorToast } from '@/shared/lib/toast-manager'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -133,7 +133,6 @@ const getDiseaseSelectValue = (value: number | null | undefined): string => {
 }
 
 function ScheduleLogPanel({ scheduleId, onEdit, registerUpdater }: { scheduleId: number; onEdit: (log: ScheduleLogItem) => void; registerUpdater?: (fn: (item: ScheduleLogItem | { id: number }, mode: 'create' | 'update' | 'delete') => void) => void }) {
-  const { toast } = useToast()
   const [logs, setLogs] = useState<ScheduleLogItem[]>([])
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(true)
@@ -178,12 +177,12 @@ function ScheduleLogPanel({ scheduleId, onEdit, registerUpdater }: { scheduleId:
       setPage(p)
       setTotal(totalItems)
     } catch {
-      toast({ title: 'Không thể tải nhật ký', variant: 'destructive' })
+      toastManager.error('Không thể tải nhật ký')
     } finally {
       setLoading(false)
       loadingRef.current = false
     }
-  }, [scheduleId, toast])
+  }, [scheduleId])
 
   useEffect(() => {
     if (!scheduleId) return
@@ -506,7 +505,6 @@ export function BackendScheduleList({
   filteredItems: externalFilteredItems,
   onFilteredItemsChange,
 }: BackendScheduleListProps) {
-  const { toast } = useToast()
   const [pageIndex, setPageIndex] = useState(1)
   const [pageSize] = useState(10)
   const [data, setData] = useState<PaginatedSchedules | null>(null)
@@ -694,11 +692,11 @@ export function BackendScheduleList({
       setData(res)
       setFilteredItems(null)
     } catch (e) {
-      handleFetchError(e, toast, 'thời vụ')
+      handleFetchError(e, toastManager, 'thời vụ')
     } finally {
       setLoading(false)
     }
-  }, [pageIndex, pageSize, toast])
+  }, [pageIndex, pageSize])
 
   const loadAllSchedules = useCallback(async (silent = false): Promise<ScheduleListItem[]> => {
     try {
@@ -719,11 +717,11 @@ export function BackendScheduleList({
       return items
     } catch (e) {
       if (!silent) {
-        handleFetchError(e, toast, 'thời vụ (toàn bộ)')
+        handleFetchError(e, toastManager, 'thời vụ (toàn bộ)')
       }
       return []
     }
-  }, [toast])
+  }, [])
 
   const validateSchedulePayload = useCallback((payload: CreateScheduleRequest, currentScheduleId?: number) => {
     const errors: string[] = []
@@ -809,15 +807,11 @@ export function BackendScheduleList({
   const ensureScheduleValidity = useCallback((payload: CreateScheduleRequest, currentScheduleId?: number) => {
     const result = validateSchedulePayload(payload, currentScheduleId)
     if (!result.valid) {
-      toast({
-        title: 'Dữ liệu không hợp lệ',
-        description: result.errors.map(err => `• ${err}`).join('\n'),
-        variant: 'destructive',
-      })
+      toastManager.error(result.errors.map(err => `• ${err}`).join('\n'))
       return false
     }
     return true
-  }, [toast, validateSchedulePayload])
+  }, [validateSchedulePayload])
 
   useEffect(() => {
     load()
@@ -894,7 +888,7 @@ export function BackendScheduleList({
           setActivities(result.activityOptions)
         } catch (e) {
           if (!cancelled) {
-            handleFetchError(e, toast, 'danh sách tham chiếu')
+            handleFetchError(e, toastManager, 'danh sách tham chiếu')
           }
         } finally {
           if (!cancelled) setMetaLoading(false)
@@ -903,7 +897,7 @@ export function BackendScheduleList({
     return () => {
       cancelled = true
     }
-  }, [showCreate, showEdit, showAssignStaff, loadReferenceData, toast])
+  }, [showCreate, showEdit, showAssignStaff, loadReferenceData])
 
   const handleCreateDialogChange = useCallback((open: boolean) => {
     setShowCreate(open)
@@ -942,12 +936,12 @@ export function BackendScheduleList({
     if (!ensureScheduleValidity(payload)) return
     try {
       await scheduleService.createSchedule(payload)
-      handleApiSuccess('Tạo thời vụ thành công', toast)
+      toastManager.success('Tạo thời vụ thành công')
       handleCreateDialogChange(false)
       await load()
       await loadAllSchedules()
     } catch (e) {
-      handleCreateError(e, toast, 'thời vụ')
+      handleCreateError(e, toastManager, 'thời vụ')
     }
   }
 
@@ -964,7 +958,7 @@ export function BackendScheduleList({
     } catch (e) {
       const normalized = normalizeError(e)
       const display = normalized.backendMessage ?? mapErrorToVietnamese(e).vietnamese
-      toast({ title: 'Không thể tải chi tiết thời vụ', description: display, variant: 'destructive' })
+      toastManager.error(display || 'Không thể tải chi tiết thời vụ')
     } finally {
       setActionLoading({ [`detail-${schedule.scheduleId}`]: false })
     }
@@ -1019,7 +1013,7 @@ export function BackendScheduleList({
     setActionLoading({ [`update-today-${scheduleId}`]: true })
     try {
       await scheduleService.updateToday(scheduleId, customDate)
-      handleApiSuccess('Cập nhật giai đoạn theo ngày thành công', toast)
+      toastManager.success('Cập nhật giai đoạn theo ngày thành công')
       const res = await scheduleService.getScheduleById(scheduleId)
       setScheduleDetail(res.data)
       await load()
@@ -1031,11 +1025,7 @@ export function BackendScheduleList({
     } catch (e) {
       const normalized = normalizeError(e)
       const display = normalized.backendMessage ?? mapErrorToVietnamese(e).vietnamese
-      toast({
-        title: 'Cập nhật giai đoạn thất bại',
-        description: display,
-        variant: 'destructive'
-      })
+      toastManager.error(display || 'Cập nhật giai đoạn thất bại')
     } finally {
       setActionLoading({ [`update-today-${scheduleId}`]: false })
     }
@@ -1043,11 +1033,7 @@ export function BackendScheduleList({
 
   const handleUpdateStageByDate = () => {
     if (!customToday) {
-      toast({
-        title: 'Vui lòng chọn ngày',
-        description: 'Bạn cần chọn một ngày để cập nhật giai đoạn.',
-        variant: 'destructive',
-      })
+      toastManager.error('Bạn cần chọn một ngày để cập nhật giai đoạn.')
       return
     }
     handleUpdateToday(customToday)
@@ -1085,7 +1071,7 @@ export function BackendScheduleList({
           } catch (metaErr) {
             console.error('Failed to load metadata for edit dialog:', metaErr)
             if (!cancelled) {
-              handleFetchError(metaErr, toast, 'danh sách tham chiếu')
+              handleFetchError(metaErr, toastManager, 'danh sách tham chiếu')
             }
           } finally {
             if (!cancelled) setMetaLoading(false)
@@ -1198,11 +1184,7 @@ export function BackendScheduleList({
           if (!cancelled) {
             const normalized = normalizeError(e)
             const display = normalized.backendMessage ?? mapErrorToVietnamese(e).vietnamese
-            toast({
-              title: 'Không thể tải thông tin lịch',
-              description: display,
-              variant: 'destructive',
-            })
+            toastManager.error(display || 'Không thể tải thông tin lịch')
             handleEditDialogChange(false)
           }
         } finally {
@@ -1216,7 +1198,7 @@ export function BackendScheduleList({
     return () => {
       cancelled = true
     }
-  }, [editingScheduleId, toast, handleEditDialogChange, loadReferenceData])
+  }, [editingScheduleId, handleEditDialogChange, loadReferenceData])
 
   useEffect(() => {
     if (!editingScheduleId) return
@@ -1238,14 +1220,14 @@ export function BackendScheduleList({
     try {
       const response = await scheduleService.updateSchedule(selectedSchedule.scheduleId, editForm)
       if (response?.message) {
-        toast({ title: response.message })
+        toastManager.success(response.message)
       }
       handleEditDialogChange(false)
       await load()
       await loadAllSchedules()
     } catch (e: any) {
       if (e?.message) {
-        toast({ title: e.message, variant: 'destructive' })
+        showErrorToast(e)
       }
     } finally {
       setActionLoading({ [`update-${selectedSchedule.scheduleId}`]: false })
@@ -1259,14 +1241,14 @@ export function BackendScheduleList({
     try {
       const response = await scheduleService.assignStaff(selectedSchedule.scheduleId, assignStaffId)
       if (response?.message) {
-        toast({ title: response.message })
+        toastManager.success(response.message)
       }
       handleAssignStaffDialogChange(false)
       await load()
       await loadAllSchedules()
     } catch (e: any) {
       if (e?.message) {
-        toast({ title: e.message, variant: 'destructive' })
+        showErrorToast(e)
       }
     } finally {
       setActionLoading({ [`assign-${selectedSchedule.scheduleId}`]: false })
@@ -1279,7 +1261,7 @@ export function BackendScheduleList({
     try {
       const response = await scheduleService.updateScheduleStatus(schedule.scheduleId, nextStatus)
       if (response?.message) {
-        toast({ title: response.message })
+        toastManager.success(response.message)
       }
       if (showDetail && scheduleDetail?.scheduleId === schedule.scheduleId) {
         const res = await scheduleService.getScheduleById(schedule.scheduleId)
@@ -1289,7 +1271,7 @@ export function BackendScheduleList({
       await loadAllSchedules()
     } catch (e: any) {
       if (e?.message) {
-        toast({ title: e.message, variant: 'destructive' })
+        showErrorToast(e)
       }
     } finally {
       setActionLoading({ [`status-${schedule.scheduleId}`]: false })
@@ -1888,7 +1870,7 @@ export function BackendScheduleList({
             const form = e.target as HTMLFormElement
             const notes = (form.elements.namedItem('notes') as HTMLTextAreaElement).value.trim()
             if (!notes) {
-              toast({ title: 'Vui lòng nhập nội dung ghi nhận', variant: 'destructive' })
+              toastManager.error('Vui lòng nhập nội dung ghi nhận')
               return
             }
             try {
@@ -1898,7 +1880,7 @@ export function BackendScheduleList({
                   notes,
                 })
                 if (res?.status === 1) {
-                  if (res?.message) toast({ title: res.message })
+                  if (res?.message) toastManager.success(res.message)
                 } else {
                   const msg = res?.message
                   if (msg) throw new Error(msg)
@@ -1929,7 +1911,7 @@ export function BackendScheduleList({
                   notes,
                 })
                 if (res?.status === 1) {
-                  if (res?.message) toast({ title: res.message })
+                  if (res?.message) toastManager.success(res.message)
                 } else {
                   const msg = res?.message
                   if (msg) throw new Error(msg)
@@ -1954,9 +1936,9 @@ export function BackendScheduleList({
                 }
               }
               setShowLogModal(false)
-            } catch (err) {
+              } catch (err) {
               const msg = (err as any)?.message
-              if (msg) toast({ title: msg, variant: 'destructive' })
+              if (msg) toastManager.error(msg)
             }
           }}>
             <div className="grid gap-3">

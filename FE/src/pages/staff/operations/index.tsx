@@ -3,10 +3,9 @@ import { StaffLayout } from '@/shared/layouts/StaffLayout'
 import { StaffScheduleBoard } from '@/features/season'
 import { Card, CardContent } from '@/shared/ui/card'
 import { scheduleService, type ScheduleListItem } from '@/shared/api/scheduleService'
-import { useToast } from '@/shared/ui/use-toast'
+import { showErrorToast } from '@/shared/lib/toast-manager'
 
 const StaffOperationsPage: React.FC = () => {
-  const { toast } = useToast()
   const [stats, setStats] = useState({
     total: 0,
     active: 0,
@@ -39,17 +38,13 @@ const StaffOperationsPage: React.FC = () => {
         }).length
 
         setStats({ total, active, upcoming, ongoing })
-      } catch {
-        toast({
-          title: 'Không thể tải thống kê lịch công việc',
-          description: 'Bạn vẫn có thể xem bảng lịch chi tiết bên dưới.',
-          variant: 'destructive',
-        })
+      } catch (error) {
+        showErrorToast(error)
       }
     }
 
     loadStats()
-  }, [toast])
+  }, [])
 
   return (
     <StaffLayout>

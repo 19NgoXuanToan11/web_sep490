@@ -13,8 +13,8 @@ import { Input } from '@/shared/ui/input'
 import { Label } from '@/shared/ui/label'
 import { Textarea } from '@/shared/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
-import { useToast } from '@/shared/ui/use-toast'
 import { Loader2, Upload, X } from 'lucide-react'
+import { toastManager, showErrorToast } from '@/shared/lib/toast-manager'
 import { useProductStore } from '../store/productStore'
 import type { Product, UpdateProductRequest } from '@/shared/api/productService'
 import { uploadImageToCloudinary, CloudinaryUploadError } from '@/shared/lib/cloudinary'
@@ -38,7 +38,6 @@ interface UpdateProductInfoModalProps {
 
 export function UpdateProductInfoModal({ isOpen, onClose, product: initialProduct }: UpdateProductInfoModalProps) {
   const { categories, isUpdating, updateProduct, fetchCategories } = useProductStore()
-  const { toast } = useToast()
   const [currentProduct, setCurrentProduct] = React.useState<Product>(initialProduct)
   const [imagePreview, setImagePreview] = React.useState<string | null>(
     currentProduct?.imageUrl || null
@@ -93,11 +92,7 @@ export function UpdateProductInfoModal({ isOpen, onClose, product: initialProduc
         abortControllerRef.current = null
       }
       fetchCategories().catch(() => {
-        toast({
-          title: 'Lỗi tải danh mục',
-          description: 'Không thể tải danh sách danh mục',
-          variant: 'destructive',
-        })
+        toastManager.error('Không thể tải danh sách danh mục')
       })
     } else {
       if (abortControllerRef.current) {
@@ -107,16 +102,12 @@ export function UpdateProductInfoModal({ isOpen, onClose, product: initialProduc
       setIsUploading(false)
       setUploadProgress(0)
     }
-  }, [isOpen, currentProduct, reset, fetchCategories, toast])
+  }, [isOpen, currentProduct, reset, fetchCategories])
 
   const onSubmit = async (data: UpdateProductInfoFormData) => {
     try {
       if (!currentProduct.productId || currentProduct.productId === 0) {
-        toast({
-          title: 'Lỗi dữ liệu',
-          description: 'Không tìm thấy ID sản phẩm. Vui lòng thử lại.',
-          variant: 'destructive',
-        })
+        toastManager.error('Không tìm thấy ID sản phẩm. Vui lòng thử lại.')
         return
       }
 
@@ -132,29 +123,17 @@ export function UpdateProductInfoModal({ isOpen, onClose, product: initialProduc
       }
 
       if (!data.productName?.trim()) {
-        toast({
-          title: 'Lỗi validation',
-          description: 'Tên sản phẩm không được để trống',
-          variant: 'destructive',
-        })
+        toastManager.error('Tên sản phẩm không được để trống')
         return
       }
 
       if (!data.price || data.price < 10000) {
-        toast({
-          title: 'Lỗi validation',
-          description: 'Giá sản phẩm phải lớn hơn hoặc bằng 10,000 VND',
-          variant: 'destructive',
-        })
+        toastManager.error('Giá sản phẩm phải lớn hơn hoặc bằng 10,000 VND')
         return
       }
 
       if (!data.categoryId || data.categoryId < 1) {
-        toast({
-          title: 'Lỗi validation',
-          description: 'Vui lòng chọn danh mục hợp lệ',
-          variant: 'destructive',
-        })
+        toastManager.error('Vui lòng chọn danh mục hợp lệ')
         return
       }
 
@@ -177,11 +156,6 @@ export function UpdateProductInfoModal({ isOpen, onClose, product: initialProduc
             }))
             onClose()
           },
-          fallbackErrorToast: () => toast({
-            title: 'Cập nhật thất bại',
-            description: 'Có lỗi xảy ra khi cập nhật sản phẩm',
-            variant: 'destructive',
-          })
         }
       )
     } catch (error) {
@@ -193,11 +167,7 @@ export function UpdateProductInfoModal({ isOpen, onClose, product: initialProduc
     if (!file) return
 
     if (!file.type.startsWith('image/')) {
-      toast({
-        title: 'File không hợp lệ',
-        description: 'Vui lòng chọn file hình ảnh',
-        variant: 'destructive',
-      })
+      toastManager.error('Vui lòng chọn file hình ảnh')
       if (fileInputRef.current) {
         fileInputRef.current.value = ''
       }
@@ -205,11 +175,7 @@ export function UpdateProductInfoModal({ isOpen, onClose, product: initialProduc
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      toast({
-        title: 'File quá lớn',
-        description: 'Kích thước file không được vượt quá 5MB',
-        variant: 'destructive',
-      })
+      toastManager.error('Kích thước file không được vượt quá 5MB')
       if (fileInputRef.current) {
         fileInputRef.current.value = ''
       }
@@ -236,27 +202,15 @@ export function UpdateProductInfoModal({ isOpen, onClose, product: initialProduc
       setImagePreview(cloudinaryUrl)
       setValue('imageUrl', cloudinaryUrl)
       setImageExplicitlyRemoved(false)
-      toast({
-        title: 'Thành công',
-        description: 'Đã tải ảnh lên thành công',
-        variant: 'success',
-      })
+      toastManager.success('Đã tải ảnh lên thành công')
     } catch (error) {
       if (error instanceof CloudinaryUploadError) {
         if (error.message.includes('aborted')) {
           return
         }
-        toast({
-          title: 'Tải ảnh lên thất bại',
-          description: error.message || 'Có lỗi xảy ra khi tải ảnh lên',
-          variant: 'destructive',
-        })
+        showErrorToast(error)
       } else {
-        toast({
-          title: 'Tải ảnh lên thất bại',
-          description: 'Có lỗi xảy ra khi tải ảnh lên',
-          variant: 'destructive',
-        })
+        showErrorToast(error)
       }
       setImagePreview(null)
       setValue('imageUrl', '')
@@ -270,7 +224,7 @@ export function UpdateProductInfoModal({ isOpen, onClose, product: initialProduc
     }
   }
 
-  const removeImage = () => { 
+  const removeImage = () => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort()
       abortControllerRef.current = null

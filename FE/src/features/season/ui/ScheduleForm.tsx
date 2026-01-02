@@ -13,7 +13,6 @@ import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
 import { Label } from '@/shared/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
-import { useToast } from '@/shared/ui/use-toast'
 import { Loader2, Clock, Droplets, Settings } from 'lucide-react'
 import { useSeasonStore } from '@/features/season'
 import type { SeasonSchedule } from '@/shared/lib/localData'
@@ -30,7 +29,6 @@ interface ScheduleFormProps {
 
 export function ScheduleForm({ open, onOpenChange, editingSchedule, onClose }: ScheduleFormProps) {
     const { createSchedule, updateSchedule, loadingStates } = useSeasonStore()
-    const { toast } = useToast()
     const isEditing = !!editingSchedule
 
     const form = useForm<ScheduleFormData>({
@@ -89,11 +87,6 @@ export function ScheduleForm({ open, onOpenChange, editingSchedule, onClose }: S
                     }),
                     {
                         onSuccess: () => handleClose(),
-                        fallbackErrorToast: () => toast({
-                            title: 'Cập nhật thất bại',
-                            description: 'Đã xảy ra lỗi không xác định.',
-                            variant: 'destructive',
-                        })
                     }
                 )
             } else {
@@ -101,11 +94,6 @@ export function ScheduleForm({ open, onOpenChange, editingSchedule, onClose }: S
                     () => createSchedule(data),
                     {
                         onSuccess: () => handleClose(),
-                        fallbackErrorToast: () => toast({
-                            title: 'Tạo mới thất bại',
-                            description: 'Đã xảy ra lỗi không xác định.',
-                            variant: 'destructive',
-                        })
                     }
                 )
             }

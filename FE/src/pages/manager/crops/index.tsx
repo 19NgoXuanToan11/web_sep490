@@ -576,7 +576,6 @@ export default function CropsPage() {
     if (!requirement.cropRequirementId) {
       return
     }
-    const isActive = requirement.isActive ?? true
     try {
       setStatusUpdatingId(requirement.cropRequirementId ?? null)
       const res = await cropRequirementService.updateStatus(requirement.cropRequirementId as number)

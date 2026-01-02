@@ -8,7 +8,7 @@ import { Input } from '@/shared/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { RefreshCw, Download, Search } from 'lucide-react'
 import { StaffFilterBar, StaffDataTable, type StaffDataTableColumn, ManagementPageHeader } from '@/shared/ui'
-import { showSuccessToast, showErrorToast } from '@/shared/lib/toast-manager'
+import { showErrorToast } from '@/shared/lib/toast-manager'
 
 const formatSensorValue = (value: number) => {
     if (Number.isNaN(value)) return '--'

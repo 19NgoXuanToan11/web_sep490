@@ -11,7 +11,7 @@ import { ChangeProductStatusModal } from '@/features/products-management/ui/Chan
 import { useProductStore } from '@/features/products-management/store/productStore'
 import type { Product } from '@/shared/api/productService'
 import { ManagementPageHeader } from '@/shared/ui/management-page-header'
-import { showSuccessToast, showErrorToast } from '@/shared/lib/toast-manager'
+import { showErrorToast } from '@/shared/lib/toast-manager'
 
 export function StaffProductsPage() {
     const { products = [], filteredProducts = [], allProducts = [], totalCount = 0, fetchAllProducts, isLoading, filters } =

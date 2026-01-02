@@ -226,7 +226,6 @@ const RealTimeIoTDashboard: React.FC = () => {
       const result = await blynkService.controlServo(angle[0])
       if (result.success) {
         setServoAngle(angle)
-        const isOpen = angle[0] >= 90
         showSuccessToast(result)
       } else {
         showErrorToast(result)

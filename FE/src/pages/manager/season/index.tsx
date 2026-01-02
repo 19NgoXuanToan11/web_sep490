@@ -1,5 +1,4 @@
 import { useEffect, useState, useCallback } from 'react'
-import { normalizeError, mapErrorToVietnamese } from '@/shared/lib/error-handler'
 import { Tabs, TabsContent } from '@/shared/ui/tabs'
 import { ManagerLayout } from '@/shared/layouts/ManagerLayout'
 import { BackendScheduleList } from '@/features/season'

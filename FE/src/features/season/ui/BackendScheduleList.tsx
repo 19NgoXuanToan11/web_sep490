@@ -24,7 +24,7 @@ import { farmService } from '@/shared/api/farmService'
 import { cropService } from '@/shared/api/cropService'
 import { accountApi } from '@/shared/api/auth'
 import { farmActivityService, type FarmActivity } from '@/shared/api/farmActivityService'
-import { handleFetchError, handleCreateError, handleApiSuccess, normalizeError, mapErrorToVietnamese } from '@/shared/lib/error-handler'
+import { handleFetchError, handleCreateError, normalizeError, mapErrorToVietnamese } from '@/shared/lib/error-handler'
 import { formatDate } from '@/shared/lib/date-utils'
 
 interface BackendScheduleListProps {

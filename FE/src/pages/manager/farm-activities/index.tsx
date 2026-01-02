@@ -633,7 +633,7 @@ export default function FarmActivitiesPage() {
       return
     }
 
-    const nextStatusLabel = currentStatus === 'ACTIVE' ? 'đã tạm dừng' : 'đã kích hoạt'
+
 
     try {
       setLoading(true)

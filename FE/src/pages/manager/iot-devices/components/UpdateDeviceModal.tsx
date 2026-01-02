@@ -99,8 +99,7 @@ export const UpdateDeviceModal: React.FC<UpdateDeviceModalProps> = ({
                 expiryDate: formattedExpiryDate,
             }
 
-            const deviceId = device?.devicesId || device?.ioTdevicesId
-            const updatedDevice = await iotDeviceService.updateDevice(deviceId!, payload)
+            await iotDeviceService.updateDevice(deviceId!, payload)
             toastManager.success('Cập nhật thiết bị thành công')
             onSuccess()
             onClose()

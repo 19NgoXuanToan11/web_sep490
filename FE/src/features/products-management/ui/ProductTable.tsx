@@ -299,7 +299,6 @@ export function ProductTable({
       if (isReadOnly) return
 
       try {
-        const newStatus = product.status === 'Active' ? 'Inactive' : 'Active'
         await changeProductStatus(product.productId)
       } catch (error) {
         showErrorToast(error)

@@ -234,9 +234,9 @@ const ManagerIoTDevicesPage: React.FC = () => {
     const normalizedId = Number(deviceId)
     const nextStatus = isActiveStatus(device.status) ? 0 : 1
 
-    try {
+      try {
       setStatusUpdatingId(normalizedId)
-      const res = await iotDeviceService.updateDeviceStatus(normalizedId, nextStatus)
+      await iotDeviceService.updateDeviceStatus(normalizedId, nextStatus)
 
       setDevices(prev => prev.map(d => {
         const currentId = Number(d.ioTdevicesId ?? d.devicesId)

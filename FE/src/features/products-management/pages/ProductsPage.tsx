@@ -1,6 +1,6 @@
 ﻿import React from 'react'
 import { Button } from '@/shared/ui/button'
-import { showSuccessToast, showErrorToast } from '@/shared/lib/toast-manager'
+import { showErrorToast } from '@/shared/lib/toast-manager'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/shared/ui/card'
 import { Plus, Trash2, RefreshCw, Package, AlertTriangle, CheckCircle } from 'lucide-react'
 import { ManagerLayout } from '@/shared/layouts/ManagerLayout'

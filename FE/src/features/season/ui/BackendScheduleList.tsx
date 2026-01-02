@@ -241,13 +241,22 @@ function ScheduleLogPanel({ scheduleId, onEdit, registerUpdater }: { scheduleId:
             }}
           >
             {logs.map(l => {
-              const ts = l.updatedAt ?? l.createdAt
               return (
                 <div key={l.id} className="p-3 border rounded-md flex items-start justify-between">
                   <div className="min-w-0">
-                    <div className="text-xs text-muted-foreground">{safeFormat(ts ?? undefined)}</div>
+                    <div className="text-xs text-muted-foreground">{safeFormat(l.createdAt ?? undefined)}</div>
                     <div className="font-medium truncate">{(l.notes || '').split('\n')[0]}</div>
-                    <div className="text-xs text-muted-foreground mt-1">Bởi: {l.updatedBy ?? l.createdBy ?? 'Hệ thống'}</div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      <div>
+                        <strong>Người tạo</strong>: {l.staffNameCreate ?? 'Không xác định'}
+                        {l.createdAt ? ` • ${safeFormat(l.createdAt ?? undefined)}` : ''}
+                      </div>
+                      {l.updatedAt ? (
+                        <div className="mt-1">
+                          <strong>Người sửa</strong>: {l.staffNameUpdate ?? 'Không xác định'} • {safeFormat(l.updatedAt ?? undefined)}
+                        </div>
+                      ) : null}
+                    </div>
                   </div>
                   <div className="flex items-center gap-2">
                     <Button size="sm" variant="outline" onClick={() => onEdit(l)}><Edit className="h-4 w-4" /></Button>
@@ -1878,7 +1887,6 @@ export function BackendScheduleList({
             e.preventDefault()
             const form = e.target as HTMLFormElement
             const notes = (form.elements.namedItem('notes') as HTMLTextAreaElement).value.trim()
-            const timestamp = (form.elements.namedItem('timestamp') as HTMLInputElement).value
             if (!notes) {
               toast({ title: 'Vui lòng nhập nội dung ghi nhận', variant: 'destructive' })
               return
@@ -1888,7 +1896,6 @@ export function BackendScheduleList({
                 const res: any = await scheduleLogService.createLog({
                   scheduleId: selectedSchedule.scheduleId,
                   notes,
-                  timestamp: timestamp || undefined,
                 })
                 if (res?.status === 1) {
                   if (res?.message) toast({ title: res.message })
@@ -1899,7 +1906,7 @@ export function BackendScheduleList({
                 try {
                   const created = res?.data ?? res
                   const id = created?.cropLogId ?? created?.id ?? -Date.now()
-                  const createdAt = ((created?.createdAt ?? created?.created_at ?? timestamp) || new Date().toISOString())
+                  const createdAt = ((created?.createdAt ?? created?.created_at) || new Date().toISOString())
                   const createdBy = created?.createdBy ?? created?.created_by ?? null
                   const updatedAt = created?.updatedAt ?? created?.updated_at ?? createdAt
                   const updatedBy = created?.updatedBy ?? created?.updated_by ?? createdBy
@@ -1910,6 +1917,8 @@ export function BackendScheduleList({
                     createdBy,
                     updatedAt,
                     updatedBy,
+                    staffNameCreate: created?.staffNameCreate ?? created?.staff_name_create ?? created?.staffName ?? null,
+                    staffNameUpdate: created?.staffNameUpdate ?? created?.staff_name_update ?? null,
                   }
                   externalLogUpdaterRef.current?.(newItem, 'create')
                 } catch (e) {
@@ -1937,6 +1946,8 @@ export function BackendScheduleList({
                     createdBy: editingLog.createdBy,
                     updatedAt,
                     updatedBy,
+                    staffNameCreate: editingLog.staffNameCreate ?? null,
+                    staffNameUpdate: updated?.staffNameUpdate ?? updated?.staff_name_update ?? null,
                   }
                   externalLogUpdaterRef.current?.(newItem, 'update')
                 } catch (e) {
@@ -1952,10 +1963,6 @@ export function BackendScheduleList({
               <div>
                 <Label>Nội dung</Label>
                 <textarea name="notes" defaultValue={editingLog?.notes ?? ''} className="w-full p-2 border rounded" rows={4} />
-              </div>
-              <div>
-                <Label>Thời gian (tùy chọn)</Label>
-                <Input name="timestamp" type="datetime-local" defaultValue={editingLog?.updatedAt ? new Date(editingLog.updatedAt).toISOString().slice(0, 16) : (editingLog?.createdAt ? new Date(editingLog.createdAt).toISOString().slice(0, 16) : '')} />
               </div>
             </div>
             <DialogFooter className="mt-4">

@@ -15,7 +15,6 @@ import {
 } from '@/shared/ui/dialog'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/ui/tabs'
 import { Label } from '@/shared/ui/label'
-import { Input } from '@/shared/ui/input'
 import { ScheduleLogPanelStaff } from '@/features/season'
 import { scheduleLogService, type ScheduleLogItem } from '@/shared/api/scheduleLogService'
 import { useRef } from 'react'
@@ -610,7 +609,6 @@ const StaffSchedulesPage: React.FC = () => {
                             e.preventDefault()
                             const form = e.target as HTMLFormElement
                             const notes = (form.elements.namedItem('notes') as HTMLTextAreaElement).value.trim()
-                            const timestamp = (form.elements.namedItem('timestamp') as HTMLInputElement).value
                             if (!notes) {
                                 toast({ title: 'Vui lòng nhập nội dung ghi nhận', variant: 'destructive' })
                                 return
@@ -620,7 +618,6 @@ const StaffSchedulesPage: React.FC = () => {
                                     const res: any = await scheduleLogService.createLog({
                                         scheduleId: selectedScheduleDetail.scheduleId,
                                         notes,
-                                        timestamp: timestamp || undefined,
                                     })
                                     if (res?.status === 1) {
                                         if (res?.message) toast({ title: res.message })
@@ -631,7 +628,7 @@ const StaffSchedulesPage: React.FC = () => {
                                     try {
                                         const created = res?.data ?? res
                                         const id = created?.cropLogId ?? created?.id ?? -Date.now()
-                                        const createdAt = ((created?.createdAt ?? created?.created_at ?? timestamp) || new Date().toISOString())
+                                        const createdAt = ((created?.createdAt ?? created?.created_at) || new Date().toISOString())
                                         const createdBy = created?.createdBy ?? created?.created_by ?? null
                                         const updatedAt = created?.updatedAt ?? created?.updated_at ?? createdAt
                                         const updatedBy = created?.updatedBy ?? created?.updated_by ?? createdBy
@@ -685,10 +682,7 @@ const StaffSchedulesPage: React.FC = () => {
                                     <Label>Nội dung</Label>
                                     <textarea name="notes" defaultValue={editingLog?.notes ?? ''} className="w-full p-2 border rounded" rows={4} />
                                 </div>
-                                <div>
-                                    <Label>Thời gian (tùy chọn)</Label>
-                                    <Input name="timestamp" type="datetime-local" defaultValue={editingLog?.updatedAt ? new Date(editingLog.updatedAt).toISOString().slice(0, 16) : (editingLog?.createdAt ? new Date(editingLog.createdAt).toISOString().slice(0, 16) : '')} />
-                                </div>
+                                {/* Thời gian removed — backend không chấp nhận timestamp */}
                             </div>
                             <DialogFooter className="mt-4">
                                 <Button type="button" variant="outline" onClick={() => setShowLogModal(false)}>Hủy</Button>

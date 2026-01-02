@@ -84,16 +84,16 @@ export default function ScheduleLogPanelStaff({ scheduleId, onEdit, registerUpda
                             return (
                                 <div key={l.id} className="p-3 border rounded-md flex items-start justify-between">
                                     <div className="min-w-0">
-                                        <div className="text-xs text-muted-foreground">{safeFormat(l.createdAt)}</div>
+                                        <div className="text-xs text-muted-foreground">{safeFormat(l.createdAt ?? undefined)}</div>
                                         <div className="font-medium truncate">{(l.notes || '').split('\n')[0]}</div>
                                         <div className="text-xs text-muted-foreground mt-1">
                                             <div>
-                                                <strong>Người tạo</strong>: {l.staffNameCreate ?? (l.createdBy ?? 'Không xác định')}
-                                                {l.createdAt ? ` • ${safeFormat(l.createdAt)}` : ''}
+                                                <strong>Người tạo</strong>: {l.staffNameCreate ?? 'Không xác định'}
+                                                {l.createdAt ? ` • ${safeFormat(l.createdAt ?? undefined)}` : ''}
                                             </div>
                                             {l.updatedAt ? (
                                                 <div className="mt-1">
-                                                    <strong>Người sửa</strong>: {l.staffNameUpdate ?? (l.updatedBy ?? 'Không xác định')} • {safeFormat(l.updatedAt)}
+                                                    <strong>Người sửa</strong>: {l.staffNameUpdate ?? 'Không xác định'} • {safeFormat(l.updatedAt ?? undefined)}
                                                 </div>
                                             ) : null}
                                         </div>

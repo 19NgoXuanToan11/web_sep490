@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Bell, X } from 'lucide-react'
 import { Button } from '@/shared/ui'
-import { Badge } from '@/shared/ui/badge'
 import { http } from '@/shared/api/client'
 const POLL_INTERVAL = 15 * 60 * 1000
 const DROPDOWN_WIDTH = 384
@@ -18,7 +17,7 @@ export default function NotificationBell(): React.ReactElement {
 
     const checkAlerts = async () => {
         try {
-            const res = await http.post<any>('/api/v1/crop/check-alerts')
+            const res = await http.post<any>('/v1/crop/check-alerts')
             const data = res.data
             const alertsSent = Number(data?.AlertsSent || 0)
             setUnread(alertsSent)
@@ -122,8 +121,8 @@ export default function NotificationBell(): React.ReactElement {
             >
                 <Bell className="w-5 h-5" />
                 {unread > 0 && (
-                    <span className="absolute -top-1 -right-1">
-                        <Badge className="text-xs">{unread > 99 ? '99+' : unread}</Badge>
+                    <span className="absolute -top-1 -right-1 inline-flex items-center justify-center bg-emerald-600 text-white text-xs font-semibold rounded-full w-4 h-4 shadow-sm">
+                        {unread > 99 ? '99+' : unread}
                     </span>
                 )}
             </button>

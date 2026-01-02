@@ -22,6 +22,7 @@ import { Badge } from '@/shared/ui/badge'
 import { APP_CONFIG } from '@/shared/constants/app'
 import { accountProfileApi } from '@/shared/api/auth'
 import ThresholdConfigModal from '../../features/thresholds/ThresholdConfigModal.tsx'
+import NotificationBell from '@/shared/components/NotificationBell'
 
 interface ManagerLayoutProps {
   children: React.ReactNode
@@ -371,7 +372,9 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
 
               </div>
 
-              <div className="flex items-center space-x-2 sm:space-x-4"></div>
+              <div className="flex items-center space-x-2 sm:space-x-4">
+                <NotificationBell />
+              </div>
             </div>
           </div>
         </header>

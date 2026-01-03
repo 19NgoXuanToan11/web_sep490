@@ -684,7 +684,7 @@ export default function ManagerDashboard() {
                                       <div className="mx-auto my-1 h-8 w-8 bg-gray-200 rounded-full" />
                                     )}
                                     <div className="text-sm font-medium text-gray-900">
-                                      {typeof item?.temperatureC === 'number' ? `${Math.round(item.temperatureC)}°` : String(item?.temperatureC ?? '')}
+                                      {typeof item?.temperatureC === 'number' ? `${Math.round(item.temperatureC)}°C` : String(item?.temperatureC ?? '')}
                                     </div>
                                   </button>
                                 )
@@ -702,9 +702,24 @@ export default function ManagerDashboard() {
                               <div><strong>Thành phố:</strong> {String(previewItem.cityName ?? '')}</div>
                               <div><strong>Thời gian:</strong> {String(previewItem.timeStamp ?? '')}</div>
                               <div><strong>Dự báo cho:</strong> {String(previewItem.forecastFor ?? '')}</div>
-                              <div><strong>Nhiệt độ:</strong> {String(previewItem.temperatureC ?? '')}</div>
-                              <div><strong>Độ ẩm:</strong> {String(previewItem.humidity ?? '')}</div>
-                              <div><strong>Tốc độ gió:</strong> {String(previewItem.windSpeedMps ?? '')}</div>
+                              <div>
+                                <strong>Nhiệt độ:</strong>{' '}
+                                {typeof previewItem.temperatureC === 'number'
+                                  ? `${previewItem.temperatureC.toFixed(1)}°C`
+                                  : String(previewItem.temperatureC ?? '')}
+                              </div>
+                              <div>
+                                <strong>Độ ẩm:</strong>{' '}
+                                {typeof previewItem.humidity === 'number'
+                                  ? `${previewItem.humidity}%`
+                                  : String(previewItem.humidity ?? '')}
+                              </div>
+                              <div>
+                                <strong>Tốc độ gió:</strong>{' '}
+                                {typeof previewItem.windSpeedMps === 'number'
+                                  ? `${previewItem.windSpeedMps.toFixed(1)} m/s`
+                                  : String(previewItem.windSpeedMps ?? '')}
+                              </div>
                               <div><strong>Mô tả:</strong> {String(previewItem.description ?? '')}</div>
                             </div>
                           ) : (

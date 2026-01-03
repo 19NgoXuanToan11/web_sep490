@@ -14,6 +14,10 @@ export default function NotificationBell(): React.ReactElement {
     const buttonRef = useRef<HTMLButtonElement | null>(null)
     const dropdownRef = useRef<HTMLDivElement | null>(null)
     const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null)
+    const currentTempRaw = lastResult?.CurrentTemperature
+    const currentTemp = (typeof currentTempRaw !== 'undefined' && currentTempRaw !== null && !Number.isNaN(Number(currentTempRaw)))
+        ? Number(currentTempRaw)
+        : undefined
 
     const checkAlerts = async () => {
         try {
@@ -91,6 +95,11 @@ export default function NotificationBell(): React.ReactElement {
                             <div className="text-sm text-gray-700">
                                 Cảnh báo gửi: <span className="font-medium">{lastResult?.AlertsSent ?? 0}</span>
                             </div>
+                            {typeof currentTemp !== 'undefined' && (
+                                <div className="text-sm text-gray-700">
+                                    Nhiệt độ hiện tại: <span className="font-medium">{currentTemp.toFixed(1)}°C</span>
+                                </div>
+                            )}
                             {lastResult?.Message && (
                                 <div className="text-sm text-gray-600">{String(lastResult.Message)}</div>
                             )}

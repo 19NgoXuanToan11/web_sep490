@@ -665,9 +665,20 @@ export default function ManagerDashboard() {
                           <div className="overflow-x-auto py-2">
                             <div className="flex gap-3 w-max">
                               {hourlyPayload.data.map((item: any, idx: number) => {
-                                const timeVN = item?.timeStamp
-                                  ? new Date(item.timeStamp).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Ho_Chi_Minh' })
-                                  : ''
+                                const timeVN = (() => {
+                                  const ts = item?.timeStamp
+                                  if (!ts) return ''
+                                  if (typeof ts === 'string') {
+                                    const m = ts.match(/(\d{1,2}:\d{2})/)
+                                    return m ? m[1] : ts
+                                  }
+                                  try {
+                                    const d = new Date(ts)
+                                    return d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Ho_Chi_Minh' })
+                                  } catch {
+                                    return String(ts)
+                                  }
+                                })()
                                 return (
                                   <button
                                     key={idx}

@@ -633,15 +633,6 @@ export default function ManagerDashboard() {
                     </CardTitle>
                   </div>
                 </CardHeader>
-                <div className="px-6 py-3 border-b border-gray-100 flex flex-wrap gap-2">
-                  {hourlyPayload && (
-                    <>
-                      <div className="px-3 py-1 bg-gray-50 rounded-full text-xs text-gray-700">
-                        {`${String(hourlyPayload.note)}`}
-                      </div>
-                    </>
-                  )}
-                </div>
                 <CardContent className="p-6">
                   {isLoadingHourly && (
                     <div className="text-center py-8">

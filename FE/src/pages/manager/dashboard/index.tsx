@@ -163,6 +163,9 @@ export default function ManagerDashboard() {
   })
   const [weather, setWeather] = useState<WeatherResponse | null>(null)
   const [isLoadingWeather, setIsLoadingWeather] = useState(false)
+  const [hourlyPayload, setHourlyPayload] = useState<any | null>(null)
+  const [hoveredForecastIndex, setHoveredForecastIndex] = useState<number | null>(null)
+  const [selectedForecastIndex, setSelectedForecastIndex] = useState<number | null>(null)
   const [crops, setCrops] = useState<Crop[]>([])
   const [cropRequirements, setCropRequirements] = useState<CropRequirementView[]>([])
   const [sensorData, setSensorData] = useState<SensorData | null>(null)
@@ -196,6 +199,17 @@ export default function ManagerDashboard() {
       setIsLoadingWeather(false)
     }
   }, [])
+
+  const fetchHourlyForecast = useCallback(async () => {
+    try {
+      const payload = await weatherService.getHourly('Ho Chi Minh', 24)
+      setHourlyPayload(payload ?? null)
+    } catch (err) {
+      console.error('Failed to fetch hourly forecast payload', err)
+      setHourlyPayload(null)
+    }
+  }, [])
+  const [isLoadingHourly] = useState(false)
 
   const fetchDashboardData = useCallback(async () => {
     setIsLoadingDashboard(true)
@@ -273,6 +287,7 @@ export default function ManagerDashboard() {
   useEffect(() => {
     fetchIoTDeviceStats()
     fetchWeather()
+    fetchHourlyForecast()
     fetchDashboardData()
   }, [fetchIoTDeviceStats, fetchWeather, fetchDashboardData])
 
@@ -507,14 +522,6 @@ export default function ManagerDashboard() {
     })
 
     metrics.push({
-      title: 'Tổng đơn hàng',
-      value: businessStats.totalOrders,
-      change: `${businessStats.recentOrders} đơn mới`,
-      color: 'purple',
-      description: `Trong ${timeRange === 'week' ? '7 ngày' : '30 ngày'} qua`,
-    })
-
-    metrics.push({
       title: `Doanh thu (${timeRange === 'week' ? 'tuần' : 'tháng'})`,
       value: `${businessStats.totalRevenue.toLocaleString('vi-VN')} đ`,
       change: businessStats.recentOrders > 0 ? `Từ ${businessStats.recentOrders} đơn` : 'Chưa có đơn',
@@ -553,6 +560,12 @@ export default function ManagerDashboard() {
     businessStats,
     timeRange,
   ])
+
+  const previewIndex = selectedForecastIndex ?? hoveredForecastIndex
+  const previewItem =
+    previewIndex != null && hourlyPayload && Array.isArray(hourlyPayload.data)
+      ? hourlyPayload.data[previewIndex]
+      : null
 
 
   if (isLoadingDashboard && orders.length === 0 && feedbacks.length === 0) {
@@ -610,13 +623,100 @@ export default function ManagerDashboard() {
         )}
 
         <div className="mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center gap-2">
-            Hoạt động nông trại
-          </h2>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-            {dashboardMetrics.slice(0, 4).map(metric => (
-              <MetricCard key={metric.title} {...metric} />
-            ))}
+          <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-3">
+            <div className="lg:col-span-3">
+              <Card className="border-0 shadow-lg overflow-hidden bg-white">
+                <CardHeader className="border-b">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                      Thời tiết
+                    </CardTitle>
+                  </div>
+                </CardHeader>
+                <div className="px-6 py-3 border-b border-gray-100 flex flex-wrap gap-2">
+                  {hourlyPayload && (
+                    <>
+                      <div className="px-3 py-1 bg-gray-50 rounded-full text-xs text-gray-700">
+                        {`${String(hourlyPayload.note)}`}
+                      </div>
+                    </>
+                  )}
+                </div>
+                <CardContent className="p-6">
+                  {isLoadingHourly && (
+                    <div className="text-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
+                    </div>
+                  )}
+                  {!isLoadingHourly && hourlyPayload && Array.isArray(hourlyPayload.data) && (
+                    <>
+                      <div className="flex gap-6">
+                        <div className="flex-shrink-0 w-48">
+                          <div className="text-4xl font-bold text-gray-900 leading-none">
+                            {hourlyPayload.data[0] && typeof hourlyPayload.data[0].temperatureC === 'number'
+                              ? `${Math.round(hourlyPayload.data[0].temperatureC)}°C`
+                              : ''}
+                          </div>
+                          <div className="mt-2 text-sm text-gray-600">{String(hourlyPayload.city || '')}</div>
+                          <div className="mt-1 text-xs text-gray-400">{String(hourlyPayload.current_time_vn || '')}</div>
+                        </div>
+
+                        <div className="flex-1">
+                          <div className="overflow-x-auto py-2">
+                            <div className="flex gap-3 w-max">
+                              {hourlyPayload.data.map((item: any, idx: number) => {
+                                const timeVN = item?.timeStamp
+                                  ? new Date(item.timeStamp).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Ho_Chi_Minh' })
+                                  : ''
+                                return (
+                                  <button
+                                    key={idx}
+                                    onClick={() => setSelectedForecastIndex(idx === selectedForecastIndex ? null : idx)}
+                                    onMouseEnter={() => setHoveredForecastIndex(idx)}
+                                    onMouseLeave={() => setHoveredForecastIndex(null)}
+                                    className="flex-shrink-0 w-28 p-2 bg-white border border-gray-100 rounded-lg text-center hover:shadow-md"
+                                    title={String(item?.forecastFor ?? '')}
+                                  >
+                                    <div className="text-xs text-gray-500">{timeVN}</div>
+                                    {item?.iconUrl ? (
+                                      <img src={item.iconUrl} alt={String(item?.description ?? '')} className="mx-auto my-1 w-8 h-8" />
+                                    ) : (
+                                      <div className="mx-auto my-1 h-8 w-8 bg-gray-200 rounded-full" />
+                                    )}
+                                    <div className="text-sm font-medium text-gray-900">
+                                      {typeof item?.temperatureC === 'number' ? `${Math.round(item.temperatureC)}°` : String(item?.temperatureC ?? '')}
+                                    </div>
+                                  </button>
+                                )
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="mt-4 w-full">
+                        <div className="text-sm text-gray-500 mb-2">Chi tiết</div>
+                        <div className="p-3 bg-gray-50 rounded-lg border border-gray-100 min-h-[120px]">
+                          {previewItem ? (
+                            <div className="text-xs text-gray-700 space-y-2 text-left">
+                              <div><strong>Thành phố:</strong> {String(previewItem.cityName ?? '')}</div>
+                              <div><strong>Thời gian:</strong> {String(previewItem.timeStamp ?? '')}</div>
+                              <div><strong>Dự báo cho:</strong> {String(previewItem.forecastFor ?? '')}</div>
+                              <div><strong>Nhiệt độ:</strong> {String(previewItem.temperatureC ?? '')}</div>
+                              <div><strong>Độ ẩm:</strong> {String(previewItem.humidity ?? '')}</div>
+                              <div><strong>Tốc độ gió:</strong> {String(previewItem.windSpeedMps ?? '')}</div>
+                              <div><strong>Mô tả:</strong> {String(previewItem.description ?? '')}</div>
+                            </div>
+                          ) : (
+                            <div className="text-xs text-gray-400"></div>
+                          )}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </div>
 
@@ -649,7 +749,7 @@ export default function ManagerDashboard() {
           </h2>
 
           <div className="grid gap-6 md:grid-cols-3 mb-8">
-            {dashboardMetrics.slice(4).map(metric => (
+            {dashboardMetrics.map(metric => (
               <MetricCard key={metric.title} {...metric} />
             ))}
           </div>
@@ -733,6 +833,13 @@ export default function ManagerDashboard() {
 
           <div className="grid gap-8 xl:grid-cols-5">
             <div className="xl:col-span-3 space-y-8">
+              <MetricCard
+                title="Tổng đơn hàng"
+                value={businessStats.totalOrders}
+                change={`${businessStats.recentOrders} đơn mới`}
+                description={`Trong ${timeRange === 'week' ? '7 ngày' : '30 ngày'} qua`}
+              />
+
               <Card className="border-0 shadow-lg">
                 <CardHeader className="border-b border-gray-100">
                   <div className="flex items-center justify-between">

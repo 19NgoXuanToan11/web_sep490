@@ -18,7 +18,12 @@ export interface WeatherResponse {
 
 export const weatherService = {
   getWeather: async (city: string): Promise<WeatherResponse> => {
-    const response = await http.get<WeatherResponse>(`/v1/Weather/${city}`)
-    return response.data
+    const { data } = await http.get<WeatherResponse>(`/v1/Weather/${encodeURIComponent(city)}`)
+    return data
+  },
+  getHourly: async (city: string, hours = 24): Promise<any> => {
+    const path = `/v1/Weather/hourly?city=${encodeURIComponent(city)}&hours=${hours}`
+    const { data } = await http.get<any>(path)
+    return data
   },
 }

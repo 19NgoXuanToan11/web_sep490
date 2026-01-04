@@ -4,8 +4,6 @@ import {
     Star,
     RefreshCw,
     Search,
-    CheckCircle,
-    XCircle,
     Loader2,
     Image as ImageIcon,
     MoreHorizontal,
@@ -198,7 +196,7 @@ const StaffFeedbacksPage: React.FC = () => {
             )
         }
         return (
-            <Badge variant="secondary" className="whitespace-nowrap inline-flex items-center">
+            <Badge variant="destructive" className="whitespace-nowrap inline-flex items-center">
                 Ẩn
             </Badge>
         )
@@ -237,7 +235,7 @@ const StaffFeedbacksPage: React.FC = () => {
                         </Button>
                     }
                 />
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
                     <Card>
                         <CardContent className="p-4">
                             <div className="flex items-center justify-between">
@@ -264,6 +262,22 @@ const StaffFeedbacksPage: React.FC = () => {
                             </div>
                             <p className="text-xs text-gray-500 mt-2">
                                 Đánh giá đang được hiển thị trên giao diện khách hàng
+                            </p>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardContent className="p-4">
+                            <div className="flex items-center justify-between">
+                                <div>
+                                    <p className="text-sm text-gray-500">Đang ẩn</p>
+                                    <p className="text-2xl font-semibold mt-1 text-red-600">
+                                        {stats.inactive}
+                                    </p>
+                                </div>
+                            </div>
+                            <p className="text-xs text-gray-500 mt-2">
+                                Đánh giá đang bị ẩn khỏi giao diện khách hàng
                             </p>
                         </CardContent>
                     </Card>
@@ -317,11 +331,11 @@ const StaffFeedbacksPage: React.FC = () => {
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="all">Tất cả</SelectItem>
-                                <SelectItem value="5">⭐⭐⭐⭐⭐ 5 sao</SelectItem>
-                                <SelectItem value="4">⭐⭐⭐⭐ 4 sao</SelectItem>
-                                <SelectItem value="3">⭐⭐⭐ 3 sao</SelectItem>
-                                <SelectItem value="2">⭐⭐ 2 sao</SelectItem>
-                                <SelectItem value="1">⭐ 1 sao</SelectItem>
+                                <SelectItem value="5">⭐⭐⭐⭐⭐</SelectItem>
+                                <SelectItem value="4">⭐⭐⭐⭐</SelectItem>
+                                <SelectItem value="3">⭐⭐⭐</SelectItem>
+                                <SelectItem value="2">⭐⭐</SelectItem>
+                                <SelectItem value="1">⭐</SelectItem>
                             </SelectContent>
                         </Select>
                     </div>
@@ -576,12 +590,10 @@ const StaffFeedbacksPage: React.FC = () => {
                                             </span>
                                         ) : selectedFeedback.status === 'ACTIVE' ? (
                                             <span className="inline-flex items-center">
-                                                <XCircle className="h-4 w-4 mr-2" />
                                                 Ẩn đánh giá
                                             </span>
                                         ) : (
                                             <span className="inline-flex items-center">
-                                                <CheckCircle className="h-4 w-4 mr-2" />
                                                 Hiển thị đánh giá
                                             </span>
                                         )}

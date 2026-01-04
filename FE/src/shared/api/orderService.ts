@@ -299,8 +299,6 @@ export const getOrderStatusVariant = (
 }
 
 export const isFailureFilterMatch = (status: number, paymentStatus?: string): boolean => {
-  // Consider an order a failure if its normalized status is 2 (failed)
-  // or if its derived payment status is 'failed'.
   if (status === 2) return true
   if (paymentStatus && paymentStatus === 'failed') return true
   return false

@@ -29,6 +29,7 @@ import {
   getOrderStatusVariant,
   normalizeOrderStatus,
   derivePaymentStatus,
+  isFailureFilterMatch,
 } from '@/shared/api/orderService'
 import type { Order as ApiOrder, OrderItem } from '@/shared/api/orderService'
 
@@ -186,6 +187,10 @@ const StaffOrdersPage: React.FC = () => {
 
   const handleStatusFilterChange = (status: string) => {
     setStatusFilter(status)
+    const statusParam =
+      status === 'all' ? undefined : status === '4' ? 2 : parseInt(status)
+    setCurrentPage(1)
+    fetchOrders(1, statusParam)
   }
 
   const handleTabChange = (tab: string) => {
@@ -269,10 +274,12 @@ const StaffOrdersPage: React.FC = () => {
       setSearchQuery(value)
 
       if (!value.trim()) {
-        fetchOrders(1)
+        const statusParam =
+          statusFilter === 'all' ? undefined : statusFilter === '4' ? 2 : parseInt(statusFilter)
+        fetchOrders(1, statusParam)
       }
     },
-    [fetchOrders]
+    [fetchOrders, statusFilter]
   )
 
   const filteredOrders = useMemo(() => {
@@ -280,11 +287,6 @@ const StaffOrdersPage: React.FC = () => {
       if (!order || typeof order !== 'object') {
         return false
       }
-
-      if (searchQuery.trim()) {
-        return true
-      }
-
       const searchTerm = (searchQuery || '').toLowerCase()
 
       const orderNumber = order.orderNumber
@@ -303,11 +305,10 @@ const StaffOrdersPage: React.FC = () => {
 
       const matchesStatus =
         statusFilter === 'all' ||
-        (statusFilter === '3'
-          ? [3, 6].includes(order.status)
+        (statusFilter === '4'
+          ? isFailureFilterMatch(order.status, order.paymentStatus)
           : order.status?.toString() === statusFilter)
       const matchesPayment = paymentFilter === 'all' || order.paymentStatus === paymentFilter
-
       return matchesSearch && matchesStatus && matchesPayment
     })
   }, [orders, searchQuery, statusFilter, paymentFilter])
@@ -318,9 +319,9 @@ const StaffOrdersPage: React.FC = () => {
       pending: orders.filter(o => o.status === 0).length,
       confirmed: orders.filter(o => o.status === 1).length,
       preparing: orders.filter(o => o.status === 2).length,
-      shipping: orders.filter(o => o.status === 3).length,
-      delivered: orders.filter(o => o.status === 4).length,
-      cancelled: orders.filter(o => [5, 6].includes(o.status)).length,
+      shipping: orders.filter(o => o.status === 6).length,
+      delivered: orders.filter(o => o.status === 5).length,
+      cancelled: orders.filter(o => o.status === 4).length,
       totalRevenue: orders
         .filter(o => o.paymentStatus === 'paid')
         .reduce((sum, o) => sum + o.totalAmount, 0),
@@ -395,6 +396,14 @@ const StaffOrdersPage: React.FC = () => {
       setLoadingOrderDetail(false)
     }
   }
+
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      const statusParam = statusFilter === 'all' ? undefined : parseInt(statusFilter)
+      setCurrentPage(1)
+      fetchOrders(1, statusParam)
+    }
+  }, [currentPage, totalPages, statusFilter, fetchOrders])
 
   const handleUpdateStatus = async (orderId: string, status: string) => {
     try {
@@ -579,9 +588,9 @@ const StaffOrdersPage: React.FC = () => {
                   <SelectContent>
                     <SelectItem value="all">Tất cả</SelectItem>
                     <SelectItem value="1">{getOrderStatusLabel(1)}</SelectItem>
-                    <SelectItem value="3">{getOrderStatusLabel(3)}</SelectItem>
-                    <SelectItem value="4">{getOrderStatusLabel(4)}</SelectItem>
+                    <SelectItem value="6">{getOrderStatusLabel(6)}</SelectItem>
                     <SelectItem value="5">{getOrderStatusLabel(5)}</SelectItem>
+                    <SelectItem value="4">{getOrderStatusLabel(4)}</SelectItem>
                   </SelectContent>
                 </Select>
                 <Select value={paymentFilter} onValueChange={setPaymentFilter}>
@@ -592,7 +601,7 @@ const StaffOrdersPage: React.FC = () => {
                     <SelectItem value="all">Tất cả</SelectItem>
                     <SelectItem value="paid">Đã thanh toán</SelectItem>
                     <SelectItem value="pending">Chờ thanh toán</SelectItem>
-                    <SelectItem value="failed">Thất bại</SelectItem>
+                    <SelectItem value="failed">Thanh toán thất bại</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -798,14 +807,9 @@ const StaffOrdersPage: React.FC = () => {
                                       Đánh dấu đang giao
                                     </DropdownMenuItem>
                                   )}
-                                  {order.status === 3 && (
+                                  {(order.status === 6) && (
                                     <DropdownMenuItem onClick={() => handleCompleteStatus(order.id)}>
                                       Đánh dấu hoàn thành
-                                    </DropdownMenuItem>
-                                  )}
-                                  {order.status === 6 && (
-                                    <DropdownMenuItem onClick={() => handleCompleteStatus(order.id)}>
-                                      Hoàn thành đơn hàng
                                     </DropdownMenuItem>
                                   )}
                                   {order.status !== 4 && order.status !== 5 && order.status !== 6 && (

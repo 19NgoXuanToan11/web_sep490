@@ -270,7 +270,7 @@ export const getOrderStatusLabel = (status: number): string => {
     1: 'Đã xác nhận',
     2: 'Thất bại',
     3: 'Đang giao',
-    4: 'Đã hủy',
+    4: 'Thất bại',
     5: 'Hoàn thành',
     6: 'Đang giao',
   }
@@ -296,6 +296,14 @@ export const getOrderStatusVariant = (
     default:
       return 'secondary'
   }
+}
+
+export const isFailureFilterMatch = (status: number, paymentStatus?: string): boolean => {
+  // Consider an order a failure if its normalized status is 2 (failed)
+  // or if its derived payment status is 'failed'.
+  if (status === 2) return true
+  if (paymentStatus && paymentStatus === 'failed') return true
+  return false
 }
 
 export const getOrderStatusIcon = (status: number): string => {

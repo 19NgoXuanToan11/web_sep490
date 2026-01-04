@@ -12,9 +12,9 @@ import { Badge } from '@/shared/ui/badge'
 import { Tabs, TabsList, TabsTrigger } from '@/shared/ui/tabs'
 import { ManagerLayout } from '@/shared/layouts/ManagerLayout'
 import { iotDeviceService } from '@/shared/api/iotDeviceService'
-import { weatherService, type WeatherResponse } from '@/shared/api/weatherService'
+import { weatherService } from '@/shared/api/weatherService'
 import { cropService, type Crop } from '@/shared/api/cropService'
-import { cropRequirementService, type CropRequirementView } from '@/shared/api/cropRequirementService'
+import { cropRequirementService } from '@/shared/api/cropRequirementService'
 import { blynkService, type SensorData } from '@/shared/api/blynkService'
 import {
   orderService,
@@ -43,65 +43,6 @@ import {
   Cell,
 } from 'recharts'
 
-const WEATHER_DESCRIPTION_MAP: Record<string, string> = {
-  'clear sky': 'Trời quang mây',
-  'few clouds': 'Ít mây',
-  'scattered clouds': 'Mây rải rác',
-  'broken clouds': 'Mây đứt đoạn',
-  'overcast clouds': 'Nhiều mây',
-  'light rain': 'Mưa nhẹ',
-  'moderate rain': 'Mưa vừa',
-  'heavy intensity rain': 'Mưa lớn',
-  'very heavy rain': 'Mưa rất to',
-  'extreme rain': 'Mưa dữ dội',
-  'freezing rain': 'Mưa băng giá',
-  'light intensity shower rain': 'Mưa rào nhẹ',
-  'shower rain': 'Mưa rào',
-  'heavy intensity shower rain': 'Mưa rào nặng hạt',
-  'ragged shower rain': 'Mưa rào gián đoạn',
-  drizzle: 'Mưa phùn',
-  thunderstorm: 'Dông',
-  snow: 'Tuyết',
-  mist: 'Sương mù',
-  smoke: 'Khói',
-  haze: 'Mù sương',
-  dust: 'Bụi',
-  fog: 'Sương mù',
-  sand: 'Cát bay',
-  ash: 'Tro bụi',
-  squalls: 'Gió giật',
-  tornado: 'Lốc xoáy',
-}
-
-const WEATHER_DESCRIPTION_KEYWORDS: Array<[RegExp, string]> = [
-  [/thunderstorm/, 'Dông bão'],
-  [/drizzle/, 'Mưa phùn'],
-  [/light rain/, 'Mưa nhẹ'],
-  [/moderate rain/, 'Mưa vừa'],
-  [/heavy rain/, 'Mưa lớn'],
-  [/rain/, 'Mưa'],
-  [/snow/, 'Tuyết'],
-  [/mist|fog|haze/, 'Sương mù'],
-  [/cloud/, 'Nhiều mây'],
-  [/clear/, 'Trời quang'],
-]
-
-const translateWeatherDescription = (description?: string) => {
-  if (!description) return ''
-  const normalized = description.trim().toLowerCase()
-
-  if (WEATHER_DESCRIPTION_MAP[normalized]) {
-    return WEATHER_DESCRIPTION_MAP[normalized]
-  }
-
-  for (const [pattern, value] of WEATHER_DESCRIPTION_KEYWORDS) {
-    if (pattern.test(normalized)) {
-      return value
-    }
-  }
-
-  return description
-}
 
 interface MetricCardProps {
   title: string
@@ -159,7 +100,6 @@ export default function ManagerDashboard() {
   const [hourlyPayload, setHourlyPayload] = useState<any | null>(null)
   const [selectedForecastIndex, setSelectedForecastIndex] = useState<number | null>(null)
   const [crops, setCrops] = useState<Crop[]>([])
-  const [cropRequirements, setCropRequirements] = useState<CropRequirementView[]>([])
   const [sensorData, setSensorData] = useState<SensorData | null>(null)
   const [orders, setOrders] = useState<Order[]>([])
   const [totalOrdersCount, setTotalOrdersCount] = useState<number>(0)
@@ -213,8 +153,6 @@ export default function ManagerDashboard() {
       }
 
       if (cropRequirementResult.status === 'fulfilled') {
-        const requirementData = cropRequirementResult.value?.data
-        setCropRequirements(Array.isArray(requirementData) ? requirementData : [])
       } else {
         errors.push('yêu cầu cây trồng')
       }

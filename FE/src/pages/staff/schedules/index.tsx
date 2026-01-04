@@ -30,6 +30,13 @@ interface DisplaySchedule extends Omit<ScheduleListItem, 'diseaseStatus'> {
     currentPlantStage?: string
     diseaseStatus?: string | number
     cropRequirement?: any[]
+    farmActivities?: Array<{
+        farmActivitiesId: number
+        activityType?: string
+        startDate?: string
+        endDate?: string
+        status?: string
+    }>
 }
 
 const getFarmActivityStatusVariant = (status?: string): 'default' | 'secondary' | 'destructive' | 'golden' => {
@@ -91,12 +98,22 @@ const StaffSchedulesPage: React.FC = () => {
     const [selectedScheduleDetail, setSelectedScheduleDetail] = useState<DisplaySchedule | null>(null)
 
     const transformApiSchedule = (apiSchedule: any): DisplaySchedule => {
+        const farmActivitiesArray = Array.isArray(apiSchedule.farmActivityView)
+            ? apiSchedule.farmActivityView
+            : apiSchedule.farmActivityView
+                ? [apiSchedule.farmActivityView]
+                : []
+
+        const firstFarmActivity = farmActivitiesArray.length > 0 ? farmActivitiesArray[0] : (apiSchedule.farmActivityView ?? undefined)
+
         return {
             ...apiSchedule,
             id: String(apiSchedule.scheduleId || ''),
             currentPlantStage: apiSchedule.currentPlantStage,
             diseaseStatus: apiSchedule.diseaseStatus,
             cropRequirement: apiSchedule.cropRequirement || apiSchedule.cropView?.cropRequirement || [],
+            farmActivities: farmActivitiesArray,
+            farmActivityView: firstFarmActivity,
         }
     }
 
@@ -139,8 +156,12 @@ const StaffSchedulesPage: React.FC = () => {
     const [isConfirmCompleteOpen, setIsConfirmCompleteOpen] = useState(false)
 
     const handleCompleteFarmActivity = useCallback(async () => {
-        if (!selectedScheduleDetail?.farmActivityView?.farmActivitiesId) return
-        const activityId = selectedScheduleDetail.farmActivityView.farmActivitiesId
+        if (!selectedScheduleDetail) return
+        const sd = selectedScheduleDetail as any
+        const activityId =
+            (sd?.farmActivityView as any)?.farmActivitiesId ??
+            (Array.isArray(sd?.farmActivities) ? sd.farmActivities[0]?.farmActivitiesId : undefined)
+        if (!activityId) return
         setIsCompleting(true)
         try {
             await farmActivityService.completeFarmActivity(activityId, selectedScheduleDetail.farmView?.location)
@@ -188,15 +209,25 @@ const StaffSchedulesPage: React.FC = () => {
         return sortedSchedules.slice(start, start + pageSize)
     }, [sortedSchedules, pageIndex, pageSize])
 
-    const handleViewDetail = useCallback((schedule: DisplaySchedule) => {
-        const scheduleCopy: DisplaySchedule = {
-            ...schedule,
-            farmView: schedule.farmView ? { ...schedule.farmView } : undefined,
-            cropView: schedule.cropView ? { ...schedule.cropView } : undefined,
-            cropRequirement: schedule.cropRequirement
-                ? [...(schedule.cropRequirement || [])]
-                : undefined,
+    const handleViewDetail = useCallback((raw: any) => {
+        let scheduleObj: any = raw
+        let activityObj: any = undefined
+        if (raw && raw.schedule && raw.activity) {
+            scheduleObj = raw.schedule
+            activityObj = raw.activity
         }
+
+        const scheduleCopy: DisplaySchedule = {
+            ...scheduleObj,
+            farmView: scheduleObj.farmView ? { ...scheduleObj.farmView } : undefined,
+            cropView: scheduleObj.cropView ? { ...scheduleObj.cropView } : undefined,
+            cropRequirement: scheduleObj.cropRequirement
+                ? [...(scheduleObj.cropRequirement || [])]
+                : undefined,
+            farmActivities: scheduleObj.farmActivities ?? (scheduleObj.farmActivityView ? [scheduleObj.farmActivityView] : []),
+            farmActivityView: activityObj ?? scheduleObj.farmActivityView ?? (Array.isArray(scheduleObj.farmActivities) ? scheduleObj.farmActivities[0] : undefined),
+        }
+
         setSelectedScheduleDetail(scheduleCopy)
         setIsScheduleDetailOpen(true)
     }, [])
@@ -244,40 +275,48 @@ const StaffSchedulesPage: React.FC = () => {
         return '#f59e0b'
     }, [])
 
-    const calendarSchedules = useMemo(() => {
-        return filteredSchedules.filter(s => {
-            const fv = s.farmActivityView
-            if (!fv) return false
-            const start = parseDateString(fv.startDate)
-            const end = parseDateString(fv.endDate)
-            return !!start && !!end
-        })
+    const calendarActivityEntries = useMemo(() => {
+        const entries: Array<{ schedule: DisplaySchedule; activity: any }> = []
+        for (const s of filteredSchedules) {
+            const activities = Array.isArray((s as any).farmActivities)
+                ? (s as any).farmActivities
+                : s.farmActivityView
+                    ? [s.farmActivityView]
+                    : []
+
+            for (const fa of activities) {
+                const start = parseDateString(fa?.startDate)
+                const end = parseDateString(fa?.endDate)
+                if (start && end) {
+                    entries.push({ schedule: s, activity: fa })
+                }
+            }
+        }
+        return entries
     }, [filteredSchedules, parseDateString])
 
     const calendarEvents = useMemo(() => {
-        return calendarSchedules.map(s => {
-            const fv = s.farmActivityView!
-            const activityTitle = fv.activityType ? translateActivityType(fv.activityType) : ''
+        return calendarActivityEntries.map(({ schedule: s, activity: fa }) => {
+            const activityTitle = fa.activityType ? translateActivityType(fa.activityType) : ''
             const title = activityTitle || (s.cropView?.cropName ?? `Cây #${s.cropId ?? ''}`)
 
-            const start = parseDateString(fv.startDate) ?? undefined
-            const endRaw = parseDateString(fv.endDate)
-            const end = endRaw ?? undefined
+            const start = parseDateString(fa.startDate) ?? undefined
+            const end = parseDateString(fa.endDate) ?? undefined
 
-            const color = statusToColor(fv.status)
+            const color = statusToColor(fa.status)
 
             return {
-                id: String(s.id),
+                id: `${String(s.id)}-${String(fa.farmActivitiesId ?? Math.random().toString(36).slice(2, 8))}`,
                 title,
                 start,
                 end,
                 allDay: true,
                 backgroundColor: color,
                 borderColor: color,
-                extendedProps: { original: s },
+                extendedProps: { original: { schedule: s, activity: fa } },
             }
         })
-    }, [calendarSchedules, parseDateString, statusToColor])
+    }, [calendarActivityEntries, parseDateString, statusToColor])
 
     const [activeTab, setActiveTab] = useState<'details' | 'logs'>('details')
     const [showLogModal, setShowLogModal] = useState(false)
@@ -287,6 +326,7 @@ const StaffSchedulesPage: React.FC = () => {
 
     const openCreateLogForSchedule = (schedule: DisplaySchedule | null) => {
         if (!schedule) return
+        setIsScheduleDetailOpen(false)
         setSelectedScheduleDetail(schedule)
         setLogModalMode('create')
         setShowLogModal(true)
@@ -301,7 +341,9 @@ const StaffSchedulesPage: React.FC = () => {
 
     const handleEventMenuAction = (action: 'logs' | 'create', raw?: any) => {
         if (!raw) return
-        const schedule = transformApiSchedule(raw)
+        let scheduleRaw = raw
+        if (raw && raw.schedule) scheduleRaw = raw.schedule
+        const schedule = transformApiSchedule(scheduleRaw)
         if (action === 'logs') {
             openLogsForSchedule(schedule)
         } else if (action === 'create') {
@@ -328,10 +370,14 @@ const StaffSchedulesPage: React.FC = () => {
                                     start: ev.start ?? null,
                                     end: ev.end ?? null,
                                     color: ev.backgroundColor ?? undefined,
-                                    participants: ev.extendedProps?.original ? [{
-                                        id: String(ev.extendedProps.original.managerName || 'm1'),
-                                        name: ev.extendedProps.original.managerName,
-                                    }] : [],
+                                    participants: ev.extendedProps?.original ? (() => {
+                                        const o: any = ev.extendedProps?.original
+                                        const mgr = o?.managerName ?? o?.schedule?.managerName ?? 'm1'
+                                        return [{
+                                            id: String(mgr),
+                                            name: o?.managerName ?? o?.schedule?.managerName ?? undefined,
+                                        }]
+                                    })() : [],
                                     raw: ev.extendedProps?.original ?? null,
                                 }))}
                                 onEventClick={(raw) => {
@@ -417,24 +463,55 @@ const StaffSchedulesPage: React.FC = () => {
                                                             <p className="text-base font-semibold text-gray-900 mt-2">
                                                                 {translateActivityType(selectedScheduleDetail.farmActivityView?.activityType) || 'N/A'}
                                                             </p>
-                                                            {selectedScheduleDetail.farmActivityView ? (
-                                                                <p className="text-sm text-gray-600 mt-2">
-                                                                    {selectedScheduleDetail.farmActivityView.startDate
-                                                                        ? formatDateOnly(selectedScheduleDetail.farmActivityView.startDate)
-                                                                        : 'N/A'}{' '}
-                                                                    -{' '}
-                                                                    {selectedScheduleDetail.farmActivityView.endDate
-                                                                        ? formatDateOnly(selectedScheduleDetail.farmActivityView.endDate)
-                                                                        : 'N/A'}
-                                                                </p>
+                                                            {selectedScheduleDetail.farmActivities && selectedScheduleDetail.farmActivities.length > 0 ? (
+                                                                <div className="space-y-3 mt-2">
+                                                                    {selectedScheduleDetail.farmActivities?.map((fa) => {
+                                                                        const isSelected = selectedScheduleDetail.farmActivityView?.farmActivitiesId === fa.farmActivitiesId
+                                                                        return (
+                                                                            <div
+                                                                                key={fa.farmActivitiesId}
+                                                                                onClick={() => {
+                                                                                    setSelectedScheduleDetail(prev => prev ? { ...prev, farmActivityView: fa } : prev)
+                                                                                }}
+                                                                                className={`flex items-center justify-between cursor-pointer p-2 rounded ${isSelected ? 'bg-gray-50 border-l-4 border-emerald-400' : ''}`}
+                                                                            >
+                                                                                <div>
+                                                                                    <div className="text-sm font-medium text-gray-900">
+                                                                                        {translateActivityType(fa.activityType) || 'N/A'}
+                                                                                    </div>
+                                                                                    <div className="text-sm text-gray-600">
+                                                                                        {fa.startDate ? formatDateOnly(fa.startDate) : 'N/A'} - {fa.endDate ? formatDateOnly(fa.endDate) : 'N/A'}
+                                                                                    </div>
+                                                                                </div>
+                                                                                <div className="ml-4">
+                                                                                    <Badge variant={getFarmActivityStatusVariant(fa.status)}>
+                                                                                        {getFarmActivityStatusLabel(fa.status)}
+                                                                                    </Badge>
+                                                                                </div>
+                                                                            </div>
+                                                                        )
+                                                                    })}
+                                                                </div>
+                                                            ) : selectedScheduleDetail.farmActivityView ? (
+                                                                <div>
+                                                                    <p className="text-sm text-gray-600 mt-2">
+                                                                        {selectedScheduleDetail.farmActivityView.startDate
+                                                                            ? formatDateOnly(selectedScheduleDetail.farmActivityView.startDate)
+                                                                            : 'N/A'}{' '}
+                                                                        -{' '}
+                                                                        {selectedScheduleDetail.farmActivityView.endDate
+                                                                            ? formatDateOnly(selectedScheduleDetail.farmActivityView.endDate)
+                                                                            : 'N/A'}
+                                                                    </p>
+                                                                    <div className="mt-3">
+                                                                        <Badge variant={getFarmActivityStatusVariant(selectedScheduleDetail.farmActivityView?.status)}>
+                                                                            {getFarmActivityStatusLabel(selectedScheduleDetail.farmActivityView?.status)}
+                                                                        </Badge>
+                                                                    </div>
+                                                                </div>
                                                             ) : (
                                                                 <p className="text-sm text-gray-600 mt-2">Thời gian: N/A</p>
                                                             )}
-                                                            <div className="mt-3">
-                                                                <Badge variant={getFarmActivityStatusVariant(selectedScheduleDetail.farmActivityView?.status)}>
-                                                                    {getFarmActivityStatusLabel(selectedScheduleDetail.farmActivityView?.status)}
-                                                                </Badge>
-                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>

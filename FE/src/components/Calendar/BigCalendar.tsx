@@ -134,10 +134,12 @@ const BigCalendar: React.FC<Props> = ({ events = [], onEventClick, onDayClick, o
     const ev = props.event || props.eventData || {}
     const title = ev.title ?? ''
     const raw = ev.raw ?? ev
+    const isContinuation = !!props.continuesPrior
+
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
         <div style={{ overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', flex: 1 }}>
-          {title}
+          {!isContinuation ? title : null}
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -146,8 +148,30 @@ const BigCalendar: React.FC<Props> = ({ events = [], onEventClick, onDayClick, o
             </button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuItem onSelect={() => { onEventMenuAction && onEventMenuAction('logs', raw) }}>Nhật ký</DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => { onEventMenuAction && onEventMenuAction('create', raw) }}>Ghi nhận</DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <button
+                type="button"
+                className="w-full block text-left px-4 py-2 rounded-md hover:bg-muted/50 active:bg-muted/60 focus:outline-none cursor-pointer"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onEventMenuAction && onEventMenuAction('logs', raw)
+                }}
+              >
+                Nhật ký
+              </button>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <button
+                type="button"
+                className="w-full block text-left px-4 py-2 rounded-md hover:bg-muted/50 active:bg-muted/60 focus:outline-none cursor-pointer"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onEventMenuAction && onEventMenuAction('create', raw)
+                }}
+              >
+                Ghi nhận
+              </button>
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

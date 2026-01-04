@@ -3,7 +3,6 @@ import { Tabs, TabsContent } from '@/shared/ui/tabs'
 import { ManagerLayout } from '@/shared/layouts/ManagerLayout'
 import { BackendScheduleList } from '@/features/season'
 import { Button } from '@/shared/ui/button'
-import { Card, CardContent } from '@/shared/ui/card'
 import { scheduleService, type PaginatedSchedules, type ScheduleListItem } from '@/shared/api/scheduleService'
 import { ManagementPageHeader } from '@/shared/ui/management-page-header'
 import { showErrorToast } from '@/shared/lib/toast-manager'
@@ -14,13 +13,6 @@ export default function SeasonPage() {
   const selectedTab = 'calendar'
   const handleTabChange = (_tab: string) => { }
   const [showCreate, setShowCreate] = useState(false)
-  const [stats, setStats] = useState({
-    total: 0,
-    active: 0,
-    inactive: 0,
-    upcoming: 0,
-    ongoing: 0,
-  })
 
   const [filteredItems, setFilteredItems] = useState<ScheduleListItem[] | null>(null)
   const [, setAllSchedules] = useState<ScheduleListItem[]>([])
@@ -63,49 +55,7 @@ export default function SeasonPage() {
     loadAllSchedules()
   }, [loadAllSchedules])
 
-  const loadStats = useCallback(async () => {
-    try {
-      const res: PaginatedSchedules = await scheduleService.getScheduleList(1, 1000)
-      const items = res.data.items || []
-      const now = new Date()
-      now.setHours(0, 0, 0, 0)
 
-      const total = res.data.totalItemCount || items.length
-      const activeItems = items.filter(it => it.status === 1 || it.status === 'ACTIVE')
-      const inactiveItems = items.filter(it => it.status === 0 || it.status === 'DEACTIVATED')
-
-      const upcoming = items.filter(it => {
-        const start = new Date(it.startDate)
-        return !Number.isNaN(start.getTime()) && start > now
-      }).length
-
-      const ongoing = items.filter(it => {
-        const start = new Date(it.startDate)
-        const end = new Date(it.endDate)
-        if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return false
-        return start <= now && now <= end
-      }).length
-
-      setStats({
-        total,
-        active: activeItems.length,
-        inactive: inactiveItems.length,
-        upcoming,
-        ongoing,
-      })
-    } catch (error) {
-      showErrorToast(error)
-    }
-  }, [])
-
-  useEffect(() => {
-    loadStats()
-  }, [loadStats])
-
-  const handleRefresh = useCallback(async () => {
-    await loadStats()
-    await loadAllSchedules()
-  }, [loadStats, loadAllSchedules])
 
   return (
     <ManagerLayout>

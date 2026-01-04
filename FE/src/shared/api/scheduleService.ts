@@ -94,16 +94,16 @@ export interface PaginatedSchedules {
 export interface CreateScheduleRequest {
   farmId: number
   cropId: number
-  staffId: number
+  staffId?: number
   startDate: string
   endDate: string
-  plantingDate: string
-  harvestDate: string
+  plantingDate?: string
+  harvestDate?: string
   quantity: number
-  status: number
+  status?: number | ScheduleStatusString
   pesticideUsed: boolean
   diseaseStatus?: number | null
-  farmActivitiesId: number
+  farmActivitiesId?: number
 }
 
 export interface BasicResponse<T = unknown> {

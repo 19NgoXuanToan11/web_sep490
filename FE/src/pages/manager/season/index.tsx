@@ -115,55 +115,11 @@ export default function SeasonPage() {
             title="Quản lý thời vụ gieo trồng"
             description="Quản lý và lập thời vụ gieo trồng"
             actions={
-              <Button onClick={handleRefresh} variant="outline">
-                Làm mới
+              <Button onClick={() => setShowCreate(true)} className="bg-green-600 hover:bg-green-700">
+                Tạo
               </Button>
             }
           />
-
-          <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-3 items-stretch">
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-500">Tổng thời vụ</p>
-                    <p className="text-2xl font-semibold mt-1">{stats.total}</p>
-                  </div>
-                </div>
-                <p className="text-xs text-gray-500 mt-2">
-                  Tất cả thời vụ đã được tạo trong hệ thống
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-500">Hoạt động</p>
-                    <p className="text-2xl font-semibold mt-1 text-green-600">{stats.active}</p>
-                  </div>
-                </div>
-                <p className="text-xs text-gray-500 mt-2">
-                  Thời vụ ở trạng thái hoạt động/đang áp dụng
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-500">Vô hiệu hóa</p>
-                    <p className="text-2xl font-semibold mt-1 text-red-600">{stats.inactive}</p>
-                  </div>
-                </div>
-                <p className="text-xs text-gray-500 mt-2">
-                  Các thời vụ đã bị vô hiệu hóa
-                </p>
-              </CardContent>
-            </Card>
-          </div>
           { }
           <Tabs value={selectedTab} onValueChange={handleTabChange} className="space-y-6">
             <TabsContent value="calendar" className="space-y-6">

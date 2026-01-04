@@ -1,4 +1,8 @@
 ﻿import React, { useState, useCallback, useEffect, useMemo, useRef } from 'react'
+import { Calendar as RBC, dateFnsLocalizer, Views } from "react-big-calendar";
+import { format, parse, startOfWeek, getDay, addDays } from "date-fns";
+import { vi } from "date-fns/locale";
+import "react-big-calendar/lib/css/react-big-calendar.css";
 import { scheduleService, type PaginatedSchedules, type CreateScheduleRequest, type ScheduleDetail, type ScheduleListItem, type ScheduleStatusString } from '@/shared/api/scheduleService'
 import { Card, CardContent } from '@/shared/ui/card'
 import { Button } from '@/shared/ui/button'
@@ -7,497 +11,45 @@ import { Label } from '@/shared/ui/label'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/shared/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { Badge } from '@/shared/ui/badge'
-import { Pagination } from '@/shared/ui/pagination'
-import { cn } from '@/shared/lib/utils'
-import { Loader2, MoreHorizontal, RefreshCw, Search, Settings, Edit } from 'lucide-react'
+import { Loader2, RefreshCw, Settings } from 'lucide-react'
 import { toastManager, showErrorToast } from '@/shared/lib/toast-manager'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/shared/ui/dropdown-menu'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/ui/tabs'
-import { scheduleLogService, type ScheduleLogItem } from '@/shared/api/scheduleLogService'
+import { scheduleLogService } from '@/shared/api/scheduleLogService'
 import ThresholdPanel from '@/features/thresholds/ThresholdPanel'
 import { farmService } from '@/shared/api/farmService'
 import { cropService } from '@/shared/api/cropService'
 import { accountApi } from '@/shared/api/auth'
-import { farmActivityService, type FarmActivity } from '@/shared/api/farmActivityService'
+import { farmActivityService } from '@/shared/api/farmActivityService'
 import { handleFetchError, handleCreateError, normalizeError, mapErrorToVietnamese } from '@/shared/lib/error-handler'
 import { formatDate } from '@/shared/lib/date-utils'
-
-interface BackendScheduleListProps {
-  showCreate?: boolean
-  onShowCreateChange?: (v: boolean) => void
-  filteredItems?: ScheduleListItem[] | null
-  onFilteredItemsChange?: (items: ScheduleListItem[] | null) => void
-}
+import type {
+  BackendScheduleListProps,
+  ScheduleLogItem,
+  FarmActivity,
+  ActivityOption,
+  SortOption
+} from './types'
+import {
+  statusOptions,
+  diseaseOptions,
+  translateActivityType,
+  translatePlantStage,
+  getFarmActivityStatusInfo,
+  getStatusLabel,
+  isActiveStatus,
+  getDiseaseLabel,
+  getDiseaseSelectValue,
+  parseDiseaseStatus
+} from './utils/labels'
+import { buildEmptyScheduleForm, validateSchedulePayload } from './utils/form'
+import ScheduleLogPanel from './components/ScheduleLogPanel'
+import ScheduleActionMenu from './components/ScheduleActionMenu'
 
 const BULK_PAGE_SIZE = 50
 
-interface ActivityOption {
-  id: number
-  name: string
-}
-
-const toDateOnly = (value?: string) => {
-  if (!value) return null
-  const dt = new Date(`${value}T00:00:00`)
-  return Number.isNaN(dt.getTime()) ? null : dt
-}
-
-const rangesOverlap = (startA: Date, endA: Date, startB: Date, endB: Date) => startA <= endB && startB <= endA
-
-const activityTypeLabels: Record<string, string> = {
-  SoilPreparation: 'Chuẩn bị đất trước gieo',
-  Sowing: 'Gieo hạt',
-  Thinning: 'Tỉa cây con cho đều',
-  FertilizingDiluted: 'Bón phân pha loãng (NPK 20–30%)',
-  Weeding: 'Nhổ cỏ nhỏ',
-  PestControl: 'Phòng trừ sâu bằng thuốc sinh học',
-  FertilizingLeaf: 'Bón phân cho lá (N, hữu cơ)',
-  Harvesting: 'Thu hoạch',
-  CleaningFarmArea: 'Dọn dẹp đồng ruộng',
-}
-
-const plantStageLabels: Record<string, string> = {
-  Germination: 'Gieo hạt',
-  Seedling: 'Nảy mầm',
-  Vegetative: 'Tăng trưởng lá',
-  Harvest: 'Thu hoạch',
-}
-
-const statusOptions = [
-  { value: 0, label: 'Vô hiệu hóa' },
-  { value: 1, label: 'Hoạt động' },
-]
-
-const diseaseOptions = [
-  { value: -1, label: 'Không có bệnh' },
-]
-
-const translateActivityType = (type: string) => activityTypeLabels[type] ?? type
-const translatePlantStage = (stage?: string | null) => {
-  if (!stage) return '-'
-  return plantStageLabels[stage] ?? stage
-}
-
-const getFarmActivityStatusInfo = (status: string | null | undefined): { label: string; variant: 'golden' | 'processing' | 'completed' | 'destructive' | 'outline' } => {
-  if (!status) {
-    return { label: 'Không xác định', variant: 'outline' }
-  }
-
-  const normalizedStatus = status.toUpperCase()
-
-  switch (normalizedStatus) {
-    case 'ACTIVE':
-      return { label: 'Hoạt động', variant: 'golden' }
-    case 'IN_PROGRESS':
-      return { label: 'Đang thực hiện', variant: 'processing' }
-    case 'COMPLETED':
-      return { label: 'Hoàn thành', variant: 'completed' }
-    case 'DEACTIVATED':
-      return { label: 'Tạm dừng', variant: 'destructive' }
-    default:
-      return { label: status, variant: 'outline' }
-  }
-}
-
-const getStatusLabel = (value: number | string | null | undefined) => {
-  if (value === null || value === undefined) return '-'
-  if (typeof value === 'string') {
-    if (value === 'ACTIVE') return 'Hoạt động'
-    if (value === 'DEACTIVATED') return 'Vô hiệu hóa'
-    return value
-  }
-  return statusOptions.find(option => option.value === value)?.label ?? String(value)
-}
-
-const isActiveStatus = (status: number | string | null | undefined) => {
-  if (status === null || status === undefined) return false
-  if (typeof status === 'string') {
-    return status === 'ACTIVE'
-  }
-  return status === 1
-}
-
-const getDiseaseLabel = (value: number | null | undefined) => {
-  if (value === null || value === undefined || value === -1) return 'Không có bệnh'
-  return diseaseOptions.find(option => option.value === value)?.label ?? String(value)
-}
-
-const getDiseaseSelectValue = (value: number | null | undefined): string => {
-  if (value === null || value === undefined) return '-1'
-  return String(value)
-}
-
-function ScheduleLogPanel({ scheduleId, onEdit, registerUpdater }: { scheduleId: number; onEdit: (log: ScheduleLogItem) => void; registerUpdater?: (fn: (item: ScheduleLogItem | { id: number }, mode: 'create' | 'update' | 'delete') => void) => void }) {
-  const [logs, setLogs] = useState<ScheduleLogItem[]>([])
-  const [page, setPage] = useState(1)
-  const [hasMore, setHasMore] = useState(true)
-  const [loading, setLoading] = useState(false)
-  const [total, setTotal] = useState<number | null>(null)
-
-  const PAGE_SIZE = 5
-  const VISIBLE_THRESHOLD = PAGE_SIZE
-  const containerRef = React.useRef<HTMLDivElement | null>(null)
-  const loadingRef = React.useRef(false)
-
-  const safeFormat = (iso?: string) => {
-    if (!iso) return '—'
-    const d = new Date(iso)
-    if (Number.isNaN(d.getTime())) return '—'
-    const hh = String(d.getHours()).padStart(2, '0')
-    const mm = String(d.getMinutes()).padStart(2, '0')
-    const dd = String(d.getDate()).padStart(2, '0')
-    const mmth = String(d.getMonth() + 1).padStart(2, '0')
-    const yyyy = String(d.getFullYear())
-    return `${hh}:${mm} • ${dd}/${mmth}/${yyyy}`
-  }
-
-  const load = useCallback(async (p = 1) => {
-    setLoading(true)
-    loadingRef.current = true
-    try {
-      const data = await scheduleLogService.getLogsBySchedule(scheduleId, p, PAGE_SIZE)
-      const incomingItems = data.items || []
-      if (p === 1) {
-        setLogs(incomingItems)
-      } else {
-        setLogs(prev => {
-          const existingIds = new Set(prev.map(i => i.id))
-          const incoming = incomingItems.filter(it => !existingIds.has(it.id))
-          return [...prev, ...incoming]
-        })
-      }
-      const totalItems = data.totalItemCount ?? 0
-      const more = p * PAGE_SIZE < totalItems
-      setHasMore(more)
-      setPage(p)
-      setTotal(totalItems)
-    } catch {
-      toastManager.error('Không thể tải nhật ký')
-    } finally {
-      setLoading(false)
-      loadingRef.current = false
-    }
-  }, [scheduleId])
-
-  useEffect(() => {
-    if (!scheduleId) return
-    load(1)
-  }, [scheduleId, load])
-
-  useEffect(() => {
-    if (!registerUpdater) return
-    const fn = (item: ScheduleLogItem | { id: number }, mode: 'create' | 'update' | 'delete') => {
-      if (mode === 'create') {
-        const el = containerRef.current
-        const prevSH = el?.scrollHeight || 0
-        const prevST = el?.scrollTop || 0
-        setLogs(prev => [item as ScheduleLogItem, ...prev])
-        setTimeout(() => {
-          const newSH = el?.scrollHeight || 0
-          if (el) el.scrollTop = prevST + (newSH - prevSH)
-        }, 0)
-        return
-      }
-      if (mode === 'update') {
-        const it = item as ScheduleLogItem
-        setLogs(prev => prev.map(p => (p.id === it.id ? it : p)))
-        return
-      }
-      if (mode === 'delete') {
-        const it = item as { id: number }
-        setLogs(prev => prev.filter(p => p.id !== it.id))
-        return
-      }
-    }
-    registerUpdater(fn)
-  }, [registerUpdater])
-
-  const isEmptyState = (total === 0 && logs.length === 0)
-
-  return (
-    <div>
-      {isEmptyState ? (
-        <div className="py-6 text-center text-muted-foreground">Không có ghi nhận</div>
-      ) : (
-        <>
-          <div
-            className={`space-y-2 ${hasMore || logs.length > VISIBLE_THRESHOLD ? 'max-h-[360px] overflow-y-auto' : ''}`}
-            ref={containerRef}
-            onScroll={() => {
-              const el = containerRef.current
-              if (!el) return
-              const threshold = 200
-              if (el.scrollHeight - el.scrollTop - el.clientHeight < threshold) {
-                if (!loadingRef.current && hasMore) {
-                  load(page + 1)
-                }
-              }
-            }}
-          >
-            {logs.map(l => {
-              return (
-                <div key={l.id} className="p-3 border rounded-md flex items-start justify-between">
-                  <div className="min-w-0">
-                    <div className="text-xs text-muted-foreground">{safeFormat(l.createdAt ?? undefined)}</div>
-                    <div className="font-medium truncate">{(l.notes || '').split('\n')[0]}</div>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      <div>
-                        <strong>Người tạo</strong>: {l.staffNameCreate ?? 'Không xác định'}
-                        {l.createdAt ? ` • ${safeFormat(l.createdAt ?? undefined)}` : ''}
-                      </div>
-                      {l.updatedAt ? (
-                        <div className="mt-1">
-                          <strong>Người sửa</strong>: {l.staffNameUpdate ?? 'Không xác định'} • {safeFormat(l.updatedAt ?? undefined)}
-                        </div>
-                      ) : null}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Button size="sm" variant="outline" onClick={() => onEdit(l)}><Edit className="h-4 w-4" /></Button>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-          <div className="mt-3 text-center">
-            {loading ? (
-              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground mx-auto" />
-            ) : hasMore ? (
-              <div className="text-xs text-muted-foreground">Kéo xuống để xem thêm</div>
-            ) : (
-              <div className="text-xs text-muted-foreground">Đã xem hết ghi nhận</div>
-            )}
-          </div>
-        </>
-      )}
-    </div>
-  )
-}
-
-const diseaseEnumMap: Record<string, number> = {
-  DownyMildew: 0,
-  PowderyMildew: 1,
-  LeafSpot: 2,
-  BacterialSoftRot: 3,
-  FusariumWilt: 4,
-  Anthracnose: 5,
-  DampingOff: 6,
-  BlackRot: 7,
-  MosaicVirus: 8,
-  AphidInfestation: 9,
-  ThripsDamage: 10,
-  WhiteflyInfestation: 11,
-}
-
-const parseDiseaseStatus = (value: unknown): number | undefined => {
-  if (value === null || value === undefined) return undefined
-  if (typeof value === 'number') return value
-  if (typeof value === 'string') {
-    const maybeNum = Number(value)
-    if (!Number.isNaN(maybeNum)) return maybeNum
-    const mapped = (diseaseEnumMap as any)[value]
-    return mapped !== undefined ? mapped : undefined
-  }
-  return undefined
-}
-
-const buildEmptyScheduleForm = (): CreateScheduleRequest => ({
-  farmId: 0,
-  cropId: 0,
-  staffId: 0,
-  startDate: '',
-  endDate: '',
-  plantingDate: '',
-  harvestDate: '',
-  quantity: 0,
-  status: 0,
-  pesticideUsed: false,
-  diseaseStatus: null,
-  farmActivitiesId: 0,
-})
-
-interface ScheduleActionMenuProps {
-  schedule: ScheduleListItem
-  onView: (schedule: ScheduleListItem) => void
-  onEdit: (schedule: ScheduleListItem) => void
-  onAssignStaff: (schedule: ScheduleListItem) => void
-  onUpdateStatus: (schedule: ScheduleListItem, nextStatus: ScheduleStatusString) => void
-  onViewLogs?: (schedule: ScheduleListItem) => void
-  onAddLog?: (schedule: ScheduleListItem) => void
-  actionLoading: { [key: string]: boolean }
-}
-
-const ScheduleActionMenu: React.FC<ScheduleActionMenuProps> = React.memo(({
-  schedule,
-  onView,
-  onEdit,
-  onAssignStaff,
-  onUpdateStatus,
-  onViewLogs,
-  onAddLog,
-  actionLoading,
-}) => {
-  const [open, setOpen] = useState(false)
-  const isLoading = actionLoading[`detail-${schedule.scheduleId}`] ||
-    actionLoading[`edit-${schedule.scheduleId}`] ||
-    actionLoading[`status-${schedule.scheduleId}`]
 
 
-  const handleView = useCallback(
-    (e: React.MouseEvent) => {
-      e.preventDefault()
-      e.stopPropagation()
-      setOpen(false)
-      setTimeout(() => {
-        onView(schedule)
-      }, 0)
-    },
-    [schedule, onView]
-  )
 
-  const handleEdit = useCallback(
-    (e: React.MouseEvent) => {
-      e.preventDefault()
-      e.stopPropagation()
-      setOpen(false)
-      setTimeout(() => {
-        onEdit(schedule)
-      }, 0)
-    },
-    [schedule, onEdit]
-  )
-
-  const handleAssignStaff = useCallback(
-    (e: React.MouseEvent) => {
-      e.preventDefault()
-      e.stopPropagation()
-      setOpen(false)
-      setTimeout(() => {
-        onAssignStaff(schedule)
-      }, 0)
-    },
-    [schedule, onAssignStaff]
-  )
-
-  const handleUpdateStatus = useCallback(
-    (nextStatus: ScheduleStatusString) => (e: React.MouseEvent) => {
-      e.preventDefault()
-      e.stopPropagation()
-      setOpen(false)
-      setTimeout(() => {
-        onUpdateStatus(schedule, nextStatus)
-      }, 0)
-    },
-    [schedule, onUpdateStatus]
-  )
-
-  const nextStatus: ScheduleStatusString = isActiveStatus(schedule.status) ? 'DEACTIVATED' : 'ACTIVE'
-
-
-  return (
-    <DropdownMenu open={open} onOpenChange={setOpen} modal={false}>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-8 w-8 p-0"
-          onClick={(e) => e.stopPropagation()}
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <MoreHorizontal className="h-4 w-4" />
-          )}
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent
-        align="end"
-        className="w-48"
-        sideOffset={5}
-        onCloseAutoFocus={(e) => e.preventDefault()}
-      >
-        <DropdownMenuItem
-          onClick={(e) => {
-            e.preventDefault()
-            e.stopPropagation()
-            setOpen(false)
-            setTimeout(() => {
-              if (typeof (onViewLogs as any) === 'function') {
-                (onViewLogs as any)(schedule)
-              } else {
-                onView(schedule)
-              }
-            }, 0)
-          }}
-          className="cursor-pointer focus:bg-gray-100"
-          onSelect={(e) => e.preventDefault()}
-          disabled={actionLoading[`detail-${schedule.scheduleId}`]}
-        >
-          <span className="flex items-center gap-2">Xem Nhật ký</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={(e) => {
-            e.preventDefault()
-            e.stopPropagation()
-            setOpen(false)
-            setTimeout(() => {
-              if (typeof (onAddLog as any) === 'function') {
-                (onAddLog as any)(schedule)
-              } else {
-                onEdit(schedule)
-              }
-            }, 0)
-          }}
-          className="cursor-pointer focus:bg-gray-100"
-          onSelect={(e) => e.preventDefault()}
-        >
-          <span className="flex items-center gap-2">Thêm Ghi nhận</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={handleView}
-          className="cursor-pointer focus:bg-gray-100"
-          onSelect={(e) => e.preventDefault()}
-          disabled={actionLoading[`detail-${schedule.scheduleId}`]}
-        >
-          Xem chi tiết
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={handleEdit}
-          className="cursor-pointer focus:bg-gray-100"
-          onSelect={(e) => e.preventDefault()}
-          disabled={actionLoading[`edit-${schedule.scheduleId}`]}
-        >
-          Chỉnh sửa
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={handleAssignStaff}
-          className="cursor-pointer focus:bg-gray-100"
-          onSelect={(e) => e.preventDefault()}
-        >
-          Phân công nhân viên
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={handleUpdateStatus(nextStatus)}
-          className="cursor-pointer focus:bg-gray-100"
-          onSelect={(e) => e.preventDefault()}
-          disabled={actionLoading[`status-${schedule.scheduleId}`]}
-        >
-          {isActiveStatus(schedule.status) ? 'Vô hiệu hóa lịch' : 'Kích hoạt lịch'}
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
-  )
-})
-
-ScheduleActionMenu.displayName = 'ScheduleActionMenu'
-
-type SortOption = 'newest' | 'startDate' | 'cropName' | 'farmName'
 
 export function BackendScheduleList({
   showCreate: externalShowCreate,
@@ -510,9 +62,9 @@ export function BackendScheduleList({
   const [data, setData] = useState<PaginatedSchedules | null>(null)
   const [loading, setLoading] = useState(false)
   const [internalShowCreate, setInternalShowCreate] = useState(false)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all')
-  const [sortBy, setSortBy] = useState<SortOption>('newest')
+  const searchTerm = ''
+  const statusFilter = 'all' as 'all' | 'active' | 'inactive'
+  const sortBy = 'newest' as SortOption
   const [newlyCreatedIds, setNewlyCreatedIds] = useState<Set<number>>(new Set())
   const previousMaxIdRef = useRef<number>(0)
 
@@ -641,14 +193,6 @@ export function BackendScheduleList({
     }
   }, [filteredSchedules, sortBy])
 
-  const serverTotalPages = useMemo(() => {
-    return data?.data?.totalPagesCount ?? Math.max(1, Math.ceil(sortedSchedules.length / pageSize))
-  }, [data?.data?.totalPagesCount, sortedSchedules.length, pageSize])
-
-  const serverTotalItems = useMemo(() => {
-    return data?.data?.totalItemCount ?? sortedSchedules.length
-  }, [data?.data?.totalItemCount, sortedSchedules.length])
-
   const paginatedSchedules = useMemo(() => {
     if (data?.data?.items) {
       return sortedSchedules
@@ -657,21 +201,159 @@ export function BackendScheduleList({
     return sortedSchedules.slice(start, start + pageSize)
   }, [sortedSchedules, pageIndex, pageSize, data?.data?.items])
 
-  const groupedSchedules = useMemo(() => {
-    const groups = new Map<string, ScheduleListItem[]>()
-    const groupOrder: string[] = []
+  const ManagerCalendar: React.FC = () => {
+    const locales: Record<string, any> = { "vi-VN": vi, vi: vi };
+    const localizer = dateFnsLocalizer({
+      format,
+      parse,
+      startOfWeek: (date: Date) => startOfWeek(date, { weekStartsOn: 1 }),
+      getDay,
+      locales,
+    });
 
-    paginatedSchedules.forEach(schedule => {
-      const key = schedule.cropView?.cropName || 'Khác'
-      if (!groups.has(key)) {
-        groups.set(key, [])
-        groupOrder.push(key)
-      }
-      groups.get(key)!.push(schedule)
-    })
+    const toRbcEvent = (s: ScheduleListItem) => {
+      const start = s.startDate ? new Date(s.startDate) : null;
+      const rawEnd = s.endDate ? new Date(s.endDate) : start;
+      const isAllDay = true;
+      const end = rawEnd
+        ? isAllDay
+          ? addDays(new Date(rawEnd.getFullYear(), rawEnd.getMonth(), rawEnd.getDate()), 1)
+          : rawEnd
+        : undefined;
+      const isActive = typeof s.status === 'number' ? s.status === 1 : s.status === 'ACTIVE';
+      const color = isActive ? "#F59E0B" : "#EF4444";
+      return {
+        id: s.scheduleId ?? `${s.farmId}-${s.cropId}-${Math.random().toString(36).slice(2, 8)}`,
+        title: s.cropView?.cropName ?? s.farmView?.farmName ?? `Thời vụ #${s.scheduleId ?? ''}`,
+        start: start ?? undefined,
+        end: end ?? undefined,
+        allDay: isAllDay,
+        color,
+        raw: s,
+      };
+    };
 
-    return groupOrder.map(key => [key, groups.get(key)!] as [string, ScheduleListItem[]])
-  }, [paginatedSchedules])
+    const mapped = (displayItems || []).map(toRbcEvent).filter(ev => !!ev.start);
+
+    const capitalize = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
+
+    const messages = {
+      date: "Ngày",
+      time: "Thời gian",
+      event: "Sự kiện",
+      allDay: "Cả ngày",
+      previous: "Trước",
+      next: "Sau",
+      today: "Hôm nay",
+      month: "Tháng",
+      week: "Tuần",
+      day: "Ngày",
+      agenda: "Lịch",
+      showMore: (total: number) => `+${total} thêm`,
+    };
+
+    const formats = {
+      weekdayFormat: (date: Date) => capitalize(date.toLocaleDateString("vi-VN", { weekday: "long" })),
+      monthHeaderFormat: (date: Date) => capitalize(date.toLocaleDateString("vi-VN", { month: "long", year: "numeric" })),
+      dayHeaderFormat: (date: Date) => capitalize(date.toLocaleDateString("vi-VN", { weekday: "long", day: "numeric", month: "long", year: "numeric" })),
+      dayFormat: (date: Date) => date.getDate().toString(),
+    };
+
+    const [currentDate, setCurrentDate] = useState<Date>(new Date());
+
+    const handleToday = useCallback(() => setCurrentDate(new Date()), []);
+    const handlePrev = useCallback(() => setCurrentDate(d => { const nd = new Date(d); nd.setMonth(nd.getMonth() - 1); return nd }), []);
+    const handleNext = useCallback(() => setCurrentDate(d => { const nd = new Date(d); nd.setMonth(nd.getMonth() + 1); return nd }), []);
+    const handleNavigate = useCallback((date: Date) => setCurrentDate(date), []);
+
+    const handleSelectEvent = useCallback((event: any) => {
+      const raw = event.raw ?? event;
+      if (!raw) return;
+      handleViewDetail(raw as ScheduleListItem);
+    }, [handleViewDetail]);
+
+    const CustomEvent = (props: any) => {
+      const ev = props.event || props.eventData || {};
+      const title = ev.title ?? '';
+      const raw: ScheduleListItem = ev.raw ?? ev;
+      const isContinuation = !!props.continuesPrior;
+      return (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+          <div style={{ overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', flex: 1 }}>
+            {!isContinuation ? title : null}
+          </div>
+          {raw && raw.scheduleId && (
+            <div onClick={(e) => e.stopPropagation()}>
+              <ScheduleActionMenu
+                schedule={raw}
+                onView={handleViewDetail}
+                onEdit={handleEdit}
+                onViewLogs={(s) => handleViewDetailWithTab(s, 'logs')}
+                onAddLog={(s) => openCreateLogForSchedule(s)}
+                onAssignStaff={(s) => { setSelectedSchedule(s); handleAssignStaffDialogChange(true); }}
+                onUpdateStatus={handleUpdateStatus}
+                actionLoading={actionLoading}
+              />
+            </div>
+          )}
+        </div>
+      )
+    }
+
+    const eventStyleGetter = (event: any) => {
+      const backgroundColor = event.color || "#10B981";
+      const style: React.CSSProperties = {
+        backgroundColor,
+        borderRadius: "6px",
+        color: "#fff",
+        border: "1px solid rgba(0,0,0,0.12)",
+        padding: "2px 6px",
+        fontSize: "13px",
+        overflow: "hidden",
+        whiteSpace: "nowrap",
+        textOverflow: "ellipsis",
+      };
+      return { style };
+    };
+
+    return (
+      <div style={{ width: "100%" }}>
+        <div className="mb-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={handleToday}>Hôm nay</Button>
+            </div>
+            <div className="text-lg font-semibold">{capitalize(currentDate.toLocaleDateString("vi-VN", { month: "long", year: "numeric" }))}</div>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={handlePrev}>&lt;</Button>
+              <Button variant="outline" size="sm" onClick={handleNext}>&gt;</Button>
+            </div>
+          </div>
+        </div>
+
+        <RBC
+          localizer={localizer}
+          events={mapped}
+          date={currentDate}
+          messages={messages}
+          formats={formats as any}
+          onNavigate={handleNavigate}
+          toolbar={false}
+          startAccessor="start"
+          endAccessor="end"
+          defaultView={Views.MONTH}
+          views={{ month: true }}
+          onSelectEvent={handleSelectEvent}
+          onShowMore={() => { }}
+          popup={false}
+          selectable={false}
+          eventPropGetter={eventStyleGetter}
+          components={{ event: CustomEvent }}
+          style={{ minHeight: 500 }}
+        />
+      </div>
+    )
+  }
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -723,95 +405,14 @@ export function BackendScheduleList({
     }
   }, [])
 
-  const validateSchedulePayload = useCallback((payload: CreateScheduleRequest, currentScheduleId?: number) => {
-    const errors: string[] = []
-    const start = toDateOnly(payload.startDate)
-    const end = toDateOnly(payload.endDate)
-    const planting = toDateOnly(payload.plantingDate)
-    const harvest = toDateOnly(payload.harvestDate)
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-
-    if (!payload.farmId) errors.push('Vui lòng chọn nông trại.')
-    if (!payload.cropId) errors.push('Vui lòng chọn mùa vụ.')
-    if (!payload.staffId) errors.push('Vui lòng chọn nhân viên.')
-    if (!payload.quantity || payload.quantity <= 0) errors.push('Số lượng phải lớn hơn 0.')
-    if (!start) errors.push('Ngày bắt đầu không hợp lệ.')
-    if (!end) errors.push('Ngày kết thúc không hợp lệ.')
-
-    const ensureFuture = (date: Date | null, label: string) => {
-      if (date && date < today) {
-        errors.push(`${label} không được nằm trong quá khứ.`)
-      }
-    }
-
-    ensureFuture(start, 'Ngày bắt đầu')
-    ensureFuture(end, 'Ngày kết thúc')
-    if (planting) ensureFuture(planting, 'Ngày gieo trồng')
-    if (harvest) ensureFuture(harvest, 'Ngày thu hoạch')
-
-    if (start && end && start >= end) {
-      errors.push('Ngày bắt đầu phải trước ngày kết thúc và không trùng nhau.')
-    }
-
-    if (planting && harvest && planting >= harvest) {
-      errors.push('Ngày gieo trồng phải trước ngày thu hoạch.')
-    }
-
-    if (start && planting && planting < start) {
-      errors.push('Ngày gieo trồng phải nằm trong khoảng của lịch.')
-    }
-
-    if (end && planting && planting > end) {
-      errors.push('Ngày gieo trồng phải nằm trong khoảng của lịch.')
-    }
-
-    if (start && harvest && harvest < start) {
-      errors.push('Ngày thu hoạch phải nằm sau ngày bắt đầu.')
-    }
-
-    if (end && harvest && harvest > end) {
-      errors.push('Ngày thu hoạch phải nằm trong khoảng của lịch.')
-    }
-
-    if (start && end && payload.farmId && payload.cropId && allSchedules.length) {
-      const hasOverlap = allSchedules.some(s => {
-        if (!s.startDate || !s.endDate) return false
-        if (currentScheduleId && s.scheduleId === currentScheduleId) return false
-        if (s.farmId !== payload.farmId || s.cropId !== payload.cropId) return false
-        const existingStart = toDateOnly(s.startDate)
-        const existingEnd = toDateOnly(s.endDate)
-        if (!existingStart || !existingEnd) return false
-        return rangesOverlap(existingStart, existingEnd, start, end)
-      })
-      if (hasOverlap) {
-        errors.push('Khoảng thời gian bị trùng với lịch khác của cùng nông trại/cây trồng.')
-      }
-    }
-
-    if (planting && payload.diseaseStatus !== null && payload.diseaseStatus !== undefined) {
-      const daysDiff = Math.floor((planting.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
-      if (daysDiff >= 0 || (daysDiff >= -7 && daysDiff < 0)) {
-        if (payload.diseaseStatus >= 0) {
-          errors.push('Cây mới gieo trồng (trong vòng 7 ngày gần đây hoặc trong tương lai) không thể có tình trạng bệnh. Vui lòng chọn "Không có bệnh".')
-        }
-      }
-    }
-
-    return {
-      valid: errors.length === 0,
-      errors,
-    }
-  }, [allSchedules])
-
   const ensureScheduleValidity = useCallback((payload: CreateScheduleRequest, currentScheduleId?: number) => {
-    const result = validateSchedulePayload(payload, currentScheduleId)
+    const result = validateSchedulePayload(payload, allSchedules, currentScheduleId)
     if (!result.valid) {
       toastManager.error(result.errors.map(err => `• ${err}`).join('\n'))
       return false
     }
     return true
-  }, [validateSchedulePayload])
+  }, [allSchedules])
 
   useEffect(() => {
     load()
@@ -1293,51 +894,13 @@ export function BackendScheduleList({
 
   return (
     <>
-      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="flex-1">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Tìm kiếm theo cây trồng, nông trại..."
-                value={searchTerm}
-                onChange={e => setSearchTerm(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-          </div>
-          <div className="w-full sm:w-48">
-            <Select value={statusFilter} onValueChange={value => setStatusFilter(value as typeof statusFilter)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Tất cả trạng thái" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tất cả</SelectItem>
-                <SelectItem value="active">Hoạt động</SelectItem>
-                <SelectItem value="inactive">Tạm dừng</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="w-full sm:w-48">
-            <Select value={sortBy} onValueChange={value => setSortBy(value as SortOption)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Sắp xếp" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="newest">Mới nhất</SelectItem>
-                <SelectItem value="startDate">Ngày bắt đầu</SelectItem>
-                <SelectItem value="cropName">Tên cây trồng</SelectItem>
-                <SelectItem value="farmName">Tên nông trại</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="w-full sm:w-auto flex items-center">
-            <Button onClick={() => setShowCreate(true)} className="bg-green-600 hover:bg-green-700">
-              Tạo
-            </Button>
-          </div>
+      {externalShowCreate === undefined && (
+        <div className="w-full sm:w-auto flex items-center">
+          <Button onClick={() => setShowCreate(true)} className="bg-green-600 hover:bg-green-700">
+            Tạo
+          </Button>
         </div>
-      </div>
+      )}
 
       {loading ? (
         <Card>
@@ -1371,112 +934,12 @@ export function BackendScheduleList({
         </Card>
       ) : (
         <>
-          <div className="space-y-6">
-            {groupedSchedules.map(([cropName, items]) => {
-              return (
-                <div key={cropName} className="space-y-3">
-                  <div className="flex items-center justify-between px-2 py-2 border-b border-gray-200">
-                    <h3 className="text-lg font-semibold text-gray-900">{cropName}</h3>
-                  </div>
-
-                  <div className="grid gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-                    {items.map((schedule) => {
-                      const isNewlyCreated = schedule.scheduleId ? newlyCreatedIds.has(schedule.scheduleId) : false
-                      const isActive = typeof schedule.status === 'number'
-                        ? schedule.status === 1
-                        : schedule.status === 'ACTIVE'
-
-                      return (
-                        <Card
-                          key={schedule.scheduleId ?? `schedule-${schedule.farmId}-${schedule.cropId}`}
-                          className={cn(
-                            "hover:shadow-md transition-all cursor-pointer",
-                            isNewlyCreated && "ring-2 ring-green-500 bg-green-50/50 shadow-lg"
-                          )}
-                          onClick={() => handleViewDetail(schedule)}
-                        >
-                          <CardContent className="p-4">
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-2 flex-wrap mb-2">
-                                  <Badge className={cn(
-                                    "h-6 items-center whitespace-nowrap text-xs",
-                                    isActive ? "bg-yellow-500 text-white" : "bg-red-500 text-white"
-                                  )}>
-                                    {getStatusLabel(schedule.status)}
-                                  </Badge>
-                                  {isNewlyCreated && (
-                                    <Badge className="h-6 items-center whitespace-nowrap text-xs bg-green-500 text-white">
-                                      Mới
-                                    </Badge>
-                                  )}
-                                </div>
-                                <p className="text-sm text-gray-900 font-medium mb-2">
-                                  {formatDate(schedule.startDate)} - {formatDate(schedule.endDate)}
-                                </p>
-
-                                {schedule.farmView?.farmName && (
-                                  <p className="text-xs text-gray-600 mb-1 truncate" title={schedule.farmView.farmName}>
-                                    Nông trại: {schedule.farmView.farmName}
-                                  </p>
-                                )}
-                                {schedule.staffName && (
-                                  <p className="text-xs text-gray-600 mb-1 truncate" title={schedule.staffName}>
-                                    Nhân viên: {schedule.staffName}
-                                  </p>
-                                )}
-                                {schedule.quantity && (
-                                  <p className="text-xs text-gray-600 mb-1">
-                                    Số lượng cây trồng: {schedule.quantity}
-                                  </p>
-                                )}
-                                {schedule.currentPlantStage && (
-                                  <p className="text-xs text-gray-600">
-                                    Giai đoạn hiện tại: {translatePlantStage(schedule.currentPlantStage)}
-                                  </p>
-                                )}
-                              </div>
-                              {schedule.scheduleId && (
-                                <div onClick={(e) => e.stopPropagation()}>
-                                  <ScheduleActionMenu
-                                    schedule={schedule}
-                                    onView={handleViewDetail}
-                                    onEdit={handleEdit}
-                                    onViewLogs={(s) => handleViewDetailWithTab(s, 'logs')}
-                                    onAddLog={(s) => openCreateLogForSchedule(s)}
-                                    onAssignStaff={(s) => {
-                                      setSelectedSchedule(s)
-                                      handleAssignStaffDialogChange(true)
-                                    }}
-                                    onUpdateStatus={handleUpdateStatus}
-                                    actionLoading={actionLoading}
-                                  />
-                                </div>
-                              )}
-                            </div>
-                          </CardContent>
-                        </Card>
-                      )
-                    })}
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-
-          <div className="mt-6 flex items-center justify-between">
-            <div className="text-sm text-gray-600">
-              Hiển thị {paginatedSchedules.length} / {serverTotalItems}
-            </div>
-            {serverTotalPages > 1 && (
-              <div>
-                <Pagination
-                  currentPage={pageIndex}
-                  totalPages={serverTotalPages}
-                  onPageChange={setPageIndex}
-                />
-              </div>
-            )}
+          <div>
+            <Card>
+              <CardContent className="p-6">
+                <ManagerCalendar />
+              </CardContent>
+            </Card>
           </div>
         </>
       )}
@@ -1936,7 +1399,7 @@ export function BackendScheduleList({
                 }
               }
               setShowLogModal(false)
-              } catch (err) {
+            } catch (err) {
               const msg = (err as any)?.message
               if (msg) toastManager.error(msg)
             }

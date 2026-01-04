@@ -233,7 +233,13 @@ export function BackendScheduleList({
       };
     };
 
-    const mapped = (displayItems || []).map(toRbcEvent).filter(ev => !!ev.start);
+    const calendarDisplayItems = (displayItems || []).filter((s: ScheduleListItem) => {
+      if (s.status === null || s.status === undefined) return true
+      if (typeof s.status === 'number') return s.status !== 0
+      return s.status !== 'DEACTIVATED'
+    })
+
+    const mapped = calendarDisplayItems.map(toRbcEvent).filter(ev => !!ev.start);
 
     const capitalize = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
 

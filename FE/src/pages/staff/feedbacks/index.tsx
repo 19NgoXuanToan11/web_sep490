@@ -37,7 +37,9 @@ import { showSuccessToast, showErrorToast } from '@/shared/lib/toast-manager'
 const formatPrice = (price?: number) => {
     if (price == null) return '0'
 
-    return price.toLocaleString('en-US', {
+    const adjustedPrice = price * 1000
+
+    return adjustedPrice.toLocaleString('vi-VN', {
         minimumFractionDigits: 0,
         maximumFractionDigits: 0,
     })

@@ -32,6 +32,7 @@ import {
   type FarmActivityUpdate,
 } from '@/shared/api/farmActivityService'
 import { showSuccessToast, showErrorToast } from '@/shared/lib/toast-manager'
+import { APP_CONFIG } from '@/shared/constants/app'
 
 interface ActivityActionMenuProps {
   activity: FarmActivity
@@ -133,6 +134,9 @@ const ActivityActionMenu: React.FC<ActivityActionMenuProps> = React.memo(({ acti
 ActivityActionMenu.displayName = 'ActivityActionMenu'
 
 export default function FarmActivitiesPage() {
+  if (APP_CONFIG.FEATURES?.HIDE_FARM_ACTIVITIES) {
+    return null
+  }
   const [activities, setActivities] = useState<FarmActivity[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')

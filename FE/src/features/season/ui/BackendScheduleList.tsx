@@ -534,11 +534,17 @@ export function BackendScheduleList({
     ev.preventDefault()
     const currentMaxId = Math.max(...displayItems.map(s => s.scheduleId || 0), 0)
     previousMaxIdRef.current = currentMaxId
-
     const payload: CreateScheduleRequest = {
-      ...form,
+      farmId: form.farmId,
+      cropId: form.cropId,
+      startDate: form.startDate,
+      endDate: form.endDate,
       plantingDate: form.plantingDate || form.startDate,
       harvestDate: form.harvestDate || form.endDate,
+      quantity: form.quantity,
+      pesticideUsed: form.pesticideUsed,
+      diseaseStatus: form.diseaseStatus ?? null,
+      status: 'ACTIVE',
     }
     if (!ensureScheduleValidity(payload)) return
     try {
@@ -991,23 +997,6 @@ export function BackendScheduleList({
               </Select>
             </div>
             <div>
-              <Label>Nhân viên</Label>
-              <Select
-                value={form.staffId ? String(form.staffId) : ''}
-                onValueChange={v => setForm({ ...form, staffId: Number(v) })}
-                disabled={metaLoading || editLoading}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder={metaLoading ? 'Đang tải...' : 'Chọn nhân viên'} />
-                </SelectTrigger>
-                <SelectContent>
-                  {staffs.map(s => (
-                    <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
               <Label>Ngày bắt đầu</Label>
               <Input
                 type="date"
@@ -1035,42 +1024,8 @@ export function BackendScheduleList({
               />
             </div>
             <div>
-              <Label>Trạng thái</Label>
-              <Select
-                value={String(form.status)}
-                onValueChange={v => setForm({ ...form, status: Number(v) })}
-                disabled={metaLoading || editLoading}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Chọn trạng thái" />
-                </SelectTrigger>
-                <SelectContent>
-                  {statusOptions.map(o => (
-                    <SelectItem key={o.value} value={String(o.value)}>{o.label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
               <Label>Tình trạng bệnh</Label>
               <div className="mt-2 text-sm text-gray-700">Không có bệnh</div>
-            </div>
-            <div>
-              <Label>Hoạt động nông trại</Label>
-              <Select
-                value={form.farmActivitiesId ? String(form.farmActivitiesId) : ''}
-                onValueChange={v => setForm({ ...form, farmActivitiesId: Number(v) })}
-                disabled={metaLoading}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder={metaLoading ? 'Đang tải...' : 'Chọn hoạt động'} />
-                </SelectTrigger>
-                <SelectContent>
-                  {activities.map(a => (
-                    <SelectItem key={a.id} value={String(a.id)}>{a.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
             </div>
             <div className="flex items-end gap-2 col-span-2 md:col-span-3">
               <label className="flex items-center gap-2">

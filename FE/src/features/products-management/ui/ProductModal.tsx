@@ -85,7 +85,7 @@ function ProductViewContent({ product }: ProductViewContentProps) {
     return status === 'Active' ? (
       <Badge variant="default">Hoạt động</Badge>
     ) : (
-      <Badge variant="secondary">Vô hiệu</Badge>
+      <Badge variant="destructive">Vô hiệu</Badge>
     )
   }
 

@@ -33,6 +33,7 @@ export function StaffProductsPage() {
             total: hasActiveFilters() ? filteredProducts.length : (totalCount || allProducts.length),
             active: baseProductsForStats.filter(p => p.status === 'Active').length,
             outOfStock: baseProductsForStats.filter(p => p.quantity === 0).length,
+            deactivated: baseProductsForStats.filter(p => p.status !== 'Active').length,
         }
     }
 
@@ -134,7 +135,7 @@ export function StaffProductsPage() {
                 />
 
                 { }
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                     <Card>
                         <CardHeader className="flex flex-row items-center justify-between pb-2">
                             <CardTitle className="text-sm font-medium text-gray-600">Tổng sản phẩm</CardTitle>
@@ -164,6 +165,16 @@ export function StaffProductsPage() {
                         <CardContent>
                             <div className="text-2xl font-bold text-red-600">{stats.outOfStock}</div>
                             <p className="text-xs text-gray-500 mt-1">Cần nhập thêm</p>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between pb-2">
+                            <CardTitle className="text-sm font-medium text-gray-600">Vô hiệu</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div className="text-2xl font-bold text-red-600">{stats.deactivated}</div>
+                            <p className="text-xs text-gray-500 mt-1">Sản phẩm bị vô hiệu</p>
                         </CardContent>
                     </Card>
                 </div>

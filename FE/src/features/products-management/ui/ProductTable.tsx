@@ -37,7 +37,7 @@ const getStatusBadge = (status: string) => {
     return <Badge variant="default">Hoạt động</Badge>
   }
 
-  return <Badge variant="secondary">Vô hiệu</Badge>
+  return <Badge variant="destructive">Vô hiệu</Badge>
 }
 
 const getQuantityBadge = (quantity: number) => {

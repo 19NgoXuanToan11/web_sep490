@@ -42,10 +42,6 @@ import {
   Pie,
   Cell,
 } from 'recharts'
-import {
-  CropGrowthStagesWidget,
-  EnvironmentalMetricsWidget,
-} from '@/shared/components/manager'
 
 const WEATHER_DESCRIPTION_MAP: Record<string, string> = {
   'clear sky': 'Trời quang mây',
@@ -151,7 +147,6 @@ const MetricCard = React.memo<MetricCardProps>(
   }
 )
 
-
 export default function ManagerDashboard() {
   const navigate = useNavigate()
   const [iotDeviceStats, setIotDeviceStats] = useState({
@@ -161,10 +156,7 @@ export default function ManagerDashboard() {
     maintenance: 0,
     error: 0,
   })
-  const [weather, setWeather] = useState<WeatherResponse | null>(null)
-  const [isLoadingWeather, setIsLoadingWeather] = useState(false)
   const [hourlyPayload, setHourlyPayload] = useState<any | null>(null)
-  const [hoveredForecastIndex, setHoveredForecastIndex] = useState<number | null>(null)
   const [selectedForecastIndex, setSelectedForecastIndex] = useState<number | null>(null)
   const [crops, setCrops] = useState<Crop[]>([])
   const [cropRequirements, setCropRequirements] = useState<CropRequirementView[]>([])
@@ -186,19 +178,6 @@ export default function ManagerDashboard() {
     }
   }, [])
 
-  const fetchWeather = useCallback(async () => {
-    setIsLoadingWeather(true)
-    try {
-      const weatherData = await weatherService.getWeather('Ho Chi Minh')
-      setWeather({
-        ...weatherData,
-        description: translateWeatherDescription(weatherData.description),
-      })
-    } catch (error) {
-    } finally {
-      setIsLoadingWeather(false)
-    }
-  }, [])
 
   const fetchHourlyForecast = useCallback(async () => {
     try {
@@ -286,10 +265,9 @@ export default function ManagerDashboard() {
 
   useEffect(() => {
     fetchIoTDeviceStats()
-    fetchWeather()
     fetchHourlyForecast()
     fetchDashboardData()
-  }, [fetchIoTDeviceStats, fetchWeather, fetchDashboardData])
+  }, [fetchIoTDeviceStats, fetchHourlyForecast, fetchDashboardData])
 
   const formatNumber = useCallback((value: number) => {
     return new Intl.NumberFormat('vi-VN').format(value)
@@ -561,10 +539,9 @@ export default function ManagerDashboard() {
     timeRange,
   ])
 
-  const previewIndex = selectedForecastIndex ?? hoveredForecastIndex
   const previewItem =
-    previewIndex != null && hourlyPayload && Array.isArray(hourlyPayload.data)
-      ? hourlyPayload.data[previewIndex]
+    selectedForecastIndex != null && hourlyPayload && Array.isArray(hourlyPayload.data)
+      ? hourlyPayload.data[selectedForecastIndex]
       : null
 
 
@@ -674,8 +651,6 @@ export default function ManagerDashboard() {
                                   <button
                                     key={idx}
                                     onClick={() => setSelectedForecastIndex(idx === selectedForecastIndex ? null : idx)}
-                                    onMouseEnter={() => setHoveredForecastIndex(idx)}
-                                    onMouseLeave={() => setHoveredForecastIndex(null)}
                                     className="flex-shrink-0 w-28 p-2 bg-white border border-gray-100 rounded-lg text-center hover:shadow-md"
                                     title={String(item?.forecastFor ?? '')}
                                   >
@@ -696,10 +671,10 @@ export default function ManagerDashboard() {
                         </div>
                       </div>
 
-                      <div className="mt-4 w-full">
-                        <div className="text-sm text-gray-500 mb-2">Chi tiết</div>
-                        <div className="p-3 bg-gray-50 rounded-lg border border-gray-100 min-h-[120px]">
-                          {previewItem ? (
+                      {previewItem && (
+                        <div className="mt-4 w-full">
+                          <div className="text-sm text-gray-500 mb-2">Chi tiết</div>
+                          <div className="p-3 bg-gray-50 rounded-lg border border-gray-100">
                             <div className="text-xs text-gray-700 space-y-2 text-left">
                               <div><strong>Thành phố:</strong> {String(previewItem.cityName ?? '')}</div>
                               <div><strong>Thời gian:</strong> {String(previewItem.timeStamp ?? '')}</div>
@@ -724,39 +699,14 @@ export default function ManagerDashboard() {
                               </div>
                               <div><strong>Mô tả:</strong> {String(previewItem.description ?? '')}</div>
                             </div>
-                          ) : (
-                            <div className="text-xs text-gray-400"></div>
-                          )}
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </>
                   )}
                 </CardContent>
               </Card>
             </div>
-          </div>
-        </div>
-
-        <div className="mb-8">
-          <div className="mb-6">
-            <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-              Theo dõi cây trồng
-            </h2>
-          </div>
-
-          <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-1 mb-6">
-            <CropGrowthStagesWidget requirements={cropRequirements} />
-          </div>
-
-          <div className="mb-6">
-            <EnvironmentalMetricsWidget
-              requirements={cropRequirements}
-              sensorData={sensorData ? {
-                temperature: sensorData.temperature,
-                humidity: sensorData.humidity,
-                light: sensorData.light,
-              } : null}
-            />
           </div>
         </div>
 
@@ -849,7 +799,7 @@ export default function ManagerDashboard() {
           </h2>
 
           <div className="grid gap-8 xl:grid-cols-5">
-            <div className="xl:col-span-3 space-y-8">
+            <div className="xl:col-span-5 space-y-8">
               <MetricCard
                 title="Tổng đơn hàng"
                 value={businessStats.totalOrders}
@@ -929,118 +879,8 @@ export default function ManagerDashboard() {
                 </CardContent>
               </Card>
             </div>
-
-            <div className="xl:col-span-2 space-y-8">
-              <Card className="border-0 shadow-lg overflow-hidden bg-white">
-                <CardHeader className="border-b">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                      Thời tiết
-                    </CardTitle>
-                  </div>
-                </CardHeader>
-                <CardContent className="p-6">
-                  {isLoadingWeather ? (
-                    <div className="text-center py-8">
-                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
-                      <p className="text-sm text-gray-500 mt-2">Đang tải...</p>
-                    </div>
-                  ) : weather ? (
-                    <div className="space-y-4">
-                      <div className="text-center pb-4 border-b border-gray-100">
-                        <div className="mb-2">
-                          <div className="text-4xl font-bold text-gray-900">
-                            {Math.round(weather.temperatureC)}°C
-                          </div>
-                          <p className="text-sm text-gray-600 capitalize">{weather.description}</p>
-                        </div>
-                        <p className="text-xs text-gray-500">{weather.cityName}</p>
-                        {weather.timeStamp && (
-                          <p className="text-xs text-gray-400 mt-1">
-                            {formatDate(weather.timeStamp)}
-                          </p>
-                        )}
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-3 pt-2">
-                        <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-                          <div className="flex items-center gap-2 text-sm text-gray-600">
-                            <span>Cảm giác như</span>
-                          </div>
-                          <span className="font-semibold text-gray-900">
-                            {Math.round(weather.feelsLikeC)}°C
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-                          <div className="flex items-center gap-2 text-sm text-gray-600">
-                            <span>Min/Max</span>
-                          </div>
-                          <span className="font-semibold text-gray-900 text-xs">
-                            {Math.round(weather.tempMinC)}°/{Math.round(weather.tempMaxC)}°
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-3 pt-2">
-                        <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-                          <div className="flex items-center gap-2 text-sm text-gray-600">
-                            <span>Tốc độ gió</span>
-                          </div>
-                          <span className="font-semibold text-gray-900">
-                            {weather.windSpeedMps.toFixed(1)} m/s
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-                          <div className="flex items-center gap-2 text-sm text-gray-600">
-                            <span>Áp suất</span>
-                          </div>
-                          <span className="font-semibold text-gray-900">
-                            {weather.pressureHpa} hPa
-                          </span>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-3 pt-2">
-                        <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-                          <div className="flex items-center gap-2 text-sm text-gray-600">
-                            <span>Độ ẩm</span>
-                          </div>
-                          <span className="font-semibold text-gray-900">
-                            {weather.humidity}%
-                          </span>
-                        </div>
-                        {weather.rainVolumeMm && weather.rainVolumeMm > 0 ? (
-                          <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-                            <div className="flex items-center gap-2 text-sm text-gray-600">
-                              <span>Lượng mưa</span>
-                            </div>
-                            <span className="font-semibold text-green-600">
-                              {weather.rainVolumeMm.toFixed(1)} mm
-                            </span>
-                          </div>
-                        ) : (
-                          <div className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-                            <div className="flex items-center gap-2 text-sm text-gray-600">
-                              <span>Lượng mưa</span>
-                            </div>
-                            <span className="font-semibold text-gray-400 text-xs">
-                              Không mưa
-                            </span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="text-center py-8">
-                      <p className="text-sm text-gray-500">Không thể tải dữ liệu thời tiết</p>
-                      <Button variant="outline" size="sm" onClick={fetchWeather} className="mt-3">
-                        Thử lại
-                      </Button>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
+            {/* Move "Đánh giá gần đây" below the main column so it fills the previous right-side gap */}
+            <div className="xl:col-span-5 space-y-8">
               <Card className="border-0 shadow-lg">
                 <CardHeader className="border-b border-gray-100">
                   <div className="flex items-center justify-between">

@@ -30,6 +30,60 @@ export default function useManagerNotificationHub(onMessage: MessageHandler) {
           } catch (err) {}
         })
 
+        connection.on('ReceiveWeatherAlert', (payload: any) => {
+          if (!mounted) return
+          try {
+            if (typeof payload === 'string') {
+              onMessage(payload)
+              return
+            }
+
+            if (payload && typeof payload === 'object') {
+              if (typeof payload.Message === 'string') {
+                onMessage(payload.Message)
+                return
+              }
+
+              const city = payload.cityName || payload.CityName || payload.city || payload.City
+              const ts =
+                payload.timeStamp ||
+                payload.TimeStamp ||
+                payload.Timestamp ||
+                payload.timestamp ||
+                payload.time
+              const rain =
+                payload.RainVolumeMm ??
+                payload.rainVolume ??
+                payload.RainVolume ??
+                payload.rainVolumeMm
+              const desc =
+                payload.description || payload.Description || payload.status || payload.Status
+
+              if (city || ts || typeof rain !== 'undefined' || desc) {
+                const date = ts ? new Date(ts) : new Date()
+                const hh = String(date.getHours()).padStart(2, '0')
+                const mm = String(date.getMinutes()).padStart(2, '0')
+                const dd = String(date.getDate()).padStart(2, '0')
+                const MM = String(date.getMonth() + 1).padStart(2, '0')
+                const yyyy = String(date.getFullYear())
+                const rainText =
+                  typeof rain !== 'undefined' && rain !== null
+                    ? `${Number(rain).toFixed(1)}`
+                    : 'N/A'
+                const built =
+                  `⚠️ Cảnh báo mưa tại ${city ?? 'nơi này'}\n` +
+                  `Thời gian: ${hh}:${mm} - ${dd}/${MM}/${yyyy}\n` +
+                  `Lượng mưa: ~${rainText} mm\n` +
+                  `Trạng thái: ${desc ?? 'Không rõ'}`
+                onMessage(built)
+                return
+              }
+            }
+
+            onMessage(String(payload))
+          } catch (err) {}
+        })
+
         await connection.start()
         connRef.current = connection
       } catch (err) {}

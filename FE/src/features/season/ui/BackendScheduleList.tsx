@@ -184,27 +184,18 @@ export function BackendScheduleList({
     useEffect(() => {
         if (scheduleDialogs.showDetail && scheduleDialogs.scheduleDetail?.scheduleId) {
             const scheduleId = scheduleDialogs.scheduleDetail.scheduleId
-            if (lastAutoUpdatedScheduleId.current !== scheduleId) {
-                lastAutoUpdatedScheduleId.current = scheduleId
-                    ; (async () => {
-                        try {
-                            await scheduleActions.handleUpdateToday(scheduleId)
-                            await scheduleActions.handleViewDetail(scheduleDialogs.selectedSchedule!, (detail) => {
-                                scheduleDialogs.setScheduleDetail(detail)
-                            })
-                        } catch (e) {
-                            console.error('Auto-update schedule stage failed:', e)
-                        }
-                    })()
-            }
+            lastAutoUpdatedScheduleId.current = scheduleId
+            console.debug('[ScheduleDetail] opened modal for scheduleId:', scheduleId, '- auto-update disabled.')
         } else if (!scheduleDialogs.showDetail) {
             lastAutoUpdatedScheduleId.current = null
             scheduleDialogs.setShowThresholdInline(false)
+            console.debug('[ScheduleDetail] closed modal; cleared lastAutoUpdatedScheduleId.')
         }
-    }, [scheduleDialogs.showDetail, scheduleDialogs.scheduleDetail?.scheduleId, scheduleActions, scheduleDialogs])
+    }, [scheduleDialogs.showDetail, scheduleDialogs.scheduleDetail?.scheduleId, scheduleDialogs])
 
     const handleUpdateToday = useCallback(async (customDate?: string) => {
         if (!scheduleDialogs.scheduleDetail?.scheduleId) return
+        console.debug('[ScheduleDetail] user-triggered updateToday for scheduleId:', scheduleDialogs.scheduleDetail.scheduleId, 'customDate:', customDate)
         await scheduleActions.handleUpdateToday(scheduleDialogs.scheduleDetail.scheduleId, customDate, () => {
             scheduleActions.handleViewDetail(scheduleDialogs.selectedSchedule!, (detail) => {
                 scheduleDialogs.setScheduleDetail(detail)

@@ -75,7 +75,7 @@ export function BackendScheduleList({
 
 
     useEffect(() => {
-        const shouldLoadMetadata = scheduleDialogs.showCreate || scheduleDialogs.showEdit || scheduleDialogs.showAssignStaff
+        const shouldLoadMetadata = showCreate || scheduleDialogs.showCreate || scheduleDialogs.showEdit || scheduleDialogs.showAssignStaff
         if (!shouldLoadMetadata) return
         let cancelled = false
             ; (async () => {
@@ -97,7 +97,7 @@ export function BackendScheduleList({
         return () => {
             cancelled = true
         }
-    }, [scheduleDialogs.showCreate, scheduleDialogs.showEdit, scheduleDialogs.showAssignStaff, scheduleData])
+    }, [showCreate, scheduleDialogs.showEdit, scheduleDialogs.showAssignStaff, scheduleData.loadReferenceData, scheduleData.setFarms, scheduleData.setCrops, scheduleData.setStaffs, scheduleData.setActivities, scheduleData.setMetaLoading])
 
     const handleCreateDialogChange = useCallback((open: boolean) => {
         scheduleDialogs.handleCreateDialogChange(open)

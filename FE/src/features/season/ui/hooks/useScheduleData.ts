@@ -30,6 +30,7 @@ export function useScheduleData() {
   const [staffs, setStaffs] = useState<{ id: number; name: string }[]>([])
   const [activities, setActivities] = useState<ActivityOption[]>([])
   const [metaLoading, setMetaLoading] = useState(false)
+  const loadReferencePromise = useRef<Promise<any> | null>(null)
   const [allSchedules, setAllSchedules] = useState<ScheduleListItem[]>([])
 
   const filteredSchedules = useMemo(() => {
@@ -206,58 +207,90 @@ export function useScheduleData() {
   }, [])
 
   const loadReferenceData = useCallback(async () => {
-    const [farmRes, cropRes, staffResRaw, fa] = await Promise.all([
-      farmService.getAllFarms(),
-      cropService.getAllCropsList(),
-      accountApi.getAvailableStaff(),
-      farmActivityService.getActiveFarmActivities({ pageIndex: 1, pageSize: 1000 }),
-    ])
-
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-
-    const validActivities = (fa.items || []).filter((a: FarmActivity) => {
-      const end = a.endDate ? new Date(a.endDate) : null
-      if (end && !Number.isNaN(end.getTime())) {
-        return end >= today
-      }
-      return true
-    })
-
-    const formatDateSafe = (value?: string) => {
-      if (!value) return ''
-      try {
-        return formatDate(value)
-      } catch {
-        return value
+    if (farms.length > 0 && crops.length > 0) {
+      return {
+        farmOptions: farms,
+        cropOptions: crops,
+        staffOptions: staffs,
+        activityOptions: activities,
       }
     }
 
-    return {
-      farmOptions: farmRes.map(f => ({ id: f.farmId, name: f.farmName })),
-      cropOptions: cropRes
-        .filter(c => c.status === 'ACTIVE')
-        .map(c => ({ id: c.cropId, name: c.cropName, status: c.status })),
-      staffOptions: (() => {
-        const staffList = Array.isArray(staffResRaw)
-          ? staffResRaw
-          : (staffResRaw && (staffResRaw as any).items) || []
-        return staffList.map((s: any) => ({
-          id: s.accountId,
-          name: s.accountProfile?.fullname ?? s.fullname ?? s.email ?? s.username ?? '',
-        }))
-      })(),
-      activityOptions: validActivities.map((a: FarmActivity) => {
-        const start = formatDateSafe(a.startDate)
-        const end = formatDateSafe(a.endDate)
-        const dateLabel = start || end ? ` (${start || '...'} → ${end || '...'})` : ''
-        return {
-          id: a.farmActivitiesId,
-          name: `${(a as any).activityType ? (a as any).activityType : 'Unknown'}${dateLabel}`,
+    if (loadReferencePromise.current) {
+      return loadReferencePromise.current
+    }
+
+    const promise = (async () => {
+      const [farmRes, cropRes, staffResRaw, fa] = await Promise.all([
+        farmService.getAllFarms(),
+        cropService.getAllCropsActive(),
+        accountApi.getAvailableStaff(),
+        farmActivityService.getActiveFarmActivities({ pageIndex: 1, pageSize: 1000 }),
+      ])
+
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+
+      const validActivities = (fa.items || []).filter((a: FarmActivity) => {
+        const end = a.endDate ? new Date(a.endDate) : null
+        if (end && !Number.isNaN(end.getTime())) {
+          return end >= today
         }
-      }),
+        return true
+      })
+
+      const formatDateSafe = (value?: string) => {
+        if (!value) return ''
+        try {
+          return formatDate(value)
+        } catch {
+          return value
+        }
+      }
+
+      return {
+        farmOptions: (Array.isArray(farmRes) ? farmRes : []).map(f => ({
+          id: f.farmId,
+          name: f.farmName,
+        })),
+        cropOptions: (Array.isArray(cropRes) ? cropRes : []).map(c => ({
+          id: c.cropId,
+          name: c.cropName,
+          status: c.status,
+        })),
+        staffOptions: (() => {
+          const staffList = Array.isArray(staffResRaw)
+            ? staffResRaw
+            : (staffResRaw && (staffResRaw as any).items) || []
+          return staffList.map((s: any) => ({
+            id: s.accountId,
+            name: s.accountProfile?.fullname ?? s.fullname ?? s.email ?? s.username ?? '',
+          }))
+        })(),
+        activityOptions: validActivities.map((a: FarmActivity) => {
+          const start = formatDateSafe(a.startDate)
+          const end = formatDateSafe(a.endDate)
+          const dateLabel = start || end ? ` (${start || '...'} → ${end || '...'})` : ''
+          return {
+            id: a.farmActivitiesId,
+            name: `${(a as any).activityType ? (a as any).activityType : 'Unknown'}${dateLabel}`,
+          }
+        }),
+      }
+    })()
+
+    loadReferencePromise.current = promise
+    try {
+      const res = await promise
+      setFarms(res.farmOptions)
+      setCrops(res.cropOptions)
+      setStaffs(res.staffOptions)
+      setActivities(res.activityOptions)
+      return res
+    } finally {
+      loadReferencePromise.current = null
     }
-  }, [])
+  }, [farms.length, crops.length, staffs.length, activities.length])
 
   useEffect(() => {
     load()

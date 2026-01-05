@@ -75,6 +75,11 @@ export const cropService = {
     )
     return response.data.items ?? []
   },
+ 
+  getAllCropsActive: async (): Promise<Crop[]> => {
+    const response = await http.get<Crop[]>('/v1/crop/get-all-active')
+    return response.data ?? []
+  },
 
   createCrop: async (payload: CreateCropWithProductRequest): Promise<CropResponse> => {
     const response = await http.post<CropResponse>('/v1/crop/create', payload)

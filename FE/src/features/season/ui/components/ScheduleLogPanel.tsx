@@ -63,21 +63,18 @@ function ScheduleLogPanel({ scheduleId, onEdit, registerUpdater }: { scheduleId:
 
   useEffect(() => {
     if (!registerUpdater) return
+    const isValidStaffName = (name?: string | null) => {
+      if (!name) return false
+      const trimmed = String(name).trim()
+      if (!trimmed) return false
+      const placeholders = ['Không lấy được tên người dùng', 'Không lấy được', 'Unknown', 'N/A']
+      const lower = trimmed.toLowerCase()
+      return !placeholders.some(ph => lower === ph.toLowerCase() || lower.includes(ph.toLowerCase()))
+    }
+
     const fn = (item: ScheduleLogItem | { id: number }, mode: 'create' | 'update' | 'delete') => {
-      if (mode === 'create') {
-        const el = containerRef.current
-        const prevSH = el?.scrollHeight || 0
-        const prevST = el?.scrollTop || 0
-        setLogs(prev => [item as ScheduleLogItem, ...prev])
-        setTimeout(() => {
-          const newSH = el?.scrollHeight || 0
-          if (el) el.scrollTop = prevST + (newSH - prevSH)
-        }, 0)
-        return
-      }
-      if (mode === 'update') {
-        const it = item as ScheduleLogItem
-        setLogs(prev => prev.map(p => (p.id === it.id ? it : p)))
+      if (mode === 'create' || mode === 'update') {
+        void load(1)
         return
       }
       if (mode === 'delete') {
@@ -87,7 +84,7 @@ function ScheduleLogPanel({ scheduleId, onEdit, registerUpdater }: { scheduleId:
       }
     }
     registerUpdater(fn)
-  }, [registerUpdater])
+  }, [registerUpdater, load])
 
   const isEmptyState = (total === 0 && logs.length === 0)
 
@@ -122,11 +119,21 @@ function ScheduleLogPanel({ scheduleId, onEdit, registerUpdater }: { scheduleId:
                         <strong>Người tạo</strong>: {l.staffNameCreate ?? 'Không xác định'}
                         {l.createdAt ? ` • ${safeFormat(l.createdAt ?? undefined)}` : ''}
                       </div>
-                      {l.updatedAt ? (
-                        <div className="mt-1">
-                          <strong>Người sửa</strong>: {l.staffNameUpdate ?? 'Không xác định'} • {safeFormat(l.updatedAt ?? undefined)}
-                        </div>
-                      ) : null}
+                      {l.updatedAt && (() => {
+                        const name = l.staffNameUpdate
+                        if (!name) return null
+                        const trimmed = String(name).trim()
+                        if (!trimmed) return null
+                        const placeholders = ['Không lấy được tên người dùng', 'Không lấy được', 'Unknown', 'N/A']
+                        const lower = trimmed.toLowerCase()
+                        const isInvalid = placeholders.some(ph => lower === ph.toLowerCase() || lower.includes(ph.toLowerCase()))
+                        if (isInvalid) return null
+                        return (
+                          <div className="mt-1">
+                            <strong>Người sửa</strong>: {trimmed} • {safeFormat(l.updatedAt ?? undefined)}
+                          </div>
+                        )
+                      })()}
                     </div>
                   </div>
                   <div className="flex items-center gap-2">

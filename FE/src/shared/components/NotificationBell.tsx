@@ -3,29 +3,26 @@ import { createPortal } from 'react-dom'
 import { Bell, X } from 'lucide-react'
 import { Button } from '@/shared/ui'
 import { http } from '@/shared/api/client'
+import useManagerNotificationHub from '@/shared/hooks/useManagerNotificationHub'
 const POLL_INTERVAL = 15 * 60 * 1000
 const DROPDOWN_WIDTH = 384
 
 export default function NotificationBell(): React.ReactElement {
     const [unread, setUnread] = useState<number>(0)
     const [open, setOpen] = useState<boolean>(false)
-    const [lastResult, setLastResult] = useState<any>(null)
+    const [lastCheckedAt, setLastCheckedAt] = useState<number | null>(null)
+    const [messages, setMessages] = useState<Array<{ id: string; text: string; timestamp: number; read?: boolean }>>([])
     const timerRef = useRef<number | null>(null)
     const buttonRef = useRef<HTMLButtonElement | null>(null)
     const dropdownRef = useRef<HTMLDivElement | null>(null)
     const [anchorRect, setAnchorRect] = useState<DOMRect | null>(null)
-    const currentTempRaw = lastResult?.CurrentTemperature
-    const currentTemp = (typeof currentTempRaw !== 'undefined' && currentTempRaw !== null && !Number.isNaN(Number(currentTempRaw)))
-        ? Number(currentTempRaw)
-        : undefined
 
     const checkAlerts = async () => {
         try {
             const res = await http.post<any>('/v1/crop/check-alerts')
             const data = res.data
-            const alertsSent = Number(data?.AlertsSent || 0)
-            setUnread(alertsSent)
-            setLastResult(data)
+            setLastCheckedAt(Date.now())
+            return data
         } catch (err) {
             console.error('NotificationBell.checkAlerts error', err)
         }
@@ -40,6 +37,13 @@ export default function NotificationBell(): React.ReactElement {
             }
         }
     }, [])
+
+    useManagerNotificationHub((message: string) => {
+        const id = `${Date.now()}_${Math.random().toString(36).slice(2, 9)}`
+        const timestamp = Date.now()
+        setMessages(prev => [{ id, text: message, timestamp, read: false }, ...prev])
+        setUnread(u => u + 1)
+    })
 
     useEffect(() => {
         if (!open) return
@@ -57,7 +61,14 @@ export default function NotificationBell(): React.ReactElement {
         if (!open && buttonRef.current) {
             setAnchorRect(buttonRef.current.getBoundingClientRect())
         }
-        setOpen(v => !v)
+        setOpen(prev => {
+            const next = !prev
+            if (!prev) {
+                setMessages(ms => ms.map(m => ({ ...m, read: true })))
+                setUnread(0)
+            }
+            return next
+        })
     }
 
 
@@ -84,33 +95,34 @@ export default function NotificationBell(): React.ReactElement {
                 </div>
 
                 <div className="max-h-60 overflow-y-auto p-3">
-                    {lastResult ? (
-                        <div className="space-y-2">
-                            <div className="text-sm text-gray-700">
-                                Lần kiểm tra: <span className="font-medium">{new Date(lastResult?.Timestamp || Date.now()).toLocaleString()}</span>
-                            </div>
-                            <div className="text-sm text-gray-700">
-                                Lịch hoạt động: <span className="font-medium">{lastResult?.ActiveSchedules ?? 0}</span>
-                            </div>
-                            <div className="text-sm text-gray-700">
-                                Cảnh báo gửi: <span className="font-medium">{lastResult?.AlertsSent ?? 0}</span>
-                            </div>
-                            {typeof currentTemp !== 'undefined' && (
-                                <div className="text-sm text-gray-700">
-                                    Nhiệt độ hiện tại: <span className="font-medium">{currentTemp.toFixed(1)}°C</span>
+                    {messages.length > 0 ? (
+                        <div className="space-y-3">
+                            {messages.map(m => (
+                                <div key={m.id} className="text-sm text-gray-700">
+                                    <div className="text-xs text-gray-400 mb-1">{new Date(m.timestamp).toLocaleString()}</div>
+                                    <div style={{ whiteSpace: 'pre-line' }} className="text-sm text-gray-800">{m.text}</div>
                                 </div>
-                            )}
-                            {lastResult?.Message && (
-                                <div className="text-sm text-gray-600">{String(lastResult.Message)}</div>
-                            )}
+                            ))}
                         </div>
                     ) : (
-                        <div className="text-sm text-gray-500">Đang kiểm tra...</div>
+                        <div className="text-sm text-gray-500">
+                            {lastCheckedAt ? 'Chưa có cảnh báo. Đã kiểm tra lúc: ' + new Date(lastCheckedAt).toLocaleString() : 'Đang chờ cảnh báo...'}
+                        </div>
                     )}
                 </div>
 
                 <div className="p-3 border-t border-gray-100 flex items-center justify-end space-x-2">
-                    <Button variant="ghost" size="sm" onClick={() => { checkAlerts(); }}>
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={async () => {
+                            await checkAlerts()
+                            if (open) {
+                                setMessages(ms => ms.map(m => ({ ...m, read: true })))
+                                setUnread(0)
+                            }
+                        }}
+                    >
                         Làm mới
                     </Button>
                 </div>

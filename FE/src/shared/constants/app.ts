@@ -3,6 +3,9 @@ export const APP_CONFIG = {
     name: 'Quản lý nông trại',
     email: 'manager@email.com',
   },
+  FEATURES: {
+    HIDE_FARM_ACTIVITIES: true,
+  },
   PAGINATION: {
     DEFAULT_PAGE_SIZE: 10,
     MAX_PAGE_SIZE: 100,

@@ -19,7 +19,7 @@ import {
 import { Button } from '@/shared/ui/button'
 import LogoutButton from '@/shared/ui/LogoutButton'
 import { Badge } from '@/shared/ui/badge'
-import { APP_CONFIG } from '@/shared/constants/app'
+import { APP_CONFIG, ROUTES } from '@/shared/constants/app'
 import { accountProfileApi } from '@/shared/api/auth'
 import ThresholdConfigModal from '../../features/thresholds/ThresholdConfigModal.tsx'
 import NotificationBell from '@/shared/components/NotificationBell'
@@ -145,6 +145,11 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
     [location.pathname]
   )
 
+  const hideFarmActivities = APP_CONFIG.FEATURES?.HIDE_FARM_ACTIVITIES
+  const visibleNavigationItems = hideFarmActivities
+    ? navigationItems.filter(item => item.href !== ROUTES.MANAGER.FARM_ACTIVITIES)
+    : navigationItems
+
   const NavLink = React.memo<{ item: NavItem; mobile?: boolean }>(({ item, mobile = false }) => {
     const isActive = isActiveRoute(item.href)
 
@@ -247,7 +252,7 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
         { }
         <nav className="flex-1 px-4 py-6 space-y-1 overflow-y-auto">
           <div className="space-y-1">
-            {navigationItems.map(item => (
+            {visibleNavigationItems.map(item => (
               <NavLink key={item.href} item={item} />
             ))}
           </div>
@@ -342,7 +347,7 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
 
               <div className="flex-1 px-4 py-6 overflow-y-auto">
                 <div className="space-y-1">
-                  {navigationItems.map(item => (
+                  {visibleNavigationItems.map(item => (
                     <NavLink key={item.href} item={item} mobile />
                   ))}
                 </div>

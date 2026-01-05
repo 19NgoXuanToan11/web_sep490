@@ -12,7 +12,6 @@ export const rangesOverlap = (startA: Date, endA: Date, startB: Date, endB: Date
 export const buildEmptyScheduleForm = (): CreateScheduleRequest => ({
   farmId: 0,
   cropId: 0,
-  staffId: 0,
   startDate: '',
   endDate: '',
   plantingDate: '',

@@ -55,14 +55,6 @@ export default function ScheduleLogPanelStaff({ scheduleId, onEdit, registerUpda
     useEffect(() => {
         if (!registerUpdater) return
 
-        const isValidStaffName = (name?: string | null) => {
-            if (!name) return false
-            const trimmed = String(name).trim()
-            if (!trimmed) return false
-            const placeholders = ['Không lấy được tên người dùng', 'Không lấy được', 'Unknown', 'N/A']
-            const lower = trimmed.toLowerCase()
-            return !placeholders.some(ph => lower === ph.toLowerCase() || lower.includes(ph.toLowerCase()))
-        }
 
         const fn = (item: ScheduleLogItem | { id: number }, mode: 'create' | 'update' | 'delete') => {
             if (mode === 'create' || mode === 'update') {

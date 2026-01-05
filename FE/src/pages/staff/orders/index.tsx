@@ -716,7 +716,7 @@ const StaffOrdersPage: React.FC = () => {
                                 </div>
                                 <div className="text-xs text-gray-600 flex items-center gap-2">
                                   <span className="bg-green-100 text-green-800 px-2 py-0.5 rounded-full">
-                                    SL: {item.quantity || 1}
+                                    SL: {item.quantity ?? 1}
                                   </span>
                                   {item.price && (
                                     <span className="text-gray-500">

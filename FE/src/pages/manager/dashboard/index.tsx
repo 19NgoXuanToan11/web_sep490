@@ -817,7 +817,6 @@ export default function ManagerDashboard() {
                 </CardContent>
               </Card>
             </div>
-            {/* Move "Đánh giá gần đây" below the main column so it fills the previous right-side gap */}
             <div className="xl:col-span-5 space-y-8">
               <Card className="border-0 shadow-lg">
                 <CardHeader className="border-b border-gray-100">

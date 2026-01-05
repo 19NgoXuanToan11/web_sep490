@@ -188,7 +188,7 @@ const BigCalendar: React.FC<Props> = ({ events = [], onEventClick, onDayClick, o
   );
 
   const eventStyleGetter = (event: any) => {
-    const backgroundColor = event.color || "#10B981";
+    const backgroundColor = event.color || "#F59E0B";
     const style: React.CSSProperties = {
       backgroundColor,
       borderRadius: "6px",

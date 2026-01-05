@@ -134,7 +134,6 @@ export function ScheduleCalendar({ className, showScheduleForm: externalShowSche
                             </div>
                         </CardHeader>
                         <CardContent>
-                            {/* Calendar grid component could be extracted; simplified here */}
                             <div className="text-sm text-muted-foreground">[Lưới lịch (calendar) tạm]</div>
                         </CardContent>
                     </Card>

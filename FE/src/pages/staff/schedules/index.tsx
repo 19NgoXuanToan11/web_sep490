@@ -750,7 +750,6 @@ const StaffSchedulesPage: React.FC = () => {
                                     <Label>Nội dung</Label>
                                     <textarea name="notes" defaultValue={editingLog?.notes ?? ''} className="w-full p-2 border rounded" rows={4} />
                                 </div>
-                                {/* Thời gian removed — backend không chấp nhận timestamp */}
                             </div>
                             <DialogFooter className="mt-4">
                                 <Button type="button" variant="outline" onClick={() => setShowLogModal(false)}>Hủy</Button>

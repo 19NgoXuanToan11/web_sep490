@@ -916,7 +916,7 @@ const ManagerOrdersPage: React.FC = () => {
                                             </div>
                                             <div className="text-xs text-gray-600 flex items-center gap-2">
                                               <span className="bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
-                                                SL: {item.quantity || 1}
+                                                SL: {item.quantity ?? 1}
                                               </span>
                                               {item.price && (
                                                 <span className="text-gray-500">
@@ -937,7 +937,7 @@ const ManagerOrdersPage: React.FC = () => {
                                         <div className="text-xs text-blue-600 font-medium mt-2 pt-2 border-t border-gray-100">
                                           Tổng:{' '}
                                           {products.reduce(
-                                            (sum: number, item: any) => sum + (item.quantity || 1),
+                                            (sum: number, item: any) => sum + (item.quantity ?? 1),
                                             0
                                           )}{' '}
                                           sản phẩm

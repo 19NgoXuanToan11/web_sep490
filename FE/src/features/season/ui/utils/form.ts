@@ -39,7 +39,6 @@ export const validateSchedulePayload = (
 
   if (!payload.farmId) errors.push('Vui lòng chọn nông trại.')
   if (!payload.cropId) errors.push('Vui lòng chọn mùa vụ.')
-  if (!payload.staffId) errors.push('Vui lòng chọn nhân viên.')
   if (!payload.quantity || payload.quantity <= 0) errors.push('Số lượng phải lớn hơn 0.')
   if (!start) errors.push('Ngày bắt đầu không hợp lệ.')
   if (!end) errors.push('Ngày kết thúc không hợp lệ.')

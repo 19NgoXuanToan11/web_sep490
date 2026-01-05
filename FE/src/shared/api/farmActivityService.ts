@@ -13,6 +13,8 @@ export interface FarmActivity {
 export interface FarmActivityRequest {
   startDate: string
   endDate: string
+  staffId?: number
+  scheduleId?: number
 }
 
 export interface FarmActivityUpdate {

@@ -568,8 +568,11 @@ export default function ManagerDashboard() {
                         </div>
 
                         <div className="flex-1">
-                          <div className="overflow-x-auto py-2">
-                            <div className="flex gap-3 w-max">
+                          <div className="w-full py-2">
+                            <div
+                              className="grid gap-3"f
+                              style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(7rem, 1fr))' }}
+                            >
                               {hourlyPayload.data.map((item: any, idx: number) => {
                                 const timeVN = (() => {
                                   const ts = item?.timeStamp
@@ -589,7 +592,7 @@ export default function ManagerDashboard() {
                                   <button
                                     key={idx}
                                     onClick={() => setSelectedForecastIndex(idx === selectedForecastIndex ? null : idx)}
-                                    className="flex-shrink-0 w-28 p-2 bg-white border border-gray-100 rounded-lg text-center hover:shadow-md"
+                                    className="w-full p-2 bg-white border border-gray-100 rounded-lg text-center hover:shadow-md"
                                     title={String(item?.forecastFor ?? '')}
                                   >
                                     <div className="text-xs text-gray-500">{timeVN}</div>

@@ -570,7 +570,7 @@ export default function ManagerDashboard() {
                         <div className="flex-1">
                           <div className="w-full py-2">
                             <div
-                              className="grid gap-3"f
+                              className="grid gap-3"
                               style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(7rem, 1fr))' }}
                             >
                               {hourlyPayload.data.map((item: any, idx: number) => {

@@ -88,15 +88,6 @@ export function CreateScheduleDialog({
                         />
                     </div>
                     <div>
-                        <Label>Ngày kết thúc</Label>
-                        <Input
-                            type="date"
-                            min={form.startDate || todayString}
-                            value={form.endDate}
-                            onChange={e => onFormChange({ ...form, endDate: e.target.value })}
-                        />
-                    </div>
-                    <div>
                         <Label>Số lượng</Label>
                         <Input
                             type="number"
@@ -104,10 +95,6 @@ export function CreateScheduleDialog({
                             value={form.quantity}
                             onChange={e => onFormChange({ ...form, quantity: Number(e.target.value) })}
                         />
-                    </div>
-                    <div>
-                        <Label>Tình trạng bệnh</Label>
-                        <div className="mt-2 text-sm text-gray-700">Không có bệnh</div>
                     </div>
                     <div className="flex items-end gap-2 col-span-2 md:col-span-3">
                         <label className="flex items-center gap-2">

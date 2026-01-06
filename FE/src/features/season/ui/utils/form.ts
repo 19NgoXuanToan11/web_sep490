@@ -40,8 +40,6 @@ export const validateSchedulePayload = (
   if (!payload.cropId) errors.push('Vui lòng chọn mùa vụ.')
   if (!payload.quantity || payload.quantity <= 0) errors.push('Số lượng phải lớn hơn 0.')
   if (!start) errors.push('Ngày bắt đầu không hợp lệ.')
-  if (!end) errors.push('Ngày kết thúc không hợp lệ.')
-
   const ensureFuture = (date: Date | null, label: string) => {
     if (date && date < today) {
       errors.push(`${label} không được nằm trong quá khứ.`)
@@ -49,10 +47,8 @@ export const validateSchedulePayload = (
   }
 
   ensureFuture(start, 'Ngày bắt đầu')
-  ensureFuture(end, 'Ngày kết thúc')
   if (planting) ensureFuture(planting, 'Ngày gieo trồng')
   if (harvest) ensureFuture(harvest, 'Ngày thu hoạch')
-
   if (start && end && start >= end) {
     errors.push('Ngày bắt đầu phải trước ngày kết thúc và không trùng nhau.')
   }
@@ -92,7 +88,7 @@ export const validateSchedulePayload = (
     }
   }
 
-  if (planting && payload.diseaseStatus !== null && payload.diseaseStatus !== undefined) {
+  if (planting && typeof payload.diseaseStatus === 'number') {
     const daysDiff = Math.floor((planting.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
     if (daysDiff >= 0 || (daysDiff >= -7 && daysDiff < 0)) {
       if (payload.diseaseStatus >= 0) {

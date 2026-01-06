@@ -213,20 +213,19 @@ export function BackendScheduleList({
     }, [scheduleDialogs, scheduleActions])
 
     const submitCreateSchedule = useCallback(async (form: CreateScheduleRequest) => {
-        const payload: CreateScheduleRequest = {
+        const payload: Partial<CreateScheduleRequest> = {
             farmId: form.farmId,
             cropId: form.cropId,
             startDate: form.startDate,
-            endDate: form.endDate,
             plantingDate: form.plantingDate || form.startDate,
-            harvestDate: form.harvestDate || form.endDate,
+            ...(form.harvestDate ? { harvestDate: form.harvestDate } : {}),
             quantity: form.quantity,
             pesticideUsed: form.pesticideUsed,
-            diseaseStatus: form.diseaseStatus ?? null,
-            status: 'ACTIVE',
+            diseaseStatus: 'None' as any,
+            status: 'ACTIVE' as any,
         }
 
-        await scheduleActions.handleCreateSchedule(payload, () => {
+        await scheduleActions.handleCreateSchedule(payload as CreateScheduleRequest, () => {
             handleCreateDialogChange(false)
         })
     }, [scheduleActions, handleCreateDialogChange])

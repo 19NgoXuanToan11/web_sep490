@@ -743,7 +743,7 @@ export function BackendScheduleList({
                                                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                                                         <div><strong>Giai đoạn:</strong> {req.plantStage ? translatePlantStage(req.plantStage) ?? req.plantStage : '-'}</div>
                                                                         <div><strong>Thời gian dự kiến:</strong> {req.estimatedDate !== null && req.estimatedDate !== undefined ? `${req.estimatedDate} ngày` : '-'}</div>
-                                                                        <div><strong>Độ ẩm:</strong> {formatMoisture(req.moisture)}</div>
+                                                                        <div><strong>Độ ẩm đất:</strong> {formatMoisture(req.soilMoisture)}</div>
                                                                         <div><strong>Nhiệt độ:</strong> {req.temperature !== null && req.temperature !== undefined ? `${req.temperature} °C` : '-'}</div>
                                                                         <div><strong>Phân bón:</strong> {req.fertilizer ?? '-'}</div>
                                                                         <div><strong>Ánh sáng:</strong> {req.lightRequirement !== null && req.lightRequirement !== undefined ? `${req.lightRequirement} lux` : '-'}</div>

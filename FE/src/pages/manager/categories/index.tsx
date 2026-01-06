@@ -215,7 +215,7 @@ export default function CategoriesPage() {
           />
 
           { }
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 md:grid-cols-1">
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
@@ -226,34 +226,6 @@ export default function CategoriesPage() {
                 </div>
                 <p className="text-sm text-gray-500 mt-2">
                   Số lượng danh mục đang được quản lý trong hệ thống
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-500">Có sản phẩm</p>
-                    <p className="text-2xl font-semibold mt-1 text-green-600">{stats.withProducts}</p>
-                  </div>
-                </div>
-                <p className="text-sm text-gray-500 mt-2">
-                  Danh mục đã được gán ít nhất một sản phẩm
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm text-gray-500">Chưa có sản phẩm</p>
-                    <p className="text-2xl font-semibold mt-1 text-gray-700">{stats.empty}</p>
-                  </div>
-                </div>
-                <p className="text-sm text-gray-500 mt-2">
-                  Phù hợp để xem xét bổ sung hoặc gộp danh mục
                 </p>
               </CardContent>
             </Card>

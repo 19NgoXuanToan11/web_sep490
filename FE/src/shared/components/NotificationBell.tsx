@@ -22,6 +22,25 @@ export default function NotificationBell(): React.ReactElement {
             const res = await http.post<any>('/v1/crop/check-alerts')
             const data = res.data
             setLastCheckedAt(Date.now())
+
+            try {
+                const alertsSent = Number(data?.AlertsSent ?? 0)
+                const serverTs = data?.Timestamp ? new Date(data.Timestamp) : new Date()
+                const lastViewedRaw = localStorage.getItem('alertsLastViewedAt')
+                const lastViewedAt = lastViewedRaw ? new Date(lastViewedRaw) : null
+
+                if (alertsSent > 0 && (!lastViewedAt || serverTs > lastViewedAt)) {
+                    const id = `${serverTs.getTime()}_${Math.random().toString(36).slice(2, 9)}`
+                    const messageText = data?.Message
+                        ? String(data.Message)
+                        : `Có ${alertsSent} cảnh báo nhiệt độ. Vui lòng mở để xem chi tiết.`
+                    const timestamp = serverTs.getTime()
+                    setMessages(prev => [{ id, text: messageText, timestamp, read: false }, ...prev])
+                    setUnread(alertsSent)
+                }
+            } catch (err) {
+            }
+
             return data
         } catch (err) {
             console.error('NotificationBell.checkAlerts error', err)
@@ -66,6 +85,9 @@ export default function NotificationBell(): React.ReactElement {
             if (!prev) {
                 setMessages(ms => ms.map(m => ({ ...m, read: true })))
                 setUnread(0)
+                try {
+                    localStorage.setItem('alertsLastViewedAt', String(Date.now()))
+                } catch (err) { }
             }
             return next
         })

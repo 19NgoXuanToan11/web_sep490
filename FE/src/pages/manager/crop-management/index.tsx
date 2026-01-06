@@ -563,7 +563,7 @@ export default function CropManagementPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-gray-500">Tạm dừng</p>
-                  <p className="text-2xl font-semibold mt-1 text-gray-600">{stats.inactive}</p>
+                  <p className="text-2xl font-bold mt-1 text-red-500">{stats.inactive}</p>
                 </div>
               </div>
               <p className="text-sm text-gray-500 mt-2">Cây trồng đã tạm dừng</p>

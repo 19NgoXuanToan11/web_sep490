@@ -321,6 +321,7 @@ const StaffOrdersPage: React.FC = () => {
       preparing: orders.filter(o => o.status === 2).length,
       shipping: orders.filter(o => o.status === 6).length,
       delivered: orders.filter(o => o.status === 5).length,
+      failed: orders.filter(o => o.paymentStatus === 'failed').length,
       cancelled: orders.filter(o => o.status === 4).length,
       totalRevenue: orders
         .filter(o => o.paymentStatus === 'paid')
@@ -503,7 +504,7 @@ const StaffOrdersPage: React.FC = () => {
         />
 
         { }
-        <div className="grid gap-4 mb-8 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 mb-8 md:grid-cols-2 lg:grid-cols-5">
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
@@ -529,7 +530,7 @@ const StaffOrdersPage: React.FC = () => {
                 </div>
               </div>
               <p className="text-xs text-gray-500 mt-2">
-                Gồm đơn chưa thanh toán, đã xác nhận và đang chuẩn bị
+                Gồm các đơn cần xử lý: chờ thanh toán và đã xác nhận
               </p>
             </CardContent>
           </Card>
@@ -544,6 +545,34 @@ const StaffOrdersPage: React.FC = () => {
               </div>
               <p className="text-xs text-gray-500 mt-2">
                 Đơn hàng đã xuất kho và đang trên đường giao cho khách
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-500">Hoàn thành</p>
+                  <p className="text-2xl font-semibold mt-1 text-green-700">{orderStats.delivered}</p>
+                </div>
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                Đơn hàng đã giao và hoàn tất
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-500">Thất bại</p>
+                  <p className="text-2xl font-semibold mt-1 text-red-500">{orderStats.failed}</p>
+                </div>
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                Các đơn có lỗi thanh toán hoặc trạng thái thất bại
               </p>
             </CardContent>
           </Card>

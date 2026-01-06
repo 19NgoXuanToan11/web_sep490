@@ -52,6 +52,20 @@ export function BackendScheduleList({
     const lastAutoUpdatedScheduleId = useRef<number | null>(null)
     const externalLogUpdaterRef = useRef<((item: any, mode: 'create' | 'update' | 'delete') => void) | null>(null)
 
+    const summaryStats = useMemo(() => {
+        const all = scheduleData.allSchedules ?? []
+        const total = all.length
+        let active = 0
+        let inactive = 0
+        for (const s of all) {
+            const status = s?.status
+            const isActive = typeof status === 'number' ? status === 1 : status === 'ACTIVE'
+            if (isActive) active++
+            else inactive++
+        }
+        return { total, active, inactive }
+    }, [scheduleData.allSchedules])
+
     const scheduleCalendarEvents = useMemo(() => {
         if (!scheduleDialogs.scheduleDetail) return []
 
@@ -288,6 +302,38 @@ export function BackendScheduleList({
 
     return (
         <>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                <Card>
+                    <CardContent className="p-4">
+                        <div>
+                            <p className="text-sm text-gray-500">Tổng thời vụ</p>
+                            <p className="text-2xl font-bold text-gray-900">{summaryStats.total}</p>
+                            <p className="text-xs text-gray-400 mt-1">Tổng số thời vụ đã tạo trong hệ thống</p>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardContent className="p-4">
+                        <div>
+                            <p className="text-sm text-gray-500">Đang hoạt động</p>
+                            <p className="text-2xl font-bold text-green-600">{summaryStats.active}</p>
+                            <p className="text-xs text-gray-400 mt-1">Số thời vụ đang gửi dữ liệu hoặc đang hoạt động</p>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardContent className="p-4">
+                        <div>
+                            <p className="text-sm text-gray-500">Vô hiệu hóa</p>
+                            <p className="text-2xl font-bold text-red-500">{summaryStats.inactive}</p>
+                            <p className="text-xs text-gray-400 mt-1">Số thời vụ tạm dừng hoặc vô hiệu hóa</p>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+
             <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
                 <div className="flex flex-col sm:flex-row gap-4">
                     <div className="flex-1">

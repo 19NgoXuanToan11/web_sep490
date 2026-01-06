@@ -340,8 +340,8 @@ const ManagerIoTDevicesPage: React.FC = () => {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-500">Không hoạt động</p>
-                    <p className="text-2xl font-semibold mt-1 text-gray-700">
+                    <p className="text-sm text-gray-500">Vô hiệu hóa</p>
+                    <p className="text-2xl font-bold mt-1 text-red-500">
                       {computedStats.inactive}
                     </p>
                   </div>

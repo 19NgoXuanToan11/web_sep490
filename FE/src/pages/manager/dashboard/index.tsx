@@ -431,7 +431,7 @@ export default function ManagerDashboard() {
       change:
         cropStats.nearingHarvest > 0
           ? `${cropStats.nearingHarvest} lô sắp thu hoạch`
-          : `${cropStats.total} lô đang theo dõi`,
+          : `${cropStats.total} lô tổng cộng`,
       changeType: 'increase',
       color: 'green',
       description: 'Dựa trên danh sách cây trồng',

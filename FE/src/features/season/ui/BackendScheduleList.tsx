@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Card, CardContent } from '@/shared/ui/card'
 import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
@@ -13,7 +13,7 @@ import CalendarShell from '@/components/Calendar'
 import ThresholdPanel from '@/features/thresholds/ThresholdPanel'
 import { formatDate } from '@/shared/lib/date-utils'
 import type { BackendScheduleListProps, ScheduleListItem, ScheduleStatusString, CreateScheduleRequest } from './types'
-import { isActiveStatus, getStatusLabel, translatePlantStage, getDiseaseLabel } from './utils/labels'
+import { isActiveStatus, getStatusLabel, translatePlantStage, getDiseaseLabel, getFarmActivityStatusInfo, translateActivityType } from './utils/labels'
 import ScheduleActionMenu from './components/ScheduleActionMenu'
 import ScheduleLogPanel from './components/ScheduleLogPanel'
 import { useScheduleData } from './hooks/useScheduleData'
@@ -40,6 +40,8 @@ export function BackendScheduleList({
         scheduleData.load,
         scheduleData.loadAllSchedules
     )
+    const [selectedFarmActivity, setSelectedFarmActivity] = useState<any>(null)
+    const [showFarmActivityDetail, setShowFarmActivityDetail] = useState(false)
 
     const showCreate = externalShowCreate ?? scheduleDialogs.showCreate
     const filteredItems = externalFilteredItems !== undefined ? externalFilteredItems : null
@@ -69,24 +71,76 @@ export function BackendScheduleList({
     const scheduleCalendarEvents = useMemo(() => {
         if (!scheduleDialogs.scheduleDetail) return []
 
-        const start = scheduleDialogs.scheduleDetail.startDate ? new Date(scheduleDialogs.scheduleDetail.startDate) : null
-        const end = scheduleDialogs.scheduleDetail.endDate ? new Date(scheduleDialogs.scheduleDetail.endDate) : null
+        const parseDDMMYYYY = (s?: string | null) => {
+            if (!s) return null
+            const parts = String(s).split('/')
+            if (parts.length !== 3) return null
+            const d = Number(parts[0])
+            const m = Number(parts[1])
+            const y = Number(parts[2])
+            if (Number.isNaN(d) || Number.isNaN(m) || Number.isNaN(y)) return null
+            return new Date(y, m - 1, d)
+        }
 
-        if (!start || !end || isNaN(start.getTime()) || isNaN(end.getTime())) return []
+        const detail = scheduleDialogs.scheduleDetail
 
-        const title = scheduleDialogs.scheduleDetail.cropView?.cropName || `Thời vụ #${scheduleDialogs.scheduleDetail.scheduleId}`
+        const activities = Array.isArray(detail.farmActivityView) ? detail.farmActivityView : []
 
-        return [{
-            id: String(scheduleDialogs.scheduleDetail.scheduleId),
-            title,
-            start,
-            end,
-            allDay: true,
-            color: scheduleDialogs.scheduleDetail.status === 1 || scheduleDialogs.scheduleDetail.status === 'ACTIVE' ? '#F59E0B' : '#9CA3AF',
-            raw: scheduleDialogs.scheduleDetail,
-        }]
+        const mapped = activities
+            .map((fa: any) => {
+                const start = parseDDMMYYYY(fa.startDate) ?? parseDDMMYYYY(detail.startDate) ?? null
+                const end = parseDDMMYYYY(fa.endDate) ?? parseDDMMYYYY(detail.endDate) ?? null
+                if (!start || !end) return null
+                return {
+                    id: String(fa.farmActivitiesId ?? `${detail.scheduleId}-${Math.random()}`),
+                    title: translateActivityType(fa.activityType ?? fa.ActivityType ?? '') || `Hoạt động #${fa.farmActivitiesId ?? ''}`,
+                    start,
+                    end,
+                    allDay: true,
+                    color: (fa.status === 1 || fa.status === 'ACTIVE') ? '#F59E0B' : '#9CA3AF',
+                    raw: { ...fa, _parentSchedule: detail },
+                }
+            })
+            .filter((x: any) => x !== null)
+
+        if (mapped.length === 0) {
+            const start = detail.startDate ? new Date(detail.startDate) : null
+            const end = detail.endDate ? new Date(detail.endDate) : null
+            if (!start || !end || isNaN(start.getTime()) || isNaN(end.getTime())) return []
+            const title = detail.cropView?.cropName || `Thời vụ #${detail.scheduleId}`
+            return [{
+                id: String(detail.scheduleId),
+                title,
+                start,
+                end,
+                allDay: true,
+                color: detail.status === 1 || detail.status === 'ACTIVE' ? '#F59E0B' : '#9CA3AF',
+                raw: detail,
+            }]
+        }
+
+        return mapped
     }, [scheduleDialogs.scheduleDetail])
 
+    const handleEventMenuAction = useCallback((action: 'logs' | 'create', raw?: any) => {
+        if (!raw) return
+        const parentSchedule = raw?._parentSchedule ?? raw?._parentSchedule ?? raw?.raw ?? null
+        if (action === 'create') {
+            if (parentSchedule) {
+                scheduleDialogs.setSelectedSchedule(parentSchedule)
+            }
+            scheduleDialogs.setLogModalMode('create')
+            scheduleDialogs.setEditingLog(null)
+            scheduleDialogs.setShowLogModal(true)
+            setSelectedFarmActivity(raw)
+        } else if (action === 'logs') {
+            if (parentSchedule) {
+                scheduleDialogs.setSelectedSchedule(parentSchedule)
+            }
+            scheduleDialogs.setDetailActiveTab('logs')
+            scheduleDialogs.setShowDetail(true)
+        }
+    }, [scheduleDialogs])
 
     useEffect(() => {
         const shouldLoadMetadata = showCreate || scheduleDialogs.showCreate || scheduleDialogs.showEdit || scheduleDialogs.showAssignStaff
@@ -721,7 +775,7 @@ export function BackendScheduleList({
                                         <Card>
                                             <CardContent className="px-6 pt-3 pb-6">
                                                 <CalendarShell
-                                                    events={scheduleCalendarEvents.map(ev => ({
+                                                    events={scheduleCalendarEvents.map((ev: any) => ({
                                                         id: String(ev.id),
                                                         title: ev.title,
                                                         start: ev.start ?? null,
@@ -730,8 +784,12 @@ export function BackendScheduleList({
                                                         participants: [],
                                                         raw: ev.raw ?? null,
                                                     }))}
-                                                    onEventClick={() => { }}
-                                                    onEventMenuAction={() => { }}
+                                                    onEventClick={(raw) => {
+                                                        if (!raw) return
+                                                        setSelectedFarmActivity(raw)
+                                                        setShowFarmActivityDetail(true)
+                                                    }}
+                                                    onEventMenuAction={handleEventMenuAction}
                                                 />
                                             </CardContent>
                                         </Card>
@@ -812,6 +870,34 @@ export function BackendScheduleList({
                 todayString={todayString}
                 onSubmit={submitCreateActivity}
             />
+            <Dialog open={showFarmActivityDetail} onOpenChange={setShowFarmActivityDetail}>
+                <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
+                    <DialogHeader className="flex items-center justify-between">
+                        <DialogTitle>Chi tiết hoạt động</DialogTitle>
+                    </DialogHeader>
+                    {selectedFarmActivity ? (
+                        <div className="space-y-4 p-2">
+                            <div><strong>Hoạt động:</strong> {translateActivityType(selectedFarmActivity.activityType ?? selectedFarmActivity.ActivityType ?? '')}</div>
+                            <div><strong>Ngày bắt đầu:</strong> {selectedFarmActivity.startDate ?? selectedFarmActivity.StartDate ?? '-'}</div>
+                            <div><strong>Ngày kết thúc:</strong> {selectedFarmActivity.endDate ?? selectedFarmActivity.EndDate ?? '-'}</div>
+                            <div>
+                                <strong>Trạng thái:</strong>{' '}
+                                {(() => {
+                                    const info = getFarmActivityStatusInfo(selectedFarmActivity.status ?? selectedFarmActivity.Status)
+                                    return <Badge variant={info.variant as any} className="text-sm">{info.label}</Badge>
+                                })()}
+                            </div>
+                            <div className="p-2 bg-muted/50 rounded">
+                                <div><strong>Họ tên:</strong> {selectedFarmActivity.staffFullName ?? selectedFarmActivity.staffFullName ?? selectedFarmActivity.staffName ?? '-'}</div>
+                                <div><strong>Email:</strong> {selectedFarmActivity.staffEmail ?? selectedFarmActivity.staffEmail ?? '-'}</div>
+                                <div><strong>Số điện thoại:</strong> {selectedFarmActivity.staffPhone ?? selectedFarmActivity.staffPhone ?? '-'}</div>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="p-4">Không có dữ liệu hoạt động.</div>
+                    )}
+                </DialogContent>
+            </Dialog>
         </>
     )
 }

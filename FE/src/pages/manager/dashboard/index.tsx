@@ -569,44 +569,89 @@ export default function ManagerDashboard() {
 
                         <div className="flex-1">
                           <div className="w-full py-2">
-                            <div
-                              className="grid gap-3"
-                              style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(7rem, 1fr))' }}
-                            >
-                              {hourlyPayload.data.map((item: any, idx: number) => {
-                                const timeVN = (() => {
-                                  const ts = item?.timeStamp
+                            <div className="flex flex-wrap gap-3 items-stretch justify-between">
+                              {(() => {
+                                const parseDateOnly = (ts: any) => {
                                   if (!ts) return ''
                                   if (typeof ts === 'string') {
-                                    const m = ts.match(/(\d{1,2}:\d{2})/)
-                                    return m ? m[1] : ts
+                                    const m = ts.match(/(\d{1,2}\/\d{1,2}\/\d{4})/)
+                                    if (m) return m[1]
+                                    const m2 = ts.match(/(\d{1,2}:\d{2}),\s*(\d{1,2}\/\d{1,2}\/\d{4})/)
+                                    if (m2) return m2[2]
+                                    return ''
                                   }
                                   try {
                                     const d = new Date(ts)
-                                    return d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Ho_Chi_Minh' })
+                                    return d.toLocaleDateString('vi-VN')
                                   } catch {
                                     return String(ts)
                                   }
-                                })()
-                                return (
-                                  <button
-                                    key={idx}
-                                    onClick={() => setSelectedForecastIndex(idx === selectedForecastIndex ? null : idx)}
-                                    className="w-full p-2 bg-white border border-gray-100 rounded-lg text-center hover:shadow-md"
-                                    title={String(item?.forecastFor ?? '')}
-                                  >
-                                    <div className="text-xs text-gray-500">{timeVN}</div>
-                                    {item?.iconUrl ? (
-                                      <img src={item.iconUrl} alt={String(item?.description ?? '')} className="mx-auto my-1 w-8 h-8" />
-                                    ) : (
-                                      <div className="mx-auto my-1 h-8 w-8 bg-gray-200 rounded-full" />
-                                    )}
-                                    <div className="text-sm font-medium text-gray-900">
-                                      {typeof item?.temperatureC === 'number' ? `${Math.round(item.temperatureC)}°C` : String(item?.temperatureC ?? '')}
-                                    </div>
-                                  </button>
-                                )
-                              })}
+                                }
+
+                                const firstItemDateOnly = hourlyPayload.data && hourlyPayload.data[0]
+                                  ? parseDateOnly(hourlyPayload.data[0].timeStamp)
+                                  : ''
+
+                                return hourlyPayload.data.map((item: any, idx: number) => {
+                                  const timeVN = (() => {
+                                    const ts = item?.timeStamp
+                                    if (!ts) return ''
+                                    if (typeof ts === 'string') {
+                                      const m = ts.match(/(\d{1,2}:\d{2})/)
+                                      return m ? m[1] : ts
+                                    }
+                                    try {
+                                      const d = new Date(ts)
+                                      return d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Ho_Chi_Minh' })
+                                    } catch {
+                                      return String(ts)
+                                    }
+                                  })()
+
+                                  const itemDateOnly = parseDateOnly(item?.timeStamp)
+                                  const prevDateOnly = idx > 0 ? parseDateOnly(hourlyPayload.data[idx - 1]?.timeStamp) : firstItemDateOnly
+                                  const showDateLabel = idx > 0 && itemDateOnly && itemDateOnly !== prevDateOnly
+
+                                  const isTomorrowRelativeToFirst = (() => {
+                                    if (!firstItemDateOnly || !itemDateOnly) return false
+                                    try {
+                                      const [fd, fm, fy] = firstItemDateOnly.split('/').map(Number)
+                                      const [id, im, iy] = itemDateOnly.split('/').map(Number)
+                                      const firstDate = new Date(fy, fm - 1, fd)
+                                      const itemDate = new Date(iy, im - 1, id)
+                                      const diffDays = Math.round((itemDate.getTime() - firstDate.getTime()) / (24 * 60 * 60 * 1000))
+                                      return diffDays === 1
+                                    } catch {
+                                      return false
+                                    }
+                                  })()
+
+                                  return (
+                                    <React.Fragment key={idx}>
+                                      {showDateLabel && (
+                                        <div className="w-full text-sm text-gray-500 text-left px-2 py-1">
+                                          {isTomorrowRelativeToFirst ? `Ngày mai — ${itemDateOnly}` : itemDateOnly}
+                                        </div>
+                                      )}
+                                      <button
+                                        onClick={() => setSelectedForecastIndex(idx === selectedForecastIndex ? null : idx)}
+                                        className="flex-1 min-w-[7rem] max-w-[9rem] p-2 bg-white border border-gray-100 rounded-lg text-center hover:shadow-md"
+                                        title={String(item?.forecastFor ?? '')}
+                                      >
+                                        <div className="text-xs text-gray-500">{timeVN}</div>
+                                        {item?.iconUrl ? (
+                                          <img src={item.iconUrl} alt={String(item?.description ?? '')} className="mx-auto my-1 w-8 h-8" />
+                                        ) : (
+                                          <div className="mx-auto my-1 h-8 w-8 bg-gray-200 rounded-full" />
+                                        )}
+                                        <div className="text-sm font-medium text-gray-900">
+                                          {typeof item?.temperatureC === 'number' ? `${Math.round(item.temperatureC)}°C` : String(item?.temperatureC ?? '')}
+                                        </div>
+                                      </button>
+                                    </React.Fragment>
+                                  )
+                                })
+                              })()}
                             </div>
                           </div>
                         </div>

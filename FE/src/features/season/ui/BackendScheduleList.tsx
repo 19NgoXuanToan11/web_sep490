@@ -228,6 +228,23 @@ export function BackendScheduleList({
         handleUpdateToday(scheduleDialogs.customToday)
     }, [handleUpdateToday, scheduleDialogs.customToday])
 
+    const formatMoisture = useCallback((value: any) => {
+        if (value === null || value === undefined || value === '') return '-'
+        if (typeof value === 'number') {
+            if (value <= 1) return `${(value * 100).toFixed(0)}%`
+            return String(value)
+        }
+        return String(value)
+    }, [])
+
+    const formatWateringFrequency = useCallback((value: any) => {
+        if (value === null || value === undefined || value === '') return '-'
+        if (!isNaN(Number(value))) {
+            return `${Number(value)} lần/ngày`
+        }
+        return String(value)
+    }, [])
+
     const handleEdit = useCallback((schedule: ScheduleListItem) => {
         if (!schedule.scheduleId) return
         scheduleDialogs.setSelectedSchedule(schedule)
@@ -658,6 +675,34 @@ export function BackendScheduleList({
                                                     </div>
                                                 </div>
                                             )}
+                                            <div>
+                                                <h3 className="text-lg font-semibold mb-3">Yêu cầu cây trồng</h3>
+                                                {scheduleDialogs.scheduleDetail.cropView && Array.isArray(scheduleDialogs.scheduleDetail.cropView.cropRequirement) && scheduleDialogs.scheduleDetail.cropView.cropRequirement.length > 0 ? (
+                                                    <div className="space-y-3">
+                                                        {scheduleDialogs.scheduleDetail.cropView.cropRequirement
+                                                            .slice()
+                                                            .sort((a: any, b: any) => {
+                                                                if (a.plantStage && b.plantStage) return String(a.plantStage).localeCompare(String(b.plantStage))
+                                                                return (a.cropRequirementId ?? 0) - (b.cropRequirementId ?? 0)
+                                                            })
+                                                            .map((req: any) => (
+                                                                <div key={req.cropRequirementId ?? `${req.plantStage}-${req.cropId}`} className="p-4 bg-muted/50 rounded-lg border">
+                                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                                        <div><strong>Giai đoạn:</strong> {req.plantStage ? translatePlantStage(req.plantStage) ?? req.plantStage : '-'}</div>
+                                                                        <div><strong>Thời gian dự kiến:</strong> {req.estimatedDate !== null && req.estimatedDate !== undefined ? `${req.estimatedDate} ngày` : '-'}</div>
+                                                                        <div><strong>Độ ẩm:</strong> {formatMoisture(req.moisture)}</div>
+                                                                        <div><strong>Nhiệt độ:</strong> {req.temperature !== null && req.temperature !== undefined ? `${req.temperature} °C` : '-'}</div>
+                                                                        <div><strong>Phân bón:</strong> {req.fertilizer ?? '-'}</div>
+                                                                        <div><strong>Ánh sáng:</strong> {req.lightRequirement !== null && req.lightRequirement !== undefined ? `${req.lightRequirement} lux` : '-'}</div>
+                                                                        <div className="col-span-2"><strong>Tần suất tưới:</strong> {formatWateringFrequency(req.wateringFrequency)}</div>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                    </div>
+                                                ) : (
+                                                    <div className="p-4 bg-muted/50 rounded-lg">Chưa có yêu cầu</div>
+                                                )}
+                                            </div>
                                         </div>
 
                                         <div className="hidden lg:block">

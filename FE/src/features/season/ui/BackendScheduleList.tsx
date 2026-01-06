@@ -612,31 +612,6 @@ export function BackendScheduleList({
                                                     </div>
                                                 </div>
                                             )}
-
-                                            {scheduleDialogs.scheduleDetail.farmActivityView && (
-                                                <div>
-                                                    <h3 className="text-lg font-semibold mb-3">Thông tin hoạt động nông trại</h3>
-                                                    <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
-                                                        <div>
-                                                            <strong>Loại hoạt động:</strong>{' '}
-                                                            {scheduleDialogs.scheduleDetail.farmActivityView.activityType
-                                                                ? translateActivityType(scheduleDialogs.scheduleDetail.farmActivityView.activityType)
-                                                                : `#${scheduleDialogs.scheduleDetail.farmActivityView.farmActivitiesId}`}
-                                                        </div>
-                                                        {scheduleDialogs.scheduleDetail.farmActivityView.status && (() => {
-                                                            const statusInfo = getFarmActivityStatusInfo(scheduleDialogs.scheduleDetail.farmActivityView.status)
-                                                            return (
-                                                                <div>
-                                                                    <strong>Trạng thái:</strong>{' '}
-                                                                    <Badge variant={statusInfo.variant}>
-                                                                        {statusInfo.label}
-                                                                    </Badge>
-                                                                </div>
-                                                            )
-                                                        })()}
-                                                    </div>
-                                                </div>
-                                            )}
                                         </div>
 
                                         <div className="hidden lg:block">

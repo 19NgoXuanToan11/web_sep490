@@ -90,9 +90,20 @@ export const isActiveStatus = (status: number | string | null | undefined) => {
   return status === 1
 }
 
-export const getDiseaseLabel = (value: number | null | undefined) => {
-  if (value === null || value === undefined || value === -1) return 'Không có bệnh'
-  return diseaseOptions.find(option => option.value === value)?.label ?? String(value)
+export const getDiseaseLabel = (value: number | string | null | undefined) => {
+  if (value === null || value === undefined) return 'Không có'
+
+  if (typeof value === 'number') {
+    if (value === -1) return 'Không có'
+    return diseaseOptions.find(option => option.value === value)?.label ?? String(value)
+  }
+
+  const normalized = String(value).trim()
+  if (normalized === '' || normalized.toLowerCase() === 'none' || normalized === '-1') {
+    return 'Không có'
+  }
+
+  return diseaseOptions.find(option => String(option.value) === normalized)?.label ?? normalized
 }
 
 export const getDiseaseSelectValue = (value: number | null | undefined): string => {

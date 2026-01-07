@@ -145,7 +145,7 @@ export default function FarmActivitiesPage() {
   const [activityTypeFilter, setActivityTypeFilter] = useState<string>('all')
   const [showLatestOnly, setShowLatestOnly] = useState<boolean>(false)
 
-  const [activeTab, setActiveTab] = useState<'ACTIVE' | 'UPCOMING' | 'COMPLETED'>('ACTIVE')
+  const [activeTab, setActiveTab] = useState<'ACTIVE' | 'COMPLETED'>('ACTIVE')
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({})
   const latestRequestIdRef = useRef(0)
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
@@ -306,22 +306,16 @@ export default function FarmActivitiesPage() {
     return mapping[type] || activityTypeMap[type] || type
   }
 
-  const getTodayStart = () => {
-    const d = new Date()
-    d.setHours(0, 0, 0, 0)
-    return d
-  }
 
-  const getTabForActivity = (activity: FarmActivity): 'ACTIVE' | 'UPCOMING' | 'COMPLETED' => {
+
+  const getTabForActivity = (activity: FarmActivity): 'ACTIVE' | 'COMPLETED' | 'NONE' => {
     const status = (activity.status || '').toUpperCase()
+    if (status === 'ACTIVE') return 'ACTIVE'
     if (status === 'COMPLETED') return 'COMPLETED'
-    const start = parseDate(activity.startDate)
-    const today = getTodayStart()
-    if (start && start.getTime() > today.getTime()) return 'UPCOMING'
-    return 'ACTIVE'
+    return 'NONE'
   }
 
-  const sortRules = (tab: 'ACTIVE' | 'UPCOMING' | 'COMPLETED', a: FarmActivity, b: FarmActivity) => {
+  const sortRules = (tab: 'ACTIVE' | 'COMPLETED', a: FarmActivity, b: FarmActivity) => {
     const parse = (v?: string | null) => {
       const d = parseDate(v)
       return d ? d.getTime() : 0
@@ -334,12 +328,6 @@ export default function FarmActivitiesPage() {
       const aPri = activityPriority[a.activityType || ''] ?? 99
       const bPri = activityPriority[b.activityType || ''] ?? 99
       if (aPri !== bPri) return aPri - bPri
-      const aStart = parse(a.startDate)
-      const bStart = parse(b.startDate)
-      if (aStart !== bStart) return aStart - bStart
-      return (b.farmActivitiesId || 0) - (a.farmActivitiesId || 0)
-    }
-    if (tab === 'UPCOMING') {
       const aStart = parse(a.startDate)
       const bStart = parse(b.startDate)
       if (aStart !== bStart) return aStart - bStart
@@ -366,7 +354,8 @@ export default function FarmActivitiesPage() {
   }
 
   const statusOptions = [
-    { value: 'ACTIVE', label: 'Hoạt động', variant: 'success' as const },
+    { value: 'ACTIVE', label: 'Hoạt động', variant: 'golden' as const },
+    { value: 'COMPLETED', label: 'Hoàn thành', variant: 'completed' as const },
     { value: 'DEACTIVATED', label: 'Tạm dừng', variant: 'destructive' as const },
   ]
 
@@ -467,17 +456,18 @@ export default function FarmActivitiesPage() {
 
 
   const processedByTab = useMemo(() => {
-    const byTab: Record<'ACTIVE' | 'UPCOMING' | 'COMPLETED', FarmActivity[]> = {
+    const byTab: Record<'ACTIVE' | 'COMPLETED', FarmActivity[]> = {
       ACTIVE: [],
-      UPCOMING: [],
       COMPLETED: [],
     }
     for (const act of filteredActivities) {
       const tab = getTabForActivity(act)
-      byTab[tab].push(act)
+      if (tab === 'ACTIVE' || tab === 'COMPLETED') {
+        byTab[tab].push(act)
+      }
     }
-    ; (['ACTIVE', 'UPCOMING', 'COMPLETED'] as const).forEach(tab => {
-      byTab[tab].sort((a, b) => sortRules(tab, a, b))
+    ; (['ACTIVE', 'COMPLETED'] as const).forEach(tab => {
+      byTab[tab].sort((a, b) => sortRules(tab, a, b as any))
     })
     return byTab
   }, [filteredActivities])
@@ -654,26 +644,45 @@ export default function FarmActivitiesPage() {
   const formatDisplayDate = (dateString: string | undefined | null): string => {
     if (!dateString) return 'Không có dữ liệu'
     try {
-      if (dateString.includes('/')) {
-        const parts = dateString.split('/')
-        if (parts.length === 3) {
-          const month = parts[0].padStart(2, '0')
-          const day = parts[1].padStart(2, '0')
-          const year = parts[2]
-          const isoDate = `${year}-${month}-${day}`
-          const date = new Date(isoDate)
-          if (!isNaN(date.getTime())) {
-            return date.toLocaleDateString('vi-VN')
+      const ddmmyyyy = /^\s*(\d{1,2})\/(\d{1,2})\/(\d{4})\s*$/
+      const dMatch = ddmmyyyy.exec(dateString)
+      if (dMatch) {
+        const day = Number(dMatch[1])
+        const month = Number(dMatch[2])
+        const year = Number(dMatch[3])
+        if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+          const d = new Date(year, month - 1, day)
+          if (!isNaN(d.getTime())) {
+            const formatted = formatDate(d)
+            return formatted === '-' ? 'Không có dữ liệu' : formatted
           }
         }
       }
-      const date = new Date(dateString)
-      if (!isNaN(date.getTime())) {
-        return date.toLocaleDateString('vi-VN')
+
+      const yyyymmdd = /^\s*(\d{4})-(\d{1,2})-(\d{1,2})\s*$/
+      const yMatch = yyyymmdd.exec(dateString)
+      if (yMatch) {
+        const year = Number(yMatch[1])
+        const month = Number(yMatch[2])
+        const day = Number(yMatch[3])
+        if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+          const d = new Date(year, month - 1, day)
+          if (!isNaN(d.getTime())) {
+            const formatted = formatDate(d)
+            return formatted === '-' ? 'Không có dữ liệu' : formatted
+          }
+        }
       }
-      return dateString
+
+      const iso = new Date(dateString)
+      if (!isNaN(iso.getTime())) {
+        const formatted = formatDate(iso)
+        return formatted === '-' ? 'Không có dữ liệu' : formatted
+      }
+
+      return 'Không có dữ liệu'
     } catch {
-      return dateString
+      return 'Không có dữ liệu'
     }
   }
 
@@ -823,24 +832,6 @@ export default function FarmActivitiesPage() {
                 </span>
               </button>
 
-              <button
-                role="tab"
-                aria-selected={activeTab === 'UPCOMING'}
-                onClick={() => setActiveTab('UPCOMING')}
-                title="Sắp tới"
-                className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-400 ${activeTab === 'UPCOMING'
-                  ? 'bg-gradient-to-r from-emerald-700 to-green-600 text-white shadow-md'
-                  : 'bg-white/60 text-gray-700 hover:shadow-sm'
-                  }`}
-              >
-                <span className="ml-1">Sắp tới</span>
-                <span
-                  className={`ml-3 inline-flex items-center justify-center px-3 py-0.5 rounded-full text-xs font-semibold ${activeTab === 'UPCOMING' ? 'bg-white/20' : 'bg-gray-100 text-gray-800'
-                    }`}
-                >
-                  {processedByTab.UPCOMING ? processedByTab.UPCOMING.length : 0}
-                </span>
-              </button>
 
               <button
                 role="tab"
@@ -962,9 +953,9 @@ export default function FarmActivitiesPage() {
           {selectedActivityForDetails && (
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
+                <div className="md:col-span-2">
                   <Label className="text-sm text-gray-600">Hoạt động</Label>
-                  <p className="mt-1 text-base font-semibold text-gray-900">
+                  <p className="mt-1 text-base font-semibold text-gray-900 break-normal">
                     {getActivityTypeLabel(selectedActivityForDetails.activityType)}
                   </p>
                 </div>

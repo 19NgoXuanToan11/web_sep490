@@ -4,7 +4,7 @@ export const APP_CONFIG = {
     email: 'manager@email.com',
   },
   FEATURES: {
-    HIDE_FARM_ACTIVITIES: true,
+    HIDE_FARM_ACTIVITIES: false,
   },
   PAGINATION: {
     DEFAULT_PAGE_SIZE: 10,

@@ -4,7 +4,8 @@ export type PlantStage = 'Germination' | 'Seedling' | 'Vegetative' | 'Harvest'
 
 export interface CropRequirementPayload {
   estimatedDate?: number | null
-  moisture?: number | null
+  soilMoisture?: number | null
+  humidity?: number | null
   temperature?: number | null
   fertilizer?: string | null
   lightRequirement?: number | null
@@ -18,7 +19,8 @@ export interface CropRequirementView {
   cropName?: string | null
   plantStage?: string | null
   estimatedDate?: number | null
-  moisture?: number | null
+  soilMoisture?: number | null
+  humidity?: number | null
   temperature?: number | null
   fertilizer?: string | null
   lightRequirement?: number | null

@@ -55,7 +55,7 @@ export const EnvironmentalMetricsWidget: React.FC<EnvironmentalMetricsWidgetProp
                 .map((req) => {
                     if (key === 'lightRequirement') return req.lightRequirement
                     if (key === 'temperature') return req.temperature
-                    if (key === 'moisture') return req.moisture
+                    if (key === 'moisture') return req.soilMoisture
                     return null
                 })
                 .filter((v): v is number => v !== null && v !== undefined)

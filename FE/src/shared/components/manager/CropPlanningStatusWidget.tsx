@@ -23,7 +23,7 @@ export const CropPlanningStatusWidget: React.FC<CropPlanningStatusWidgetProps> =
             (req) =>
                 req.isActive &&
                 req.temperature !== null &&
-                req.moisture !== null &&
+                (req as any).soilMoisture !== null &&
                 req.lightRequirement !== null &&
                 req.estimatedDate !== null
         ).length
@@ -32,7 +32,7 @@ export const CropPlanningStatusWidget: React.FC<CropPlanningStatusWidgetProps> =
             (req) =>
                 req.isActive &&
                 (req.temperature === null ||
-                    req.moisture === null ||
+                    (req as any).soilMoisture === null ||
                     req.lightRequirement === null ||
                     req.estimatedDate === null)
         ).length

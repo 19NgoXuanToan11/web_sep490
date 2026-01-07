@@ -5,7 +5,8 @@ export interface CropRequirement {
   cropId: number
   plantStage: string
   estimatedDate: number
-  moisture: number
+  soilMoisture: number
+  humidity?: number
   temperature: number
   fertilizer: string
   lightRequirement: number

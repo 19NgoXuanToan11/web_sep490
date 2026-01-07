@@ -44,7 +44,8 @@ type RequirementFormState = {
   cropId: number | ''
   plantStage: PlantStage | ''
   estimatedDate: string
-  moisture: string
+  soilMoisture: string
+  humidity: string
   temperature: string
   fertilizer: string
   lightRequirement: string
@@ -79,7 +80,8 @@ const INITIAL_FORM_STATE: RequirementFormState = {
   cropId: '',
   plantStage: '',
   estimatedDate: '',
-  moisture: '',
+  soilMoisture: '',
+  humidity: '',
   temperature: '',
   fertilizer: '',
   lightRequirement: '',
@@ -115,7 +117,8 @@ type CropRequirementRow = {
   cropRequirementId?: number
   plantStage?: string | null
   estimatedDate?: number | null
-  moisture?: number | null
+  soilMoisture?: number | null
+  humidity?: number | null
   temperature?: number | null
   fertilizer?: string | null
   lightRequirement?: number | null
@@ -265,7 +268,8 @@ export default function CropsPage() {
         cropRequirementId: req.cropRequirementId,
         plantStage: req.plantStage,
         estimatedDate: req.estimatedDate,
-        moisture: req.moisture,
+        soilMoisture: (req as any).soilMoisture ?? (req as any).moisture ?? null,
+        humidity: (req as any).humidity ?? null,
         temperature: req.temperature,
         fertilizer: req.fertilizer,
         lightRequirement: req.lightRequirement,
@@ -286,7 +290,8 @@ export default function CropsPage() {
         cropRequirementId: undefined,
         plantStage: null,
         estimatedDate: null,
-        moisture: null,
+        soilMoisture: null,
+        humidity: null,
         temperature: null,
         fertilizer: null,
         lightRequirement: null,
@@ -317,7 +322,7 @@ export default function CropsPage() {
       total,
       active,
       inactive: total - active,
-      moisture: average('moisture'),
+      moisture: average('soilMoisture'),
       temperature: average('temperature'),
       light: average('lightRequirement'),
       stageDistribution,
@@ -488,7 +493,8 @@ export default function CropsPage() {
 
   const mapFormToPayload = (): CropRequirementPayload => ({
     estimatedDate: toNullableNumber(formData.estimatedDate),
-    moisture: toNullableNumber(formData.moisture),
+    soilMoisture: toNullableNumber(formData.soilMoisture),
+    humidity: toNullableNumber(formData.humidity),
     temperature: toNullableNumber(formData.temperature),
     fertilizer: formData.fertilizer || null,
     lightRequirement: toNullableNumber(formData.lightRequirement),
@@ -503,10 +509,14 @@ export default function CropsPage() {
       requirement.estimatedDate === null || requirement.estimatedDate === undefined
         ? ''
         : String(requirement.estimatedDate),
-    moisture:
-      requirement.moisture === null || requirement.moisture === undefined
+    soilMoisture:
+      (requirement as any).soilMoisture === null || (requirement as any).soilMoisture === undefined
         ? ''
-        : String(requirement.moisture),
+        : String((requirement as any).soilMoisture ?? requirement.soilMoisture ?? ''),
+    humidity:
+      (requirement as any).humidity === null || (requirement as any).humidity === undefined
+        ? ''
+        : String((requirement as any).humidity),
     temperature:
       requirement.temperature === null || requirement.temperature === undefined
         ? ''
@@ -658,7 +668,7 @@ export default function CropsPage() {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-gray-500">Độ ẩm trung bình</p>
+                    <p className="text-sm text-gray-500">Độ ẩm đất trung bình</p>
                     <p className="text-2xl font-semibold mt-1">{formatNumber(stats.moisture, '%')}</p>
                   </div>
                 </div>
@@ -833,9 +843,14 @@ export default function CropsPage() {
                                         Thời gian ước tính: {req.estimatedDate} ngày
                                       </p>
                                     )}
-                                    {req.moisture !== null && req.moisture !== undefined && (
+                                    {req.soilMoisture !== null && req.soilMoisture !== undefined && (
                                       <p className="text-xs text-gray-600 mb-1">
-                                        Độ ẩm: {formatNumber(req.moisture, '%')}
+                                        Độ ẩm đất: {formatNumber(req.soilMoisture, '%')}
+                                      </p>
+                                    )}
+                                    {req.humidity !== null && req.humidity !== undefined && (
+                                      <p className="text-xs text-gray-600 mb-1">
+                                        Độ ẩm không khí: {formatNumber(req.humidity, '%')}
                                       </p>
                                     )}
                                     {req.temperature !== null && req.temperature !== undefined && (
@@ -976,12 +991,22 @@ export default function CropsPage() {
                 </Select>
               </div>
               <div>
-                <Label>Độ ẩm (%)</Label>
+                <Label>Độ ẩm đất (%)</Label>
                 <Input
                   type="number"
                   min={0}
-                  value={formData.moisture}
-                  onChange={e => setFormData(prev => ({ ...prev, moisture: e.target.value }))}
+                  value={formData.soilMoisture}
+                  onChange={e => setFormData(prev => ({ ...prev, soilMoisture: e.target.value }))}
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <Label>Độ ẩm không khí (%)</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  value={formData.humidity}
+                  onChange={e => setFormData(prev => ({ ...prev, humidity: e.target.value }))}
                   className="mt-1"
                 />
               </div>
@@ -1148,15 +1173,21 @@ export default function CropsPage() {
                 <CardContent>
                   <div className="grid md:grid-cols-3 gap-4">
                     <div className="p-4 bg-gray-50 rounded-lg">
-                      <Label className="text-xs text-gray-500">Độ ẩm</Label>
+                      <Label className="text-xs text-gray-500">Độ ẩm đất</Label>
                       <p className="mt-1 text-2xl font-semibold text-gray-900">
-                        {formatNumber(detailRequirement.moisture, '%')}
+                        {formatNumber(detailRequirement.soilMoisture, '%')}
                       </p>
                     </div>
                     <div className="p-4 bg-gray-50 rounded-lg">
                       <Label className="text-xs text-gray-500">Nhiệt độ</Label>
                       <p className="mt-1 text-2xl font-semibold text-gray-900">
                         {formatNumber(detailRequirement.temperature, '°C')}
+                      </p>
+                    </div>
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                      <Label className="text-xs text-gray-500">Độ ẩm không khí</Label>
+                      <p className="mt-1 text-2xl font-semibold text-gray-900">
+                        {formatNumber((detailRequirement as any).humidity ?? null, '%')}
                       </p>
                     </div>
                     <div className="p-4 bg-gray-50 rounded-lg">

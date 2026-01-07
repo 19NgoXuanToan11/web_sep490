@@ -5,7 +5,8 @@ export interface CropRequirement {
   cropId: number
   plantStage: string
   estimatedDate: number
-  moisture: number
+  soilMoisture: number
+  humidity?: number
   temperature: number
   fertilizer: string
   lightRequirement: number
@@ -68,14 +69,14 @@ export const cropService = {
     )
     return response.data
   },
-  
+
   getAllCropsList: async (pageSize: number = 1000): Promise<Crop[]> => {
     const response = await http.get<PaginatedCrops>(
       `/v1/crop/get-all?pageIndex=1&pageSize=${pageSize}`
     )
     return response.data.items ?? []
   },
- 
+
   getAllCropsActive: async (): Promise<Crop[]> => {
     const response = await http.get<Crop[]>('/v1/crop/get-all-active')
     return response.data ?? []

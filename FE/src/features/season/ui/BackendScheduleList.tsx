@@ -104,19 +104,7 @@ export function BackendScheduleList({
             .filter((x: any) => x !== null)
 
         if (mapped.length === 0) {
-            const start = detail.startDate ? new Date(detail.startDate) : null
-            const end = detail.endDate ? new Date(detail.endDate) : null
-            if (!start || !end || isNaN(start.getTime()) || isNaN(end.getTime())) return []
-            const title = detail.cropView?.cropName || `Thời vụ #${detail.scheduleId}`
-            return [{
-                id: String(detail.scheduleId),
-                title,
-                start,
-                end,
-                allDay: true,
-                color: detail.status === 1 || detail.status === 'ACTIVE' ? '#F59E0B' : '#9CA3AF',
-                raw: detail,
-            }]
+            return []
         }
 
         return mapped
@@ -773,6 +761,14 @@ export function BackendScheduleList({
                                     <div className="space-y-4">
                                         <Card>
                                             <CardContent className="px-6 pt-3 pb-6">
+                                                {scheduleDialogs.scheduleDetail && (!Array.isArray(scheduleDialogs.scheduleDetail.farmActivityView) || scheduleDialogs.scheduleDetail.farmActivityView.length === 0) ? (
+                                                    <div className="p-4 mb-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                                        <p className="text-sm text-gray-700">
+                                                            Chưa có hoạt động nông trại cho thời vụ này. Hãy tạo hoạt động để theo dõi trên lịch.
+                                                        </p>
+                                                    </div>
+                                                ) : null}
+
                                                 <CalendarShell
                                                     events={scheduleCalendarEvents.map((ev: any) => ({
                                                         id: String(ev.id),

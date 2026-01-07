@@ -8,6 +8,10 @@ export interface FarmActivity {
   endDate: string
   status: string
   plantStage?: PlantStage | null
+  staffId?: number | null
+  staffEmail?: string | null
+  staffFullName?: string | null
+  staffPhone?: string | null
 }
 
 export interface FarmActivityRequest {
@@ -73,7 +77,8 @@ export const farmActivityService = {
     params: { scheduleId?: number; pageIndex?: number; pageSize?: number } = {}
   ): Promise<PaginationData<FarmActivity>> => {
     const queryParams = new URLSearchParams()
-    if (params.scheduleId !== undefined) queryParams.append('scheduleId', params.scheduleId.toString())
+    if (params.scheduleId !== undefined)
+      queryParams.append('scheduleId', params.scheduleId.toString())
     if (params.pageIndex) queryParams.append('pageIndex', params.pageIndex.toString())
     if (params.pageSize) queryParams.append('pageSize', params.pageSize.toString())
 

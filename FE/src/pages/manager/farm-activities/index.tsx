@@ -702,6 +702,12 @@ export default function FarmActivitiesPage() {
     return dateString
   }
 
+  const safeField = (value: any): string => {
+    if (value === null || value === undefined) return '—'
+    if (typeof value === 'string' && value.trim() === '') return '—'
+    return String(value)
+  }
+
   const handleViewDetailsClick = (activity: FarmActivity) => {
     setSelectedActivityForDetails(activity)
     setDetailsDialogOpen(true)
@@ -800,8 +806,8 @@ export default function FarmActivitiesPage() {
                 variant="outline"
                 onClick={() => setShowLatestOnly(prev => !prev)}
                 className={`flex items-center gap-2 px-3 py-2 rounded-md transition duration-200 ease-out focus:outline-none ${showLatestOnly
-                  ? 'bg-green-600 text-white hover:bg-green-700 hover:shadow-lg hover:ring-2 hover:ring-green-200 hover:text-white'
-                  : 'bg-white border border-gray-200 text-black hover:bg-green-50 hover:shadow-md hover:text-white hover:bg-green-600 hover:ring-1 hover:ring-green-100'
+                  ? 'bg-green-600 text-white hover:bg-green-700 hover:shadow-lg hover:ring-2 hover:ring-green-200'
+                  : 'bg-white border border-gray-200 text-black hover:bg-green-50 hover:shadow-md'
                   }`}
               >
                 {showLatestOnly ? 'Chỉ mục mới nhất mỗi loại' : 'Toàn bộ hoạt động'}
@@ -919,6 +925,9 @@ export default function FarmActivitiesPage() {
                                       <div className="flex items-center gap-2">
                                         {getStatusBadge(activity.status)}
                                       </div>
+                                      <div className="text-sm text-gray-600 mt-1">
+                                        <div>Nhân sự: <span className="font-medium text-gray-900">{safeField(activity.staffFullName)}</span></div>
+                                      </div>
                                     </div>
                                     <div onClick={(e) => e.stopPropagation()}>
                                       <ActivityActionMenu
@@ -952,31 +961,46 @@ export default function FarmActivitiesPage() {
 
           {selectedActivityForDetails && (
             <div className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="md:col-span-2">
-                  <Label className="text-sm text-gray-600">Hoạt động</Label>
-                  <p className="mt-1 text-base font-semibold text-gray-900 break-normal">
-                    {getActivityTypeLabel(selectedActivityForDetails.activityType)}
-                  </p>
-                </div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 <div>
-                  <Label className="text-sm text-gray-600">Ngày bắt đầu</Label>
-                  <p className="mt-1 text-base text-gray-900">
-                    {formatDisplayDate(selectedActivityForDetails.startDate)}
-                  </p>
+                  <Label className="text-sm text-gray-600">Thông tin hoạt động</Label>
+                  <div className="mt-2 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm text-gray-600">Loại hoạt động</div>
+                      <div className="text-sm font-medium text-gray-900">{getActivityTypeLabel(selectedActivityForDetails.activityType)}</div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm text-gray-600">Ngày bắt đầu</div>
+                      <div className="text-sm font-medium text-gray-900">{formatDisplayDate(selectedActivityForDetails.startDate)}</div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm text-gray-600">Ngày kết thúc</div>
+                      <div className="text-sm font-medium text-gray-900">{formatDisplayDate(selectedActivityForDetails.endDate)}</div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm text-gray-600">Trạng thái</div>
+                      <div className="text-sm mt-1">{getStatusBadge(selectedActivityForDetails.status)}</div>
+                    </div>
+                  </div>
                 </div>
+
                 <div>
-                  <Label className="text-sm text-gray-600">Ngày kết thúc</Label>
-                  <p className="mt-1 text-base text-gray-900">
-                    {formatDisplayDate(selectedActivityForDetails.endDate)}
-                  </p>
+                  <Label className="text-sm text-gray-600">Nhân sự phụ trách</Label>
+                  <div className="mt-2 space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm text-gray-600">Họ và tên</div>
+                      <div className="text-sm font-medium text-gray-900">{safeField(selectedActivityForDetails.staffFullName)}</div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm text-gray-600">Email</div>
+                      <div className="text-sm font-medium text-gray-900">{safeField(selectedActivityForDetails.staffEmail)}</div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="text-sm text-gray-600">SĐT</div>
+                      <div className="text-sm font-medium text-gray-900">{safeField(selectedActivityForDetails.staffPhone)}</div>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div>
-                <Label className="text-sm text-gray-600">Trạng thái</Label>
-                <div className="mt-1">{getStatusBadge(selectedActivityForDetails.status)}</div>
               </div>
             </div>
           )}

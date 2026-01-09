@@ -2,12 +2,12 @@ import React from 'react'
 import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
 import { Label } from '@/shared/ui/label'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/shared/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/shared/ui/dialog'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { Loader2 } from 'lucide-react'
 import type { CreateScheduleRequest } from '../types'
-import { statusOptions, getDiseaseSelectValue } from '../utils/labels'
 import type { ActivityOption } from '../types'
+import { diseaseEnumMap } from '../utils/labels'
 
 interface EditScheduleDialogProps {
     open: boolean
@@ -33,8 +33,8 @@ export function EditScheduleDialog({
     onFormChange,
     farms,
     crops,
-    staffs,
-    activities,
+    staffs: _staffs,
+    activities: _activities,
     metaLoading,
     editLoading,
     actionLoading,
@@ -46,6 +46,8 @@ export function EditScheduleDialog({
         e.preventDefault()
         onSubmit(form)
     }
+    void _staffs
+    void _activities
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -61,15 +63,16 @@ export function EditScheduleDialog({
                                 Đang tải dữ liệu lịch...
                             </div>
                         )}
+
                         <div>
-                            <Label>Farm</Label>
+                            <Label>Nông trại</Label>
                             <Select
-                                value={form.farmId != null && form.farmId > 0 ? String(form.farmId) : ''}
+                                value={form.farmId ? String(form.farmId) : ''}
                                 onValueChange={v => onFormChange({ ...form, farmId: Number(v) })}
-                                disabled={true}
+                                disabled={metaLoading}
                             >
                                 <SelectTrigger>
-                                    <SelectValue placeholder={metaLoading || editLoading ? 'Đang tải...' : 'Chọn nông trại'} />
+                                    <SelectValue placeholder={metaLoading ? 'Đang tải...' : 'Chọn nông trại'} />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {farms.map(f => (
@@ -78,15 +81,16 @@ export function EditScheduleDialog({
                                 </SelectContent>
                             </Select>
                         </div>
+
                         <div>
-                            <Label>Crop</Label>
+                            <Label>Cây trồng</Label>
                             <Select
-                                value={form.cropId != null && form.cropId > 0 ? String(form.cropId) : ''}
+                                value={form.cropId ? String(form.cropId) : ''}
                                 onValueChange={v => onFormChange({ ...form, cropId: Number(v) })}
-                                disabled={true}
+                                disabled={metaLoading}
                             >
                                 <SelectTrigger>
-                                    <SelectValue placeholder={metaLoading || editLoading ? 'Đang tải...' : 'Chọn cây trồng'} />
+                                    <SelectValue placeholder={metaLoading ? 'Đang tải...' : 'Chọn cây trồng'} />
                                 </SelectTrigger>
                                 <SelectContent className="max-h-56 overflow-y-auto">
                                     {crops.map(c => (
@@ -95,23 +99,7 @@ export function EditScheduleDialog({
                                 </SelectContent>
                             </Select>
                         </div>
-                        <div>
-                            <Label>Staff</Label>
-                            <Select
-                                value={form.staffId != null ? String(form.staffId) : ''}
-                                onValueChange={v => onFormChange({ ...form, staffId: Number(v) })}
-                                disabled={metaLoading || editLoading}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder={metaLoading || editLoading ? 'Đang tải...' : 'Chọn nhân viên'} />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {staffs.map(s => (
-                                        <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
+
                         <div>
                             <Label>Ngày bắt đầu</Label>
                             <Input
@@ -120,16 +108,25 @@ export function EditScheduleDialog({
                                 value={form.startDate}
                                 onChange={e => onFormChange({ ...form, startDate: e.target.value })}
                             />
+                            {form.startDate && (
+                                <div className="text-xs text-gray-500 mt-1">
+                                    {(() => {
+                                        const s = form.startDate
+                                        try {
+                                            const dt = s.includes('/') ? s.split('/') : s.split('T')[0].split('-').reverse()
+                                            if (Array.isArray(dt) && dt.length >= 3) {
+                                                if (s.includes('/')) return s
+                                                return `${dt[2] ? dt[2] : dt[0]}/${dt[1]}/${dt[0]}`
+                                            }
+                                        } catch (err) {
+                                            return s
+                                        }
+                                        return s
+                                    })()}
+                                </div>
+                            )}
                         </div>
-                        <div>
-                            <Label>Ngày kết thúc</Label>
-                            <Input
-                                type="date"
-                                min={form.startDate || todayString}
-                                value={form.endDate}
-                                onChange={e => onFormChange({ ...form, endDate: e.target.value })}
-                            />
-                        </div>
+
                         <div>
                             <Label>Số lượng</Label>
                             <Input
@@ -139,82 +136,76 @@ export function EditScheduleDialog({
                                 onChange={e => onFormChange({ ...form, quantity: Number(e.target.value) })}
                             />
                         </div>
+
                         <div>
                             <Label>Trạng thái</Label>
                             <Select
-                                value={String(form.status)}
-                                onValueChange={v => onFormChange({ ...form, status: Number(v) })}
+                                value={form.status != null ? String(form.status) : ''}
+                                onValueChange={v => onFormChange({ ...form, status: (v as any) })}
                             >
                                 <SelectTrigger>
-                                    <SelectValue />
+                                    <SelectValue placeholder="Chọn trạng thái" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {statusOptions.map(opt => (
-                                        <SelectItem key={opt.value} value={String(opt.value)}>{opt.label}</SelectItem>
-                                    ))}
+                                    <SelectItem value="ACTIVE">Hoạt động</SelectItem>
+                                    <SelectItem value="DEACTIVATED">Vô hiệu hóa</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
+
                         <div>
                             <Label>Tình trạng bệnh</Label>
                             <Select
-                                value={getDiseaseSelectValue(form.diseaseStatus)}
+                                value={form.diseaseStatus == null ? '-1' : String(form.diseaseStatus)}
                                 onValueChange={v => {
                                     const numValue = Number(v)
                                     onFormChange({ ...form, diseaseStatus: numValue === -1 ? null : numValue })
                                 }}
                             >
                                 <SelectTrigger>
-                                    <SelectValue />
+                                    <SelectValue placeholder="Chọn tình trạng bệnh" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="-1">Không có bệnh</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div>
-                            <Label>Hoạt động</Label>
-                            <Select
-                                value={form.farmActivitiesId != null && form.farmActivitiesId > 0 ? String(form.farmActivitiesId) : ''}
-                                onValueChange={v => onFormChange({ ...form, farmActivitiesId: Number(v) })}
-                                disabled={metaLoading || editLoading}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder={metaLoading || editLoading ? 'Đang tải...' : 'Chọn hoạt động'} />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {activities.map(a => (
-                                        <SelectItem key={a.id} value={String(a.id)}>{a.name}</SelectItem>
+                                    {Object.keys(diseaseEnumMap).map(key => (
+                                        <SelectItem key={key} value={String((diseaseEnumMap as any)[key])}>
+                                            {key}
+                                        </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
                         </div>
-                        <div className="flex items-center space-x-2">
-                            <input
-                                type="checkbox"
-                                id="editPesticide"
-                                checked={form.pesticideUsed}
-                                onChange={e => onFormChange({ ...form, pesticideUsed: e.target.checked })}
-                            />
-                            <Label htmlFor="editPesticide">Sử dụng thuốc BVTV</Label>
+
+                        <div className="flex items-end gap-2 col-span-2 md:col-span-3">
+                            <label className="flex items-center gap-2">
+                                <input
+                                    type="checkbox"
+                                    checked={form.pesticideUsed}
+                                    onChange={e => onFormChange({ ...form, pesticideUsed: e.target.checked })}
+                                />
+                                <span>Đã dùng thuốc BVTV</span>
+                            </label>
+                            <div className="ml-auto flex gap-2">
+                                {metaLoading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
+                                <Button type="button" variant="outline" size="sm" onClick={() => onOpenChange(false)}>Hủy</Button>
+                                <Button
+                                    type="submit"
+                                    size="sm"
+                                    disabled={actionLoading[`update-${selectedScheduleId}`]}
+                                >
+                                    {actionLoading[`update-${selectedScheduleId}`] && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                                    Cập nhật
+                                </Button>
+                            </div>
                         </div>
+
+                        <input type="hidden" value={form.endDate || ''} />
+                        <input type="hidden" value={form.staffId ?? ''} />
+                        <input type="hidden" value={String(form.status ?? '')} />
+                        <input type="hidden" value={String(form.diseaseStatus ?? '')} />
+                        <input type="hidden" value={String(form.farmActivitiesId ?? '')} />
                     </fieldset>
                 </form>
-                <DialogFooter>
-                    <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                        Hủy
-                    </Button>
-                    <Button
-                        type="submit"
-                        onClick={handleSubmit}
-                        disabled={actionLoading[`update-${selectedScheduleId}`]}
-                    >
-                        {actionLoading[`update-${selectedScheduleId}`] && (
-                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        )}
-                        Cập nhật
-                    </Button>
-                </DialogFooter>
             </DialogContent>
         </Dialog>
     )

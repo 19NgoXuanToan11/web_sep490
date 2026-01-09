@@ -288,10 +288,50 @@ export function BackendScheduleList({
 
     const handleEdit = useCallback((schedule: ScheduleListItem) => {
         if (!schedule.scheduleId) return
-        scheduleDialogs.setSelectedSchedule(schedule)
-        scheduleDialogs.setEditingScheduleId(schedule.scheduleId)
-        scheduleDialogs.handleEditDialogChange(true)
-    }, [scheduleDialogs])
+
+        const toIsoDate = (s?: string | null) => {
+            if (!s) return ''
+            if (s.includes('-')) return s.split('T')[0]
+            if (s.includes('/')) {
+                const parts = String(s).split('/')
+                if (parts.length === 3) {
+                    const [d, m, y] = parts
+                    return `${y.padStart(4, '0')}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`
+                }
+            }
+            return s
+        }
+
+        scheduleActions.handleViewDetail(schedule, (detail: any) => {
+            const normalizeStatus = (s: any) => {
+                if (s === null || s === undefined) return 'DEACTIVATED'
+                if (typeof s === 'number') return s === 1 ? 'ACTIVE' : 'DEACTIVATED'
+                return String(s)
+            }
+
+            scheduleDialogs.setEditForm({
+                farmId: detail.farmId ?? detail.farmView?.farmId ?? 0,
+                cropId: detail.cropId ?? detail.cropView?.cropId ?? 0,
+                staffId:
+                    detail.staffId ??
+                    (detail.staff && (detail.staff.accountId || (detail.staff as any).accountId)) ??
+                    0,
+                startDate: toIsoDate(detail.startDate),
+                endDate: toIsoDate(detail.endDate),
+                plantingDate: detail.plantingDate ?? undefined,
+                harvestDate: detail.harvestDate ?? undefined,
+                quantity: detail.quantity ?? 0,
+                status: normalizeStatus(detail.status),
+                pesticideUsed: !!detail.pesticideUsed,
+                diseaseStatus: (detail.diseaseStatus ?? null),
+                farmActivitiesId: detail.farmActivitiesId ?? undefined,
+            } as CreateScheduleRequest)
+
+            scheduleDialogs.setSelectedSchedule(schedule)
+            scheduleDialogs.setEditingScheduleId(schedule.scheduleId ?? null)
+            scheduleDialogs.handleEditDialogChange(true)
+        })
+    }, [scheduleDialogs, scheduleActions])
 
     useEffect(() => {
         if (!scheduleDialogs.editingScheduleId) return
@@ -312,8 +352,6 @@ export function BackendScheduleList({
                     } finally {
                         if (!cancelled) scheduleData.setMetaLoading(false)
                     }
-
-                    scheduleDialogs.setEditForm({} as CreateScheduleRequest)
                 } catch (e) {
                     if (!cancelled) {
                         scheduleDialogs.handleEditDialogChange(false)
@@ -323,7 +361,7 @@ export function BackendScheduleList({
         return () => {
             cancelled = true
         }
-    }, [scheduleDialogs.editingScheduleId, scheduleData, scheduleDialogs])
+    }, [scheduleDialogs.editingScheduleId, scheduleData.loadReferenceData])
 
     const handleUpdateSchedule = useCallback(async (form: CreateScheduleRequest) => {
         if (!scheduleDialogs.selectedSchedule?.scheduleId) return

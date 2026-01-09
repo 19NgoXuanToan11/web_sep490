@@ -3,6 +3,7 @@ import { Toaster } from 'sonner'
 import { useEffect } from 'react'
 import { useAuthStore } from '@/shared/store/authStore'
 import '@/shared/ui/AutofillFix.css'
+import ErrorBoundary from '@/shared/ui/ErrorBoundary'
 
 function App() {
   const loadFromStorage = useAuthStore(s => s.loadFromStorage)
@@ -11,7 +12,9 @@ function App() {
   }, [loadFromStorage])
   return (
     <div className="App">
-      <AppRouter />
+      <ErrorBoundary>
+        <AppRouter />
+      </ErrorBoundary>
       <Toaster />
     </div>
   )

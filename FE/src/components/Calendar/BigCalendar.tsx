@@ -168,12 +168,12 @@ const BigCalendar: React.FC<Props> = ({ events = [], onEventClick, onDayClick, o
                 className="w-full block text-left px-4 py-2 rounded-md hover:bg-muted/50 active:bg-muted/60 focus:outline-none cursor-pointer text-red-600"
                 onClick={(e) => {
                   e.stopPropagation()
-                  const ok = window.confirm('Bạn có chắc chắn muốn vô hiệu hóa lịch này?')
+                  const ok = window.confirm('Bạn có chắc chắn muốn vô hiệu hóa hoạt động này?')
                   if (!ok) return
-                  onEventMenuAction && onEventMenuAction('deactivate', raw)
+                  onEventMenuAction && onEventMenuAction('deactivate-activity', raw)
                 }}
               >
-                Vô hiệu hóa lịch
+                Vô hiệu hóa hoạt động
               </button>
             </DropdownMenuItem>
           </DropdownMenuContent>

@@ -120,7 +120,7 @@ export function BackendScheduleList({
                     start,
                     end,
                     allDay: true,
-                    color: (fa.status === 1 || fa.status === 'ACTIVE') ? '#F59E0B' : '#9CA3AF',
+                    color: (fa.status === 1 || fa.status === 'ACTIVE') ? '#F59E0B' : '#DC2626',
                     raw: { ...fa, _parentSchedule: detail },
                 }
             })
@@ -390,7 +390,7 @@ export function BackendScheduleList({
         })
     }, [scheduleActions, scheduleDialogs])
 
-    const handleEventMenuAction = useCallback((action: string, raw?: any) => {
+    const handleEventMenuAction = useCallback(async (action: string, raw?: any) => {
         if (!raw) return
         const parentSchedule = raw?._parentSchedule ?? raw?._parentSchedule ?? raw?.raw ?? null
         if (action === 'create') {
@@ -410,6 +410,16 @@ export function BackendScheduleList({
         } else if (action === 'deactivate') {
             if (!parentSchedule) return
             void handleUpdateStatus(parentSchedule, 'DEACTIVATED')
+        } else if (action === 'deactivate-activity') {
+            try {
+                const id = Number(raw?.farmActivitiesId ?? raw?.farmActivityId ?? raw?.id ?? raw?.activity?.farmActivitiesId)
+                if (!id) return
+                const res: any = await farmActivityService.changeStatus(id)
+                showSuccessToast(res)
+                await scheduleData.load()
+            } catch (err) {
+                showErrorToast(err)
+            }
         } else if (action === 'editActivity') {
             if (!raw) return
             void (async () => {

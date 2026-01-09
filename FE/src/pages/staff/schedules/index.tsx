@@ -273,7 +273,7 @@ const StaffSchedulesPage: React.FC = () => {
         if (!status) return '#f59e0b'
         if (status === 'ACTIVE') return '#f59e0b'
         if (status === 'COMPLETED') return '#10B981'
-        if (status === 'DEACTIVATED') return '#9CA3AF'
+        if (status === 'DEACTIVATED') return '#DC2626'
         return '#f59e0b'
     }, [])
 
@@ -361,7 +361,7 @@ const StaffSchedulesPage: React.FC = () => {
         setIsScheduleDetailOpen(true)
     }
 
-    const handleEventMenuAction = (action: string, raw?: any) => {
+    const handleEventMenuAction = async (action: string, raw?: any) => {
         if (!raw) return
         let scheduleRaw = raw
         if (raw && raw.schedule) scheduleRaw = raw.schedule
@@ -370,6 +370,40 @@ const StaffSchedulesPage: React.FC = () => {
             openLogsForSchedule(schedule)
         } else if (action === 'create') {
             openCreateLogForSchedule(schedule)
+        } else if (action === 'deactivate-activity') {
+            try {
+                const activityId =
+                    Number(raw?.activity?.farmActivitiesId ??
+                        raw?.farmActivitiesId ??
+                        raw?.farmActivityId ??
+                        schedule?.farmActivityView?.farmActivitiesId ??
+                        (Array.isArray(schedule?.farmActivities) ? schedule.farmActivities[0]?.farmActivitiesId : undefined))
+                if (!activityId) return
+                const res: any = await farmActivityService.changeStatus(activityId)
+                showSuccessToast(res)
+                await fetchSchedules()
+
+                if (selectedScheduleDetail?.scheduleId) {
+                    try {
+                        const listRes = await scheduleService.getSchedulesByStaff()
+                        const found = (listRes?.data || []).find((s: any) => s.scheduleId === selectedScheduleDetail.scheduleId)
+                        if (found) {
+                            setSelectedScheduleDetail(transformApiSchedule(found))
+                        } else {
+                            setSelectedScheduleDetail(null)
+                            setIsScheduleDetailOpen(false)
+                        }
+                    } catch {
+                        setSelectedScheduleDetail(null)
+                        setIsScheduleDetailOpen(false)
+                    }
+                } else {
+                    setSelectedScheduleDetail(null)
+                    setIsScheduleDetailOpen(false)
+                }
+            } catch (err) {
+                showErrorToast(err)
+            }
         }
     }
 

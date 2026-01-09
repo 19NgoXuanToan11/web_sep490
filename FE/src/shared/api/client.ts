@@ -64,6 +64,39 @@ async function request<T>(
 
     throw error
   }
+  try {
+    if (data && typeof data === 'object') {
+      const maybeBody: any = data
+      if (typeof maybeBody.status === 'number' && maybeBody.status !== 1) {
+        const message =
+          maybeBody.message ||
+          maybeBody.Message ||
+          maybeBody.error ||
+          maybeBody.Error ||
+          `Backend status ${maybeBody.status}`
+        const safeData =
+          maybeBody && typeof maybeBody === 'object'
+            ? (JSON.parse(JSON.stringify(maybeBody)) as T)
+            : maybeBody
+        const error = Object.assign(new Error(String(message)), {
+          status: maybeBody.status,
+          data: safeData,
+          url: path,
+          method: options.method || 'GET',
+        })
+        try {
+          console.error('API backend-reported error', {
+            endpoint: path,
+            method: options.method || 'GET',
+            payload: maybeBody,
+          })
+        } catch (err) {}
+        throw error
+      }
+    }
+  } catch (err) {
+    throw err
+  }
   return { data, status }
 }
 

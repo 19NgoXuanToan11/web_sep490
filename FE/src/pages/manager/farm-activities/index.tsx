@@ -248,39 +248,78 @@ export default function FarmActivitiesPage() {
   const parseDate = (dateString?: string | null): Date | null => {
     if (!dateString) return null
     try {
-      const mmddyyyy = /^\s*(\d{1,2})\/(\d{1,2})\/(\d{4})\s*$/
+      const s = String(dateString).trim()
+      const slashRe = /^\s*(\d{1,4})\/(\d{1,2})\/(\d{1,4})\s*$/
       const yyyymmdd = /^\s*(\d{4})-(\d{1,2})-(\d{1,2})\s*$/
-      const m = mmddyyyy.exec(dateString)
+
+      const m = slashRe.exec(s)
       if (m) {
-        const month = Number(m[1])
-        const day = Number(m[2])
-        const year = Number(m[3])
+        const p1 = Number(m[1])
+        const p2 = Number(m[2])
+        const p3 = Number(m[3])
+        let year = p3
+        let month = p1
+        let day = p2
+        if (m[1].length === 4) {
+          year = p1
+          month = p2
+          day = p3
+        } else if (m[3].length === 4) {
+          year = p3
+          if (p1 > 12 && p2 <= 12) {
+            day = p1
+            month = p2
+          } else if (p2 > 12 && p1 <= 12) {
+            day = p2
+            month = p1
+          } else {
+            month = p1
+            day = p2
+          }
+        } else {
+          year = p3
+          month = p1
+          day = p2
+        }
+
         if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
           const d = new Date(year, month - 1, day)
-          d.setHours(0, 0, 0, 0)
-          return d
+          if (!isNaN(d.getTime())) {
+            d.setHours(0, 0, 0, 0)
+            return d
+          }
         }
         return null
       }
-      const y = yyyymmdd.exec(dateString)
+
+      const y = yyyymmdd.exec(s)
       if (y) {
         const year = Number(y[1])
         const month = Number(y[2])
         const day = Number(y[3])
         if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
           const d = new Date(year, month - 1, day)
-          d.setHours(0, 0, 0, 0)
-          return d
+          if (!isNaN(d.getTime())) {
+            d.setHours(0, 0, 0, 0)
+            return d
+          }
         }
         return null
       }
-      if (dateString.includes('T')) {
-        const iso = new Date(dateString)
+
+      if (s.includes('T')) {
+        const iso = new Date(s)
         if (!isNaN(iso.getTime())) {
           iso.setHours(0, 0, 0, 0)
           return iso
         }
         return null
+      }
+
+      const parsed = new Date(s)
+      if (!isNaN(parsed.getTime())) {
+        parsed.setHours(0, 0, 0, 0)
+        return parsed
       }
       return null
     } catch {
@@ -692,18 +731,46 @@ export default function FarmActivitiesPage() {
 
   const formatDateForInput = (dateString: string | undefined | null): string => {
     if (!dateString) return ''
-    if (dateString.includes('/')) {
-      const parts = dateString.split('/')
+    const s = String(dateString).trim()
+    if (s.includes('/')) {
+      const parts = s.split('/').map(p => p.trim())
       if (parts.length === 3) {
-        const month = parts[0].padStart(2, '0')
-        const day = parts[1].padStart(2, '0')
-        const year = parts[2]
-        return `${year}-${month}-${day}`
+        const p0 = parts[0]
+        const p1 = parts[1]
+        const p2 = parts[2]
+
+        if (p0.length === 4 && /^\d{4}$/.test(p0)) {
+          const year = p0
+          const month = p1.padStart(2, '0')
+          const day = p2.padStart(2, '0')
+          return `${year}-${month}-${day}`
+        }
+
+        if (p2.length === 4 && /^\d{4}$/.test(p2)) {
+          const num0 = Number(p0)
+          const num1 = Number(p1)
+          let month = p0.padStart(2, '0')
+          let day = p1.padStart(2, '0')
+          if (num0 > 12 && num1 <= 12) {
+            day = p0.padStart(2, '0')
+            month = p1.padStart(2, '0')
+          } else if (num1 > 12 && num0 <= 12) {
+            day = p1.padStart(2, '0')
+            month = p0.padStart(2, '0')
+          } else {
+            month = p0.padStart(2, '0')
+            day = p1.padStart(2, '0')
+          }
+          const year = p2
+          return `${year}-${month}-${day}`
+        }
       }
     }
-    if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) return dateString
-    if (dateString.includes('T')) return dateString.split('T')[0]
-    return dateString
+    if (s.match(/^\d{4}-\d{2}-\d{2}$/)) return s
+    if (s.includes('T')) return s.split('T')[0]
+    const iso = new Date(s)
+    if (!isNaN(iso.getTime())) return iso.toISOString().split('T')[0]
+    return ''
   }
 
   const safeField = (value: any): string => {

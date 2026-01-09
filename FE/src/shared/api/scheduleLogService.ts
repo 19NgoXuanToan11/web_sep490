@@ -49,10 +49,19 @@ export const scheduleLogService = {
           staffNameCreate:
             it.staffNameCreate ??
             it.staff_name_create ??
+            it.createBy ??
+            it.CreateBy ??
+            it.create_by ??
             it.staffName ??
             staffNameFromCreatedBy ??
             null,
-          staffNameUpdate: it.staffNameUpdate ?? it.staff_name_update ?? null,
+          staffNameUpdate:
+            it.staffNameUpdate ??
+            it.staff_name_update ??
+            it.updateBy ??
+            it.UpdateBy ??
+            it.update_by ??
+            null,
         }
       }),
     }

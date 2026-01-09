@@ -325,6 +325,26 @@ const StaffSchedulesPage: React.FC = () => {
     const [logModalMode, setLogModalMode] = useState<'create' | 'edit'>('create')
     const [editingLog, setEditingLog] = useState<ScheduleLogItem | null>(null)
     const externalLogUpdaterRef = useRef<((item: ScheduleLogItem | { id: number }, mode: 'create' | 'update' | 'delete') => void) | null>(null)
+    const stripSystemPrefixes = (s?: string | null) => {
+        if (!s) return ''
+        try {
+            return String(s).replace(/\[Ghi chú thủ công(?: \(Đã sửa lúc [^\]]+\))?\]\s*/g, '').trim()
+        } catch {
+            return String(s)
+        }
+    }
+    const [modalNotes, setModalNotes] = useState('')
+    useEffect(() => {
+        if (!showLogModal) {
+            setModalNotes('')
+            return
+        }
+        if (logModalMode === 'edit' && editingLog) {
+            setModalNotes(stripSystemPrefixes(editingLog.notes ?? ''))
+        } else {
+            setModalNotes('')
+        }
+    }, [showLogModal, editingLog, logModalMode])
 
     const openCreateLogForSchedule = (schedule: DisplaySchedule | null) => {
         if (!schedule) return
@@ -679,8 +699,7 @@ const StaffSchedulesPage: React.FC = () => {
                         </DialogHeader>
                         <form onSubmit={async (e) => {
                             e.preventDefault()
-                            const form = e.target as HTMLFormElement
-                            const notes = (form.elements.namedItem('notes') as HTMLTextAreaElement).value.trim()
+                            const notes = modalNotes.trim()
                             if (!notes) {
                                 return
                             }
@@ -764,7 +783,7 @@ const StaffSchedulesPage: React.FC = () => {
                             <div className="grid gap-3">
                                 <div>
                                     <Label>Nội dung</Label>
-                                    <textarea name="notes" defaultValue={editingLog?.notes ?? ''} className="w-full p-2 border rounded" rows={4} />
+                                    <textarea name="notes" value={modalNotes} onChange={(e) => setModalNotes(e.target.value)} className="w-full p-2 border rounded" rows={4} />
                                 </div>
                             </div>
                             <DialogFooter className="mt-4">

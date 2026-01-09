@@ -6,6 +6,15 @@ import { toastManager } from '@/shared/lib/toast-manager'
 import { scheduleLogService } from '@/shared/api/scheduleLogService'
 import type { ScheduleLogItem } from '../types'
 
+const stripSystemPrefixes = (s?: string | null) => {
+    if (!s) return ''
+    try {
+        return String(s).replace(/\[Ghi chú thủ công(?: \(Đã sửa lúc [^\]]+\))?\]\s*/g, '').trim()
+    } catch {
+        return String(s)
+    }
+}
+
 interface LogModalDialogProps {
     open: boolean
     onOpenChange: (open: boolean) => void
@@ -27,7 +36,7 @@ export function LogModalDialog({
 
     React.useEffect(() => {
         if (open && editingLog) {
-            setNotes(editingLog.notes || '')
+            setNotes(stripSystemPrefixes(editingLog.notes || ''))
         } else if (open && mode === 'create') {
             setNotes('')
         }

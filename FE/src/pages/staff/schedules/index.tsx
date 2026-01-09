@@ -17,6 +17,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/ui/tabs'
 import { Label } from '@/shared/ui/label'
 import { ScheduleLogPanelStaff } from '@/features/season'
 import { scheduleLogService, type ScheduleLogItem } from '@/shared/api/scheduleLogService'
+import { accountProfileApi } from '@/shared/api/auth'
 import { useRef } from 'react'
 import { StaffLayout } from '@/shared/layouts/StaffLayout'
 import { ManagementPageHeader } from '@/shared/ui'
@@ -701,15 +702,29 @@ const StaffSchedulesPage: React.FC = () => {
                                         const createdBy = created?.createdBy ?? created?.created_by ?? null
                                         const updatedAt = created?.updatedAt ?? created?.updated_at ?? createdAt
                                         const updatedBy = created?.updatedBy ?? created?.updated_by ?? createdBy
-                                        const newItem: ScheduleLogItem = {
-                                            id,
-                                            notes,
-                                            createdAt,
-                                            createdBy,
-                                            updatedAt,
-                                            updatedBy,
-                                        }
-                                        externalLogUpdaterRef.current?.(newItem, 'create')
+                                        const notesValue = created?.notes ?? notes
+                                            ; (async () => {
+                                                let profileName: string | null = null
+                                                try {
+                                                    const profile = await accountProfileApi.getProfile()
+                                                    profileName = profile?.fullname ?? null
+                                                } catch {
+                                                    profileName = null
+                                                }
+                                                const creatorFromResponse = created?.staffNameCreate ?? created?.staffName ?? null
+                                                const rawCreatedByField = created?.createdBy ?? created?.created_by ?? created?.createBy ?? created?.create_by ?? null
+                                                const creatorFromCreatedBy = typeof rawCreatedByField === 'string' && String(rawCreatedByField).trim() ? String(rawCreatedByField).trim() : null
+                                                const newItem: ScheduleLogItem = {
+                                                    id,
+                                                    notes: notesValue,
+                                                    createdAt,
+                                                    createdBy,
+                                                    updatedAt,
+                                                    updatedBy,
+                                                    staffNameCreate: creatorFromResponse ?? creatorFromCreatedBy ?? profileName,
+                                                }
+                                                externalLogUpdaterRef.current?.(newItem, 'create')
+                                            })()
                                     } catch (e) {
                                     }
                                 } else if (logModalMode === 'edit' && editingLog) {

@@ -30,6 +30,7 @@ import {
     LogModalDialog,
     UpdateStageModalDialog,
 } from './dialogs'
+import { accountProfileApi } from '@/shared/api/auth'
 
 export function BackendScheduleList({
     showCreate: externalShowCreate,
@@ -920,7 +921,40 @@ export function BackendScheduleList({
                 mode={scheduleDialogs.logModalMode}
                 editingLog={scheduleDialogs.editingLog}
                 selectedScheduleId={scheduleDialogs.selectedSchedule?.scheduleId}
-                onSuccess={() => {
+                onSuccess={(created) => {
+                    try {
+                        const createdObj = created ?? {}
+                        const id = createdObj?.cropLogId ?? createdObj?.id ?? -Date.now()
+                        const createdAt = (createdObj?.createdAt ?? createdObj?.created_at) || new Date().toISOString()
+                        const createdBy = createdObj?.createdBy ?? createdObj?.created_by ?? null
+                        const updatedAt = createdObj?.updatedAt ?? createdObj?.updated_at ?? createdAt
+                        const updatedBy = createdObj?.updatedBy ?? createdObj?.updated_by ?? createdBy
+                        const notes = createdObj?.notes ?? ''
+
+                            ; (async () => {
+                                let profileName = null
+                                try {
+                                    const profile = await accountProfileApi.getProfile()
+                                    profileName = profile?.fullname ?? null
+                                } catch {
+                                    profileName = null
+                                }
+                                const creatorFromResponse = createdObj?.staffNameCreate ?? createdObj?.staffName ?? null
+                                const rawCreatedByField = createdObj?.createdBy ?? createdObj?.created_by ?? createdObj?.createBy ?? createdObj?.create_by ?? null
+                                const creatorFromCreatedBy = typeof rawCreatedByField === 'string' && String(rawCreatedByField).trim() ? String(rawCreatedByField).trim() : null
+                                const newItem = {
+                                    id,
+                                    notes,
+                                    createdAt,
+                                    createdBy,
+                                    updatedAt,
+                                    updatedBy,
+                                    staffNameCreate: creatorFromResponse ?? creatorFromCreatedBy ?? profileName,
+                                }
+                                externalLogUpdaterRef.current?.(newItem, 'create')
+                            })()
+                    } catch (e) {
+                    }
                 }}
             />
 

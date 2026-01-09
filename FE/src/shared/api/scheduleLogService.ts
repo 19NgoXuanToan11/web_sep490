@@ -35,16 +35,26 @@ export const scheduleLogService = {
       pageIndex: data.pageIndex ?? pageIndex,
       next: data.next ?? false,
       previous: data.previous ?? false,
-      items: (data.items || []).map((it: any) => ({
-        id: it.cropLogId ?? it.id,
-        notes: it.notes ?? '',
-        createdAt: it.createdAt ?? it.created_at ?? null,
-        createdBy: it.createdBy ?? it.created_by ?? null,
-        updatedAt: it.updatedAt ?? it.updated_at ?? null,
-        updatedBy: it.updatedBy ?? it.updated_by ?? null,
-        staffNameCreate: it.staffNameCreate ?? it.staff_name_create ?? it.staffName ?? null,
-        staffNameUpdate: it.staffNameUpdate ?? it.staff_name_update ?? null,
-      })),
+      items: (data.items || []).map((it: any) => {
+        const rawCreatedBy = it.createdBy ?? it.created_by ?? it.createBy ?? it.create_by ?? null
+        const staffNameFromCreatedBy =
+          typeof rawCreatedBy === 'string' && rawCreatedBy.trim() ? rawCreatedBy.trim() : null
+        return {
+          id: it.cropLogId ?? it.id,
+          notes: it.notes ?? '',
+          createdAt: it.createdAt ?? it.created_at ?? null,
+          createdBy: it.createdBy ?? it.created_by ?? null,
+          updatedAt: it.updatedAt ?? it.updated_at ?? null,
+          updatedBy: it.updatedBy ?? it.updated_by ?? null,
+          staffNameCreate:
+            it.staffNameCreate ??
+            it.staff_name_create ??
+            it.staffName ??
+            staffNameFromCreatedBy ??
+            null,
+          staffNameUpdate: it.staffNameUpdate ?? it.staff_name_update ?? null,
+        }
+      }),
     }
     return mapped
   },

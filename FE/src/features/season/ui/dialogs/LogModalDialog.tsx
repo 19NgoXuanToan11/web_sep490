@@ -12,7 +12,7 @@ interface LogModalDialogProps {
     mode: 'create' | 'edit'
     editingLog: ScheduleLogItem | null
     selectedScheduleId?: number
-    onSuccess?: () => void
+    onSuccess?: (createdOrUpdated?: any) => void
 }
 
 export function LogModalDialog({
@@ -53,6 +53,8 @@ export function LogModalDialog({
                     const msg = res?.message
                     if (msg) throw new Error(msg)
                 }
+                const createdPayload = res?.data ?? res
+                onSuccess?.(createdPayload)
             } else if (mode === 'edit' && editingLog) {
                 const res: any = await scheduleLogService.updateLog({
                     id: editingLog.id,
@@ -64,9 +66,11 @@ export function LogModalDialog({
                     const msg = res?.message
                     if (msg) throw new Error(msg)
                 }
+                const updatedPayload = res?.data ?? res
+                onSuccess?.(updatedPayload)
             }
             onOpenChange(false)
-            onSuccess?.()
+
         } catch (err) {
             const msg = (err as any)?.message
             if (msg) toastManager.error(msg)

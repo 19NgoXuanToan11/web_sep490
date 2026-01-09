@@ -16,8 +16,29 @@ export default function ScheduleLogPanelStaff({ scheduleId, onEdit, registerUpda
 
     const safeFormat = (iso?: string | null) => {
         if (!iso) return '—'
-        const d = new Date(iso)
-        if (Number.isNaN(d.getTime())) return '—'
+
+        const tryParse = (s: string) => {
+            try {
+                const d = new Date(s)
+                if (Number.isNaN(d.getTime())) return null
+                return d
+            } catch {
+                return null
+            }
+        }
+
+        const asIs = tryParse(iso)
+        const noZ = iso.endsWith('Z') ? tryParse(iso.replace(/Z$/, '')) : null
+
+        let d: Date | null = null
+        if (noZ && asIs) {
+            d = (Math.abs(Date.now() - noZ.getTime()) < Math.abs(Date.now() - asIs.getTime())) ? noZ : asIs
+        } else {
+            d = asIs || noZ
+        }
+
+        if (!d) return '—'
+
         const hh = String(d.getHours()).padStart(2, '0')
         const mm = String(d.getMinutes()).padStart(2, '0')
         const dd = String(d.getDate()).padStart(2, '0')

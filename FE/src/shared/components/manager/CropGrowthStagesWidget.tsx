@@ -5,8 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
 import type { CropRequirementView, PlantStage } from '@/shared/api/cropRequirementService'
 
 const PLANT_STAGE_CONFIG: Record<PlantStage, { label: string; color: string; description: string }> = {
-    Germination: {
-        label: 'Gieo hạt',
+    Preparation: {
+        label: 'Chuẩn bị gieo trồng',
         color: 'bg-blue-500',
         description: 'Chuẩn bị đất và gieo giống (0–7 ngày)',
     },

@@ -55,8 +55,8 @@ type RequirementFormState = {
 
 const PLANT_STAGE_OPTIONS: { value: PlantStage; label: string; description: string }[] = [
   {
-    value: 'Germination',
-    label: 'Gieo hạt',
+    value: 'Preparation',
+    label: 'Chuẩn bị gieo trồng',
     description: 'Chuẩn bị đất và gieo giống (0–7 ngày)',
   },
   {
@@ -378,7 +378,7 @@ export default function CropsPage() {
         })
 
       case 'stage':
-        const stageOrder = ['Germination', 'Seedling', 'Vegetative', 'Harvest']
+        const stageOrder = ['Preparation', 'Seedling', 'Vegetative', 'Harvest']
         return sorted.sort((a, b) => {
           const aStage = a.plantStage || ''
           const bStage = b.plantStage || ''
@@ -826,8 +826,11 @@ export default function CropsPage() {
                               <CardContent className="p-4">
                                 <div className="flex items-start justify-between">
                                   <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-2 flex-wrap mb-2">
-                                      <Badge className="h-6 items-center whitespace-nowrap text-xs" variant="outline">
+                                    <div className="flex items-center gap-2 mb-2 min-w-0">
+                                      <Badge
+                                        className="h-6 items-center whitespace-nowrap text-xs max-w-[140px] truncate"
+                                        variant="outline"
+                                      >
                                         {stageLabel(req.plantStage)}
                                       </Badge>
                                       {getStatusBadge(req.isActive)}

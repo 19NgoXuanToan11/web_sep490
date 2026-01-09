@@ -1,6 +1,6 @@
 import { http } from './client'
 
-export type PlantStage = 'Germination' | 'Seedling' | 'Vegetative' | 'Harvest'
+export type PlantStage = 'Preparation' | 'Seedling' | 'Vegetative' | 'Harvest'
 
 export interface CropRequirementPayload {
   estimatedDate?: number | null

@@ -12,7 +12,7 @@ export const activityTypeLabels: Record<string, string> = {
 }
 
 export const plantStageLabels: Record<string, string> = {
-  Germination: 'Gieo hạt',
+  Preparation: 'Chuẩn bị gieo trồng',
   Seedling: 'Nảy mầm',
   Vegetative: 'Tăng trưởng lá',
   Harvest: 'Thu hoạch',

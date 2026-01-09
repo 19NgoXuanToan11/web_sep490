@@ -23,6 +23,7 @@ interface CreateActivityDialogProps {
     }) => void
     staffs: { id: number; name: string }[]
     metaLoading: boolean
+    onRetryLoadStaffs?: () => Promise<any>
     todayString: string
     onSubmit: (form: {
         activityType: string
@@ -39,6 +40,7 @@ export function CreateActivityDialog({
     onFormChange,
     staffs,
     metaLoading,
+    onRetryLoadStaffs,
     todayString,
     onSubmit,
 }: CreateActivityDialogProps) {
@@ -84,11 +86,31 @@ export function CreateActivityDialog({
                                     <SelectValue placeholder="Chọn nhân viên" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {staffs.map(s => (
-                                        <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>
-                                    ))}
+                                    {metaLoading ? (
+                                        <SelectItem value="__loading" disabled>Đang lấy danh sách...</SelectItem>
+                                    ) : staffs.length === 0 ? (
+                                        <SelectItem value="__no_staff" disabled>Không có nhân viên</SelectItem>
+                                    ) : (
+                                        staffs.map(s => (
+                                            <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>
+                                        ))
+                                    )}
                                 </SelectContent>
                             </Select>
+                            {!metaLoading && staffs.length === 0 && (
+                                <div className="mt-2 text-sm text-gray-500 flex items-center gap-2">
+                                    <span>Không có nhân viên để phân công.</span>
+                                    {onRetryLoadStaffs && (
+                                        <button
+                                            type="button"
+                                            className="text-green-600 underline text-sm"
+                                            onClick={() => onRetryLoadStaffs().catch(() => { })}
+                                        >
+                                            Thử lại
+                                        </button>
+                                    )}
+                                </div>
+                            )}
                         </div>
 
                         <div>

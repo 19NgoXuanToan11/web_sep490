@@ -19,7 +19,7 @@ interface Props {
   }>;
   onEventClick?: (raw?: any) => void;
   onDayClick?: (date: Date, events: any[]) => void;
-  onEventMenuAction?: (action: 'logs' | 'create', raw?: any) => void;
+  onEventMenuAction?: (action: string, raw?: any) => void;
 }
 
 const locales: Record<string, any> = {
@@ -170,6 +170,20 @@ const BigCalendar: React.FC<Props> = ({ events = [], onEventClick, onDayClick, o
                 }}
               >
                 Ghi nhận
+              </button>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <button
+                type="button"
+                className="w-full block text-left px-4 py-2 rounded-md hover:bg-muted/50 active:bg-muted/60 focus:outline-none cursor-pointer text-red-600"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  const ok = window.confirm('Bạn có chắc chắn muốn vô hiệu hóa lịch này?')
+                  if (!ok) return
+                  onEventMenuAction && onEventMenuAction('deactivate', raw)
+                }}
+              >
+                Vô hiệu hóa lịch
               </button>
             </DropdownMenuItem>
           </DropdownMenuContent>

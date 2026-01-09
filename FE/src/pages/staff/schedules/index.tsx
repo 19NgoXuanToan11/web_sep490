@@ -339,7 +339,7 @@ const StaffSchedulesPage: React.FC = () => {
         setIsScheduleDetailOpen(true)
     }
 
-    const handleEventMenuAction = (action: 'logs' | 'create', raw?: any) => {
+    const handleEventMenuAction = (action: string, raw?: any) => {
         if (!raw) return
         let scheduleRaw = raw
         if (raw && raw.schedule) scheduleRaw = raw.schedule

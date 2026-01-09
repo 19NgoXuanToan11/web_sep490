@@ -110,28 +110,8 @@ export function BackendScheduleList({
         return mapped
     }, [scheduleDialogs.scheduleDetail])
 
-    const handleEventMenuAction = useCallback((action: 'logs' | 'create', raw?: any) => {
-        if (!raw) return
-        const parentSchedule = raw?._parentSchedule ?? raw?._parentSchedule ?? raw?.raw ?? null
-        if (action === 'create') {
-            if (parentSchedule) {
-                scheduleDialogs.setSelectedSchedule(parentSchedule)
-            }
-            scheduleDialogs.setLogModalMode('create')
-            scheduleDialogs.setEditingLog(null)
-            scheduleDialogs.setShowLogModal(true)
-            setSelectedFarmActivity(raw)
-        } else if (action === 'logs') {
-            if (parentSchedule) {
-                scheduleDialogs.setSelectedSchedule(parentSchedule)
-            }
-            scheduleDialogs.setDetailActiveTab('logs')
-            scheduleDialogs.setShowDetail(true)
-        }
-    }, [scheduleDialogs])
-
     useEffect(() => {
-        const shouldLoadMetadata = showCreate || scheduleDialogs.showCreate || scheduleDialogs.showEdit || scheduleDialogs.showAssignStaff
+        const shouldLoadMetadata = showCreate || scheduleDialogs.showCreate || scheduleDialogs.showEdit || scheduleDialogs.showAssignStaff || scheduleDialogs.showCreateActivity
         if (!shouldLoadMetadata) return
         let cancelled = false
             ; (async () => {
@@ -153,7 +133,7 @@ export function BackendScheduleList({
         return () => {
             cancelled = true
         }
-    }, [showCreate, scheduleDialogs.showEdit, scheduleDialogs.showAssignStaff, scheduleData.loadReferenceData, scheduleData.setFarms, scheduleData.setCrops, scheduleData.setStaffs, scheduleData.setActivities, scheduleData.setMetaLoading])
+    }, [showCreate, scheduleDialogs.showCreate, scheduleDialogs.showEdit, scheduleDialogs.showAssignStaff, scheduleDialogs.showCreateActivity, scheduleData.loadReferenceData, scheduleData.setFarms, scheduleData.setCrops, scheduleData.setStaffs, scheduleData.setActivities, scheduleData.setMetaLoading])
 
     const handleCreateDialogChange = useCallback((open: boolean) => {
         scheduleDialogs.handleCreateDialogChange(open)
@@ -386,6 +366,29 @@ export function BackendScheduleList({
             }
         })
     }, [scheduleActions, scheduleDialogs])
+
+    const handleEventMenuAction = useCallback((action: string, raw?: any) => {
+        if (!raw) return
+        const parentSchedule = raw?._parentSchedule ?? raw?._parentSchedule ?? raw?.raw ?? null
+        if (action === 'create') {
+            if (parentSchedule) {
+                scheduleDialogs.setSelectedSchedule(parentSchedule)
+            }
+            scheduleDialogs.setLogModalMode('create')
+            scheduleDialogs.setEditingLog(null)
+            scheduleDialogs.setShowLogModal(true)
+            setSelectedFarmActivity(raw)
+        } else if (action === 'logs') {
+            if (parentSchedule) {
+                scheduleDialogs.setSelectedSchedule(parentSchedule)
+            }
+            scheduleDialogs.setDetailActiveTab('logs')
+            scheduleDialogs.setShowDetail(true)
+        } else if (action === 'deactivate') {
+            if (!parentSchedule) return
+            void handleUpdateStatus(parentSchedule, 'DEACTIVATED')
+        }
+    }, [scheduleDialogs, handleUpdateStatus])
 
     useEffect(() => {
         if (scheduleData.newlyCreatedIds.size > 0) {
@@ -900,6 +903,7 @@ export function BackendScheduleList({
                 onFormChange={scheduleDialogs.setCreateActivityForm}
                 staffs={scheduleData.staffs}
                 metaLoading={scheduleData.metaLoading}
+                onRetryLoadStaffs={scheduleData.loadReferenceData}
                 todayString={todayString}
                 onSubmit={submitCreateActivity}
             />

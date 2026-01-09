@@ -8,6 +8,7 @@ export const activityTypeLabels: Record<string, string> = {
   FertilizingLeaf: 'Bón phân cho lá (N, hữu cơ)',
   Harvesting: 'Thu hoạch',
   CleaningFarmArea: 'Dọn dẹp đồng ruộng',
+  FrostProtectionCovering: 'Phủ bạt che lạnh',
 }
 
 export const plantStageLabels: Record<string, string> = {

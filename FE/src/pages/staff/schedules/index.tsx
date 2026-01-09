@@ -82,6 +82,7 @@ const activityTypeLabels: Record<string, string> = {
     FertilizingLeaf: 'Bón phân cho lá',
     Harvesting: 'Thu hoạch',
     CleaningFarmArea: 'Dọn dẹp nông trại',
+    FrostProtectionCovering: 'Phủ bạt che lạnh',
 }
 
 const translateActivityType = (type?: string | null) => {

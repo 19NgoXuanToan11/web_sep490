@@ -22,6 +22,13 @@ export const statusOptions = [
   { value: 1, label: 'Hoạt động' },
 ]
 
+export const farmActivityStatusOptions = [
+  { value: 'ACTIVE', label: 'Hoạt động', variant: 'golden' as const },
+  { value: 'IN_PROGRESS', label: 'Đang thực hiện', variant: 'processing' as const },
+  { value: 'COMPLETED', label: 'Hoàn thành', variant: 'completed' as const },
+  { value: 'DEACTIVATED', label: 'Tạm dừng', variant: 'destructive' as const },
+]
+
 export const diseaseOptions = [{ value: -1, label: 'Không có bệnh' }]
 
 export const diseaseEnumMap: Record<string, number> = {

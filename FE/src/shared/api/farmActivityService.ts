@@ -24,6 +24,8 @@ export interface FarmActivityRequest {
 export interface FarmActivityUpdate {
   startDate: string
   endDate: string
+  staffId?: number
+  scheduleId?: number
 }
 
 export interface FarmActivityResponse {

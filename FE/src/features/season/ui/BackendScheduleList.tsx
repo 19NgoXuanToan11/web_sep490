@@ -18,7 +18,7 @@ import {
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/ui/tabs'
 import CalendarShell from '@/components/Calendar'
 import ThresholdPanel from '@/features/thresholds/ThresholdPanel'
-import { formatDate } from '@/shared/lib/date-utils'
+import { formatDate, formatDateRange } from '@/shared/lib/date-utils'
 import { farmActivityService } from '@/shared/api/farmActivityService'
 import { showSuccessToast, showErrorToast } from '@/shared/lib/toast-manager'
 import type { BackendScheduleListProps, ScheduleListItem, ScheduleStatusString, CreateScheduleRequest } from './types'
@@ -728,7 +728,7 @@ export function BackendScheduleList({
                                                                     )}
                                                                 </div>
                                                                 <p className="text-sm text-gray-900 font-medium mb-2">
-                                                                    {formatDate(schedule.startDate)} - {formatDate(schedule.endDate)}
+                                                                    {formatDateRange(schedule.startDate, schedule.endDate)}
                                                                 </p>
 
                                                                 {schedule.farmView?.farmName && (
@@ -1058,7 +1058,7 @@ export function BackendScheduleList({
                                             </div>
                                             <div className="text-xs text-gray-500">
                                                 <div className="truncate">Nhân sự: {raw.staffFullName ?? raw.staffName ?? '-'}</div>
-                                                <div className="truncate">Thời gian: {raw.startDate ?? raw.StartDate ?? raw.start ?? '-'} → {raw.endDate ?? raw.EndDate ?? raw.end ?? '-'}</div>
+                                                <div className="truncate">Thời gian: {formatDateRange(raw.startDate ?? raw.StartDate ?? raw.start, raw.endDate ?? raw.EndDate ?? raw.end)}</div>
                                                 {raw.activityType && (
                                                     <div className="mt-1 text-xs text-muted-foreground">{translateActivityType(raw.activityType ?? raw.ActivityType ?? '')}</div>
                                                 )}
@@ -1322,7 +1322,7 @@ export function BackendScheduleList({
                                             .map(s => {
                                                 const label =
                                                     (s.cropView?.cropName ?? s.farmView?.farmName ?? `Kế hoạch #${s.scheduleId}`) +
-                                                    (s.startDate || s.endDate ? ` (${formatDate(s.startDate)} → ${formatDate(s.endDate)})` : '')
+                                                    (s.startDate || s.endDate ? ` (${formatDateRange(s.startDate, s.endDate)})` : '')
                                                 return (
                                                     <SelectItem key={String(s.scheduleId)} value={String(s.scheduleId)}>
                                                         {label}
@@ -1389,8 +1389,8 @@ export function BackendScheduleList({
                     {selectedFarmActivity ? (
                         <div className="space-y-4 p-2">
                             <div><strong>Hoạt động:</strong> {translateActivityType(selectedFarmActivity.activityType ?? selectedFarmActivity.ActivityType ?? '')}</div>
-                            <div><strong>Ngày bắt đầu:</strong> {selectedFarmActivity.startDate ?? selectedFarmActivity.StartDate ?? '-'}</div>
-                            <div><strong>Ngày kết thúc:</strong> {selectedFarmActivity.endDate ?? selectedFarmActivity.EndDate ?? '-'}</div>
+                            <div><strong>Ngày bắt đầu:</strong> {formatDate(selectedFarmActivity.startDate ?? selectedFarmActivity.StartDate ?? selectedFarmActivity.start)}</div>
+                            <div><strong>Ngày kết thúc:</strong> {formatDate(selectedFarmActivity.endDate ?? selectedFarmActivity.EndDate ?? selectedFarmActivity.end)}</div>
                             <div>
                                 <strong>Trạng thái:</strong>{' '}
                                 {(() => {

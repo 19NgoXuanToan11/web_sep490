@@ -3,7 +3,7 @@ import { RefreshCw } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import { Card, CardContent } from '@/shared/ui/card'
 import { Badge } from '@/shared/ui/badge'
-import { formatDate } from '@/shared/lib/date-utils'
+import { formatDate, formatDateRange } from '@/shared/lib/date-utils'
 import CalendarShell from '@/components/Calendar'
 
 import {
@@ -50,13 +50,15 @@ const getFarmActivityStatusVariant = (status?: string): 'default' | 'secondary' 
 
 const getFarmActivityStatusLabel = (status?: string) => {
     if (!status) return ''
+    const normalized = String(status).toUpperCase()
     const map: Record<string, string> = {
         COMPLETED: 'Hoàn thành',
         ACTIVE: 'Hoạt động',
         IN_PROGRESS: 'Đang thực hiện',
         CANCELLED: 'Đã hủy',
+        DEACTIVATED: 'Tạm dừng',
     }
-    return map[status] ?? status
+    return map[normalized] ?? String(status)
 }
 
 const getDiseaseStatusLabel = (diseaseStatus?: string | number) => {
@@ -526,7 +528,7 @@ const StaffSchedulesPage: React.FC = () => {
                                                         </dl>
                                                     </div>
 
-                                                    <div className="w-full md:w-80">
+                                                    <div className="w-full md:w-96 lg:w-96">
                                                         <div className="border rounded-md p-4 bg-white shadow-sm">
                                                             <p className="text-base font-semibold text-gray-900 mt-2">
                                                                 {translateActivityType(selectedScheduleDetail.farmActivityView?.activityType) || 'N/A'}
@@ -543,12 +545,12 @@ const StaffSchedulesPage: React.FC = () => {
                                                                                 }}
                                                                                 className={`flex items-center justify-between cursor-pointer p-2 rounded ${isSelected ? 'bg-gray-50 border-l-4 border-emerald-400' : ''}`}
                                                                             >
-                                                                                <div>
+                                                                                <div className="min-w-0">
                                                                                     <div className="text-sm font-medium text-gray-900">
                                                                                         {translateActivityType(fa.activityType) || 'N/A'}
                                                                                     </div>
-                                                                                    <div className="text-sm text-gray-600">
-                                                                                        {fa.startDate ? formatDateOnly(fa.startDate) : 'N/A'} - {fa.endDate ? formatDateOnly(fa.endDate) : 'N/A'}
+                                                                                    <div className="text-sm text-gray-600 truncate">
+                                                                                        {formatDateRange(fa.startDate, fa.endDate)}
                                                                                     </div>
                                                                                 </div>
                                                                                 <div className="ml-4">
@@ -562,14 +564,8 @@ const StaffSchedulesPage: React.FC = () => {
                                                                 </div>
                                                             ) : selectedScheduleDetail.farmActivityView ? (
                                                                 <div>
-                                                                    <p className="text-sm text-gray-600 mt-2">
-                                                                        {selectedScheduleDetail.farmActivityView.startDate
-                                                                            ? formatDateOnly(selectedScheduleDetail.farmActivityView.startDate)
-                                                                            : 'N/A'}{' '}
-                                                                        -{' '}
-                                                                        {selectedScheduleDetail.farmActivityView.endDate
-                                                                            ? formatDateOnly(selectedScheduleDetail.farmActivityView.endDate)
-                                                                            : 'N/A'}
+                                                                    <p className="text-sm text-gray-600 mt-2 truncate">
+                                                                        {formatDateRange(selectedScheduleDetail.farmActivityView.startDate, selectedScheduleDetail.farmActivityView.endDate)}
                                                                     </p>
                                                                     <div className="mt-3">
                                                                         <Badge variant={getFarmActivityStatusVariant(selectedScheduleDetail.farmActivityView?.status)}>

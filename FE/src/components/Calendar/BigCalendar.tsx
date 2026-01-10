@@ -6,7 +6,6 @@ import { vi } from "date-fns/locale";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/shared/ui/dropdown-menu'
 import { MoreHorizontal } from 'lucide-react'
-// dialog confirmation is handled by parent components; no dialog import here
 
 interface Props {
   events?: Array<{
@@ -164,19 +163,29 @@ const BigCalendar: React.FC<Props> = ({ events = [], onEventClick, onDayClick, o
               </DropdownMenuItem>
             ) : null}
             <DropdownMenuItem asChild>
-              <button
-                type="button"
-                className="w-full block text-left px-4 py-2 rounded-md hover:bg-muted/50 active:bg-muted/60 focus:outline-none cursor-pointer text-red-600"
-                onClick={(e) => {
-                  e.stopPropagation()
-                    ; (window as any).requestAnimationFrame?.(() => { }) // noop to satisfy linter about async UI
-                  if (onEventMenuAction) {
-                    onEventMenuAction('confirm-deactivate-activity', raw)
-                  }
-                }}
-              >
-                Vô hiệu hóa hoạt động
-              </button>
+              {(() => {
+                const statusRaw = raw?.status ?? raw?.Status
+                const normalized = typeof statusRaw === 'string' ? String(statusRaw).toUpperCase() : statusRaw
+                const isActive = normalized === 'ACTIVE' || normalized === 1
+                const label = isActive ? 'Vô hiệu hóa hoạt động' : 'Kích hoạt hoạt động'
+                return (
+                  <button
+                    type="button"
+                    className={`w-full block text-left px-4 py-2 rounded-md hover:bg-muted/50 active:bg-muted/60 focus:outline-none cursor-pointer ${isActive ? 'text-red-600' : 'text-green-600'}`}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      if (!onEventMenuAction) return
+                      if (isActive) {
+                        onEventMenuAction('confirm-deactivate-activity', raw)
+                      } else {
+                        onEventMenuAction('deactivate-activity', raw)
+                      }
+                    }}
+                  >
+                    {label}
+                  </button>
+                )
+              })()}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

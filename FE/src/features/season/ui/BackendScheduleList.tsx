@@ -427,6 +427,16 @@ export function BackendScheduleList({
                 const res: any = await farmActivityService.changeStatus(id)
                 showSuccessToast(res)
                 await scheduleData.load()
+                try {
+                    const parent = parentSchedule
+                    if (parent && scheduleDialogs.scheduleDetail?.scheduleId === parent.scheduleId) {
+                        await scheduleActions.handleViewDetail(parent, (detail) => {
+                            scheduleDialogs.setScheduleDetail(detail)
+                        })
+                    }
+                } catch (e) {
+                    console.error('Failed to refresh schedule detail after activity status change', e)
+                }
             } catch (err) {
                 showErrorToast(err)
             }
@@ -1110,6 +1120,16 @@ export function BackendScheduleList({
                                 const res: any = await farmActivityService.changeStatus(id)
                                 showSuccessToast(res)
                                 await scheduleData.load()
+                                try {
+                                    const parent = confirmTargetRaw?._parentSchedule ?? confirmTargetRaw?.raw ?? confirmTargetRaw?.activity?._parentSchedule ?? null
+                                    if (parent && scheduleDialogs.scheduleDetail?.scheduleId === parent.scheduleId) {
+                                        await scheduleActions.handleViewDetail(parent, (detail) => {
+                                            scheduleDialogs.setScheduleDetail(detail)
+                                        })
+                                    }
+                                } catch (e) {
+                                    console.error('Failed to refresh schedule detail after confirm deactivate', e)
+                                }
                             } catch (err) {
                                 showErrorToast(err)
                             } finally {

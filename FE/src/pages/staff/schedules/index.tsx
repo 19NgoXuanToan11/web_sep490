@@ -60,15 +60,27 @@ const getFarmActivityStatusLabel = (status?: string) => {
 }
 
 const getDiseaseStatusLabel = (diseaseStatus?: string | number) => {
-    if (!diseaseStatus) return 'Không có'
+    if (diseaseStatus === null || diseaseStatus === undefined) return 'Không có'
+
+    if (typeof diseaseStatus === 'number') {
+        if (diseaseStatus === -1) return 'Không có'
+        return String(diseaseStatus)
+    }
+
     if (typeof diseaseStatus === 'string') {
+        const normalized = diseaseStatus.trim()
+        const lowered = normalized.toLowerCase()
+        if (normalized === '' || lowered === 'none' || normalized === '-1') return 'Không có'
+
         const labels: Record<string, string> = {
             DownyMildew: 'Sương mai',
             PowderyMildew: 'Phấn trắng',
             Blight: 'Bệnh cháy lá',
         }
-        return labels[diseaseStatus] || diseaseStatus
+
+        return labels[normalized] ?? labels[normalized as any] ?? normalized
     }
+
     return String(diseaseStatus)
 }
 

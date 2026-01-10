@@ -6,6 +6,7 @@ import { vi } from "date-fns/locale";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/shared/ui/dropdown-menu'
 import { MoreHorizontal } from 'lucide-react'
+// dialog confirmation is handled by parent components; no dialog import here
 
 interface Props {
   events?: Array<{
@@ -168,9 +169,10 @@ const BigCalendar: React.FC<Props> = ({ events = [], onEventClick, onDayClick, o
                 className="w-full block text-left px-4 py-2 rounded-md hover:bg-muted/50 active:bg-muted/60 focus:outline-none cursor-pointer text-red-600"
                 onClick={(e) => {
                   e.stopPropagation()
-                  const ok = window.confirm('Bạn có chắc chắn muốn vô hiệu hóa hoạt động này?')
-                  if (!ok) return
-                  onEventMenuAction && onEventMenuAction('deactivate-activity', raw)
+                    ; (window as any).requestAnimationFrame?.(() => { }) // noop to satisfy linter about async UI
+                  if (onEventMenuAction) {
+                    onEventMenuAction('confirm-deactivate-activity', raw)
+                  }
                 }}
               >
                 Vô hiệu hóa hoạt động

@@ -6,7 +6,7 @@ import { Label } from '@/shared/ui/label'
 import { Badge } from '@/shared/ui/badge'
 import { Pagination } from '@/shared/ui/pagination'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/shared/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/shared/ui/dialog'
 import { cn } from '@/shared/lib/utils'
 import { RefreshCw, Search, Settings } from 'lucide-react'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/ui/tabs'
@@ -65,6 +65,8 @@ export function BackendScheduleList({
     })
     const [, setEditFarmActivityLoading] = useState(false)
     const [editFarmActivitySubmitting, setEditFarmActivitySubmitting] = useState(false)
+    const [confirmDeactivateOpen, setConfirmDeactivateOpen] = useState(false)
+    const [confirmTargetRaw, setConfirmTargetRaw] = useState<any>(null)
 
     const showCreate = externalShowCreate ?? scheduleDialogs.showCreate
     const filteredItems = externalFilteredItems !== undefined ? externalFilteredItems : null
@@ -392,6 +394,11 @@ export function BackendScheduleList({
 
     const handleEventMenuAction = useCallback(async (action: string, raw?: any) => {
         if (!raw) return
+        if (action === 'confirm-deactivate-activity') {
+            setConfirmTargetRaw(raw)
+            setConfirmDeactivateOpen(true)
+            return
+        }
         const parentSchedule = raw?._parentSchedule ?? raw?._parentSchedule ?? raw?.raw ?? null
         if (action === 'create') {
             if (parentSchedule) {
@@ -420,6 +427,8 @@ export function BackendScheduleList({
             } catch (err) {
                 showErrorToast(err)
             }
+        } else if (action === 'confirm-deactivate-activity') {
+            return
         } else if (action === 'editActivity') {
             if (!raw) return
             void (async () => {
@@ -1018,6 +1027,38 @@ export function BackendScheduleList({
                 todayString={todayString}
                 onSubmit={submitCreateActivity}
             />
+            <Dialog open={confirmDeactivateOpen} onOpenChange={setConfirmDeactivateOpen}>
+                <DialogContent className="max-w-md">
+                    <DialogHeader>
+                        <DialogTitle>Xác nhận vô hiệu hóa</DialogTitle>
+                    </DialogHeader>
+                    <div className="py-2">
+                        <p>Bạn có chắc chắn muốn vô hiệu hóa hoạt động này? Hành động có thể đảo ngược trong trang quản lý.</p>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => { setConfirmDeactivateOpen(false); setConfirmTargetRaw(null) }}>
+                            Hủy
+                        </Button>
+                        <Button variant="destructive" onClick={async () => {
+                            try {
+                                if (!confirmTargetRaw) return
+                                const id = Number(confirmTargetRaw?.farmActivitiesId ?? confirmTargetRaw?.farmActivityId ?? confirmTargetRaw?.id ?? confirmTargetRaw?.activity?.farmActivitiesId)
+                                if (!id) return
+                                const res: any = await farmActivityService.changeStatus(id)
+                                showSuccessToast(res)
+                                await scheduleData.load()
+                            } catch (err) {
+                                showErrorToast(err)
+                            } finally {
+                                setConfirmDeactivateOpen(false)
+                                setConfirmTargetRaw(null)
+                            }
+                        }}>
+                            Xác nhận
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
             <Dialog open={showEditFarmActivity} onOpenChange={setShowEditFarmActivity}>
                 <DialogContent className="max-w-md">
                     <DialogHeader>

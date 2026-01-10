@@ -8,7 +8,13 @@ import { Pagination } from '@/shared/ui/pagination'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/shared/ui/dialog'
 import { cn } from '@/shared/lib/utils'
-import { RefreshCw, Search, Settings } from 'lucide-react'
+import { RefreshCw, Search, Settings, MoreHorizontal } from 'lucide-react'
+import {
+    DropdownMenu,
+    DropdownMenuTrigger,
+    DropdownMenuContent,
+    DropdownMenuItem,
+} from '@/shared/ui/dropdown-menu'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/ui/tabs'
 import CalendarShell from '@/components/Calendar'
 import ThresholdPanel from '@/features/thresholds/ThresholdPanel'
@@ -500,6 +506,47 @@ export function BackendScheduleList({
         }
     }, [])
 
+    const handleToggleActivity = useCallback(async (rawItem: any) => {
+        if (!rawItem) return
+        try {
+            const id = Number(rawItem?.farmActivitiesId ?? rawItem?.farmActivityId ?? rawItem?.id ?? rawItem?.activity?.farmActivitiesId)
+            if (!id) return
+            const res: any = await farmActivityService.changeStatus(id)
+            showSuccessToast(res)
+
+            setDayEventsList(prev =>
+                prev.map((ev: any) => {
+                    const evId = Number(ev?.farmActivitiesId ?? ev?.farmActivityId ?? ev?.id ?? ev?.activity?.farmActivitiesId)
+                    if (!evId || evId !== id) return ev
+                    const oldStatus = ev?.status ?? ev?.Status
+                    let newStatus: any = oldStatus
+                    if (typeof oldStatus === 'number') {
+                        newStatus = oldStatus === 1 ? 0 : 1
+                    } else if (typeof oldStatus === 'string') {
+                        newStatus = String(oldStatus).toUpperCase() === 'ACTIVE' ? 'DEACTIVATED' : 'ACTIVE'
+                    } else {
+                        newStatus = oldStatus
+                    }
+                    return { ...ev, status: newStatus }
+                })
+            )
+
+            await scheduleData.load()
+            try {
+                const parent = rawItem?._parentSchedule ?? rawItem?.raw ?? rawItem?.activity?._parentSchedule ?? null
+                if (parent && scheduleDialogs.scheduleDetail?.scheduleId === parent.scheduleId) {
+                    await scheduleActions.handleViewDetail(parent, (detail) => {
+                        scheduleDialogs.setScheduleDetail(detail)
+                    })
+                }
+            } catch (e) {
+                console.error('Failed to refresh schedule detail after activity status change', e)
+            }
+        } catch (err) {
+            showErrorToast(err)
+        }
+    }, [scheduleData, scheduleDialogs, scheduleActions])
+
     useEffect(() => {
         if (scheduleData.newlyCreatedIds.size > 0) {
             const timer = setTimeout(() => {
@@ -967,7 +1014,14 @@ export function BackendScheduleList({
                         {Array.isArray(dayEventsList) && dayEventsList.length > 0 ? (
                             dayEventsList.map((ev: any) => {
                                 const raw = ev ?? {}
-                                const title = raw.title ?? raw.activityType ?? raw.name ?? `Hoạt động #${raw.farmActivitiesId ?? raw.id ?? ''}`
+                                const candidateType =
+                                    raw.activityType ??
+                                    raw.ActivityType ??
+                                    raw.activity?.activityType ??
+                                    raw.title ??
+                                    raw.name ??
+                                    `Hoạt động #${raw.farmActivitiesId ?? raw.id ?? ''}`
+                                const title = translateActivityType(String(candidateType))
                                 const statusInfo = getFarmActivityStatusInfo(raw.status ?? raw.Status)
                                 return (
                                     <div key={String(raw.farmActivitiesId ?? raw.id ?? Math.random())} className="p-3 bg-white border rounded-md flex items-start justify-between gap-3">
@@ -985,18 +1039,40 @@ export function BackendScheduleList({
                                         </div>
                                         <div className="flex-shrink-0 flex items-center gap-3">
                                             <Badge variant={statusInfo.variant as any} className="text-sm">{statusInfo.label}</Badge>
-                                            <Button
-                                                size="sm"
-                                                variant="ghost"
-                                                className="text-primary"
-                                                onClick={() => {
-                                                    setSelectedFarmActivity(raw)
-                                                    setShowFarmActivityDetail(true)
-                                                    setShowDayEventsDialog(false)
-                                                }}
-                                            >
-                                                Xem
-                                            </Button>
+                                            <DropdownMenu modal={false}>
+                                                <DropdownMenuTrigger asChild>
+                                                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={(e) => e.stopPropagation()}>
+                                                        <MoreHorizontal className="h-4 w-4 text-gray-400" />
+                                                    </Button>
+                                                </DropdownMenuTrigger>
+                                                <DropdownMenuContent disablePortal align="end" className="w-44" sideOffset={5} onCloseAutoFocus={(e) => e.preventDefault()}>
+                                                    <DropdownMenuItem
+                                                        onClick={(e) => {
+                                                            e.preventDefault()
+                                                            e.stopPropagation()
+                                                            setSelectedFarmActivity(raw)
+                                                            setShowFarmActivityDetail(true)
+                                                            setShowDayEventsDialog(false)
+                                                        }}
+                                                        className="cursor-pointer focus:bg-gray-100"
+                                                        onSelect={(e) => e.preventDefault()}
+                                                    >
+                                                        Xem
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem
+                                                        onClick={(e) => {
+                                                            e.preventDefault()
+                                                            e.stopPropagation()
+                                                            void handleToggleActivity(raw)
+                                                        }}
+                                                        className="cursor-pointer focus:bg-gray-100"
+                                                        onSelect={(e) => e.preventDefault()}
+                                                    >
+                                                        {((raw.status ?? raw.Status) === 1 || String(raw.status ?? raw.Status) === 'ACTIVE') ? 'Tạm dừng hoạt động' : 'Kích hoạt hoạt động'}
+                                                    </DropdownMenuItem>
+
+                                                </DropdownMenuContent>
+                                            </DropdownMenu>
                                         </div>
                                     </div>
                                 )

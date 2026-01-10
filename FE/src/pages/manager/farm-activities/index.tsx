@@ -147,7 +147,7 @@ export default function FarmActivitiesPage() {
   const [activityTypeFilter, setActivityTypeFilter] = useState<string>('all')
   const [showLatestOnly, setShowLatestOnly] = useState<boolean>(false)
 
-  const [activeTab, setActiveTab] = useState<'ACTIVE' | 'COMPLETED'>('ACTIVE')
+  const [activeTab, setActiveTab] = useState<'ACTIVE' | 'COMPLETED' | 'DEACTIVATED'>('ACTIVE')
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({})
   const latestRequestIdRef = useRef(0)
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
@@ -334,14 +334,15 @@ export default function FarmActivitiesPage() {
 
 
 
-  const getTabForActivity = (activity: FarmActivity): 'ACTIVE' | 'COMPLETED' | 'NONE' => {
+  const getTabForActivity = (activity: FarmActivity): 'ACTIVE' | 'COMPLETED' | 'DEACTIVATED' | 'NONE' => {
     const status = (activity.status || '').toUpperCase()
     if (status === 'ACTIVE') return 'ACTIVE'
     if (status === 'COMPLETED') return 'COMPLETED'
+    if (status === 'DEACTIVATED') return 'DEACTIVATED'
     return 'NONE'
   }
 
-  const sortRules = (tab: 'ACTIVE' | 'COMPLETED', a: FarmActivity, b: FarmActivity) => {
+  const sortRules = (tab: 'ACTIVE' | 'COMPLETED' | 'DEACTIVATED', a: FarmActivity, b: FarmActivity) => {
     const parse = (v?: string | null) => {
       const d = parseDate(v)
       return d ? d.getTime() : 0
@@ -480,17 +481,18 @@ export default function FarmActivitiesPage() {
 
 
   const processedByTab = useMemo(() => {
-    const byTab: Record<'ACTIVE' | 'COMPLETED', FarmActivity[]> = {
+    const byTab: Record<'ACTIVE' | 'COMPLETED' | 'DEACTIVATED', FarmActivity[]> = {
       ACTIVE: [],
       COMPLETED: [],
+      DEACTIVATED: [],
     }
     for (const act of filteredActivities) {
       const tab = getTabForActivity(act)
-      if (tab === 'ACTIVE' || tab === 'COMPLETED') {
+      if (tab === 'ACTIVE' || tab === 'COMPLETED' || tab === 'DEACTIVATED') {
         byTab[tab].push(act)
       }
     }
-    ; (['ACTIVE', 'COMPLETED'] as const).forEach(tab => {
+    ; (['ACTIVE', 'COMPLETED', 'DEACTIVATED'] as const).forEach(tab => {
       byTab[tab].sort((a, b) => sortRules(tab, a, b as any))
     })
     return byTab
@@ -926,6 +928,25 @@ export default function FarmActivitiesPage() {
                     }`}
                 >
                   {processedByTab.COMPLETED ? processedByTab.COMPLETED.length : 0}
+                </span>
+              </button>
+
+              <button
+                role="tab"
+                aria-selected={activeTab === 'DEACTIVATED'}
+                onClick={() => setActiveTab('DEACTIVATED')}
+                title="Tạm dừng"
+                className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-400 ${activeTab === 'DEACTIVATED'
+                  ? 'bg-gradient-to-r from-emerald-700 to-green-600 text-white shadow-md'
+                  : 'bg-white/60 text-gray-700 hover:shadow-sm'
+                  }`}
+              >
+                <span className="ml-1">Tạm dừng</span>
+                <span
+                  className={`ml-3 inline-flex items-center justify-center px-3 py-0.5 rounded-full text-xs font-semibold ${activeTab === 'DEACTIVATED' ? 'bg-white/20' : 'bg-gray-100 text-gray-800'
+                    }`}
+                >
+                  {processedByTab.DEACTIVATED ? processedByTab.DEACTIVATED.length : 0}
                 </span>
               </button>
             </div>

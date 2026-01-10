@@ -125,17 +125,23 @@ export function BackendScheduleList({
                 const start = parseDDMMYYYY(fa.startDate) ?? parseDDMMYYYY(detail.startDate) ?? null
                 const end = parseDDMMYYYY(fa.endDate) ?? parseDDMMYYYY(detail.endDate) ?? null
                 if (!start || !end) return null
+                const isActive = (fa.status === 1 || String(fa.status).toUpperCase() === 'ACTIVE')
                 return {
                     id: String(fa.farmActivitiesId ?? `${detail.scheduleId}-${Math.random()}`),
                     title: translateActivityType(fa.activityType ?? fa.ActivityType ?? '') || `Hoạt động #${fa.farmActivitiesId ?? ''}`,
                     start,
                     end,
                     allDay: true,
-                    color: (fa.status === 1 || fa.status === 'ACTIVE') ? '#F59E0B' : '#DC2626',
+                    isActive,
+                    color: isActive ? '#F59E0B' : '#9CA3AF',
                     raw: { ...fa, _parentSchedule: detail },
                 }
             })
             .filter((x: any) => x !== null)
+            .sort((a: any, b: any) => {
+                if ((a.isActive === b.isActive)) return 0
+                return a.isActive ? -1 : 1
+            })
 
         if (mapped.length === 0) {
             return []
@@ -499,7 +505,20 @@ export function BackendScheduleList({
     const handleDayClick = useCallback((date: Date, events: any[]) => {
         try {
             setDayEventsDate(date ?? null)
-            setDayEventsList(Array.isArray(events) ? events : [])
+            const list = Array.isArray(events) ? [...events] : []
+            const isEventActive = (ev: any) => {
+                const raw = ev?.raw ?? ev
+                const st = raw?.status ?? raw?.Status ?? raw?.raw?.status ?? raw?.raw?.Status
+                if (typeof st === 'number') return st === 1
+                return String(st ?? '').toUpperCase() === 'ACTIVE'
+            }
+            list.sort((a: any, b: any) => {
+                const aa = isEventActive(a)
+                const bb = isEventActive(b)
+                if (aa === bb) return 0
+                return aa ? -1 : 1
+            })
+            setDayEventsList(list)
             setShowDayEventsDialog(true)
         } catch (err) {
             console.error('Failed to open day events dialog', err)
@@ -974,6 +993,7 @@ export function BackendScheduleList({
                                                         start: ev.start ?? null,
                                                         end: ev.end ?? null,
                                                         color: ev.color ?? undefined,
+                                                        isActive: ev.isActive ?? false,
                                                         participants: [],
                                                         raw: ev.raw ?? null,
                                                     }))}
@@ -1023,8 +1043,15 @@ export function BackendScheduleList({
                                     `Hoạt động #${raw.farmActivitiesId ?? raw.id ?? ''}`
                                 const title = translateActivityType(String(candidateType))
                                 const statusInfo = getFarmActivityStatusInfo(raw.status ?? raw.Status)
+                                const isActive = (raw.status === 1 || String(raw.status ?? raw.Status).toUpperCase() === 'ACTIVE' || ev?.isActive === true)
                                 return (
-                                    <div key={String(raw.farmActivitiesId ?? raw.id ?? Math.random())} className="p-3 bg-white border rounded-md flex items-start justify-between gap-3">
+                                    <div
+                                        key={String(raw.farmActivitiesId ?? raw.id ?? Math.random())}
+                                        className={cn(
+                                            "p-3 rounded-md flex items-start justify-between gap-3",
+                                            isActive ? "bg-white border" : "bg-gray-50 border-gray-100 opacity-80"
+                                        )}
+                                    >
                                         <div className="min-w-0">
                                             <div className="mb-1">
                                                 <div className="text-sm font-medium text-gray-900 truncate">{title}</div>

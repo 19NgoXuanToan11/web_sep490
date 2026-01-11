@@ -4,8 +4,6 @@ import { format, parse, startOfWeek, getDay, addDays } from "date-fns";
 import Header from "./archive/Header";
 import { vi } from "date-fns/locale";
 import "react-big-calendar/lib/css/react-big-calendar.css";
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@/shared/ui/dropdown-menu'
-import { MoreHorizontal } from 'lucide-react'
 
 interface Props {
   events?: Array<{
@@ -60,7 +58,7 @@ const toRbcEvent = (e: any) => {
   };
 };
 
-const BigCalendar: React.FC<Props> = ({ events = [], onEventClick, onDayClick, onEventMenuAction }) => {
+const BigCalendar: React.FC<Props> = ({ events = [], onEventClick, onDayClick }) => {
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
 
   const mapped = (events || []).map(toRbcEvent).filter((ev) => !!ev.start);
@@ -133,62 +131,12 @@ const BigCalendar: React.FC<Props> = ({ events = [], onEventClick, onDayClick, o
   const CustomEvent = (props: any) => {
     const ev = props.event || props.eventData || {}
     const title = ev.title ?? ''
-    const raw = ev.raw ?? ev
+
     const isContinuation = !!props.continuesPrior
 
     return (
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-        <div style={{ overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis', flex: 1 }}>
-          {!isContinuation ? title : null}
-        </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button onClick={(e) => { e.stopPropagation() }} className="p-1 rounded hover:bg-muted/50">
-              <MoreHorizontal className="h-4 w-4" />
-            </button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {raw && (raw.farmActivitiesId !== undefined && raw.farmActivitiesId !== null) ? (
-              <DropdownMenuItem asChild>
-                <button
-                  type="button"
-                  className="w-full block text-left px-4 py-2 rounded-md hover:bg-muted/50 active:bg-muted/60 focus:outline-none cursor-pointer"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onEventMenuAction && onEventMenuAction('editActivity', raw)
-                  }}
-                >
-                  Chỉnh sửa hoạt động nông trại
-                </button>
-              </DropdownMenuItem>
-            ) : null}
-            <DropdownMenuItem asChild>
-              {(() => {
-                const statusRaw = raw?.status ?? raw?.Status
-                const normalized = typeof statusRaw === 'string' ? String(statusRaw).toUpperCase() : statusRaw
-                const isActive = normalized === 'ACTIVE' || normalized === 1
-                const label = isActive ? 'Vô hiệu hóa hoạt động' : 'Kích hoạt hoạt động'
-                return (
-                  <button
-                    type="button"
-                    className={`w-full block text-left px-4 py-2 rounded-md hover:bg-muted/50 active:bg-muted/60 focus:outline-none cursor-pointer ${isActive ? 'text-red-600' : 'text-green-600'}`}
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      if (!onEventMenuAction) return
-                      if (isActive) {
-                        onEventMenuAction('confirm-deactivate-activity', raw)
-                      } else {
-                        onEventMenuAction('deactivate-activity', raw)
-                      }
-                    }}
-                  >
-                    {label}
-                  </button>
-                )
-              })()}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+      <div style={{ overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
+        {!isContinuation ? title : null}
       </div>
     )
   }

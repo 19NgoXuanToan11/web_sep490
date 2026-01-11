@@ -1385,6 +1385,39 @@ export function BackendScheduleList({
                 <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
                     <DialogHeader className="flex items-center justify-between">
                         <DialogTitle>Chi tiết hoạt động</DialogTitle>
+                        <div className="flex items-center gap-2">
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                className="border-gray-300 bg-white text-gray-800 hover:bg-gray-50 hover:border-gray-400"
+                                onClick={() => {
+                                    if (!selectedFarmActivity) return
+                                    void handleEventMenuAction('editActivity', selectedFarmActivity)
+                                    setShowFarmActivityDetail(false)
+                                }}>
+                                <span className="font-medium">Chỉnh sửa</span>
+                            </Button>
+                            <Button
+                                size="sm"
+                                variant="ghost"
+                                className="border border-gray-200 bg-gray-50 text-gray-700 hover:bg-gray-100 hover:border-gray-300"
+                                onClick={async () => {
+                                    if (!selectedFarmActivity) return
+                                    await handleToggleActivity(selectedFarmActivity)
+                                    try {
+                                        const oldStatus = selectedFarmActivity.status ?? selectedFarmActivity.Status
+                                        let newStatus: any = oldStatus
+                                        if (typeof oldStatus === 'number') newStatus = oldStatus === 1 ? 0 : 1
+                                        else if (typeof oldStatus === 'string') newStatus = String(oldStatus).toUpperCase() === 'ACTIVE' ? 'DEACTIVATED' : 'ACTIVE'
+                                        setSelectedFarmActivity({ ...selectedFarmActivity, status: newStatus, Status: newStatus })
+                                    } catch (e) {
+                                    }
+                                }}>
+                                <span className="font-medium">
+                                    {((selectedFarmActivity?.status ?? selectedFarmActivity?.Status) === 1 || String(selectedFarmActivity?.status ?? selectedFarmActivity?.Status).toUpperCase() === 'ACTIVE') ? 'Tạm dừng' : 'Kích hoạt'}
+                                </span>
+                            </Button>
+                        </div>
                     </DialogHeader>
                     {selectedFarmActivity ? (
                         <div className="space-y-4 p-2">

@@ -514,10 +514,9 @@ const StaffSchedulesPage: React.FC = () => {
                                                                             return (
                                                                                 <div
                                                                                     key={fa.farmActivitiesId}
-                                                                                    onClick={() => {
-                                                                                        setSelectedScheduleDetail(prev => prev ? { ...prev, farmActivityView: fa } : prev)
-                                                                                    }}
-                                                                                    className={`flex items-center justify-between cursor-pointer p-3 rounded ${isSelected ? 'bg-gray-50 border-l-4 border-emerald-400' : 'hover:bg-gray-50'}`}
+                                                                                    className={`flex items-center justify-between p-3 rounded ${isSelected ? 'bg-gray-50 border-l-4 border-emerald-400' : ''}`}
+                                                                                    role="group"
+                                                                                    aria-disabled="true"
                                                                                 >
                                                                                     <div className="min-w-0">
                                                                                         <div className="text-sm font-medium text-gray-900">

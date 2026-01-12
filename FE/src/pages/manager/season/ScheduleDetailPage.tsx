@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo } from 'react'
 import { useParams, useLocation, useNavigate } from 'react-router-dom'
 import { Card, CardContent } from '@/shared/ui/card'
 import { Button } from '@/shared/ui/button'
@@ -27,12 +27,6 @@ export const ScheduleDetailPage: React.FC = () => {
     const scheduleId = useMemo(() => {
         return params.scheduleId ? Number(params.scheduleId) : NaN
     }, [params.scheduleId])
-
-    const [selectedFarmActivity, setSelectedFarmActivity] = useState<any>(null)
-    const [showFarmActivityDetail, setShowFarmActivityDetail] = useState(false)
-    const [showDayEventsDialog, setShowDayEventsDialog] = useState(false)
-    const [dayEventsDate, setDayEventsDate] = useState<Date | null>(null)
-    const [dayEventsList, setDayEventsList] = useState<any[]>([])
 
     const query = useMemo(() => {
         try {
@@ -291,28 +285,14 @@ export const ScheduleDetailPage: React.FC = () => {
                                                 }))}
                                                 onEventClick={(raw) => {
                                                     if (!raw) return
-                                                    setSelectedFarmActivity(raw)
-                                                    setShowFarmActivityDetail(true)
                                                 }}
                                                 onEventMenuAction={(_action, _raw) => {
                                                 }}
                                                 onDayClick={(date, events) => {
                                                     try {
-                                                        setDayEventsDate(date ?? null)
-                                                        const list = Array.isArray(events) ? [...events] : []
-                                                        list.sort((a: any, b: any) => {
-                                                            const st = (ev: any) => {
-                                                                const raw = ev?.raw ?? ev
-                                                                const s = raw?.status ?? raw?.Status ?? raw?.raw?.status ?? raw?.raw?.Status
-                                                                if (typeof s === 'number') return s === 1 ? -1 : 1
-                                                                return String(s ?? '').toUpperCase() === 'ACTIVE' ? -1 : 1
-                                                            }
-                                                            return st(a) - st(b)
-                                                        })
-                                                        setDayEventsList(list)
-                                                        setShowDayEventsDialog(true)
+                                                        console.log('Day clicked:', date, events)
                                                     } catch (err) {
-                                                        console.error('Failed to open day events', err)
+                                                        console.error('Failed to handle day click', err)
                                                     }
                                                     scheduleDialogs.setDetailActiveTab('calendar')
                                                 }}
@@ -326,7 +306,7 @@ export const ScheduleDetailPage: React.FC = () => {
                                 <div className="space-y-4">
                                     <ScheduleLogPanel scheduleId={scheduleDialogs.scheduleDetail.scheduleId} onEdit={(log) => {
                                         scheduleDialogs.openEditLog(log)
-                                    }} registerUpdater={(_fn) => { /* noop for page; scheduleDialogs handles logs updates via hooked forms */ }} />
+                                    }} registerUpdater={(_fn) => { }} />
                                 </div>
                             </TabsContent>
                         </Tabs>

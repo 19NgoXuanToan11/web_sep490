@@ -246,11 +246,6 @@ export function BackendScheduleList({
         })
     }, [scheduleActions, handleCreateDialogChange])
 
-    const handleViewDetail = useCallback(async (schedule: ScheduleListItem) => {
-        if (!schedule || !schedule.scheduleId) return
-        navigate(`/manager/season/${schedule.scheduleId}`)
-    }, [navigate])
-
     const handleViewDetailWithTab = useCallback((schedule: ScheduleListItem, tab: 'info' | 'calendar' | 'logs') => {
         if (!schedule || !schedule.scheduleId) return
         navigate(`/manager/season/${schedule.scheduleId}?tab=${tab}`)

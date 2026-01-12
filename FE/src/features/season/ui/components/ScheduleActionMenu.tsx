@@ -74,6 +74,30 @@ const ScheduleActionMenu: React.FC<ScheduleActionMenuProps> = React.memo(({
     [schedule, onUpdateStatus]
   )
 
+  const handleViewLogs = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault()
+      e.stopPropagation()
+      setOpen(false)
+      setTimeout(() => {
+        onViewLogs?.(schedule)
+      }, 0)
+    },
+    [schedule, onViewLogs]
+  )
+
+  const handleAddLog = useCallback(
+    (e: React.MouseEvent) => {
+      e.preventDefault()
+      e.stopPropagation()
+      setOpen(false)
+      setTimeout(() => {
+        onAddLog?.(schedule)
+      }, 0)
+    },
+    [schedule, onAddLog]
+  )
+
   const nextStatus: ScheduleStatusString = isActiveStatus(schedule.status) ? 'DEACTIVATED' : 'ACTIVE'
 
 
@@ -131,6 +155,24 @@ const ScheduleActionMenu: React.FC<ScheduleActionMenuProps> = React.memo(({
         >
           {isActiveStatus(schedule.status) ? 'Vô hiệu hóa lịch' : 'Kích hoạt lịch'}
         </DropdownMenuItem>
+        {onViewLogs && (
+          <DropdownMenuItem
+            onClick={handleViewLogs}
+            className="cursor-pointer focus:bg-gray-100"
+            onSelect={(e) => e.preventDefault()}
+          >
+            Xem nhật ký
+          </DropdownMenuItem>
+        )}
+        {onAddLog && (
+          <DropdownMenuItem
+            onClick={handleAddLog}
+            className="cursor-pointer focus:bg-gray-100"
+            onSelect={(e) => e.preventDefault()}
+          >
+            Thêm nhật ký
+          </DropdownMenuItem>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   )

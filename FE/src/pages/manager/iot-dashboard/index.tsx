@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState, useCallback } from 'react'
+﻿import React, { useEffect, useState, useCallback, useRef } from 'react'
 import { motion } from 'framer-motion'
 import {
   AlertCircle,
@@ -103,15 +103,28 @@ const RealTimeIoTDashboard: React.FC = () => {
     }
   }, [retryCount])
 
+  const pollingIntervalRef = useRef<number | null>(null)
+
   useEffect(() => {
+    // Fetch data immediately
     fetchSensorData()
 
-    const interval = setInterval(() => {
-      fetchSensorData()
-    }, REFRESH_INTERVAL)
+    // Pause background polling while threshold modal is open so user input isn't interrupted
+    if (isThresholdModalOpen) {
+      return
+    }
 
-    return () => clearInterval(interval)
-  }, [fetchSensorData])
+    pollingIntervalRef.current = window.setInterval(() => {
+      fetchSensorData()
+    }, REFRESH_INTERVAL) as unknown as number
+
+    return () => {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current)
+        pollingIntervalRef.current = null
+      }
+    }
+  }, [fetchSensorData, isThresholdModalOpen])
 
   useEffect(() => {
     if (isThresholdModalOpen) {

@@ -11,6 +11,7 @@ const AdminDashboard = React.lazy(() => import('@/pages/admin/dashboard'))
 
 const ManagerDashboard = React.lazy(() => import('@/pages/manager/dashboard'))
 const SeasonPage = React.lazy(() => import('@/pages/manager/season'))
+const ScheduleDetailPage = React.lazy(() => import('@/pages/manager/season/ScheduleDetailPage').then(m => ({ default: m.ScheduleDetailPage })))
 const ManagerCategoriesPage = React.lazy(() => import('@/pages/manager/categories'))
 const ManagerCropsPage = React.lazy(() => import('@/pages/manager/crops'))
 const CropManagementPage = React.lazy(() =>
@@ -98,6 +99,16 @@ const routerConfig = [
       <LazyWrapper>
         <RoleGuard allowed={['Manager']}>
           <SeasonPage />
+        </RoleGuard>
+      </LazyWrapper>
+    ),
+  },
+  {
+    path: '/manager/season/:scheduleId',
+    element: (
+      <LazyWrapper>
+        <RoleGuard allowed={['Manager']}>
+          <ScheduleDetailPage />
         </RoleGuard>
       </LazyWrapper>
     ),

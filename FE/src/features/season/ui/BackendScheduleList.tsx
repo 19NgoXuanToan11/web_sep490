@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Card, CardContent } from '@/shared/ui/card'
 import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
@@ -50,6 +51,13 @@ export function BackendScheduleList({
         scheduleData.load,
         scheduleData.loadAllSchedules
     )
+    const navigate = useNavigate()
+    const openDetailPage = useCallback((schedule: ScheduleListItem | null, tab?: 'info' | 'calendar' | 'logs') => {
+        if (!schedule || !schedule.scheduleId) return
+        const base = `/manager/season/${schedule.scheduleId}`
+        if (tab) navigate(`${base}?tab=${tab}`)
+        else navigate(base)
+    }, [navigate])
     const [selectedFarmActivity, setSelectedFarmActivity] = useState<any>(null)
     const [showFarmActivityDetail, setShowFarmActivityDetail] = useState(false)
     const [editingFarmActivity, setEditingFarmActivity] = useState<any>(null)
@@ -239,18 +247,14 @@ export function BackendScheduleList({
     }, [scheduleActions, handleCreateDialogChange])
 
     const handleViewDetail = useCallback(async (schedule: ScheduleListItem) => {
-        await scheduleActions.handleViewDetail(schedule, (detail) => {
-            scheduleDialogs.setScheduleDetail(detail)
-            scheduleDialogs.setSelectedSchedule(schedule)
-            scheduleDialogs.setDetailActiveTab('info')
-            scheduleDialogs.setShowDetail(true)
-        })
-    }, [scheduleActions, scheduleDialogs])
+        if (!schedule || !schedule.scheduleId) return
+        navigate(`/manager/season/${schedule.scheduleId}`)
+    }, [navigate])
 
-    const handleViewDetailWithTab = useCallback(async (schedule: ScheduleListItem, tab: 'info' | 'calendar' | 'logs') => {
-        await handleViewDetail(schedule)
-        scheduleDialogs.setDetailActiveTab(tab)
-    }, [handleViewDetail, scheduleDialogs])
+    const handleViewDetailWithTab = useCallback((schedule: ScheduleListItem, tab: 'info' | 'calendar' | 'logs') => {
+        if (!schedule || !schedule.scheduleId) return
+        navigate(`/manager/season/${schedule.scheduleId}?tab=${tab}`)
+    }, [navigate])
 
     const openCreateLogForSchedule = useCallback((schedule: ScheduleListItem) => {
         scheduleDialogs.openCreateLogForSchedule(schedule)
@@ -425,10 +429,8 @@ export function BackendScheduleList({
             setSelectedFarmActivity(raw)
         } else if (action === 'logs') {
             if (parentSchedule) {
-                scheduleDialogs.setSelectedSchedule(parentSchedule)
+                navigate(`/manager/season/${parentSchedule.scheduleId}?tab=logs`)
             }
-            scheduleDialogs.setDetailActiveTab('logs')
-            scheduleDialogs.setShowDetail(true)
         } else if (action === 'deactivate') {
             if (!parentSchedule) return
             void handleUpdateStatus(parentSchedule, 'DEACTIVATED')
@@ -709,7 +711,7 @@ export function BackendScheduleList({
                                                         "hover:shadow-md transition-all cursor-pointer",
                                                         isNewlyCreated && "ring-2 ring-green-500 bg-green-50/50 shadow-lg"
                                                     )}
-                                                    onClick={() => handleViewDetail(schedule)}
+                                                    onClick={() => openDetailPage(schedule)}
                                                 >
                                                     <CardContent className="p-4">
                                                         <div className="flex items-start justify-between">
@@ -756,7 +758,7 @@ export function BackendScheduleList({
                                                                 <div onClick={(e) => e.stopPropagation()}>
                                                                     <ScheduleActionMenu
                                                                         schedule={schedule}
-                                                                        onView={handleViewDetail}
+                                                                        onView={(s) => openDetailPage(s)}
                                                                         onEdit={handleEdit}
                                                                         onViewLogs={(s) => handleViewDetailWithTab(s, 'logs')}
                                                                         onAddLog={(s) => openCreateLogForSchedule(s)}
@@ -833,7 +835,7 @@ export function BackendScheduleList({
                                     onClick={() => scheduleDialogs.setShowUpdateStageModal(true)}
                                     className="flex items-center gap-2"
                                 >
-                                    Cập nhật giai đoạn theo ngày
+                                    Demo cập nhật giai đoạn theo ngày
                                 </Button>
                             </div>
                         )}
@@ -868,7 +870,7 @@ export function BackendScheduleList({
                                                 <h3 className="text-lg font-semibold mb-3">Thông tin cơ bản</h3>
                                                 <div className="grid grid-cols-2 gap-4">
                                                     <div><strong>Ngày bắt đầu:</strong> {formatDate(scheduleDialogs.scheduleDetail.startDate)}</div>
-                                                    <div><strong>Ngày kết thúc:</strong> {formatDate(scheduleDialogs.scheduleDetail.endDate)}</div>
+                                                    <div><strong>Ngày kết thúc dự kiến:</strong> {formatDate(scheduleDialogs.scheduleDetail.endDate)}</div>
                                                     <div>
                                                         <strong>Trạng thái:</strong>{' '}
                                                         <Badge variant={isActiveStatus(scheduleDialogs.scheduleDetail.status) ? 'golden' : 'destructive'}>
@@ -920,7 +922,7 @@ export function BackendScheduleList({
                                                     <h3 className="text-lg font-semibold mb-3">Thông tin cây trồng</h3>
                                                     <div className="grid grid-cols-2 gap-4 p-4 bg-muted/50 rounded-lg">
                                                         <div><strong>Tên cây trồng:</strong> {scheduleDialogs.scheduleDetail.cropView.cropName ?? `#${scheduleDialogs.scheduleDetail.cropView.cropId}`}</div>
-                                                        <div><strong>Số lượng cây trồng:</strong> {scheduleDialogs.scheduleDetail.quantity}</div>
+                                                        <div><strong>Số lượng:</strong> {scheduleDialogs.scheduleDetail.quantity}</div>
                                                         {scheduleDialogs.scheduleDetail.cropView.origin && (
                                                             <div><strong>Nguồn gốc:</strong> {scheduleDialogs.scheduleDetail.cropView.origin}</div>
                                                         )}

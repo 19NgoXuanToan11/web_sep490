@@ -155,24 +155,6 @@ const ScheduleActionMenu: React.FC<ScheduleActionMenuProps> = React.memo(({
         >
           {isActiveStatus(schedule.status) ? 'Vô hiệu hóa lịch' : 'Kích hoạt lịch'}
         </DropdownMenuItem>
-        {onViewLogs && (
-          <DropdownMenuItem
-            onClick={handleViewLogs}
-            className="cursor-pointer focus:bg-gray-100"
-            onSelect={(e) => e.preventDefault()}
-          >
-            Xem nhật ký
-          </DropdownMenuItem>
-        )}
-        {onAddLog && (
-          <DropdownMenuItem
-            onClick={handleAddLog}
-            className="cursor-pointer focus:bg-gray-100"
-            onSelect={(e) => e.preventDefault()}
-          >
-            Thêm nhật ký
-          </DropdownMenuItem>
-        )}
       </DropdownMenuContent>
     </DropdownMenu>
   )

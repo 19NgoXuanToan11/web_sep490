@@ -137,6 +137,20 @@ export const farmActivityService = {
     return response.data
   },
 
+  setStatus: async (
+    id: number,
+    status: string,
+    activityType?: string,
+    payload?: Partial<FarmActivityUpdate>
+  ): Promise<FarmActivityResponse> => {
+    const queryParams = new URLSearchParams()
+    if (activityType) queryParams.append('activityType', activityType)
+    queryParams.append('farmActivityStatus', status)
+    const url = `/v1/farm-activity/update/${id}?${queryParams.toString()}`
+    const response = await http.put<FarmActivityResponse>(url, payload ?? {})
+    return response.data
+  },
+
   completeFarmActivity: async (id: number, location?: string): Promise<FarmActivityResponse> => {
     const queryParams = new URLSearchParams()
     if (location) queryParams.append('location', location)

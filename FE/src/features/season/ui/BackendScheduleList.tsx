@@ -62,6 +62,9 @@ export function BackendScheduleList({
     const [showFarmActivityDetail, setShowFarmActivityDetail] = useState(false)
     const [editingFarmActivity, setEditingFarmActivity] = useState<any>(null)
     const [showEditFarmActivity, setShowEditFarmActivity] = useState(false)
+    const [statusEditorOpen, setStatusEditorOpen] = useState(false)
+    const [statusEditorValue, setStatusEditorValue] = useState<string | null>(null)
+    const [statusEditorLoading, setStatusEditorLoading] = useState(false)
     const [showDayEventsDialog, setShowDayEventsDialog] = useState(false)
     const [dayEventsDate, setDayEventsDate] = useState<Date | null>(null)
     const [dayEventsList, setDayEventsList] = useState<any[]>([])
@@ -173,7 +176,11 @@ export function BackendScheduleList({
                 const start = parseDDMMYYYY(fa.startDate) ?? parseDDMMYYYY(detail.startDate) ?? null
                 const end = parseDDMMYYYY(fa.endDate) ?? parseDDMMYYYY(detail.endDate) ?? null
                 if (!start || !end) return null
-                const isActive = (fa.status === 1 || String(fa.status).toUpperCase() === 'ACTIVE')
+                const rawStatus = fa.status ?? fa.Status ?? fa.Status
+                const normalizedStatus = String(rawStatus ?? '').toUpperCase()
+                const isActive = (rawStatus === 1 || normalizedStatus === 'ACTIVE')
+                const isCompleted = normalizedStatus === 'COMPLETED'
+                const isDeactivated = normalizedStatus === 'DEACTIVATED'
                 return {
                     id: String(fa.farmActivitiesId ?? `${detail.scheduleId}-${Math.random()}`),
                     title: translateActivityType(fa.activityType ?? fa.ActivityType ?? '') || `Hoạt động #${fa.farmActivitiesId ?? ''}`,
@@ -181,7 +188,7 @@ export function BackendScheduleList({
                     end,
                     allDay: true,
                     isActive,
-                    color: isActive ? '#F59E0B' : '#9CA3AF',
+                    color: isDeactivated ? '#8B0000' : (isCompleted ? '#34D399' : (isActive ? '#F59E0B' : '#9CA3AF')),
                     raw: { ...fa, _parentSchedule: detail },
                 }
             })
@@ -1328,6 +1335,18 @@ export function BackendScheduleList({
                             </Button>
                             <Button
                                 size="sm"
+                                variant="secondary"
+                                className="border border-gray-200 bg-white text-gray-800 hover:bg-gray-50"
+                                onClick={() => {
+                                    if (!selectedFarmActivity) return
+                                    const currentStatus = String(selectedFarmActivity.status ?? selectedFarmActivity.Status ?? '').toUpperCase() || 'DEACTIVATED'
+                                    setStatusEditorValue(currentStatus)
+                                    setStatusEditorOpen(true)
+                                }}>
+                                <span className="font-medium">Chỉnh sửa trạng thái</span>
+                            </Button>
+                            <Button
+                                size="sm"
                                 variant="ghost"
                                 className="border border-gray-200 bg-gray-50 text-gray-700 hover:bg-gray-100 hover:border-gray-300"
                                 onClick={async () => {
@@ -1361,10 +1380,74 @@ export function BackendScheduleList({
                                 })()}
                             </div>
                             <div className="p-2 bg-muted/50 rounded">
-                                <div><strong>Họ tên:</strong> {selectedFarmActivity.staffFullName ?? selectedFarmActivity.staffFullName ?? selectedFarmActivity.staffName ?? '-'}</div>
-                                <div><strong>Email:</strong> {selectedFarmActivity.staffEmail ?? selectedFarmActivity.staffEmail ?? '-'}</div>
-                                <div><strong>Số điện thoại:</strong> {selectedFarmActivity.staffPhone ?? selectedFarmActivity.staffPhone ?? '-'}</div>
+                                <div><strong>Họ tên:</strong> {selectedFarmActivity.staffFullName ?? selectedFarmActivity.staffName ?? 'Chưa có'}</div>
+                                <div><strong>Email:</strong> {selectedFarmActivity.staffEmail ?? 'Chưa có'}</div>
+                                <div><strong>Số điện thoại:</strong> {selectedFarmActivity.staffPhone ?? 'Chưa có'}</div>
                             </div>
+
+                            {statusEditorOpen && (
+                                <div className="p-3 bg-white border rounded mt-2">
+                                    <div className="mb-2"><strong>Chọn trạng thái mới</strong></div>
+                                    <div className="mb-3">
+                                        <Select value={statusEditorValue ?? ''} onValueChange={(v) => setStatusEditorValue(v)}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Chọn trạng thái" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {farmActivityStatusOptions.map(s => (
+                                                    <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="flex items-center justify-end gap-2">
+                                        <Button variant="outline" onClick={() => { setStatusEditorOpen(false); setStatusEditorValue(null) }}>Hủy</Button>
+                                        <Button
+                                            disabled={
+                                                statusEditorLoading ||
+                                                !statusEditorValue ||
+                                                String(statusEditorValue).toUpperCase() === String(selectedFarmActivity.status ?? selectedFarmActivity.Status ?? '').toUpperCase()
+                                            }
+                                            onClick={async () => {
+                                                if (!selectedFarmActivity || !statusEditorValue) return
+                                                const id = Number(selectedFarmActivity.farmActivitiesId ?? selectedFarmActivity.farmActivityId ?? selectedFarmActivity.id)
+                                                if (!id) return
+                                                try {
+                                                    setStatusEditorLoading(true)
+                                                    const activityType = selectedFarmActivity.activityType ?? selectedFarmActivity.ActivityType ?? ''
+                                                    await farmActivityService.setStatus(id, String(statusEditorValue).toUpperCase(), activityType, {
+                                                        startDate: selectedFarmActivity.startDate ?? selectedFarmActivity.StartDate ?? selectedFarmActivity.start ?? '',
+                                                        endDate: selectedFarmActivity.endDate ?? selectedFarmActivity.EndDate ?? selectedFarmActivity.end ?? '',
+                                                        staffId: selectedFarmActivity.staffId ?? undefined,
+                                                        scheduleId: selectedFarmActivity.scheduleId ?? undefined,
+                                                    })
+                                                    showSuccessToast({ message: 'Cập nhật trạng thái thành công' })
+                                                    setSelectedFarmActivity((prev: any) => prev ? { ...prev, status: String(statusEditorValue).toUpperCase(), Status: String(statusEditorValue).toUpperCase() } : prev)
+                                                    try {
+                                                        await scheduleData.load()
+                                                        const parent = selectedFarmActivity?._parentSchedule ?? selectedFarmActivity?.raw ?? null
+                                                        if (parent && scheduleDialogs.scheduleDetail?.scheduleId === parent.scheduleId) {
+                                                            await scheduleActions.handleViewDetail(parent, (detail) => {
+                                                                scheduleDialogs.setScheduleDetail(detail)
+                                                            })
+                                                        }
+                                                    } catch (e) {
+                                                        console.error('Failed to refresh after status update', e)
+                                                    }
+                                                    setStatusEditorOpen(false)
+                                                    setStatusEditorValue(null)
+                                                } catch (err) {
+                                                    showErrorToast(err)
+                                                } finally {
+                                                    setStatusEditorLoading(false)
+                                                }
+                                            }}
+                                        >
+                                            {statusEditorLoading ? 'Đang lưu...' : 'Lưu'}
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     ) : (
                         <div className="p-4">Không có dữ liệu hoạt động.</div>

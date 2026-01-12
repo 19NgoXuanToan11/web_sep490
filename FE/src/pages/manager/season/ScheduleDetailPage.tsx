@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { useParams, useLocation, useNavigate } from 'react-router-dom'
 import { Card, CardContent } from '@/shared/ui/card'
 import { Button } from '@/shared/ui/button'
@@ -6,10 +6,13 @@ import { ArrowLeft } from 'lucide-react'
 import { Badge } from '@/shared/ui/badge'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/ui/tabs'
 import CalendarShell from '@/components/Calendar'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/shared/ui/dialog'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
+import { showSuccessToast, showErrorToast } from '@/shared/lib/toast-manager'
 import ThresholdPanel from '@/features/thresholds/ThresholdPanel'
 import ScheduleLogPanel from '@/features/season/ui/components/ScheduleLogPanel'
 import { formatDate } from '@/shared/lib/date-utils'
-import { isActiveStatus, getStatusLabel, translatePlantStage, getDiseaseLabel, translateActivityType } from '@/features/season/ui/utils/labels'
+import { isActiveStatus, getStatusLabel, translatePlantStage, getDiseaseLabel, translateActivityType, getFarmActivityStatusInfo } from '@/features/season/ui/utils/labels'
 import { useScheduleData } from '@/features/season/ui/hooks/useScheduleData'
 import { useScheduleDialogs } from '@/features/season/ui/hooks/useScheduleDialogs'
 import { useScheduleActions } from '@/features/season/ui/hooks/useScheduleActions'
@@ -27,6 +30,9 @@ export const ScheduleDetailPage: React.FC = () => {
     const scheduleId = useMemo(() => {
         return params.scheduleId ? Number(params.scheduleId) : NaN
     }, [params.scheduleId])
+
+    const [selectedFarmActivity, setSelectedFarmActivity] = useState<any>(null)
+    const [showFarmActivityDetail, setShowFarmActivityDetail] = useState(false)
 
     const query = useMemo(() => {
         try {
@@ -73,7 +79,11 @@ export const ScheduleDetailPage: React.FC = () => {
                 const start = parseDDMMYYYY(fa.startDate) ?? parseDDMMYYYY(detail.startDate) ?? null
                 const end = parseDDMMYYYY(fa.endDate) ?? parseDDMMYYYY(detail.endDate) ?? null
                 if (!start || !end) return null
-                const isActive = (fa.status === 1 || String(fa.status).toUpperCase() === 'ACTIVE')
+                const rawStatus = fa.status ?? fa.Status ?? fa.Status
+                const normalizedStatus = String(rawStatus ?? '').toUpperCase()
+                const isActive = (rawStatus === 1 || normalizedStatus === 'ACTIVE')
+                const isCompleted = normalizedStatus === 'COMPLETED'
+                const isDeactivated = normalizedStatus === 'DEACTIVATED'
                 return {
                     id: String(fa.farmActivitiesId ?? `${detail.scheduleId}-${Math.random()}`),
                     title: translateActivityType(fa.activityType ?? fa.ActivityType ?? '') || `Hoạt động #${fa.farmActivitiesId ?? ''}`,
@@ -81,7 +91,7 @@ export const ScheduleDetailPage: React.FC = () => {
                     end,
                     allDay: true,
                     isActive,
-                    color: isActive ? '#F59E0B' : '#9CA3AF',
+                    color: isDeactivated ? '#8B0000' : (isCompleted ? '#34D399' : (isActive ? '#F59E0B' : '#9CA3AF')),
                     raw: { ...fa, _parentSchedule: detail },
                 }
             })
@@ -285,12 +295,13 @@ export const ScheduleDetailPage: React.FC = () => {
                                                 }))}
                                                 onEventClick={(raw) => {
                                                     if (!raw) return
+                                                    setSelectedFarmActivity(raw)
+                                                    setShowFarmActivityDetail(true)
                                                 }}
                                                 onEventMenuAction={(_action, _raw) => {
                                                 }}
                                                 onDayClick={(date, events) => {
                                                     try {
-                                                        console.log('Day clicked:', date, events)
                                                     } catch (err) {
                                                         console.error('Failed to handle day click', err)
                                                     }
@@ -370,6 +381,34 @@ export const ScheduleDetailPage: React.FC = () => {
                     })
                 }}
             />
+            <Dialog open={showFarmActivityDetail} onOpenChange={setShowFarmActivityDetail}>
+                <DialogContent className="sm:max-w-md max-h-[80vh] overflow-y-auto">
+                    <DialogHeader className="flex items-center justify-between">
+                        <DialogTitle>Chi tiết hoạt động</DialogTitle>
+                    </DialogHeader>
+                    {selectedFarmActivity ? (
+                        <div className="space-y-4 p-2">
+                            <div><strong>Hoạt động:</strong> {translateActivityType(selectedFarmActivity.activityType ?? selectedFarmActivity.ActivityType ?? '')}</div>
+                            <div><strong>Ngày bắt đầu:</strong> {formatDate(selectedFarmActivity.startDate ?? selectedFarmActivity.StartDate ?? selectedFarmActivity.start)}</div>
+                            <div><strong>Ngày kết thúc:</strong> {formatDate(selectedFarmActivity.endDate ?? selectedFarmActivity.EndDate ?? selectedFarmActivity.end)}</div>
+                            <div>
+                                <strong>Trạng thái:</strong>{' '}
+                                {(() => {
+                                    const info = getFarmActivityStatusInfo(selectedFarmActivity.status ?? selectedFarmActivity.Status)
+                                    return <Badge variant={info.variant as any} className="text-sm">{info.label}</Badge>
+                                })()}
+                            </div>
+                            <div className="p-2 bg-muted/50 rounded">
+                                <div><strong>Họ tên:</strong> {selectedFarmActivity.staffFullName ?? selectedFarmActivity.staffName ?? 'Chưa có'}</div>
+                                <div><strong>Email:</strong> {selectedFarmActivity.staffEmail ?? 'Chưa có'}</div>
+                                <div><strong>Số điện thoại:</strong> {selectedFarmActivity.staffPhone ?? 'Chưa có'}</div>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="p-4">Không có dữ liệu hoạt động.</div>
+                    )}
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }

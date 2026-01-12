@@ -129,17 +129,28 @@ const BigCalendar: React.FC<Props> = ({ events = [], onEventClick, onDayClick })
   );
 
   const CustomEvent = (props: any) => {
-    const ev = props.event || props.eventData || {}
-    const title = ev.title ?? ''
+    const ev = props.event || props.eventData || {};
+    const title = ev.title ?? "";
 
-    const isContinuation = !!props.continuesPrior
+    const isContinuation = !!props.continuesPrior;
 
     return (
-      <div style={{ overflow: 'hidden', whiteSpace: 'nowrap', textOverflow: 'ellipsis' }}>
-        {!isContinuation ? title : null}
+      <div
+        style={{
+          overflow: "hidden",
+          whiteSpace: "nowrap",
+          textOverflow: "ellipsis",
+          display: "flex",
+          alignItems: "center",
+          height: "100%",
+          width: "100%",
+        }}
+        title={title}
+      >
+        {!isContinuation ? title : "\u00A0"}
       </div>
-    )
-  }
+    );
+  };
 
   const handleShowMore = useCallback(
     (eventsList: any[], date: Date) => {

@@ -502,80 +502,55 @@ const StaffSchedulesPage: React.FC = () => {
                                             <CardContent className="p-6">
                                                 <div className="flex flex-col md:flex-row gap-6">
                                                     <div className="flex-1">
-                                                        <dl className="grid grid-cols-1 gap-4">
-                                                            <div>
-                                                                <dt className="text-sm text-gray-500">Số lượng</dt>
-                                                                <dd className="text-lg font-semibold text-gray-900 mt-1">
-                                                                    {selectedScheduleDetail.quantity ?? 0}
-                                                                </dd>
-                                                            </div>
-
-                                                            <div>
-                                                                <dt className="text-sm text-gray-500">Thuốc BVTV</dt>
-                                                                <dd className="text-lg font-medium text-gray-900 mt-1">
-                                                                    {selectedScheduleDetail.pesticideUsed ? (
-                                                                        <Badge variant="default" className="inline-block">Có</Badge>
-                                                                    ) : (
-                                                                        <span>Không</span>
-                                                                    )}
-                                                                </dd>
-                                                            </div>
-
-                                                            <div>
-                                                                <dt className="text-sm text-gray-500">Tình trạng bệnh</dt>
-                                                                <dd className="text-base text-gray-800 mt-1">{getDiseaseStatusLabel(selectedScheduleDetail.diseaseStatus)}</dd>
-                                                            </div>
-                                                        </dl>
-                                                    </div>
-
-                                                    <div className="w-full md:w-96 lg:w-96">
-                                                        <div className="border rounded-md p-4 bg-white shadow-sm">
-                                                            <p className="text-base font-semibold text-gray-900 mt-2">
+                                                        <div className="border rounded-md p-4 bg-white shadow-sm h-full">
+                                                            <p className="text-base font-semibold text-gray-900 mt-0">
                                                                 {translateActivityType(selectedScheduleDetail.farmActivityView?.activityType) || 'N/A'}
                                                             </p>
-                                                            {selectedScheduleDetail.farmActivities && selectedScheduleDetail.farmActivities.length > 0 ? (
-                                                                <div className="space-y-3 mt-2">
-                                                                    {selectedScheduleDetail.farmActivities?.map((fa) => {
-                                                                        const isSelected = selectedScheduleDetail.farmActivityView?.farmActivitiesId === fa.farmActivitiesId
-                                                                        return (
-                                                                            <div
-                                                                                key={fa.farmActivitiesId}
-                                                                                onClick={() => {
-                                                                                    setSelectedScheduleDetail(prev => prev ? { ...prev, farmActivityView: fa } : prev)
-                                                                                }}
-                                                                                className={`flex items-center justify-between cursor-pointer p-2 rounded ${isSelected ? 'bg-gray-50 border-l-4 border-emerald-400' : ''}`}
-                                                                            >
-                                                                                <div className="min-w-0">
-                                                                                    <div className="text-sm font-medium text-gray-900">
-                                                                                        {translateActivityType(fa.activityType) || 'N/A'}
+                                                            <div className="mt-3">
+                                                                {selectedScheduleDetail.farmActivities && selectedScheduleDetail.farmActivities.length > 0 ? (
+                                                                    <div className="space-y-3">
+                                                                        {selectedScheduleDetail.farmActivities?.map((fa) => {
+                                                                            const isSelected = selectedScheduleDetail.farmActivityView?.farmActivitiesId === fa.farmActivitiesId
+                                                                            return (
+                                                                                <div
+                                                                                    key={fa.farmActivitiesId}
+                                                                                    onClick={() => {
+                                                                                        setSelectedScheduleDetail(prev => prev ? { ...prev, farmActivityView: fa } : prev)
+                                                                                    }}
+                                                                                    className={`flex items-center justify-between cursor-pointer p-3 rounded ${isSelected ? 'bg-gray-50 border-l-4 border-emerald-400' : 'hover:bg-gray-50'}`}
+                                                                                >
+                                                                                    <div className="min-w-0">
+                                                                                        <div className="text-sm font-medium text-gray-900">
+                                                                                            {translateActivityType(fa.activityType) || 'N/A'}
+                                                                                        </div>
+                                                                                        <div className="text-sm text-gray-600 truncate">
+                                                                                            {formatDateRange(fa.startDate, fa.endDate)}
+                                                                                        </div>
                                                                                     </div>
-                                                                                    <div className="text-sm text-gray-600 truncate">
-                                                                                        {formatDateRange(fa.startDate, fa.endDate)}
+                                                                                    <div className="ml-4">
+                                                                                        <Badge variant={getFarmActivityStatusVariant(fa.status)}>
+                                                                                            {getFarmActivityStatusLabel(fa.status)}
+                                                                                        </Badge>
                                                                                     </div>
                                                                                 </div>
-                                                                                <div className="ml-4">
-                                                                                    <Badge variant={getFarmActivityStatusVariant(fa.status)}>
-                                                                                        {getFarmActivityStatusLabel(fa.status)}
-                                                                                    </Badge>
-                                                                                </div>
-                                                                            </div>
-                                                                        )
-                                                                    })}
-                                                                </div>
-                                                            ) : selectedScheduleDetail.farmActivityView ? (
-                                                                <div>
-                                                                    <p className="text-sm text-gray-600 mt-2 truncate">
-                                                                        {formatDateRange(selectedScheduleDetail.farmActivityView.startDate, selectedScheduleDetail.farmActivityView.endDate)}
-                                                                    </p>
-                                                                    <div className="mt-3">
-                                                                        <Badge variant={getFarmActivityStatusVariant(selectedScheduleDetail.farmActivityView?.status)}>
-                                                                            {getFarmActivityStatusLabel(selectedScheduleDetail.farmActivityView?.status)}
-                                                                        </Badge>
+                                                                            )
+                                                                        })}
                                                                     </div>
-                                                                </div>
-                                                            ) : (
-                                                                <p className="text-sm text-gray-600 mt-2">Thời gian: N/A</p>
-                                                            )}
+                                                                ) : selectedScheduleDetail.farmActivityView ? (
+                                                                    <div>
+                                                                        <p className="text-sm text-gray-600 mt-2 truncate">
+                                                                            {formatDateRange(selectedScheduleDetail.farmActivityView.startDate, selectedScheduleDetail.farmActivityView.endDate)}
+                                                                        </p>
+                                                                        <div className="mt-3">
+                                                                            <Badge variant={getFarmActivityStatusVariant(selectedScheduleDetail.farmActivityView?.status)}>
+                                                                                {getFarmActivityStatusLabel(selectedScheduleDetail.farmActivityView?.status)}
+                                                                            </Badge>
+                                                                        </div>
+                                                                    </div>
+                                                                ) : (
+                                                                    <p className="text-sm text-gray-600 mt-2">Thời gian: N/A</p>
+                                                                )}
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -658,6 +633,24 @@ const StaffSchedulesPage: React.FC = () => {
                                                                         <span className="text-sm text-gray-600">Tên cây trồng:</span>
                                                                         <p className="font-medium mt-0.5">
                                                                             {selectedScheduleDetail.cropView.cropName || 'N/A'}
+                                                                        </p>
+                                                                    </div>
+                                                                    <div>
+                                                                        <span className="text-sm text-gray-600">Số lượng:</span>
+                                                                        <p className="font-medium mt-0.5">
+                                                                            {selectedScheduleDetail.quantity ?? 0}
+                                                                        </p>
+                                                                    </div>
+                                                                    <div>
+                                                                        <span className="text-sm text-gray-600">Thuốc BVTV:</span>
+                                                                        <p className="font-medium mt-0.5">
+                                                                            {selectedScheduleDetail.pesticideUsed ? 'Có' : 'Không'}
+                                                                        </p>
+                                                                    </div>
+                                                                    <div>
+                                                                        <span className="text-sm text-gray-600">Tình trạng bệnh:</span>
+                                                                        <p className="font-medium mt-0.5">
+                                                                            {getDiseaseStatusLabel(selectedScheduleDetail.diseaseStatus)}
                                                                         </p>
                                                                     </div>
                                                                     {selectedScheduleDetail.cropView.description && (

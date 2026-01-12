@@ -42,7 +42,7 @@ const RealTimeIoTDashboard: React.FC = () => {
   const [pumpControl, setPumpControl] = useState(false)
   const [lightControl, setLightControl] = useState(false)
   const [servoAngle, setServoAngle] = useState([90])
-  const [retryCount, setRetryCount] = useState(0)
+  const retryCountRef = useRef(0)
 
   const [soilLowThreshold, setSoilLowThreshold] = useState<number>(0)
   const [soilHighThreshold, setSoilHighThreshold] = useState<number>(0)
@@ -58,7 +58,7 @@ const RealTimeIoTDashboard: React.FC = () => {
   const [ldrValidationError, setLdrValidationError] = useState<string | null>(null)
   const [lightValidationError, setLightValidationError] = useState<string | null>(null)
 
-  const REFRESH_INTERVAL = 5000
+  const REFRESH_INTERVAL = 10000
 
   const validateSoilThresholds = (low: number, high: number): string | null => {
     if (high <= low) {
@@ -91,28 +91,27 @@ const RealTimeIoTDashboard: React.FC = () => {
       setLightControl(data.lightState ?? false)
       setServoAngle([data.servoAngle])
       setIsOnline(true)
-      setRetryCount(0)
+      retryCountRef.current = 0
     } catch (error) {
       setIsOnline(false)
-      setRetryCount(prev => prev + 1)
-
-      if (retryCount < 3) {
-      }
+      retryCountRef.current = (retryCountRef.current ?? 0) + 1
     } finally {
       setIsLoading(false)
     }
-  }, [retryCount])
+  }, [])
 
   const pollingIntervalRef = useRef<number | null>(null)
 
   useEffect(() => {
-    // Fetch data immediately
-    fetchSensorData()
-
-    // Pause background polling while threshold modal is open so user input isn't interrupted
     if (isThresholdModalOpen) {
+      if (pollingIntervalRef.current) {
+        clearInterval(pollingIntervalRef.current)
+        pollingIntervalRef.current = null
+      }
       return
     }
+
+    fetchSensorData()
 
     pollingIntervalRef.current = window.setInterval(() => {
       fetchSensorData()
@@ -124,7 +123,7 @@ const RealTimeIoTDashboard: React.FC = () => {
         pollingIntervalRef.current = null
       }
     }
-  }, [fetchSensorData, isThresholdModalOpen])
+  }, [isThresholdModalOpen])
 
   useEffect(() => {
     if (isThresholdModalOpen) {

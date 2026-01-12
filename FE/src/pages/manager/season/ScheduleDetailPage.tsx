@@ -7,8 +7,6 @@ import { Badge } from '@/shared/ui/badge'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/ui/tabs'
 import CalendarShell from '@/components/Calendar'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/shared/ui/dialog'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
-import { showSuccessToast, showErrorToast } from '@/shared/lib/toast-manager'
 import ThresholdPanel from '@/features/thresholds/ThresholdPanel'
 import ScheduleLogPanel from '@/features/season/ui/components/ScheduleLogPanel'
 import { formatDate } from '@/shared/lib/date-utils'
@@ -300,7 +298,7 @@ export const ScheduleDetailPage: React.FC = () => {
                                                 }}
                                                 onEventMenuAction={(_action, _raw) => {
                                                 }}
-                                                onDayClick={(date, events) => {
+                                                onDayClick={(_date, _events) => {
                                                     try {
                                                     } catch (err) {
                                                         console.error('Failed to handle day click', err)

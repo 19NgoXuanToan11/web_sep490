@@ -16,8 +16,6 @@ const ScheduleActionMenu: React.FC<ScheduleActionMenuProps> = React.memo(({
   onEdit,
   onAssignStaff,
   onUpdateStatus,
-  onViewLogs,
-  onAddLog,
   actionLoading,
 }) => {
   const [open, setOpen] = useState(false)
@@ -74,32 +72,7 @@ const ScheduleActionMenu: React.FC<ScheduleActionMenuProps> = React.memo(({
     [schedule, onUpdateStatus]
   )
 
-  const handleViewLogs = useCallback(
-    (e: React.MouseEvent) => {
-      e.preventDefault()
-      e.stopPropagation()
-      setOpen(false)
-      setTimeout(() => {
-        onViewLogs?.(schedule)
-      }, 0)
-    },
-    [schedule, onViewLogs]
-  )
-
-  const handleAddLog = useCallback(
-    (e: React.MouseEvent) => {
-      e.preventDefault()
-      e.stopPropagation()
-      setOpen(false)
-      setTimeout(() => {
-        onAddLog?.(schedule)
-      }, 0)
-    },
-    [schedule, onAddLog]
-  )
-
   const nextStatus: ScheduleStatusString = isActiveStatus(schedule.status) ? 'DEACTIVATED' : 'ACTIVE'
-
 
   return (
     <DropdownMenu open={open} onOpenChange={setOpen} modal={false}>

@@ -72,8 +72,8 @@ export function LogModalDialog({
                 if (res?.status === 1) {
                     if (res?.message) toastManager.success(res.message)
                 } else {
-                    const msg = res?.message
-                    if (msg) throw new Error(msg)
+                    const msg = res?.message ?? 'Không thể cập nhật nhật ký'
+                    throw new Error(msg)
                 }
                 const updatedPayload = res?.data ?? res
                 onSuccess?.(updatedPayload)

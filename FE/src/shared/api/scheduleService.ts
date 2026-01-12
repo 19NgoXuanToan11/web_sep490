@@ -72,6 +72,15 @@ export interface ScheduleListItem {
       phoneNumber?: string
     }
   }
+  deviceStatus?: string | null
+  riskFlags?: any[]
+  lastLogDate?: string | null
+  lastLogAt?: string | null
+  lastLogCreatedAt?: string | null
+  nextActionSuggestion?: string | null
+  lastLogNotes?: string | null
+  healthSummary?: string | null
+  deviceSummary?: string | null
 }
 
 export interface ScheduleDetail extends ScheduleListItem {

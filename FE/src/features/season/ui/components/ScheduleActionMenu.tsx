@@ -101,43 +101,6 @@ const ScheduleActionMenu: React.FC<ScheduleActionMenuProps> = React.memo(({
         onCloseAutoFocus={(e) => e.preventDefault()}
       >
         <DropdownMenuItem
-          onClick={(e) => {
-            e.preventDefault()
-            e.stopPropagation()
-            setOpen(false)
-            setTimeout(() => {
-              if (typeof (onViewLogs as any) === 'function') {
-                (onViewLogs as any)(schedule)
-              } else {
-                onView(schedule)
-              }
-            }, 0)
-          }}
-          className="cursor-pointer focus:bg-gray-100"
-          onSelect={(e) => e.preventDefault()}
-          disabled={actionLoading[`detail-${schedule.scheduleId}`]}
-        >
-          <span className="flex items-center gap-2">Xem Nhật ký</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={(e) => {
-            e.preventDefault()
-            e.stopPropagation()
-            setOpen(false)
-            setTimeout(() => {
-              if (typeof (onAddLog as any) === 'function') {
-                (onAddLog as any)(schedule)
-              } else {
-                onEdit(schedule)
-              }
-            }, 0)
-          }}
-          className="cursor-pointer focus:bg-gray-100"
-          onSelect={(e) => e.preventDefault()}
-        >
-          <span className="flex items-center gap-2">Thêm Ghi nhận</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem
           onClick={handleView}
           className="cursor-pointer focus:bg-gray-100"
           onSelect={(e) => e.preventDefault()}

@@ -5,11 +5,10 @@ import { Button } from '@/shared/ui/button'
 import { Input } from '@/shared/ui/input'
 import { Label } from '@/shared/ui/label'
 import { Badge } from '@/shared/ui/badge'
-import { Pagination } from '@/shared/ui/pagination'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/shared/ui/dialog'
 import { cn } from '@/shared/lib/utils'
-import { RefreshCw, Search, Settings, MoreHorizontal } from 'lucide-react'
+import { RefreshCw, Settings, MoreHorizontal } from 'lucide-react'
 import {
     DropdownMenu,
     DropdownMenuTrigger,
@@ -24,8 +23,9 @@ import { farmActivityService } from '@/shared/api/farmActivityService'
 import { showSuccessToast, showErrorToast } from '@/shared/lib/toast-manager'
 import type { BackendScheduleListProps, ScheduleListItem, ScheduleStatusString, CreateScheduleRequest } from './types'
 import { isActiveStatus, getStatusLabel, translatePlantStage, getDiseaseLabel, getFarmActivityStatusInfo, translateActivityType, activityTypeLabels, farmActivityStatusOptions } from './utils/labels'
-import ScheduleActionMenu from './components/ScheduleActionMenu'
 import ScheduleLogPanel from './components/ScheduleLogPanel'
+import ManagerOverview from './components/ManagerOverview'
+import ManagerTable from './components/ManagerTable'
 import { useScheduleData } from './hooks/useScheduleData'
 import { useScheduleActions } from './hooks/useScheduleActions'
 import { useScheduleDialogs } from './hooks/useScheduleDialogs'
@@ -87,28 +87,68 @@ export function BackendScheduleList({
 
     const showCreate = externalShowCreate ?? scheduleDialogs.showCreate
     const filteredItems = externalFilteredItems !== undefined ? externalFilteredItems : null
+    const [quickFilter, setQuickFilter] = useState<null | 'due7' | 'overdue' | 'missingLogs'>(null)
 
     const todayString = useMemo(() => new Date().toISOString().split('T')[0], [])
 
     const setShowCreate = onShowCreateChange ?? scheduleDialogs.setShowCreate
 
-    const displayItems = filteredItems ?? scheduleData.paginatedSchedules
+    const baseDisplayItems = filteredItems ?? scheduleData.paginatedSchedules
+
+    const displayItems = useMemo(() => {
+        if (!quickFilter) return baseDisplayItems
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+        return baseDisplayItems.filter((s: any) => {
+            try {
+                const parseDate = (d?: string | null) => {
+                    if (!d) return null
+                    const dt = new Date(d)
+                    if (Number.isNaN(dt.getTime())) return null
+                    return new Date(dt.getFullYear(), dt.getMonth(), dt.getDate())
+                }
+                const end = parseDate(s.endDate ?? s.EndDate ?? s.endDateString)
+                const lastLog = s.lastLogDate ?? s.lastLogAt ?? s.last_crop_log_date ?? s.lastLogCreatedAt
+                if (quickFilter === 'due7') {
+                    if (!end) return false
+                    const diff = Math.ceil((end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+                    return diff >= 0 && diff <= 7
+                }
+                if (quickFilter === 'overdue') {
+                    if (!end) return false
+                    const diff = Math.ceil((end.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+                    return diff < 0
+                }
+                if (quickFilter === 'missingLogs') {
+                    if (!lastLog) return true
+                    try {
+                        const last = new Date(lastLog)
+                        if (Number.isNaN(last.getTime())) return true
+                        const diffDays = Math.floor((today.getTime() - new Date(last.getFullYear(), last.getMonth(), last.getDate()).getTime()) / (1000 * 60 * 60 * 24))
+                        return diffDays >= 3
+                    } catch {
+                        return true
+                    }
+                }
+            } catch {
+                return false
+            }
+            return false
+        })
+    }, [baseDisplayItems, quickFilter])
+
+    const cropGroups = useMemo(() => {
+        const groups = new Map<string, ScheduleListItem[]>()
+        for (const s of displayItems) {
+            const key = s?.cropView?.cropName ?? 'Khác'
+            if (!groups.has(key)) groups.set(key, [])
+            groups.get(key)!.push(s)
+        }
+        const entries = Array.from(groups.entries()).sort((a, b) => b[1].length - a[1].length)
+        return entries.slice(0, 3)
+    }, [displayItems])
     const lastAutoUpdatedScheduleId = useRef<number | null>(null)
     const externalLogUpdaterRef = useRef<((item: any, mode: 'create' | 'update' | 'delete') => void) | null>(null)
-
-    const summaryStats = useMemo(() => {
-        const all = scheduleData.allSchedules ?? []
-        const total = all.length
-        let active = 0
-        let inactive = 0
-        for (const s of all) {
-            const status = s?.status
-            const isActive = typeof status === 'number' ? status === 1 : status === 'ACTIVE'
-            if (isActive) active++
-            else inactive++
-        }
-        return { total, active, inactive }
-    }, [scheduleData.allSchedules])
 
     const scheduleCalendarEvents = useMemo(() => {
         if (!scheduleDialogs.scheduleDetail) return []
@@ -246,10 +286,7 @@ export function BackendScheduleList({
         })
     }, [scheduleActions, handleCreateDialogChange])
 
-    const handleViewDetailWithTab = useCallback((schedule: ScheduleListItem, tab: 'info' | 'calendar' | 'logs') => {
-        if (!schedule || !schedule.scheduleId) return
-        navigate(`/manager/season/${schedule.scheduleId}?tab=${tab}`)
-    }, [navigate])
+
 
     const openCreateLogForSchedule = useCallback((schedule: ScheduleListItem) => {
         scheduleDialogs.openCreateLogForSchedule(schedule)
@@ -574,83 +611,38 @@ export function BackendScheduleList({
 
     return (
         <>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-                <Card>
-                    <CardContent className="p-4">
-                        <div>
-                            <p className="text-sm text-gray-500">Tổng thời vụ</p>
-                            <p className="text-2xl font-bold text-gray-900">{summaryStats.total}</p>
-                            <p className="text-xs text-gray-400 mt-1">Tổng số thời vụ đã tạo trong hệ thống</p>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardContent className="p-4">
-                        <div>
-                            <p className="text-sm text-gray-500">Đang hoạt động</p>
-                            <p className="text-2xl font-bold text-green-600">{summaryStats.active}</p>
-                            <p className="text-xs text-gray-400 mt-1">Số thời vụ đang gửi dữ liệu hoặc đang hoạt động</p>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardContent className="p-4">
-                        <div>
-                            <p className="text-sm text-gray-500">Vô hiệu hóa</p>
-                            <p className="text-2xl font-bold text-red-500">{summaryStats.inactive}</p>
-                            <p className="text-xs text-gray-400 mt-1">Số thời vụ tạm dừng hoặc vô hiệu hóa</p>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
-
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
-                <div className="flex flex-col sm:flex-row gap-4">
-                    <div className="flex-1">
-                        <div className="relative">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                            <Input
-                                placeholder="Tìm kiếm theo cây trồng, nông trại..."
-                                value={scheduleData.searchTerm}
-                                onChange={e => scheduleData.setSearchTerm(e.target.value)}
-                                className="pl-9"
-                            />
-                        </div>
-                    </div>
-                    <div className="w-full sm:w-48">
-                        <Select value={scheduleData.statusFilter} onValueChange={value => scheduleData.setStatusFilter(value as typeof scheduleData.statusFilter)}>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Tất cả trạng thái" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="all">Tất cả</SelectItem>
-                                <SelectItem value="active">Hoạt động</SelectItem>
-                                <SelectItem value="inactive">Tạm dừng</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                    <div className="w-full sm:w-48">
-                        <Select value={scheduleData.sortBy} onValueChange={value => scheduleData.setSortBy(value as typeof scheduleData.sortBy)}>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Sắp xếp" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="newest">Mới nhất</SelectItem>
-                                <SelectItem value="startDate">Ngày bắt đầu</SelectItem>
-                                <SelectItem value="cropName">Tên cây trồng</SelectItem>
-                                <SelectItem value="farmName">Tên nông trại</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                    <div className="w-full sm:w-auto flex items-center">
-                        <Button onClick={() => setShowCreate(true)} className="bg-green-600 hover:bg-green-700">
-                            Tạo
-                        </Button>
-                    </div>
-                </div>
-            </div>
+            <ManagerOverview
+                onFilterActive={() => {
+                    setQuickFilter(null)
+                    scheduleData.setSearchTerm('')
+                    scheduleData.setStatusFilter('active')
+                    scheduleData.setPageIndex(1)
+                }}
+                onFilterDeactivated={() => {
+                    setQuickFilter(null)
+                    scheduleData.setSearchTerm('')
+                    scheduleData.setStatusFilter('inactive')
+                    scheduleData.setPageIndex(1)
+                }}
+                onFilterOverdue={() => {
+                    setQuickFilter('overdue')
+                    scheduleData.setSearchTerm('')
+                    scheduleData.setStatusFilter('all')
+                    scheduleData.setPageIndex(1)
+                }}
+                onFilterMissingLogs={() => {
+                    setQuickFilter('missingLogs')
+                    scheduleData.setSearchTerm('')
+                    scheduleData.setStatusFilter('all')
+                    scheduleData.setPageIndex(1)
+                }}
+                onFilterTotal={() => {
+                    setQuickFilter(null)
+                    scheduleData.setSearchTerm('')
+                    scheduleData.setStatusFilter('all')
+                    scheduleData.setPageIndex(1)
+                }}
+            />
 
             {scheduleData.loading ? (
                 <Card>
@@ -685,112 +677,36 @@ export function BackendScheduleList({
             ) : (
                 <>
                     <div className="space-y-6">
-                        {scheduleData.groupedSchedules.map(([cropName, items]) => {
+                        {cropGroups.map(([cropName, items]) => {
                             return (
-                                <div key={cropName} className="space-y-3">
-                                    <div className="flex items-center justify-between px-2 py-2 border-b border-gray-200">
-                                        <h3 className="text-lg font-semibold text-gray-900">{cropName}</h3>
-                                    </div>
+                                <Card key={cropName} className="w-full">
+                                    <CardContent className="p-4">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <h3 className="text-lg font-semibold text-gray-900">{cropName}</h3>
+                                        </div>
 
-                                    <div className="grid gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-                                        {items.map((schedule) => {
-                                            const isNewlyCreated = schedule.scheduleId ? scheduleData.newlyCreatedIds.has(schedule.scheduleId) : false
-                                            const isActive = typeof schedule.status === 'number'
-                                                ? schedule.status === 1
-                                                : schedule.status === 'ACTIVE'
-
-                                            return (
-                                                <Card
-                                                    key={schedule.scheduleId ?? `schedule-${schedule.farmId}-${schedule.cropId}`}
-                                                    className={cn(
-                                                        "hover:shadow-md transition-all cursor-pointer",
-                                                        isNewlyCreated && "ring-2 ring-green-500 bg-green-50/50 shadow-lg"
-                                                    )}
-                                                    onClick={() => openDetailPage(schedule)}
-                                                >
-                                                    <CardContent className="p-4">
-                                                        <div className="flex items-start justify-between">
-                                                            <div className="flex-1 min-w-0">
-                                                                <div className="flex items-center gap-2 flex-wrap mb-2">
-                                                                    <Badge className={cn(
-                                                                        "h-6 items-center whitespace-nowrap text-xs",
-                                                                        isActive ? "bg-yellow-500 text-white" : "bg-red-500 text-white"
-                                                                    )}>
-                                                                        {getStatusLabel(schedule.status)}
-                                                                    </Badge>
-                                                                    {isNewlyCreated && (
-                                                                        <Badge className="h-6 items-center whitespace-nowrap text-xs bg-green-500 text-white">
-                                                                            Mới
-                                                                        </Badge>
-                                                                    )}
-                                                                </div>
-                                                                <p className="text-sm text-gray-900 font-medium mb-2">
-                                                                    {formatDateRange(schedule.startDate, schedule.endDate)}
-                                                                </p>
-
-                                                                {schedule.farmView?.farmName && (
-                                                                    <p className="text-xs text-gray-600 mb-1 truncate" title={schedule.farmView.farmName}>
-                                                                        Nông trại: {schedule.farmView.farmName}
-                                                                    </p>
-                                                                )}
-                                                                {schedule.staffName && (
-                                                                    <p className="text-xs text-gray-600 mb-1 truncate" title={schedule.staffName}>
-                                                                        Nhân viên: {schedule.staffName}
-                                                                    </p>
-                                                                )}
-                                                                {schedule.quantity !== null && schedule.quantity !== undefined && (
-                                                                    <p className="text-xs text-gray-600 mb-1">
-                                                                        Số lượng cây trồng: {schedule.quantity}
-                                                                    </p>
-                                                                )}
-                                                                {schedule.currentPlantStage && (
-                                                                    <p className="text-xs text-gray-600">
-                                                                        Giai đoạn hiện tại: {translatePlantStage(schedule.currentPlantStage)}
-                                                                    </p>
-                                                                )}
-                                                            </div>
-                                                            {schedule.scheduleId && (
-                                                                <div onClick={(e) => e.stopPropagation()}>
-                                                                    <ScheduleActionMenu
-                                                                        schedule={schedule}
-                                                                        onView={(s) => openDetailPage(s)}
-                                                                        onEdit={handleEdit}
-                                                                        onViewLogs={(s) => handleViewDetailWithTab(s, 'logs')}
-                                                                        onAddLog={(s) => openCreateLogForSchedule(s)}
-                                                                        onAssignStaff={(s) => {
-                                                                            scheduleDialogs.setSelectedSchedule(s)
-                                                                            scheduleDialogs.handleAssignStaffDialogChange(true)
-                                                                        }}
-                                                                        onUpdateStatus={handleUpdateStatus}
-                                                                        actionLoading={scheduleActions.actionLoading}
-                                                                    />
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    </CardContent>
-                                                </Card>
-                                            )
-                                        })}
-                                    </div>
-                                </div>
+                                        <div className="max-h-[420px] overflow-y-auto">
+                                            <ManagerTable
+                                                items={items}
+                                                onOpenDetail={(s) => openDetailPage(s)}
+                                                onAddLog={(s) => openCreateLogForSchedule(s)}
+                                                onEdit={handleEdit}
+                                                onUpdateStatus={handleUpdateStatus}
+                                                onOpenLogEditor={(log) => {
+                                                    try {
+                                                        scheduleDialogs.openEditLog(log)
+                                                    } catch {
+                                                    }
+                                                }}
+                                            />
+                                        </div>
+                                    </CardContent>
+                                </Card>
                             )
                         })}
                     </div>
 
-                    <div className="mt-6 flex items-center justify-between">
-                        <div className="text-sm text-gray-600">
-                            Hiển thị {displayItems.length} / {scheduleData.serverTotalItems}
-                        </div>
-                        {scheduleData.serverTotalPages > 1 && (
-                            <div>
-                                <Pagination
-                                    currentPage={scheduleData.pageIndex}
-                                    totalPages={scheduleData.serverTotalPages}
-                                    onPageChange={scheduleData.setPageIndex}
-                                />
-                            </div>
-                        )}
-                    </div>
+
                 </>
             )}
 
@@ -1111,38 +1027,56 @@ export function BackendScheduleList({
                 mode={scheduleDialogs.logModalMode}
                 editingLog={scheduleDialogs.editingLog}
                 selectedScheduleId={scheduleDialogs.selectedSchedule?.scheduleId}
-                onSuccess={(created) => {
+                onSuccess={async (payload) => {
                     try {
-                        const createdObj = created ?? {}
-                        const id = createdObj?.cropLogId ?? createdObj?.id ?? -Date.now()
-                        const createdAt = (createdObj?.createdAt ?? createdObj?.created_at) || new Date().toISOString()
-                        const createdBy = createdObj?.createdBy ?? createdObj?.created_by ?? null
-                        const updatedAt = createdObj?.updatedAt ?? createdObj?.updated_at ?? createdAt
-                        const updatedBy = createdObj?.updatedBy ?? createdObj?.updated_by ?? createdBy
-                        const notes = createdObj?.notes ?? ''
+                        const createdObj = payload ?? {}
+                        if (scheduleDialogs.logModalMode === 'edit' && scheduleDialogs.editingLog) {
+                            const id = scheduleDialogs.editingLog.id
+                            const notes = (createdObj?.notes ?? createdObj?.Notes ?? createdObj?.notes ?? '') as string
+                            const updatedAt = createdObj?.updatedAt ?? createdObj?.updated_at ?? new Date().toISOString()
+                            const updatedBy = createdObj?.updatedBy ?? createdObj?.updated_by ?? null
+                            const updatedItem = {
+                                id,
+                                notes,
+                                updatedAt,
+                                updatedBy,
+                                staffNameUpdate: createdObj?.staffNameUpdate ?? null,
+                            }
+                            externalLogUpdaterRef.current?.(updatedItem, 'update')
 
-                            ; (async () => {
-                                let profileName = null
-                                try {
-                                    const profile = await accountProfileApi.getProfile()
-                                    profileName = profile?.fullname ?? null
-                                } catch {
-                                    profileName = null
-                                }
-                                const creatorFromResponse = createdObj?.staffNameCreate ?? createdObj?.staffName ?? null
-                                const rawCreatedByField = createdObj?.createdBy ?? createdObj?.created_by ?? createdObj?.createBy ?? createdObj?.create_by ?? null
-                                const creatorFromCreatedBy = typeof rawCreatedByField === 'string' && String(rawCreatedByField).trim() ? String(rawCreatedByField).trim() : null
-                                const newItem = {
-                                    id,
-                                    notes,
-                                    createdAt,
-                                    createdBy,
-                                    updatedAt,
-                                    updatedBy,
-                                    staffNameCreate: creatorFromResponse ?? creatorFromCreatedBy ?? profileName,
-                                }
-                                externalLogUpdaterRef.current?.(newItem, 'create')
-                            })()
+                            try {
+                                await scheduleData.loadAllSchedules()
+                            } catch (e) {
+                            }
+                        } else {
+                            const createdObj2 = createdObj ?? {}
+                            const id = createdObj2?.cropLogId ?? createdObj2?.id ?? -Date.now()
+                            const createdAt = (createdObj2?.createdAt ?? createdObj2?.created_at) || new Date().toISOString()
+                            const createdBy = createdObj2?.createdBy ?? createdObj2?.created_by ?? null
+                            const updatedAt = createdAt
+                            const updatedBy = createdBy
+                            const notes = createdObj2?.notes ?? ''
+                            let profileName = null
+                            try {
+                                const profile = await accountProfileApi.getProfile()
+                                profileName = profile?.fullname ?? null
+                            } catch {
+                                profileName = null
+                            }
+                            const creatorFromResponse = createdObj2?.staffNameCreate ?? createdObj2?.staffName ?? null
+                            const rawCreatedByField = createdObj2?.createdBy ?? createdObj2?.created_by ?? createdObj2?.createBy ?? createdObj2?.create_by ?? null
+                            const creatorFromCreatedBy = typeof rawCreatedByField === 'string' && String(rawCreatedByField).trim() ? String(rawCreatedByField).trim() : null
+                            const newItem = {
+                                id,
+                                notes,
+                                createdAt,
+                                createdBy,
+                                updatedAt,
+                                updatedBy,
+                                staffNameCreate: creatorFromResponse ?? creatorFromCreatedBy ?? profileName,
+                            }
+                            externalLogUpdaterRef.current?.(newItem, 'create')
+                        }
                     } catch (e) {
                     }
                 }}

@@ -651,6 +651,14 @@ export function BackendScheduleList({
                 }}
             />
 
+            <div className="sticky top-20 z-30 bg-white py-3">
+                <div className="container mx-auto px-6 flex items-center justify-end">
+                    <Button onClick={() => handleCreateDialogChange(true)} className="ml-2">
+                        Tạo thời vụ
+                    </Button>
+                </div>
+            </div>
+
             {scheduleData.loading ? (
                 <Card>
                     <CardContent className="p-12">

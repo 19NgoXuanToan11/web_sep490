@@ -29,12 +29,10 @@ export function useScheduleDialogs() {
     activityType: string
     startDate: string
     endDate: string
-    staffId?: number
   }>({
     activityType: '',
     startDate: new Date().toISOString().split('T')[0],
     endDate: new Date().toISOString().split('T')[0],
-    staffId: 0,
   })
 
   const handleCreateDialogChange = useCallback((open: boolean) => {
@@ -67,7 +65,6 @@ export function useScheduleDialogs() {
         activityType: '',
         startDate: new Date().toISOString().split('T')[0],
         endDate: new Date().toISOString().split('T')[0],
-        staffId: 0,
       })
     }
   }, [])
@@ -83,7 +80,6 @@ export function useScheduleDialogs() {
       endDate: schedule.endDate
         ? new Date(schedule.endDate).toISOString().split('T')[0]
         : new Date().toISOString().split('T')[0],
-      staffId: schedule.staffId ?? 0,
     })
     setShowCreateActivity(true)
   }, [])

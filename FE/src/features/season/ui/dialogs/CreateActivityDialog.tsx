@@ -13,23 +13,18 @@ interface CreateActivityDialogProps {
         activityType: string
         startDate: string
         endDate: string
-        staffId?: number
     }
     onFormChange: (form: {
         activityType: string
         startDate: string
         endDate: string
-        staffId?: number
     }) => void
-    staffs: { id: number; name: string }[]
     metaLoading: boolean
-    onRetryLoadStaffs?: () => Promise<any>
     todayString: string
     onSubmit: (form: {
         activityType: string
         startDate: string
         endDate: string
-        staffId?: number
     }) => void
 }
 
@@ -38,9 +33,7 @@ export function CreateActivityDialog({
     onOpenChange,
     form,
     onFormChange,
-    staffs,
     metaLoading,
-    onRetryLoadStaffs,
     todayString,
     onSubmit,
 }: CreateActivityDialogProps) {
@@ -75,43 +68,7 @@ export function CreateActivityDialog({
                             </Select>
                         </div>
 
-                        <div>
-                            <Label>Nhân viên</Label>
-                            <Select
-                                value={form.staffId ? String(form.staffId) : ''}
-                                onValueChange={v => onFormChange({ ...form, staffId: Number(v) })}
-                                disabled={metaLoading}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Chọn nhân viên" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {metaLoading ? (
-                                        <SelectItem value="__loading" disabled>Đang lấy danh sách...</SelectItem>
-                                    ) : staffs.length === 0 ? (
-                                        <SelectItem value="__no_staff" disabled>Không có nhân viên</SelectItem>
-                                    ) : (
-                                        staffs.map(s => (
-                                            <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>
-                                        ))
-                                    )}
-                                </SelectContent>
-                            </Select>
-                            {!metaLoading && staffs.length === 0 && (
-                                <div className="mt-2 text-sm text-gray-500 flex items-center gap-2">
-                                    <span>Không có nhân viên để phân công.</span>
-                                    {onRetryLoadStaffs && (
-                                        <button
-                                            type="button"
-                                            className="text-green-600 underline text-sm"
-                                            onClick={() => onRetryLoadStaffs().catch(() => { })}
-                                        >
-                                            Thử lại
-                                        </button>
-                                    )}
-                                </div>
-                            )}
-                        </div>
+                        {/* Nhân viên: đã bỏ theo yêu cầu (không gán cho cá nhân) */}
 
                         <div>
                             <Label>Ngày bắt đầu</Label>

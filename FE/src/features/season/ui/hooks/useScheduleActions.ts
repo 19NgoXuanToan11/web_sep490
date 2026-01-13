@@ -166,7 +166,6 @@ export function useScheduleActions(
         startDate: string
         endDate: string
         scheduleId: number
-        staffId?: number
         activityType: string
       },
       onSuccess?: () => void
@@ -186,8 +185,6 @@ export function useScheduleActions(
         endDate: payload.endDate,
         scheduleId: payload.scheduleId,
       }
-      if (payload.staffId && Number(payload.staffId) > 0)
-        activityPayload.staffId = Number(payload.staffId)
 
       try {
         const response = await farmActivityService.createFarmActivity(

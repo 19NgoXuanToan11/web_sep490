@@ -101,6 +101,17 @@ export const ScheduleDetailPage: React.FC = () => {
         return mapped
     }, [scheduleDialogs.scheduleDetail])
 
+    useEffect(() => {
+        if (scheduleDialogs.showCreateActivity) {
+            ; (async () => {
+                try {
+                    await scheduleData.loadStaffs?.()
+                } catch {
+                }
+            })()
+        }
+    }, [scheduleDialogs.showCreateActivity, scheduleData.loadStaffs])
+
     return (
         <div className="max-w-6xl mx-auto p-6">
             <div className="bg-white rounded-lg border shadow-sm p-6">

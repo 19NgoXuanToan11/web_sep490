@@ -31,6 +31,7 @@ export function useScheduleData() {
   const [activities, setActivities] = useState<ActivityOption[]>([])
   const [metaLoading, setMetaLoading] = useState(false)
   const loadReferencePromise = useRef<Promise<any> | null>(null)
+  const loadStaffsPromise = useRef<Promise<any> | null>(null)
   const [allSchedules, setAllSchedules] = useState<ScheduleListItem[]>([])
 
   const filteredSchedules = useMemo(() => {
@@ -292,6 +293,36 @@ export function useScheduleData() {
     }
   }, [farms.length, crops.length, staffs.length, activities.length])
 
+  const loadStaffs = useCallback(async () => {
+    if (loadStaffsPromise.current) {
+      return loadStaffsPromise.current
+    }
+
+    setMetaLoading(true)
+
+    const promise = (async () => {
+      const staffResRaw = await accountApi.getAvailableStaff()
+      const staffList = Array.isArray(staffResRaw)
+        ? staffResRaw
+        : (staffResRaw && (staffResRaw as any).items) || []
+      const mapped = staffList.map((s: any) => ({
+        id: s.accountId,
+        name: s.accountProfile?.fullname ?? s.fullname ?? s.email ?? s.username ?? '',
+      }))
+      setStaffs(mapped)
+      return mapped
+    })()
+
+    loadStaffsPromise.current = promise
+    try {
+      const res = await promise
+      return res
+    } finally {
+      loadStaffsPromise.current = null
+      setMetaLoading(false)
+    }
+  }, [])
+
   useEffect(() => {
     load()
   }, [load])
@@ -350,5 +381,6 @@ export function useScheduleData() {
     load,
     loadAllSchedules,
     loadReferenceData,
+    loadStaffs,
   }
 }

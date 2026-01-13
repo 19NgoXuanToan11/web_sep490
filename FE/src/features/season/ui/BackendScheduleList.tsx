@@ -1141,9 +1141,7 @@ export function BackendScheduleList({
                 onOpenChange={handleCreateActivityDialogChange}
                 form={scheduleDialogs.createActivityForm}
                 onFormChange={scheduleDialogs.setCreateActivityForm}
-                staffs={scheduleData.staffs}
                 metaLoading={scheduleData.metaLoading}
-                onRetryLoadStaffs={scheduleData.loadReferenceData}
                 todayString={todayString}
                 onSubmit={submitCreateActivity}
             />

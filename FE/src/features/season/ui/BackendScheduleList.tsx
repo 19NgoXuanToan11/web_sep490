@@ -925,9 +925,21 @@ export function BackendScheduleList({
                                                         participants: [],
                                                         raw: ev.raw ?? null,
                                                     }))}
-                                                    onEventClick={(raw) => {
+                                                    onEventClick={async (raw) => {
                                                         if (!raw) return
-                                                        setSelectedFarmActivity(raw)
+                                                        const id = Number(raw.farmActivitiesId ?? raw.farmActivityId ?? raw.id)
+                                                        if (!id) {
+                                                            setSelectedFarmActivity(raw)
+                                                            setShowFarmActivityDetail(true)
+                                                            return
+                                                        }
+                                                        try {
+                                                            const payload = await farmActivityService.getStaffByFarmActivityId(id)
+                                                            setSelectedFarmActivity(payload)
+                                                        } catch (e) {
+                                                            console.error('Failed to fetch activity detail (staff API) for modal', e)
+                                                            setSelectedFarmActivity(raw)
+                                                        }
                                                         setShowFarmActivityDetail(true)
                                                     }}
                                                     onEventMenuAction={handleEventMenuAction}
@@ -1000,10 +1012,21 @@ export function BackendScheduleList({
                                                 </DropdownMenuTrigger>
                                                 <DropdownMenuContent disablePortal align="end" className="w-44" sideOffset={5} onCloseAutoFocus={(e) => e.preventDefault()}>
                                                     <DropdownMenuItem
-                                                        onClick={(e) => {
+                                                        onClick={async (e) => {
                                                             e.preventDefault()
                                                             e.stopPropagation()
-                                                            setSelectedFarmActivity(raw)
+                                                            const id = Number(raw.farmActivitiesId ?? raw.farmActivityId ?? raw.id)
+                                                            if (!id) {
+                                                                setSelectedFarmActivity(raw)
+                                                            } else {
+                                                                try {
+                                                                    const payload = await farmActivityService.getStaffByFarmActivityId(id)
+                                                                    setSelectedFarmActivity(payload)
+                                                                } catch (err) {
+                                                                    console.error('Failed to fetch activity detail (staff API) for modal', err)
+                                                                    setSelectedFarmActivity(raw)
+                                                                }
+                                                            }
                                                             setShowFarmActivityDetail(true)
                                                             setShowDayEventsDialog(false)
                                                         }}
@@ -1324,7 +1347,7 @@ export function BackendScheduleList({
                 </DialogContent>
             </Dialog>
             <Dialog open={showFarmActivityDetail} onOpenChange={setShowFarmActivityDetail}>
-                <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
+                <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader className="flex items-center justify-between">
                         <DialogTitle>Chi tiết hoạt động</DialogTitle>
                         <div className="flex items-center gap-2">
@@ -1374,22 +1397,54 @@ export function BackendScheduleList({
                         </div>
                     </DialogHeader>
                     {selectedFarmActivity ? (
-                        <div className="space-y-4 p-2">
-                            <div><strong>Hoạt động:</strong> {translateActivityType(selectedFarmActivity.activityType ?? selectedFarmActivity.ActivityType ?? '')}</div>
-                            <div><strong>Ngày bắt đầu:</strong> {formatDate(selectedFarmActivity.startDate ?? selectedFarmActivity.StartDate ?? selectedFarmActivity.start)}</div>
-                            <div><strong>Ngày kết thúc:</strong> {formatDate(selectedFarmActivity.endDate ?? selectedFarmActivity.EndDate ?? selectedFarmActivity.end)}</div>
-                            <div>
-                                <strong>Trạng thái:</strong>{' '}
-                                {(() => {
-                                    const info = getFarmActivityStatusInfo(selectedFarmActivity.status ?? selectedFarmActivity.Status)
-                                    return <Badge variant={info.variant as any} className="text-sm">{info.label}</Badge>
-                                })()}
-                            </div>
-                            <div className="p-2 bg-muted/50 rounded">
-                                <div><strong>Họ tên:</strong> {selectedFarmActivity.staffFullName ?? selectedFarmActivity.staffName ?? 'Chưa có'}</div>
-                                <div><strong>Email:</strong> {selectedFarmActivity.staffEmail ?? 'Chưa có'}</div>
-                                <div><strong>Số điện thoại:</strong> {selectedFarmActivity.staffPhone ?? 'Chưa có'}</div>
-                            </div>
+                        <>
+                            {Array.isArray(selectedFarmActivity) ? (
+                                <div className="space-y-4 p-2">
+                                    <div className="grid gap-3">
+                                        {selectedFarmActivity.map((rec: any, idx: number) => {
+                                            const info = getFarmActivityStatusInfo(rec.status ?? rec.Status)
+                                            return (
+                                                <div key={String(rec.id ?? rec.farmActivitiesId ?? idx)} className="p-3 bg-white rounded-md border shadow-sm">
+                                                    <div className="flex items-center justify-between mb-2">
+                                                        <div className="text-sm font-semibold">Bản ghi #{idx + 1}</div>
+                                                        <Badge variant={info.variant as any} className="text-sm">{info.label}</Badge>
+                                                    </div>
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                                        <div><strong>Loại hoạt động:</strong> {translateActivityType(rec.activityType ?? rec.ActivityType ?? '')}</div>
+                                                        <div><strong>ID:</strong> {rec.id ?? rec.farmActivitiesId ?? '-'}</div>
+                                                        <div><strong>Ngày bắt đầu:</strong> {formatDate(rec.startDate ?? rec.StartDate ?? rec.start)}</div>
+                                                        <div><strong>Ngày kết thúc:</strong> {formatDate(rec.endDate ?? rec.EndDate ?? rec.end)}</div>
+                                                        <div><strong>Cây trồng:</strong> {rec.cropName ?? (rec.cropView?.cropName ?? '-')}</div>
+                                                        <div><strong>Nhân sự:</strong> {rec.staffName ?? rec.staffFullName ?? '-'}</div>
+                                                        <div><strong>Email:</strong> {rec.staffEmail ?? '-'}</div>
+                                                        <div><strong>SĐT:</strong> {rec.staffPhone ?? '-'}</div>
+                                                        <div><strong>Created At:</strong> {rec.createdAt ?? '-'}</div>
+                                                        <div className="sm:col-span-2"><strong>Created By:</strong> {rec.createdBy ?? '-'}</div>
+                                                    </div>
+                                                </div>
+                                            )
+                                        })}
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="space-y-4 p-2">
+                                    <div><strong>Hoạt động:</strong> {translateActivityType(selectedFarmActivity.activityType ?? selectedFarmActivity.ActivityType ?? '')}</div>
+                                    <div><strong>Ngày bắt đầu:</strong> {formatDate(selectedFarmActivity.startDate ?? selectedFarmActivity.StartDate ?? selectedFarmActivity.start)}</div>
+                                    <div><strong>Ngày kết thúc:</strong> {formatDate(selectedFarmActivity.endDate ?? selectedFarmActivity.EndDate ?? selectedFarmActivity.end)}</div>
+                                    <div>
+                                        <strong>Trạng thái:</strong>{' '}
+                                        {(() => {
+                                            const info = getFarmActivityStatusInfo(selectedFarmActivity.status ?? selectedFarmActivity.Status)
+                                            return <Badge variant={info.variant as any} className="text-sm">{info.label}</Badge>
+                                        })()}
+                                    </div>
+                                    <div className="p-2 bg-muted/50 rounded">
+                                        <div><strong>Họ tên:</strong> {selectedFarmActivity.staffFullName ?? selectedFarmActivity.staffName ?? 'Chưa có'}</div>
+                                        <div><strong>Email:</strong> {selectedFarmActivity.staffEmail ?? 'Chưa có'}</div>
+                                        <div><strong>Số điện thoại:</strong> {selectedFarmActivity.staffPhone ?? 'Chưa có'}</div>
+                                    </div>
+                                </div>
+                            )}
 
                             {statusEditorOpen && (
                                 <div className="p-3 bg-white border rounded mt-2">
@@ -1454,7 +1509,7 @@ export function BackendScheduleList({
                                     </div>
                                 </div>
                             )}
-                        </div>
+                        </>
                     ) : (
                         <div className="p-4">Không có dữ liệu hoạt động.</div>
                     )}

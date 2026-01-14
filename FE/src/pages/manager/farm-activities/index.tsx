@@ -154,7 +154,7 @@ export default function FarmActivitiesPage() {
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [editingActivity, setEditingActivity] = useState<FarmActivity | null>(null)
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false)
-  const [selectedActivityForDetails, setSelectedActivityForDetails] = useState<FarmActivity | null>(
+  const [selectedActivityForDetails, setSelectedActivityForDetails] = useState<any | null>(
     null
   )
 
@@ -781,9 +781,22 @@ export default function FarmActivitiesPage() {
     return String(value)
   }
 
-  const handleViewDetailsClick = (activity: FarmActivity) => {
-    setSelectedActivityForDetails(activity)
-    setDetailsDialogOpen(true)
+  const handleViewDetailsClick = async (activity: FarmActivity) => {
+    try {
+      const id = Number(activity.farmActivitiesId)
+      if (!id) {
+        setSelectedActivityForDetails(activity)
+        setDetailsDialogOpen(true)
+        return
+      }
+      const payload = await farmActivityService.getStaffByFarmActivityId(id)
+      setSelectedActivityForDetails(payload)
+    } catch (err) {
+      console.error('Failed to fetch activity detail (staff API) for details dialog', err)
+      setSelectedActivityForDetails(activity)
+    } finally {
+      setDetailsDialogOpen(true)
+    }
   }
 
 
@@ -1052,49 +1065,75 @@ export default function FarmActivitiesPage() {
           </DialogHeader>
 
           {selectedActivityForDetails && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 gap-4">
-                <div>
-                  <Label className="text-sm text-gray-600">Thông tin hoạt động</Label>
-                  <div className="mt-2 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="text-sm text-gray-600">Loại hoạt động</div>
-                      <div className="text-sm font-medium text-gray-900">{getActivityTypeLabel(selectedActivityForDetails.activityType)}</div>
+            Array.isArray(selectedActivityForDetails) ? (
+              <div className="space-y-4">
+                <div className="grid gap-3">
+                  {selectedActivityForDetails.map((rec: any, idx: number) => (
+                    <div key={String(rec.id ?? rec.farmActivitiesId ?? idx)} className="p-3 bg-white rounded-md border shadow-sm">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="text-sm font-semibold">Bản ghi #{idx + 1}</div>
+                        <div>{getStatusBadge(rec.status ?? rec.Status)}</div>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <div><strong>Loại hoạt động:</strong> {getActivityTypeLabel(rec.activityType ?? rec.ActivityType)}</div>
+                        <div><strong>ID:</strong> {rec.id ?? rec.farmActivitiesId ?? '-'}</div>
+                        <div><strong>Ngày bắt đầu:</strong> {formatDisplayDate(rec.startDate ?? rec.StartDate ?? rec.start)}</div>
+                        <div><strong>Ngày kết thúc:</strong> {formatDisplayDate(rec.endDate ?? rec.EndDate ?? rec.end)}</div>
+                        <div><strong>Cây trồng:</strong> {rec.cropName ?? rec.cropView?.cropName ?? '-'}</div>
+                        <div><strong>Nhân sự:</strong> {safeField(rec.staffName ?? rec.staffFullName)}</div>
+                        <div><strong>Email:</strong> {safeField(rec.staffEmail)}</div>
+                        <div><strong>SĐT:</strong> {safeField(rec.staffPhone)}</div>
+                        <div className="sm:col-span-2"><strong>Created At:</strong> {rec.createdAt ?? '-'}</div>
+                      </div>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <div className="text-sm text-gray-600">Ngày bắt đầu</div>
-                      <div className="text-sm font-medium text-gray-900">{formatDisplayDate(selectedActivityForDetails.startDate)}</div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="text-sm text-gray-600">Ngày kết thúc</div>
-                      <div className="text-sm font-medium text-gray-900">{formatDisplayDate(selectedActivityForDetails.endDate)}</div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="text-sm text-gray-600">Trạng thái</div>
-                      <div className="text-sm mt-1">{getStatusBadge(selectedActivityForDetails.status)}</div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 gap-4">
+                  <div>
+                    <Label className="text-sm text-gray-600">Thông tin hoạt động</Label>
+                    <div className="mt-2 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm text-gray-600">Loại hoạt động</div>
+                        <div className="text-sm font-medium text-gray-900">{getActivityTypeLabel(selectedActivityForDetails.activityType)}</div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm text-gray-600">Ngày bắt đầu</div>
+                        <div className="text-sm font-medium text-gray-900">{formatDisplayDate(selectedActivityForDetails.startDate)}</div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm text-gray-600">Ngày kết thúc</div>
+                        <div className="text-sm font-medium text-gray-900">{formatDisplayDate(selectedActivityForDetails.endDate)}</div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm text-gray-600">Trạng thái</div>
+                        <div className="text-sm mt-1">{getStatusBadge(selectedActivityForDetails.status)}</div>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div>
-                  <Label className="text-sm text-gray-600">Nhân sự phụ trách</Label>
-                  <div className="mt-2 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="text-sm text-gray-600">Họ và tên</div>
-                      <div className="text-sm font-medium text-gray-900">{safeField(selectedActivityForDetails.staffFullName)}</div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="text-sm text-gray-600">Email</div>
-                      <div className="text-sm font-medium text-gray-900">{safeField(selectedActivityForDetails.staffEmail)}</div>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <div className="text-sm text-gray-600">SĐT</div>
-                      <div className="text-sm font-medium text-gray-900">{safeField(selectedActivityForDetails.staffPhone)}</div>
+                  <div>
+                    <Label className="text-sm text-gray-600">Nhân sự phụ trách</Label>
+                    <div className="mt-2 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm text-gray-600">Họ và tên</div>
+                        <div className="text-sm font-medium text-gray-900">{safeField(selectedActivityForDetails.staffFullName)}</div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm text-gray-600">Email</div>
+                        <div className="text-sm font-medium text-gray-900">{safeField(selectedActivityForDetails.staffEmail)}</div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="text-sm text-gray-600">SĐT</div>
+                        <div className="text-sm font-medium text-gray-900">{safeField(selectedActivityForDetails.staffPhone)}</div>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
+            )
           )}
         </DialogContent>
       </Dialog>

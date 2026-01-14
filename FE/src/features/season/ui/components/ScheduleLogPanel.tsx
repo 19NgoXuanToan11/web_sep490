@@ -126,7 +126,7 @@ function ScheduleLogPanel({ scheduleId, onEdit, registerUpdater }: { scheduleId:
                 <div key={l.id} className="p-3 border rounded-md flex items-start justify-between">
                   <div className="min-w-0">
                     <div className="text-xs text-muted-foreground">{safeFormat(l.createdAt ?? undefined)}</div>
-                    <div className="font-medium truncate">{(l.notes || '').split('\n')[0]}</div>
+                    <div className="font-medium whitespace-pre-wrap break-words">{(l.notes || '').split('\n')[0]}</div>
                     <div className="text-xs text-muted-foreground mt-1">
                       <div>
                         <strong>Người tạo</strong>: {l.staffNameCreate ?? 'Không xác định'}

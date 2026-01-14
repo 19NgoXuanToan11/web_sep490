@@ -81,7 +81,7 @@ export default function ManagerTable({ items, onOpenDetail, onAddLog, onEdit, on
                                         <tr>
                                             <td colSpan={10} className="p-4 bg-gray-50">
                                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                                    <div className="space-y-2">
+                                                    <div className="space-y-2 md:col-span-3">
                                                         <div className="text-sm font-semibold">Nhật ký hoạt động</div>
                                                         {item.scheduleId ? (
                                                             <ScheduleLogPanel

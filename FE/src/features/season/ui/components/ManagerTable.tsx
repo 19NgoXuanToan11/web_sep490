@@ -21,10 +21,7 @@ export default function ManagerTable({ items, onOpenDetail, onAddLog, onEdit, on
 
     const rows = useMemo(() => {
         return items.map(i => {
-            const today = new Date()
-            today.setHours(0, 0, 0, 0)
-            const lastLog = (i as any).lastLogDate ?? (i as any).lastLogAt ?? (i as any).lastLogCreatedAt ?? null
-            return { item: i, lastLog }
+            return { item: i }
         })
     }, [items])
 
@@ -36,12 +33,11 @@ export default function ManagerTable({ items, onOpenDetail, onAddLog, onEdit, on
                         <tr>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Trạng thái</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Thời gian</th>
-                            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Nhật ký</th>
                             <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Thao tác</th>
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-100">
-                        {rows.map(({ item, lastLog }) => {
+                        {rows.map(({ item }) => {
                             const id = Number(item.scheduleId ?? Math.random() * 1000000)
                             const isActive = typeof item.status === 'number' ? item.status === 1 : item.status === 'ACTIVE'
                             return (
@@ -54,10 +50,6 @@ export default function ManagerTable({ items, onOpenDetail, onAddLog, onEdit, on
                                         </td>
 
                                         <td className="px-4 py-3 align-top text-sm text-gray-700">{formatDateRange(item.startDate, item.endDate)}</td>
-
-                                        <td className="px-4 py-3 align-top text-sm">
-                                            {lastLog ? <div className="text-gray-700">{new Date(lastLog).toLocaleDateString()}</div> : <div className="text-red-600">Chưa có</div>}
-                                        </td>
 
                                         <td className="px-4 py-3 align-top">
                                             {item.scheduleId && (
@@ -79,7 +71,7 @@ export default function ManagerTable({ items, onOpenDetail, onAddLog, onEdit, on
 
                                     {expanded[id] && (
                                         <tr>
-                                            <td colSpan={10} className="p-4 bg-gray-50">
+                                            <td colSpan={3} className="p-4 bg-gray-50">
                                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                                     <div className="space-y-2 md:col-span-3">
                                                         <div className="text-sm font-semibold">Nhật ký hoạt động</div>
@@ -103,7 +95,7 @@ export default function ManagerTable({ items, onOpenDetail, onAddLog, onEdit, on
                                                     >
                                                         Ghi nhật ký
                                                     </button>
-                                                    {lastLog && onOpenLogEditor ? (
+                                                    {onOpenLogEditor ? (
                                                         <button
                                                             className="px-3 py-1 bg-white text-gray-800 border border-gray-200 rounded-full text-sm font-medium shadow-sm hover:bg-gray-50 transition-colors duration-200 focus:outline-none"
                                                             onClick={async (e) => {

@@ -160,7 +160,7 @@ export const farmActivityService = {
   },
 
   getStaffByFarmActivityId: async (farmActivityId: number): Promise<any> => {
-    const url = `/v1/farm-activity/Get-staff-by-FarmActivity-Id?farmActivityId=${farmActivityId}`
+    const url = `/v1/farm-activity/staff-activity/get-staff/${farmActivityId}`
     const response = await http.get<ApiResponse<any>>(url)
     return response.data.data
   },
@@ -169,7 +169,10 @@ export const farmActivityService = {
     farmActivityId: number,
     staffId: number
   ): Promise<FarmActivityResponse> => {
-    const url = `/v1/farm-activity/bind-staf-activity?farmActivityId=${farmActivityId}&staffId=${staffId}`
+    const queryParams = new URLSearchParams()
+    queryParams.append('farmActivityId', String(farmActivityId))
+    queryParams.append('staffId', String(staffId))
+    const url = `/v1/farm-activity/staff-activity/bind?${queryParams.toString()}`
     const response = await http.post<FarmActivityResponse>(url, {})
     return response.data
   },

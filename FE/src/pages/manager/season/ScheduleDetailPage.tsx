@@ -38,6 +38,12 @@ export const ScheduleDetailPage: React.FC = () => {
     const [showFarmActivityDetail, setShowFarmActivityDetail] = useState(false)
     const [editingFarmActivity, setEditingFarmActivity] = useState<any>(null)
     const [showEditFarmActivity, setShowEditFarmActivity] = useState(false)
+    const [statusEditorOpen, setStatusEditorOpen] = useState(false)
+    const [statusEditorValue, setStatusEditorValue] = useState<string | null>(null)
+    const [statusEditorLoading, setStatusEditorLoading] = useState(false)
+    const [assignStaffOpen, setAssignStaffOpen] = useState(false)
+    const [assignStaffIdLocal, setAssignStaffIdLocal] = useState<number | null>(null)
+    const [assignStaffLoading, setAssignStaffLoading] = useState(false)
     const [editFarmActivityForm, setEditFarmActivityForm] = useState<{
         activityType: string
         startDate: string
@@ -477,6 +483,29 @@ export const ScheduleDetailPage: React.FC = () => {
                                 }}>
                                 <span className="font-medium">Chỉnh sửa</span>
                             </Button>
+                            <Button
+                                size="sm"
+                                variant="secondary"
+                                className="border border-gray-200 bg-white text-gray-800 hover:bg-gray-50"
+                                onClick={() => {
+                                    if (!selectedFarmActivity) return
+                                    const currentStatus = String(selectedFarmActivity.status ?? selectedFarmActivity.Status ?? '').toUpperCase() || 'DEACTIVATED'
+                                    setStatusEditorValue(currentStatus)
+                                    setStatusEditorOpen(true)
+                                }}>
+                                <span className="font-medium">Chỉnh sửa trạng thái</span>
+                            </Button>
+                            <Button
+                                size="sm"
+                                variant="ghost"
+                                className="border border-gray-200 bg-white text-gray-700 hover:bg-gray-100 hover:border-gray-300"
+                                onClick={() => {
+                                    if (!selectedFarmActivity) return
+                                    setAssignStaffIdLocal(selectedFarmActivity.staffId ?? null)
+                                    setAssignStaffOpen(true)
+                                }}>
+                                <span className="font-medium">Gán nhân sự</span>
+                            </Button>
                         </div>
                     </DialogHeader>
                     {selectedFarmActivity ? (
@@ -527,6 +556,112 @@ export const ScheduleDetailPage: React.FC = () => {
                         )
                     ) : (
                         <div className="p-4">Không có dữ liệu hoạt động.</div>
+                    )}
+                    {statusEditorOpen && (
+                        <div className="p-3 bg-white border rounded mt-2">
+                            <div className="mb-2"><strong>Chọn trạng thái mới</strong></div>
+                            <div className="mb-3">
+                                <Select value={statusEditorValue ?? ''} onValueChange={(v) => setStatusEditorValue(v)}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Chọn trạng thái" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {[
+                                            { value: 'ACTIVE', label: 'Hoạt động' },
+                                            { value: 'DEACTIVATED', label: 'Vô hiệu hóa' },
+                                        ].map(s => (
+                                            <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="flex items-center justify-end gap-2">
+                                <Button variant="outline" onClick={() => { setStatusEditorOpen(false); setStatusEditorValue(null) }}>Hủy</Button>
+                                <Button
+                                    disabled={
+                                        statusEditorLoading ||
+                                        !statusEditorValue ||
+                                        String(statusEditorValue).toUpperCase() === String(selectedFarmActivity.status ?? selectedFarmActivity.Status ?? '').toUpperCase()
+                                    }
+                                    onClick={async () => {
+                                        if (!selectedFarmActivity || !statusEditorValue) return
+                                        const id = Number(selectedFarmActivity.farmActivitiesId ?? selectedFarmActivity.farmActivityId ?? selectedFarmActivity.id)
+                                        if (!id) return
+                                        try {
+                                            setStatusEditorLoading(true)
+                                            await farmActivityService.changeStatus(id)
+                                            showSuccessToast({ message: 'Cập nhật trạng thái thành công' })
+                                            await fetchAndSetActivity(id)
+                                            try {
+                                                await scheduleData.load()
+                                                const parent = selectedFarmActivity?._parentSchedule ?? selectedFarmActivity?.raw ?? null
+                                                if (parent && scheduleDialogs.scheduleDetail?.scheduleId === parent.scheduleId) {
+                                                    await scheduleActions.handleViewDetail(parent, (detail) => {
+                                                        scheduleDialogs.setScheduleDetail(detail)
+                                                    })
+                                                }
+                                            } catch (e) {
+                                                console.error('Failed to refresh after status update', e)
+                                            }
+                                            setStatusEditorOpen(false)
+                                            setStatusEditorValue(null)
+                                        } catch (err) {
+                                            showErrorToast(err)
+                                        } finally {
+                                            setStatusEditorLoading(false)
+                                        }
+                                    }}
+                                >
+                                    {statusEditorLoading ? 'Đang lưu...' : 'Lưu'}
+                                </Button>
+                            </div>
+                        </div>
+                    )}
+                    {assignStaffOpen && (
+                        <div className="p-3 bg-white border rounded mt-2">
+                            <div className="mb-2"><strong>Gán nhân sự cho hoạt động</strong></div>
+                            <div className="mb-3">
+                                <Select value={assignStaffIdLocal ? String(assignStaffIdLocal) : ''} onValueChange={(v) => setAssignStaffIdLocal(v ? Number(v) : null)}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Chọn nhân viên" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {Array.isArray(scheduleData.staffs) && scheduleData.staffs.length > 0 ? (
+                                            scheduleData.staffs.map(s => (
+                                                <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>
+                                            ))
+                                        ) : (
+                                            <SelectItem value="none">Không có nhân sự</SelectItem>
+                                        )}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div className="flex items-center justify-end gap-2">
+                                <Button variant="outline" onClick={() => { setAssignStaffOpen(false); setAssignStaffIdLocal(null) }}>Hủy</Button>
+                                <Button
+                                    disabled={assignStaffLoading || !assignStaffIdLocal}
+                                    onClick={async () => {
+                                        if (!selectedFarmActivity) return
+                                        const id = Number(selectedFarmActivity.farmActivitiesId ?? selectedFarmActivity.farmActivityId ?? selectedFarmActivity.id)
+                                        if (!id || !assignStaffIdLocal) return
+                                        try {
+                                            setAssignStaffLoading(true)
+                                            const res = await farmActivityService.addStaffToFarmActivity(id, assignStaffIdLocal)
+                                            showSuccessToast(res)
+                                            await fetchAndSetActivity(id)
+                                            setAssignStaffOpen(false)
+                                            setAssignStaffIdLocal(null)
+                                        } catch (err) {
+                                            showErrorToast(err)
+                                        } finally {
+                                            setAssignStaffLoading(false)
+                                        }
+                                    }}
+                                >
+                                    {assignStaffLoading ? 'Đang gán...' : 'Gán nhân sự'}
+                                </Button>
+                            </div>
+                        </div>
                     )}
                 </DialogContent>
             </Dialog>
@@ -635,13 +770,11 @@ export const ScheduleDetailPage: React.FC = () => {
                                 }
                                 const res = await farmActivityService.updateFarmActivity(id, payload, editFarmActivityForm.activityType, editFarmActivityForm.status || 'ACTIVE')
                                 showSuccessToast(res)
-                                // Cập nhật ngay giao diện với dữ liệu trả về từ backend nếu có
                                 const updated = res?.data ?? null
                                 if (updated) {
                                     setEditingFarmActivity(updated)
                                     setSelectedFarmActivity(updated)
                                 }
-                                // Làm mới dữ liệu danh sách / detail để phản ánh khắp nơi
                                 await scheduleData.loadAllSchedules()
                                 if (scheduleDialogs.scheduleDetail?.scheduleId) {
                                     await scheduleActions.handleViewDetail(scheduleDialogs.selectedSchedule!, (detail) => {

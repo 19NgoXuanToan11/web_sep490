@@ -159,6 +159,18 @@ export const farmActivityService = {
     return response.data
   },
 
+  reportMyPartCompleted: async (
+    farmActivityId: number,
+    note?: string
+  ): Promise<FarmActivityResponse> => {
+    const queryParams = new URLSearchParams()
+    queryParams.append('farmActivityId', String(farmActivityId))
+    if (note) queryParams.append('note', String(note))
+    const url = `/v1/farm-activity/complete-my-activity${queryParams.toString() ? `?${queryParams.toString()}` : ''}`
+    const response = await http.post<FarmActivityResponse>(url, {})
+    return response.data
+  },
+
   getStaffByFarmActivityId: async (farmActivityId: number): Promise<any> => {
     const url = `/v1/farm-activity/staff-activity/get-staff/${farmActivityId}`
     const response = await http.get<ApiResponse<any>>(url)

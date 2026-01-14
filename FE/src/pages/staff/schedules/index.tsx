@@ -170,6 +170,7 @@ const StaffSchedulesPage: React.FC = () => {
 
     const [isCompleting, setIsCompleting] = useState(false)
     const [isConfirmCompleteOpen, setIsConfirmCompleteOpen] = useState(false)
+    const [completeNote, setCompleteNote] = useState('')
 
     const handleCompleteFarmActivity = useCallback(async () => {
         if (!selectedScheduleDetail) return
@@ -180,7 +181,7 @@ const StaffSchedulesPage: React.FC = () => {
         if (!activityId) return
         setIsCompleting(true)
         try {
-            await farmActivityService.completeFarmActivity(activityId, selectedScheduleDetail.farmView?.location)
+            await farmActivityService.reportMyPartCompleted(activityId, completeNote || undefined)
 
             await fetchSchedules()
 
@@ -202,12 +203,13 @@ const StaffSchedulesPage: React.FC = () => {
                 setSelectedScheduleDetail(null)
                 setIsScheduleDetailOpen(false)
             }
+            setCompleteNote('')
         } catch (error: any) {
             showErrorToast(error)
         } finally {
             setIsCompleting(false)
         }
-    }, [selectedScheduleDetail, fetchSchedules, toast])
+    }, [selectedScheduleDetail, fetchSchedules, toast, completeNote])
 
     const filteredSchedules = useMemo(() => {
         return schedules.filter(s => {
@@ -359,6 +361,12 @@ const StaffSchedulesPage: React.FC = () => {
             setModalNotes('')
         }
     }, [showLogModal, editingLog, logModalMode])
+
+    useEffect(() => {
+        if (!isConfirmCompleteOpen) {
+            setCompleteNote('')
+        }
+    }, [isConfirmCompleteOpen])
 
     const openCreateLogForSchedule = (schedule: DisplaySchedule | null) => {
         if (!schedule) return
@@ -563,6 +571,16 @@ const StaffSchedulesPage: React.FC = () => {
                                                 </DialogHeader>
                                                 <div className="py-4">
                                                     <p>Bạn có chắc muốn đánh dấu hoạt động này là <strong>Hoàn thành</strong> không?</p>
+                                                </div>
+                                                <div className="py-2">
+                                                    <Label>Ghi chú</Label>
+                                                    <textarea
+                                                        value={completeNote}
+                                                        onChange={(e) => setCompleteNote(e.target.value)}
+                                                        className="w-full p-2 border rounded"
+                                                        rows={3}
+                                                        placeholder="Ghi chú thêm (không bắt buộc)"
+                                                    />
                                                 </div>
                                                 <div className="flex justify-end gap-2">
                                                     <Button

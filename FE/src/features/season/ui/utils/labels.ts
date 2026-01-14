@@ -30,6 +30,11 @@ export const farmActivityStatusOptions = [
   { value: 'DEACTIVATED', label: 'Tạm dừng', variant: 'destructive' as const },
 ]
 
+export const staffStatusOptions = [
+  { value: 'ACTIVE', label: 'Hoạt động' },
+  { value: 'DEACTIVATED', label: 'Vô hiệu hóa' },
+]
+
 export const diseaseOptions = [{ value: -1, label: 'Không có bệnh' }]
 
 export const diseaseEnumMap: Record<string, number> = {

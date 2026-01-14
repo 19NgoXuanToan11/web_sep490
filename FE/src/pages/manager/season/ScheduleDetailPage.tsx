@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/shared/ui/di
 import ThresholdPanel from '@/features/thresholds/ThresholdPanel'
 import ScheduleLogPanel from '@/features/season/ui/components/ScheduleLogPanel'
 import { formatDate } from '@/shared/lib/date-utils'
-import { isActiveStatus, getStatusLabel, translatePlantStage, getDiseaseLabel, translateActivityType, getFarmActivityStatusInfo, activityTypeLabels, farmActivityStatusOptions } from '@/features/season/ui/utils/labels'
+import { isActiveStatus, getStatusLabel, translatePlantStage, getDiseaseLabel, translateActivityType, getFarmActivityStatusInfo, activityTypeLabels, farmActivityStatusOptions, staffStatusOptions } from '@/features/season/ui/utils/labels'
 import { useScheduleData } from '@/features/season/ui/hooks/useScheduleData'
 import { useScheduleDialogs } from '@/features/season/ui/hooks/useScheduleDialogs'
 import { useScheduleActions } from '@/features/season/ui/hooks/useScheduleActions'
@@ -160,14 +160,14 @@ export const ScheduleDetailPage: React.FC = () => {
                     return prev.map((rec: any) => {
                         const key = rec.stafFarmActivityId ?? rec.Staf_farmActivityId ?? rec.id ?? rec.staffAssignId
                         if (String(key) === String(staffAssignId)) {
-                            return { ...rec, status: newStatus }
+                            return { ...rec, individualStatus: newStatus, status: newStatus }
                         }
                         return rec
                     })
                 }
                 const key = prev.stafFarmActivityId ?? prev.Staf_farmActivityId ?? prev.id ?? prev.staffAssignId
                 if (String(key) === String(staffAssignId)) {
-                    return { ...prev, status: newStatus }
+                    return { ...prev, individualStatus: newStatus, status: newStatus }
                 }
                 return prev
             })
@@ -468,7 +468,7 @@ export const ScheduleDetailPage: React.FC = () => {
                 }}
             />
             <Dialog open={showFarmActivityDetail} onOpenChange={setShowFarmActivityDetail}>
-                <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
+                <DialogContent className="sm:max-w-6xl max-h-[90vh] overflow-y-auto">
                     <DialogHeader className="flex items-center justify-between">
                         <DialogTitle>Chi tiết hoạt động</DialogTitle>
                         <div className="flex items-center gap-2">
@@ -546,8 +546,9 @@ export const ScheduleDetailPage: React.FC = () => {
                             </Button>
                         </div>
                     </DialogHeader>
+
                     {selectedFarmActivity ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-2">
+                        <div className="grid grid-cols-1 md:grid-cols-[1fr_520px] gap-6 p-4">
                             <div>
                                 <div className="p-4 bg-white rounded-md border shadow-sm">
                                     {(() => {
@@ -571,31 +572,66 @@ export const ScheduleDetailPage: React.FC = () => {
                             </div>
 
                             <div>
-                                <div className="p-2 bg-white rounded-md border shadow-sm">
+                                <div className="p-4 bg-white rounded-md border shadow-sm">
                                     <div className="mb-3"><strong>Nhân sự được phân công</strong></div>
                                     {Array.isArray(selectedFarmActivity) && selectedFarmActivity.length > 0 ? (
-                                        <div className="space-y-3">
+                                        <div className="space-y-4">
                                             {selectedFarmActivity.map((staffRec: any, idx: number) => {
-                                                const staffKey = staffRec.stafFarmActivityId ?? staffRec.Staf_farmActivityId ?? staffRec.id ?? staffRec.staffAssignId ?? idx
-                                                const staffStatus = localStaffStatusMap[String(staffKey)] ?? staffRec.status ?? staffRec.Status ?? ''
+                                                const staffKey =
+                                                    staffRec.stafFarmActivityId ??
+                                                    staffRec.Staf_farmActivityId ??
+                                                    staffRec.id ??
+                                                    staffRec.staffAssignId ??
+                                                    idx
+                                                const staffStatus =
+                                                    localStaffStatusMap[String(staffKey)] ??
+                                                    staffRec.status ??
+                                                    staffRec.Status ??
+                                                    ''
                                                 const staffInfo = getFarmActivityStatusInfo(staffRec.status ?? staffRec.Status)
+                                                const individualStatusVal = staffRec.individualStatus ?? staffRec.individualstatus ?? ''
+                                                const individualInfo = getFarmActivityStatusInfo(individualStatusVal)
                                                 return (
-                                                    <div key={String(staffKey)} className="p-3 bg-muted/50 rounded border flex items-start justify-between">
+                                                    <div
+                                                        key={String(staffKey)}
+                                                        className="p-4 bg-muted/50 rounded border flex items-start justify-between"
+                                                        style={{ minHeight: 92 }}
+                                                    >
                                                         <div>
-                                                            <div className="font-medium">{staffRec.staffFullName ?? staffRec.staffName ?? staffRec.name ?? 'Chưa có'}</div>
-                                                            <div className="text-sm text-muted-foreground">{staffRec.staffEmail ?? staffRec.email ?? '-'}</div>
-                                                            <div className="text-sm text-muted-foreground">{staffRec.staffPhone ?? staffRec.phone ?? '-'}</div>
+                                                            <div className="font-medium">
+                                                                {staffRec.staffFullName ?? staffRec.staffName ?? staffRec.name ?? 'Chưa có'}
+                                                            </div>
+                                                            <div className="text-sm text-muted-foreground">
+                                                                Email: {staffRec.staffEmail ?? staffRec.email ?? '-'}
+                                                            </div>
+                                                            <div className="text-sm text-muted-foreground">
+                                                                Số điện thoại: {staffRec.staffPhone ?? staffRec.phone ?? '-'}
+                                                            </div>
+                                                            {individualStatusVal ? (
+                                                                <div className="mt-2 text-sm">
+                                                                    <span className="text-muted-foreground mr-2"><strong>Trạng thái công việc:</strong></span>
+                                                                    <Badge variant={individualInfo.variant as any} className="text-xs">
+                                                                        {individualInfo.label}
+                                                                    </Badge>
+                                                                </div>
+                                                            ) : null}
                                                         </div>
                                                         <div className="flex flex-col items-end gap-2">
-                                                            <Badge variant={staffInfo.variant as any} className="text-sm">{staffInfo.label}</Badge>
+                                                            <div className="flex flex-col items-end gap-1">
+                                                                <Badge variant={staffInfo.variant as any} className="text-sm">
+                                                                    {staffInfo.label}
+                                                                </Badge>
+                                                            </div>
                                                             <div className="flex items-center gap-2">
                                                                 <Select value={String(staffStatus)} onValueChange={(v) => handleLocalStaffStatusChange(staffKey, v)}>
                                                                     <SelectTrigger>
                                                                         <SelectValue placeholder="Chọn trạng thái" />
                                                                     </SelectTrigger>
                                                                     <SelectContent>
-                                                                        {[{ value: 'ACTIVE', label: 'Hoạt động' }, { value: 'DEACTIVATED', label: 'Vô hiệu hóa' }].map(s => (
-                                                                            <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                                                                        {staffStatusOptions.map(s => (
+                                                                            <SelectItem key={s.value} value={s.value}>
+                                                                                {s.label}
+                                                                            </SelectItem>
                                                                         ))}
                                                                     </SelectContent>
                                                                 </Select>
@@ -623,6 +659,7 @@ export const ScheduleDetailPage: React.FC = () => {
                     ) : (
                         <div className="p-4">Không có dữ liệu hoạt động.</div>
                     )}
+
                     {statusEditorOpen && (
                         <div className="p-3 bg-white border rounded mt-2">
                             <div className="mb-2"><strong>Chọn trạng thái mới</strong></div>
@@ -683,6 +720,7 @@ export const ScheduleDetailPage: React.FC = () => {
                             </div>
                         </div>
                     )}
+
                     {assignStaffOpen && (
                         <div className="p-3 bg-white border rounded mt-2">
                             <div className="mb-2"><strong>Gán nhân sự cho hoạt động</strong></div>

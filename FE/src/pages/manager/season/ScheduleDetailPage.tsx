@@ -38,9 +38,6 @@ export const ScheduleDetailPage: React.FC = () => {
     const [showFarmActivityDetail, setShowFarmActivityDetail] = useState(false)
     const [editingFarmActivity, setEditingFarmActivity] = useState<any>(null)
     const [showEditFarmActivity, setShowEditFarmActivity] = useState(false)
-    const [statusEditorOpen, setStatusEditorOpen] = useState(false)
-    const [statusEditorValue, setStatusEditorValue] = useState<string | null>(null)
-    const [statusEditorLoading, setStatusEditorLoading] = useState(false)
     const [editFarmActivityForm, setEditFarmActivityForm] = useState<{
         activityType: string
         startDate: string
@@ -57,10 +54,6 @@ export const ScheduleDetailPage: React.FC = () => {
         status: 'ACTIVE',
     })
     const [editFarmActivitySubmitting, setEditFarmActivitySubmitting] = useState(false)
-    const [assignEditorOpen, setAssignEditorOpen] = useState(false)
-    const [assignEditorValue, setAssignEditorValue] = useState<string>('')
-    const [assignEditorLoading, setAssignEditorLoading] = useState(false)
-    const [currentStaffFarmActivityId, setCurrentStaffFarmActivityId] = useState<number | null>(null)
 
 
     const query = useMemo(() => {
@@ -141,13 +134,6 @@ export const ScheduleDetailPage: React.FC = () => {
         }
     }
 
-    const hasAssignedStaff = Boolean(
-        currentStaffFarmActivityId ||
-        selectedFarmActivity?.accountId ||
-        selectedFarmActivity?.staffId ||
-        selectedFarmActivity?.staffName ||
-        selectedFarmActivity?.staffEmail
-    )
 
     return (
         <div className="max-w-6xl mx-auto p-6">
@@ -491,49 +477,6 @@ export const ScheduleDetailPage: React.FC = () => {
                                 }}>
                                 <span className="font-medium">Chỉnh sửa</span>
                             </Button>
-                            <Button
-                                size="sm"
-                                variant="secondary"
-                                className="border border-gray-200 bg-white text-gray-800 hover:bg-gray-50"
-                                onClick={() => {
-                                    if (!selectedFarmActivity) return
-                                    const currentStatus = String(selectedFarmActivity.status ?? selectedFarmActivity.Status ?? '').toUpperCase() || 'DEACTIVATED'
-                                    setStatusEditorValue(currentStatus)
-                                    setStatusEditorOpen(true)
-                                }}>
-                                <span className="font-medium">Chỉnh sửa trạng thái</span>
-                            </Button>
-                            <Button
-                                size="sm"
-                                variant="ghost"
-                                className="border border-gray-200 bg-white text-gray-800 hover:bg-gray-50"
-                                onClick={async () => {
-                                    if (!selectedFarmActivity) return
-                                    try {
-                                        await scheduleData.loadReferenceData()
-                                        setAssignEditorValue((selectedFarmActivity.staffId ?? selectedFarmActivity.staffId) ? String(selectedFarmActivity.staffId) : '')
-                                        const id = Number(selectedFarmActivity.farmActivitiesId ?? selectedFarmActivity.farmActivityId ?? selectedFarmActivity.id)
-                                        if (!id) {
-                                            setCurrentStaffFarmActivityId(null)
-                                        } else {
-                                            try {
-                                                const full = await farmActivityService.getFarmActivityById(id)
-                                                setCurrentStaffFarmActivityId(null)
-                                                setAssignEditorValue(full.staffId ? String(full.staffId) : '')
-                                                setSelectedFarmActivity(full)
-                                            } catch (err) {
-                                                console.error('Failed to get farm activity by id for assign flow', err)
-                                                setCurrentStaffFarmActivityId(null)
-                                            }
-                                        }
-                                        setAssignEditorOpen(true)
-                                    } catch (err) {
-                                        console.error('Failed to open assign editor', err)
-                                        showErrorToast(err)
-                                    }
-                                }}>
-                                <span className="font-medium">{hasAssignedStaff ? 'Thay thế nhân sự' : 'Gán nhân sự'}</span>
-                            </Button>
                         </div>
                     </DialogHeader>
                     {selectedFarmActivity ? (
@@ -584,7 +527,7 @@ export const ScheduleDetailPage: React.FC = () => {
                         )
                     ) : (
                         <div className="p-4">Không có dữ liệu hoạt động.</div>
-                    )}  
+                    )}
                 </DialogContent>
             </Dialog>
 
@@ -628,25 +571,12 @@ export const ScheduleDetailPage: React.FC = () => {
                                 onChange={e => setEditFarmActivityForm({ ...editFarmActivityForm, endDate: e.target.value })}
                             />
                         </div>
+                        {/* Nhân sự không còn là trường gửi lên API update; hiển thị thông tin không sửa */}
                         <div>
-                            <Label htmlFor="editStaff">Nhân sự</Label>
-                            <Select
-                                value={editFarmActivityForm.staffId ? String(editFarmActivityForm.staffId) : ''}
-                                onValueChange={(v) => setEditFarmActivityForm({ ...editFarmActivityForm, staffId: v ? Number(v) : undefined })}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Chọn nhân sự" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {Array.isArray(scheduleData.staffs) && scheduleData.staffs.length > 0 ? (
-                                        scheduleData.staffs.map(s => (
-                                            <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>
-                                        ))
-                                    ) : (
-                                        <SelectItem value="none">Không có nhân sự</SelectItem>
-                                    )}
-                                </SelectContent>
-                            </Select>
+                            <Label>Nhân sự</Label>
+                            <div className="p-2 bg-muted/50 rounded text-sm">
+                                {editingFarmActivity?.staffFullName ?? editingFarmActivity?.staffName ?? 'Chưa có'}
+                            </div>
                         </div>
                         <div>
                             <Label htmlFor="editSchedule">Kế hoạch / Thời vụ</Label>
@@ -701,16 +631,20 @@ export const ScheduleDetailPage: React.FC = () => {
                                 const payload = {
                                     startDate: editFarmActivityForm.startDate,
                                     endDate: editFarmActivityForm.endDate,
-                                    staffId: editFarmActivityForm.staffId,
                                     scheduleId: editFarmActivityForm.scheduleId,
                                 }
                                 const res = await farmActivityService.updateFarmActivity(id, payload, editFarmActivityForm.activityType, editFarmActivityForm.status || 'ACTIVE')
                                 showSuccessToast(res)
-                                setShowEditFarmActivity(false)
-                                setEditingFarmActivity(null)
+                                // Cập nhật ngay giao diện với dữ liệu trả về từ backend nếu có
+                                const updated = res?.data ?? null
+                                if (updated) {
+                                    setEditingFarmActivity(updated)
+                                    setSelectedFarmActivity(updated)
+                                }
+                                // Làm mới dữ liệu danh sách / detail để phản ánh khắp nơi
                                 await scheduleData.loadAllSchedules()
                                 if (scheduleDialogs.scheduleDetail?.scheduleId) {
-                                    scheduleActions.handleViewDetail(scheduleDialogs.selectedSchedule!, (detail) => {
+                                    await scheduleActions.handleViewDetail(scheduleDialogs.selectedSchedule!, (detail) => {
                                         scheduleDialogs.setScheduleDetail(detail)
                                     })
                                 }

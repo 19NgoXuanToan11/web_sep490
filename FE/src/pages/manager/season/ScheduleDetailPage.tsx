@@ -50,14 +50,12 @@ export const ScheduleDetailPage: React.FC = () => {
         activityType: string
         startDate: string
         endDate: string
-        staffId?: number
         scheduleId?: number
         status?: string
     }>({
         activityType: '',
         startDate: '',
         endDate: '',
-        staffId: undefined,
         scheduleId: undefined,
         status: 'ACTIVE',
     })
@@ -109,7 +107,7 @@ export const ScheduleDetailPage: React.FC = () => {
                 const start = parseDDMMYYYY(fa.startDate) ?? parseDDMMYYYY(detail.startDate) ?? null
                 const end = parseDDMMYYYY(fa.endDate) ?? parseDDMMYYYY(detail.endDate) ?? null
                 if (!start || !end) return null
-                const rawStatus = fa.status ?? fa.Status ?? fa.Status
+                const rawStatus = fa.fA_Status ?? fa.fAStatus ?? fa.status ?? fa.Status
                 const normalizedStatus = String(rawStatus ?? '').toUpperCase()
                 const isActive = (rawStatus === 1 || normalizedStatus === 'ACTIVE')
                 const isCompleted = normalizedStatus === 'COMPLETED'
@@ -480,7 +478,8 @@ export const ScheduleDetailPage: React.FC = () => {
                                     if (!selectedFarmActivity) return
                                     void (async () => {
                                         try {
-                                            const id = Number(selectedFarmActivity.farmActivitiesId ?? selectedFarmActivity.farmActivityId ?? selectedFarmActivity.id)
+                                            const source = Array.isArray(selectedFarmActivity) ? selectedFarmActivity[0] : selectedFarmActivity
+                                            const id = Number(source?.farmActivitiesId ?? source?.farmActivityId ?? source?.id)
                                             if (!id) return
                                             await scheduleData.loadReferenceData()
                                             const fullActivity = await farmActivityService.getFarmActivityById(id)
@@ -502,20 +501,65 @@ export const ScheduleDetailPage: React.FC = () => {
                                                 }
                                                 return ''
                                             }
-                                            const startDate = formatDateForInputLocal(fullActivity.startDate ?? selectedFarmActivity.startDate)
-                                            const endDate = formatDateForInputLocal(fullActivity.endDate ?? selectedFarmActivity.endDate)
+                                            const startDate = formatDateForInputLocal(fullActivity.startDate ?? source?.startDate)
+                                            const endDate = formatDateForInputLocal(fullActivity.endDate ?? source?.endDate)
                                             setEditingFarmActivity(fullActivity)
                                             setEditFarmActivityForm({
-                                                activityType: String(fullActivity.activityType ?? selectedFarmActivity.activityType ?? ''),
+                                                activityType: String(fullActivity.activityType ?? source?.activityType ?? ''),
                                                 startDate,
                                                 endDate,
-                                                staffId: (fullActivity as any).staffId ?? (selectedFarmActivity as any).staffId ?? undefined,
-                                                scheduleId: (fullActivity as any).scheduleId ?? (selectedFarmActivity as any).scheduleId ?? undefined,
-                                                status: (fullActivity as any).status ?? (selectedFarmActivity as any).status ?? 'ACTIVE',
+                                                scheduleId: (fullActivity as any).scheduleId ?? (source as any).scheduleId ?? undefined,
+                                                status:
+                                                    (fullActivity as any).fA_Status ??
+                                                    (fullActivity as any).fAStatus ??
+                                                    (fullActivity as any).status ??
+                                                    (source as any).fA_Status ??
+                                                    (source as any).status ??
+                                                    'ACTIVE',
                                             })
                                             setShowEditFarmActivity(true)
                                         } catch (err) {
                                             console.error('Failed to open edit farm activity', err)
+                                            try {
+                                                const sourceFallback = Array.isArray(selectedFarmActivity) ? selectedFarmActivity[0] : selectedFarmActivity
+                                                if (!sourceFallback) return
+                                                const formatDateForInputLocal = (s?: string | null) => {
+                                                    if (!s) return ''
+                                                    try {
+                                                        if (s.includes('/')) {
+                                                            const parts = String(s).split('/')
+                                                            if (parts.length === 3) {
+                                                                const day = parts[0].padStart(2, '0')
+                                                                const month = parts[1].padStart(2, '0')
+                                                                const year = parts[2]
+                                                                return `${year}-${month}-${day}`
+                                                            }
+                                                        }
+                                                        if (s.match(/^\d{4}-\d{2}-\d{2}$/)) return s
+                                                        if (s.includes('T')) return s.split('T')[0]
+                                                    } catch {
+                                                    }
+                                                    return ''
+                                                }
+                                                const startDate = formatDateForInputLocal(sourceFallback.startDate ?? sourceFallback.StartDate ?? sourceFallback.start)
+                                                const endDate = formatDateForInputLocal(sourceFallback.endDate ?? sourceFallback.EndDate ?? sourceFallback.end)
+                                                setEditingFarmActivity(sourceFallback)
+                                                setEditFarmActivityForm({
+                                                    activityType: String(sourceFallback.activityType ?? sourceFallback.ActivityType ?? ''),
+                                                    startDate,
+                                                    endDate,
+                                                    scheduleId: (sourceFallback as any).scheduleId ?? undefined,
+                                                    status:
+                                                        (sourceFallback as any).fA_Status ??
+                                                        (sourceFallback as any).fAStatus ??
+                                                        (sourceFallback as any).status ??
+                                                        (sourceFallback as any).Status ??
+                                                        'ACTIVE',
+                                                })
+                                                setShowEditFarmActivity(true)
+                                            } catch (err2) {
+                                                console.error('Fallback to open edit modal failed', err2)
+                                            }
                                         }
                                     })()
                                 }}>
@@ -527,7 +571,7 @@ export const ScheduleDetailPage: React.FC = () => {
                                 className="border border-gray-200 bg-white text-gray-800 hover:bg-gray-50"
                                 onClick={() => {
                                     if (!selectedFarmActivity) return
-                                    const currentStatus = String(selectedFarmActivity.status ?? selectedFarmActivity.Status ?? '').toUpperCase() || 'DEACTIVATED'
+                                    const currentStatus = String(selectedFarmActivity.fA_Status ?? selectedFarmActivity.fAStatus ?? selectedFarmActivity.status ?? selectedFarmActivity.Status ?? '').toUpperCase() || 'DEACTIVATED'
                                     setStatusEditorValue(currentStatus)
                                     setStatusEditorOpen(true)
                                 }}>
@@ -553,7 +597,7 @@ export const ScheduleDetailPage: React.FC = () => {
                                 <div className="p-4 bg-white rounded-md border shadow-sm">
                                     {(() => {
                                         const sample = Array.isArray(selectedFarmActivity) ? selectedFarmActivity[0] : selectedFarmActivity
-                                        const info = getFarmActivityStatusInfo(sample?.status ?? sample?.Status)
+                                        const info = getFarmActivityStatusInfo(sample?.fA_Status ?? sample?.fAStatus ?? sample?.status ?? sample?.Status)
                                         return (
                                             <>
                                                 <div className="flex items-center justify-between mb-3">
@@ -684,7 +728,7 @@ export const ScheduleDetailPage: React.FC = () => {
                                     disabled={
                                         statusEditorLoading ||
                                         !statusEditorValue ||
-                                        String(statusEditorValue).toUpperCase() === String(selectedFarmActivity.status ?? selectedFarmActivity.Status ?? '').toUpperCase()
+                                        String(statusEditorValue).toUpperCase() === String(selectedFarmActivity.fA_Status ?? selectedFarmActivity.fAStatus ?? selectedFarmActivity.status ?? selectedFarmActivity.Status ?? '').toUpperCase()
                                     }
                                     onClick={async () => {
                                         if (!selectedFarmActivity || !statusEditorValue) return
@@ -810,12 +854,7 @@ export const ScheduleDetailPage: React.FC = () => {
                                 onChange={e => setEditFarmActivityForm({ ...editFarmActivityForm, endDate: e.target.value })}
                             />
                         </div>
-                        <div>
-                            <Label>Nhân sự</Label>
-                            <div className="p-2 bg-muted/50 rounded text-sm">
-                                {editingFarmActivity?.staffFullName ?? editingFarmActivity?.staffName ?? 'Chưa có'}
-                            </div>
-                        </div>
+                        {/* Staff is not editable via this modal per API contract; removed from form */}
                         <div>
                             <Label htmlFor="editSchedule">Kế hoạch / Thời vụ</Label>
                             <Select
@@ -861,35 +900,54 @@ export const ScheduleDetailPage: React.FC = () => {
                     </div>
                     <div className="flex items-center justify-end gap-2 mt-4">
                         <Button variant="outline" onClick={() => { setShowEditFarmActivity(false); setEditingFarmActivity(null) }}>Hủy</Button>
-                        <Button onClick={async () => {
-                            if (!editingFarmActivity) return
-                            setEditFarmActivitySubmitting(true)
-                            try {
-                                const id = editingFarmActivity.farmActivitiesId
-                                const payload = {
-                                    startDate: editFarmActivityForm.startDate,
-                                    endDate: editFarmActivityForm.endDate,
-                                    scheduleId: editFarmActivityForm.scheduleId,
+                        <Button
+                            disabled={editFarmActivitySubmitting}
+                            onClick={async () => {
+                                if (!editingFarmActivity) return
+                                setEditFarmActivitySubmitting(true)
+                                try {
+                                    const id = editingFarmActivity.farmActivitiesId
+                                    const payloadBody: any = {
+                                        farmActivityId: id,
+                                        activityType: editFarmActivityForm.activityType,
+                                        farmActivityStatus: editFarmActivityForm.status || 'ACTIVE',
+                                        startDate: editFarmActivityForm.startDate,
+                                        endDate: editFarmActivityForm.endDate,
+                                        scheduleId: editFarmActivityForm.scheduleId ?? undefined,
+                                    }
+
+                                    const res = await farmActivityService.updateFarmActivity(
+                                        id,
+                                        {
+                                            farmActivityId: payloadBody.farmActivityId,
+                                            startDate: payloadBody.startDate,
+                                            endDate: payloadBody.endDate,
+                                            scheduleId: payloadBody.scheduleId,
+                                        } as any,
+                                        payloadBody.activityType,
+                                        payloadBody.farmActivityStatus
+                                    )
+                                    showSuccessToast(res)
+                                    const updated = res?.data ?? null
+                                    if (updated) {
+                                        setEditingFarmActivity(updated)
+                                        setSelectedFarmActivity(updated)
+                                    }
+                                    await scheduleData.loadAllSchedules()
+                                    if (scheduleDialogs.scheduleDetail?.scheduleId) {
+                                        await scheduleActions.handleViewDetail(scheduleDialogs.selectedSchedule!, (detail) => {
+                                            scheduleDialogs.setScheduleDetail(detail)
+                                        })
+                                    }
+                                } catch (err) {
+                                    showErrorToast(err)
+                                } finally {
+                                    setEditFarmActivitySubmitting(false)
                                 }
-                                const res = await farmActivityService.updateFarmActivity(id, payload, editFarmActivityForm.activityType, editFarmActivityForm.status || 'ACTIVE')
-                                showSuccessToast(res)
-                                const updated = res?.data ?? null
-                                if (updated) {
-                                    setEditingFarmActivity(updated)
-                                    setSelectedFarmActivity(updated)
-                                }
-                                await scheduleData.loadAllSchedules()
-                                if (scheduleDialogs.scheduleDetail?.scheduleId) {
-                                    await scheduleActions.handleViewDetail(scheduleDialogs.selectedSchedule!, (detail) => {
-                                        scheduleDialogs.setScheduleDetail(detail)
-                                    })
-                                }
-                            } catch (err) {
-                                showErrorToast(err)
-                            } finally {
-                                setEditFarmActivitySubmitting(false)
-                            }
-                        }}>{editFarmActivitySubmitting ? 'Đang cập nhật...' : 'Cập nhật'}</Button>
+                            }}
+                        >
+                            {editFarmActivitySubmitting ? 'Đang cập nhật...' : 'Cập nhật'}
+                        </Button>
                     </div>
                 </DialogContent>
             </Dialog>

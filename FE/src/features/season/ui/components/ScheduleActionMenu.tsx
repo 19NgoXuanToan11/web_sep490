@@ -14,7 +14,6 @@ const ScheduleActionMenu: React.FC<ScheduleActionMenuProps> = React.memo(({
   schedule,
   onView,
   onEdit,
-  onAssignStaff,
   onUpdateStatus,
   actionLoading,
 }) => {
@@ -48,17 +47,7 @@ const ScheduleActionMenu: React.FC<ScheduleActionMenuProps> = React.memo(({
     [schedule, onEdit]
   )
 
-  const handleAssignStaff = useCallback(
-    (e: React.MouseEvent) => {
-      e.preventDefault()
-      e.stopPropagation()
-      setOpen(false)
-      setTimeout(() => {
-        onAssignStaff(schedule)
-      }, 0)
-    },
-    [schedule, onAssignStaff]
-  )
+
 
   const handleUpdateStatus = useCallback(
     (nextStatus: ScheduleStatusString) => (e: React.MouseEvent) => {
@@ -113,13 +102,7 @@ const ScheduleActionMenu: React.FC<ScheduleActionMenuProps> = React.memo(({
         >
           Chỉnh sửa
         </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={handleAssignStaff}
-          className="cursor-pointer focus:bg-gray-100"
-          onSelect={(e) => e.preventDefault()}
-        >
-          Phân công nhân viên
-        </DropdownMenuItem>
+        {/* 'Phân công nhân viên' removed from dropdown */}
         <DropdownMenuItem
           onClick={handleUpdateStatus(nextStatus)}
           className="cursor-pointer focus:bg-gray-100"

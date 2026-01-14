@@ -30,6 +30,7 @@ interface DisplaySchedule extends Omit<ScheduleListItem, 'diseaseStatus'> {
     id: string
     currentPlantStage?: string
     diseaseStatus?: string | number
+    harvestedQuantity?: string | number | null
     cropRequirement?: any[]
     farmActivities?: Array<{
         farmActivitiesId: number
@@ -86,6 +87,18 @@ const getDiseaseStatusLabel = (diseaseStatus?: string | number) => {
     return String(diseaseStatus)
 }
 
+const formatHarvestedQuantity = (value?: string | number | null) => {
+    if (value === null || value === undefined) return 'N/A'
+    if (typeof value === 'number') {
+        try {
+            return new Intl.NumberFormat('vi-VN').format(value)
+        } catch {
+            return String(value)
+        }
+    }
+    return String(value)
+}
+
 const activityTypeLabels: Record<string, string> = {
     SoilPreparation: 'Chuẩn bị đất',
     Sowing: 'Gieo hạt',
@@ -112,6 +125,9 @@ const StaffSchedulesPage: React.FC = () => {
 
     const [isScheduleDetailOpen, setIsScheduleDetailOpen] = useState(false)
     const [selectedScheduleDetail, setSelectedScheduleDetail] = useState<DisplaySchedule | null>(null)
+    const [isEditingHarvested, setIsEditingHarvested] = useState(false)
+    const [harvestedInput, setHarvestedInput] = useState<string>('')
+    const [isSavingHarvested, setIsSavingHarvested] = useState(false)
 
     const transformApiSchedule = (apiSchedule: any): DisplaySchedule => {
         const farmActivitiesArray = Array.isArray(apiSchedule.farmActivityView)
@@ -132,6 +148,70 @@ const StaffSchedulesPage: React.FC = () => {
             farmActivityView: firstFarmActivity,
         }
     }
+
+    useEffect(() => {
+        if (!selectedScheduleDetail) {
+            setHarvestedInput('')
+            setIsEditingHarvested(false)
+            return
+        }
+        const v = (selectedScheduleDetail as any).harvestedQuantity
+        setHarvestedInput(v === null || v === undefined ? '' : String(v))
+    }, [selectedScheduleDetail])
+
+    const handleStartEditHarvested = useCallback(() => {
+        setIsEditingHarvested(true)
+    }, [])
+
+    const handleCancelEditHarvested = useCallback(() => {
+        setIsEditingHarvested(false)
+        if (selectedScheduleDetail) {
+            const v = (selectedScheduleDetail as any).harvestedQuantity
+            setHarvestedInput(v === null || v === undefined ? '' : String(v))
+        } else {
+            setHarvestedInput('')
+        }
+    }, [selectedScheduleDetail])
+
+    const handleSaveHarvested = useCallback(async () => {
+        if (!selectedScheduleDetail?.scheduleId) return
+        const raw = harvestedInput.trim()
+        const parsed = Number(String(raw).replace(/,/g, ''))
+        if (raw === '') {
+            showErrorToast('Vui lòng nhập giá trị sản lượng.')
+            return
+        }
+        if (Number.isNaN(parsed)) {
+            showErrorToast('Vui lòng nhập một số hợp lệ.')
+            return
+        }
+
+        setIsSavingHarvested(true)
+        try {
+            const res: any = await scheduleService.updateHarvestedQuantity(selectedScheduleDetail.scheduleId, parsed)
+            if (res && res.status && res.status !== 1 && res.status !== 200) {
+                throw new Error(res.message || 'Lỗi khi cập nhật sản lượng')
+            }
+
+            setSelectedScheduleDetail(prev => prev ? { ...prev, harvestedQuantity: parsed } : prev)
+
+            setSchedules(prev => prev.map(s => {
+                try {
+                    if ((s as any).scheduleId === selectedScheduleDetail.scheduleId || s.id === String(selectedScheduleDetail.scheduleId)) {
+                        return { ...(s as any), harvestedQuantity: parsed }
+                    }
+                } catch { }
+                return s
+            }))
+
+            showSuccessToast(res)
+            setIsEditingHarvested(false)
+        } catch (err) {
+            showErrorToast(err)
+        } finally {
+            setIsSavingHarvested(false)
+        }
+    }, [selectedScheduleDetail, harvestedInput, setSchedules])
 
     const fetchSchedules = useCallback(
         async () => {
@@ -636,6 +716,59 @@ const StaffSchedulesPage: React.FC = () => {
                                                                             </p>
                                                                         </div>
                                                                     )}
+                                                                    <div>
+                                                                        <span className="text-sm text-gray-600">Sản lượng đã thu hoạch:</span>
+                                                                        {!isEditingHarvested ? (
+                                                                            <div className="flex items-center gap-2">
+                                                                                <p className="font-medium mt-0.5">
+                                                                                    {formatHarvestedQuantity(selectedScheduleDetail.harvestedQuantity as any)}
+                                                                                </p>
+                                                                                <div>
+                                                                                    <Button
+                                                                                        size="sm"
+                                                                                        variant="outline"
+                                                                                        onClick={(e) => {
+                                                                                            e.stopPropagation()
+                                                                                            handleStartEditHarvested()
+                                                                                        }}
+                                                                                    >
+                                                                                        Cập nhật
+                                                                                    </Button>
+                                                                                </div>
+                                                                            </div>
+                                                                        ) : (
+                                                                            <div className="flex items-center gap-2">
+                                                                                <input
+                                                                                    type="text"
+                                                                                    value={harvestedInput}
+                                                                                    onClick={(e) => e.stopPropagation()}
+                                                                                    onChange={(e) => setHarvestedInput(e.target.value)}
+                                                                                    className="p-1 border rounded w-36"
+                                                                                />
+                                                                                <Button
+                                                                                    size="sm"
+                                                                                    onClick={(e) => {
+                                                                                        e.stopPropagation()
+                                                                                        void handleSaveHarvested()
+                                                                                    }}
+                                                                                    disabled={isSavingHarvested}
+                                                                                >
+                                                                                    {isSavingHarvested ? 'Đang lưu...' : 'Lưu'}
+                                                                                </Button>
+                                                                                <Button
+                                                                                    size="sm"
+                                                                                    variant="outline"
+                                                                                    onClick={(e) => {
+                                                                                        e.stopPropagation()
+                                                                                        handleCancelEditHarvested()
+                                                                                    }}
+                                                                                    disabled={isSavingHarvested}
+                                                                                >
+                                                                                    Hủy
+                                                                                </Button>
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         )}

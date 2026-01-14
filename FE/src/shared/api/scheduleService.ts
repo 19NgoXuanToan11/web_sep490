@@ -185,4 +185,15 @@ export const scheduleService = {
     const res = await http.put<BasicResponse>(url, payload)
     return res.data
   },
+
+  async updateHarvestedQuantity(
+    scheduleId: number,
+    harvestedQuantity: number
+  ): Promise<BasicResponse> {
+    const url = `/v1/Schedule/schedule-update-harvested-quantity?scheduleId=${scheduleId}&harvestedQuantity=${encodeURIComponent(
+      String(harvestedQuantity)
+    )}`
+    const res = await http.put<BasicResponse>(url)
+    return res.data
+  },
 }

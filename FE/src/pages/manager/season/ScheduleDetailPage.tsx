@@ -4,17 +4,22 @@ import { Card, CardContent } from '@/shared/ui/card'
 import { Button } from '@/shared/ui/button'
 import { ArrowLeft } from 'lucide-react'
 import { Badge } from '@/shared/ui/badge'
+import { Input } from '@/shared/ui/input'
+import { Label } from '@/shared/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/shared/ui/select'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/shared/ui/tabs'
 import CalendarShell from '@/components/Calendar'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/shared/ui/dialog'
 import ThresholdPanel from '@/features/thresholds/ThresholdPanel'
 import ScheduleLogPanel from '@/features/season/ui/components/ScheduleLogPanel'
 import { formatDate } from '@/shared/lib/date-utils'
-import { isActiveStatus, getStatusLabel, translatePlantStage, getDiseaseLabel, translateActivityType, getFarmActivityStatusInfo } from '@/features/season/ui/utils/labels'
+import { isActiveStatus, getStatusLabel, translatePlantStage, getDiseaseLabel, translateActivityType, getFarmActivityStatusInfo, activityTypeLabels, farmActivityStatusOptions } from '@/features/season/ui/utils/labels'
 import { useScheduleData } from '@/features/season/ui/hooks/useScheduleData'
 import { useScheduleDialogs } from '@/features/season/ui/hooks/useScheduleDialogs'
 import { useScheduleActions } from '@/features/season/ui/hooks/useScheduleActions'
 import { UpdateStageModalDialog, CreateActivityDialog, LogModalDialog } from '@/features/season/ui/dialogs'
+import { farmActivityService } from '@/shared/api/farmActivityService'
+import { showSuccessToast, showErrorToast } from '@/shared/lib/toast-manager'
 
 export const ScheduleDetailPage: React.FC = () => {
     const params = useParams<{ scheduleId: string }>()
@@ -31,6 +36,32 @@ export const ScheduleDetailPage: React.FC = () => {
 
     const [selectedFarmActivity, setSelectedFarmActivity] = useState<any>(null)
     const [showFarmActivityDetail, setShowFarmActivityDetail] = useState(false)
+    const [editingFarmActivity, setEditingFarmActivity] = useState<any>(null)
+    const [showEditFarmActivity, setShowEditFarmActivity] = useState(false)
+    const [statusEditorOpen, setStatusEditorOpen] = useState(false)
+    const [statusEditorValue, setStatusEditorValue] = useState<string | null>(null)
+    const [statusEditorLoading, setStatusEditorLoading] = useState(false)
+    const [editFarmActivityForm, setEditFarmActivityForm] = useState<{
+        activityType: string
+        startDate: string
+        endDate: string
+        staffId?: number
+        scheduleId?: number
+        status?: string
+    }>({
+        activityType: '',
+        startDate: '',
+        endDate: '',
+        staffId: undefined,
+        scheduleId: undefined,
+        status: 'ACTIVE',
+    })
+    const [editFarmActivitySubmitting, setEditFarmActivitySubmitting] = useState(false)
+    const [assignEditorOpen, setAssignEditorOpen] = useState(false)
+    const [assignEditorValue, setAssignEditorValue] = useState<string>('')
+    const [assignEditorLoading, setAssignEditorLoading] = useState(false)
+    const [currentStaffFarmActivityId, setCurrentStaffFarmActivityId] = useState<number | null>(null)
+
 
     const query = useMemo(() => {
         try {
@@ -101,6 +132,22 @@ export const ScheduleDetailPage: React.FC = () => {
         return mapped
     }, [scheduleDialogs.scheduleDetail])
 
+    const fetchAndSetActivity = async (farmActivityId: number) => {
+        try {
+            const full = await farmActivityService.getFarmActivityById(farmActivityId)
+            setSelectedFarmActivity(full)
+        } catch (err) {
+            console.error('Failed to get farm activity by id', err)
+        }
+    }
+
+    const hasAssignedStaff = Boolean(
+        currentStaffFarmActivityId ||
+        selectedFarmActivity?.accountId ||
+        selectedFarmActivity?.staffId ||
+        selectedFarmActivity?.staffName ||
+        selectedFarmActivity?.staffEmail
+    )
 
     return (
         <div className="max-w-6xl mx-auto p-6">
@@ -292,9 +339,21 @@ export const ScheduleDetailPage: React.FC = () => {
                                                     participants: [],
                                                     raw: ev.raw ?? null,
                                                 }))}
-                                                onEventClick={(raw) => {
+                                                onEventClick={async (raw) => {
                                                     if (!raw) return
-                                                    setSelectedFarmActivity(raw)
+                                                    const id = Number(raw.farmActivitiesId ?? raw.farmActivityId ?? raw.id)
+                                                    if (!id) {
+                                                        setSelectedFarmActivity(raw)
+                                                        setShowFarmActivityDetail(true)
+                                                        return
+                                                    }
+                                                    try {
+                                                        await scheduleData.loadReferenceData()
+                                                        await fetchAndSetActivity(id)
+                                                    } catch (err) {
+                                                        console.error('Failed to fetch activity for modal', err)
+                                                        setSelectedFarmActivity(raw)
+                                                    }
                                                     setShowFarmActivityDetail(true)
                                                 }}
                                                 onEventMenuAction={(_action, _raw) => {
@@ -379,9 +438,103 @@ export const ScheduleDetailPage: React.FC = () => {
                 }}
             />
             <Dialog open={showFarmActivityDetail} onOpenChange={setShowFarmActivityDetail}>
-                <DialogContent className="sm:max-w-md max-h-[80vh] overflow-y-auto">
+                <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
                     <DialogHeader className="flex items-center justify-between">
                         <DialogTitle>Chi tiết hoạt động</DialogTitle>
+                        <div className="flex items-center gap-2">
+                            <Button
+                                size="sm"
+                                variant="outline"
+                                className="border-gray-300 bg-white text-gray-800 hover:bg-gray-50 hover:border-gray-400"
+                                onClick={() => {
+                                    if (!selectedFarmActivity) return
+                                    void (async () => {
+                                        try {
+                                            const id = Number(selectedFarmActivity.farmActivitiesId ?? selectedFarmActivity.farmActivityId ?? selectedFarmActivity.id)
+                                            if (!id) return
+                                            await scheduleData.loadReferenceData()
+                                            const fullActivity = await farmActivityService.getFarmActivityById(id)
+                                            const formatDateForInputLocal = (s?: string | null) => {
+                                                if (!s) return ''
+                                                try {
+                                                    if (s.includes('/')) {
+                                                        const parts = String(s).split('/')
+                                                        if (parts.length === 3) {
+                                                            const day = parts[0].padStart(2, '0')
+                                                            const month = parts[1].padStart(2, '0')
+                                                            const year = parts[2]
+                                                            return `${year}-${month}-${day}`
+                                                        }
+                                                    }
+                                                    if (s.match(/^\d{4}-\d{2}-\d{2}$/)) return s
+                                                    if (s.includes('T')) return s.split('T')[0]
+                                                } catch {
+                                                }
+                                                return ''
+                                            }
+                                            const startDate = formatDateForInputLocal(fullActivity.startDate ?? selectedFarmActivity.startDate)
+                                            const endDate = formatDateForInputLocal(fullActivity.endDate ?? selectedFarmActivity.endDate)
+                                            setEditingFarmActivity(fullActivity)
+                                            setEditFarmActivityForm({
+                                                activityType: String(fullActivity.activityType ?? selectedFarmActivity.activityType ?? ''),
+                                                startDate,
+                                                endDate,
+                                                staffId: (fullActivity as any).staffId ?? (selectedFarmActivity as any).staffId ?? undefined,
+                                                scheduleId: (fullActivity as any).scheduleId ?? (selectedFarmActivity as any).scheduleId ?? undefined,
+                                                status: (fullActivity as any).status ?? (selectedFarmActivity as any).status ?? 'ACTIVE',
+                                            })
+                                            setShowEditFarmActivity(true)
+                                        } catch (err) {
+                                            console.error('Failed to open edit farm activity', err)
+                                        }
+                                    })()
+                                }}>
+                                <span className="font-medium">Chỉnh sửa</span>
+                            </Button>
+                            <Button
+                                size="sm"
+                                variant="secondary"
+                                className="border border-gray-200 bg-white text-gray-800 hover:bg-gray-50"
+                                onClick={() => {
+                                    if (!selectedFarmActivity) return
+                                    const currentStatus = String(selectedFarmActivity.status ?? selectedFarmActivity.Status ?? '').toUpperCase() || 'DEACTIVATED'
+                                    setStatusEditorValue(currentStatus)
+                                    setStatusEditorOpen(true)
+                                }}>
+                                <span className="font-medium">Chỉnh sửa trạng thái</span>
+                            </Button>
+                            <Button
+                                size="sm"
+                                variant="ghost"
+                                className="border border-gray-200 bg-white text-gray-800 hover:bg-gray-50"
+                                onClick={async () => {
+                                    if (!selectedFarmActivity) return
+                                    try {
+                                        await scheduleData.loadReferenceData()
+                                        setAssignEditorValue((selectedFarmActivity.staffId ?? selectedFarmActivity.staffId) ? String(selectedFarmActivity.staffId) : '')
+                                        const id = Number(selectedFarmActivity.farmActivitiesId ?? selectedFarmActivity.farmActivityId ?? selectedFarmActivity.id)
+                                        if (!id) {
+                                            setCurrentStaffFarmActivityId(null)
+                                        } else {
+                                            try {
+                                                const full = await farmActivityService.getFarmActivityById(id)
+                                                setCurrentStaffFarmActivityId(null)
+                                                setAssignEditorValue(full.staffId ? String(full.staffId) : '')
+                                                setSelectedFarmActivity(full)
+                                            } catch (err) {
+                                                console.error('Failed to get farm activity by id for assign flow', err)
+                                                setCurrentStaffFarmActivityId(null)
+                                            }
+                                        }
+                                        setAssignEditorOpen(true)
+                                    } catch (err) {
+                                        console.error('Failed to open assign editor', err)
+                                        showErrorToast(err)
+                                    }
+                                }}>
+                                <span className="font-medium">{hasAssignedStaff ? 'Thay thế nhân sự' : 'Gán nhân sự'}</span>
+                            </Button>
+                        </div>
                     </DialogHeader>
                     {selectedFarmActivity ? (
                         <div className="space-y-4 p-2">
@@ -395,16 +548,283 @@ export const ScheduleDetailPage: React.FC = () => {
                                     return <Badge variant={info.variant as any} className="text-sm">{info.label}</Badge>
                                 })()}
                             </div>
-                            <div className="p-2 bg-muted/50 rounded">
-                                <div><strong>Họ tên:</strong> {selectedFarmActivity.staffFullName ?? selectedFarmActivity.staffName ?? 'Chưa có'}</div>
-                                <div><strong>Email:</strong> {selectedFarmActivity.staffEmail ?? 'Chưa có'}</div>
-                                <div><strong>Số điện thoại:</strong> {selectedFarmActivity.staffPhone ?? 'Chưa có'}</div>
+                            <div className="p-2 bg-muted/50 rounded space-y-1">
+                                <div><strong>Cây trồng:</strong> {selectedFarmActivity.cropName ?? selectedFarmActivity.cropView?.cropName ?? '-'}</div>
+                                <div><strong>Nhân sự:</strong> {selectedFarmActivity.staffName ?? selectedFarmActivity.staffFullName ?? '-'}</div>
+                                <div><strong>Email:</strong> {selectedFarmActivity.staffEmail ?? '-'}</div>
+                                <div><strong>Số điện thoại:</strong> {selectedFarmActivity.staffPhone ?? '-'}</div>
                             </div>
+                            {statusEditorOpen && (
+                                <div className="p-3 bg-white border rounded mt-2">
+                                    <div className="mb-2"><strong>Chọn trạng thái mới</strong></div>
+                                    <div className="mb-3">
+                                        <Select value={statusEditorValue ?? ''} onValueChange={(v) => setStatusEditorValue(v)}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Chọn trạng thái" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectItem value="ACTIVE">Hoạt động</SelectItem>
+                                                <SelectItem value="DEACTIVATED">Vô hiệu hóa</SelectItem>
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="flex items-center justify-end gap-2">
+                                        <Button variant="outline" onClick={() => { setStatusEditorOpen(false); setStatusEditorValue(null) }}>Hủy</Button>
+                                        <Button
+                                            disabled={
+                                                statusEditorLoading ||
+                                                !statusEditorValue ||
+                                                String(statusEditorValue).toUpperCase() === String(selectedFarmActivity.status ?? selectedFarmActivity.Status ?? '').toUpperCase()
+                                            }
+                                            onClick={async () => {
+                                                if (!selectedFarmActivity || !statusEditorValue) return
+                                                const id = Number(selectedFarmActivity.farmActivitiesId ?? selectedFarmActivity.farmActivityId ?? selectedFarmActivity.id)
+                                                if (!id) return
+                                                try {
+                                                    setStatusEditorLoading(true)
+                                                    await farmActivityService.changeStatus(id)
+                                                    showSuccessToast({ message: 'Cập nhật trạng thái thành công' })
+                                                    try {
+                                                        await fetchAndSetActivity(id)
+                                                    } catch (e) {
+                                                        setSelectedFarmActivity((prev: any) => prev ? { ...prev, status: String(statusEditorValue).toUpperCase(), Status: String(statusEditorValue).toUpperCase() } : prev)
+                                                        console.error('Failed to refresh after status update', e)
+                                                    }
+                                                    try {
+                                                        await scheduleData.load()
+                                                        const parent = selectedFarmActivity?._parentSchedule ?? selectedFarmActivity?.raw ?? null
+                                                        if (parent && scheduleDialogs.scheduleDetail?.scheduleId === parent.scheduleId) {
+                                                            await scheduleActions.handleViewDetail(parent, (detail) => {
+                                                                scheduleDialogs.setScheduleDetail(detail)
+                                                            })
+                                                        }
+                                                    } catch (e) {
+                                                        console.error('Failed to refresh after status update', e)
+                                                    }
+                                                    setStatusEditorOpen(false)
+                                                    setStatusEditorValue(null)
+                                                } catch (err) {
+                                                    showErrorToast(err)
+                                                } finally {
+                                                    setStatusEditorLoading(false)
+                                                }
+                                            }}
+                                        >
+                                            {statusEditorLoading ? 'Đang lưu...' : 'Lưu'}
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
+                            {assignEditorOpen && (
+                                <div className="p-3 bg-white border rounded mt-2">
+                                    <div className="mb-2"><strong>{hasAssignedStaff ? 'Thay thế nhân sự' : 'Gán nhân sự'}</strong></div>
+                                    <div className="mb-3">
+                                        <Select value={assignEditorValue ?? ''} onValueChange={(v) => setAssignEditorValue(v)}>
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Chọn nhân sự" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {Array.isArray(scheduleData.staffs) && scheduleData.staffs.length > 0 ? (
+                                                    scheduleData.staffs.map((s: any) => <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>)
+                                                ) : (
+                                                    <SelectItem value="none">Không có nhân sự</SelectItem>
+                                                )}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div className="flex items-center justify-end gap-2">
+                                        <Button variant="outline" onClick={() => { setAssignEditorOpen(false); setAssignEditorValue('') }}>Hủy</Button>
+                                        <Button
+                                            disabled={assignEditorLoading || !assignEditorValue}
+                                            onClick={async () => {
+                                                if (!selectedFarmActivity) return
+                                                const id = Number(selectedFarmActivity.farmActivitiesId ?? selectedFarmActivity.farmActivityId ?? selectedFarmActivity.id)
+                                                if (!id) return
+                                                try {
+                                                    setAssignEditorLoading(true)
+                                                    const newStaffId = assignEditorValue ? Number(assignEditorValue) : undefined
+                                                    if (currentStaffFarmActivityId) {
+                                                        const res = await farmActivityService.updateStaffToFarmActivity(currentStaffFarmActivityId, Number(newStaffId))
+                                                        showSuccessToast(res)
+                                                    } else {
+                                                        const res = await farmActivityService.addStaffToFarmActivity(id, Number(newStaffId))
+                                                        showSuccessToast(res)
+                                                    }
+                                                    try {
+                                                        await fetchAndSetActivity(id)
+                                                    } catch (e) {
+                                                        console.error('Failed to refresh activity after assign/change', e)
+                                                        const staffObj = (scheduleData.staffs || []).find((x: any) => String(x.id) === String(assignEditorValue))
+                                                        setSelectedFarmActivity((prev: any) => prev ? { ...prev, staffId: Number(assignEditorValue), staffFullName: staffObj?.name ?? prev.staffFullName, staffEmail: (staffObj as any)?.email ?? prev.staffEmail, staffPhone: (staffObj as any)?.phone ?? prev.staffPhone } : prev)
+                                                    }
+                                                    try {
+                                                        await scheduleData.load()
+                                                        const parent = selectedFarmActivity?._parentSchedule ?? selectedFarmActivity?.raw ?? null
+                                                        if (parent && scheduleDialogs.scheduleDetail?.scheduleId === parent.scheduleId) {
+                                                            await scheduleActions.handleViewDetail(parent, (detail) => {
+                                                                scheduleDialogs.setScheduleDetail(detail)
+                                                            })
+                                                        }
+                                                    } catch (e) {
+                                                        console.error('Failed to refresh after assign/change staff', e)
+                                                    }
+                                                    setAssignEditorOpen(false)
+                                                    setAssignEditorValue('')
+                                                    setCurrentStaffFarmActivityId(null)
+                                                } catch (err) {
+                                                    console.error('Failed to assign/change staff', err)
+                                                    showErrorToast(err)
+                                                } finally {
+                                                    setAssignEditorLoading(false)
+                                                }
+                                            }}
+                                        >
+                                            {assignEditorLoading ? 'Đang lưu...' : (hasAssignedStaff ? 'Thay thế nhân sự' : 'Gán')}
+                                        </Button>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     ) : (
                         <div className="p-4">Không có dữ liệu hoạt động.</div>
                     )}
                 </DialogContent>
+
+                <Dialog open={showEditFarmActivity} onOpenChange={setShowEditFarmActivity}>
+                    <DialogContent className="max-w-lg">
+                        <DialogHeader>
+                            <DialogTitle>Chỉnh Sửa Hoạt Động Nông Trại</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                            <div>
+                                <Label htmlFor="editActivityType">Loại hoạt động *</Label>
+                                <Select value={editFarmActivityForm.activityType} onValueChange={(v) => setEditFarmActivityForm({ ...editFarmActivityForm, activityType: v })}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Chọn loại hoạt động" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {Object.keys(activityTypeLabels).map(k => (
+                                            <SelectItem key={k} value={k}>
+                                                {activityTypeLabels[k]}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div>
+                                <Label htmlFor="editStartDate">Ngày bắt đầu *</Label>
+                                <Input
+                                    id="editStartDate"
+                                    type="date"
+                                    value={editFarmActivityForm.startDate}
+                                    onChange={e => setEditFarmActivityForm({ ...editFarmActivityForm, startDate: e.target.value })}
+                                />
+                            </div>
+                            <div>
+                                <Label htmlFor="editEndDate">Ngày kết thúc *</Label>
+                                <Input
+                                    id="editEndDate"
+                                    type="date"
+                                    min={editFarmActivityForm.startDate || new Date().toISOString().split('T')[0]}
+                                    value={editFarmActivityForm.endDate}
+                                    onChange={e => setEditFarmActivityForm({ ...editFarmActivityForm, endDate: e.target.value })}
+                                />
+                            </div>
+                            <div>
+                                <Label htmlFor="editStaff">Nhân sự</Label>
+                                <Select
+                                    value={editFarmActivityForm.staffId ? String(editFarmActivityForm.staffId) : ''}
+                                    onValueChange={(v) => setEditFarmActivityForm({ ...editFarmActivityForm, staffId: v ? Number(v) : undefined })}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Chọn nhân sự" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {Array.isArray(scheduleData.staffs) && scheduleData.staffs.length > 0 ? (
+                                            scheduleData.staffs.map(s => (
+                                                <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>
+                                            ))
+                                        ) : (
+                                            <SelectItem value="none">Không có nhân sự</SelectItem>
+                                        )}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div>
+                                <Label htmlFor="editSchedule">Kế hoạch / Thời vụ</Label>
+                                <Select
+                                    value={editFarmActivityForm.scheduleId ? String(editFarmActivityForm.scheduleId) : ''}
+                                    onValueChange={(v) => setEditFarmActivityForm({ ...editFarmActivityForm, scheduleId: v ? Number(v) : undefined })}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Chọn kế hoạch / thời vụ" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {Array.isArray(scheduleData.allSchedules) && scheduleData.allSchedules.length > 0 ? (
+                                            scheduleData.allSchedules
+                                                .filter(s => s.scheduleId !== undefined && s.scheduleId !== null)
+                                                .map(s => {
+                                                    const label =
+                                                        (s.cropView?.cropName ?? s.farmView?.farmName ?? `Kế hoạch #${s.scheduleId}`) +
+                                                        (s.startDate || s.endDate ? ` (${formatDate(s.startDate)} - ${formatDate(s.endDate)})` : '')
+                                                    return (
+                                                        <SelectItem key={String(s.scheduleId)} value={String(s.scheduleId)}>
+                                                            {label}
+                                                        </SelectItem>
+                                                    )
+                                                })
+                                        ) : (
+                                            <SelectItem value="none">Không có kế hoạch</SelectItem>
+                                        )}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                            <div>
+                                <Label htmlFor="editStatus">Trạng thái</Label>
+                                <Select value={editFarmActivityForm.status || 'ACTIVE'} onValueChange={(v) => setEditFarmActivityForm({ ...editFarmActivityForm, status: v })}>
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Chọn trạng thái" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {farmActivityStatusOptions.map(status => (
+                                            <SelectItem key={status.value} value={status.value}>{status.label}</SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                            </div>
+                        </div>
+                        <div className="flex items-center justify-end gap-2 mt-4">
+                            <Button variant="outline" onClick={() => { setShowEditFarmActivity(false); setEditingFarmActivity(null) }}>Hủy</Button>
+                            <Button onClick={async () => {
+                                if (!editingFarmActivity) return
+                                setEditFarmActivitySubmitting(true)
+                                try {
+                                    const id = editingFarmActivity.farmActivitiesId
+                                    const payload = {
+                                        startDate: editFarmActivityForm.startDate,
+                                        endDate: editFarmActivityForm.endDate,
+                                        staffId: editFarmActivityForm.staffId,
+                                        scheduleId: editFarmActivityForm.scheduleId,
+                                    }
+                                    const res = await farmActivityService.updateFarmActivity(id, payload, editFarmActivityForm.activityType, editFarmActivityForm.status || 'ACTIVE')
+                                    showSuccessToast(res)
+                                    setShowEditFarmActivity(false)
+                                    setEditingFarmActivity(null)
+                                    await scheduleData.loadAllSchedules()
+                                    if (scheduleDialogs.scheduleDetail?.scheduleId) {
+                                        scheduleActions.handleViewDetail(scheduleDialogs.selectedSchedule!, (detail) => {
+                                            scheduleDialogs.setScheduleDetail(detail)
+                                        })
+                                    }
+                                } catch (err) {
+                                    showErrorToast(err)
+                                } finally {
+                                    setEditFarmActivitySubmitting(false)
+                                }
+                            }}>{editFarmActivitySubmitting ? 'Đang cập nhật...' : 'Cập nhật'}</Button>
+                        </div>
+                    </DialogContent>
+                </Dialog>
             </Dialog>
         </div>
     )

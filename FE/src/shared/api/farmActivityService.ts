@@ -159,6 +159,33 @@ export const farmActivityService = {
     return response.data
   },
 
+  getStaffByFarmActivityId: async (farmActivityId: number): Promise<any> => {
+    const url = `/v1/farm-activity/Get-staff-by-FarmActivity-Id?farmActivityId=${farmActivityId}`
+    const response = await http.get<ApiResponse<any>>(url)
+    return response.data.data
+  },
+
+  addStaffToFarmActivity: async (
+    farmActivityId: number,
+    staffId: number
+  ): Promise<FarmActivityResponse> => {
+    const url = `/v1/farm-activity/bind-staf-activity?farmActivityId=${farmActivityId}&staffId=${staffId}`
+    const response = await http.post<FarmActivityResponse>(url, {})
+    return response.data
+  },
+
+  updateStaffToFarmActivity: async (
+    stafFarmActivityId: number | string,
+    staffId: number
+  ): Promise<FarmActivityResponse> => {
+    const queryParams = new URLSearchParams()
+    queryParams.append('Staf_farmActivityId', String(stafFarmActivityId))
+    queryParams.append('staffId', String(staffId))
+    const url = `/v1/farm-activity/update-staf-activity?${queryParams.toString()}`
+    const response = await http.put<FarmActivityResponse>(url, {})
+    return response.data
+  },
+
   deleteFarmActivity: async (id: number): Promise<FarmActivityResponse> => {
     const response = await http.delete<FarmActivityResponse>(`/v1/farm-activity/delete/${id}`)
     return response.data

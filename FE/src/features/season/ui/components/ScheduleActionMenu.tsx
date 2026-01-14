@@ -102,7 +102,6 @@ const ScheduleActionMenu: React.FC<ScheduleActionMenuProps> = React.memo(({
         >
           Chỉnh sửa
         </DropdownMenuItem>
-        {/* 'Phân công nhân viên' removed from dropdown */}
         <DropdownMenuItem
           onClick={handleUpdateStatus(nextStatus)}
           className="cursor-pointer focus:bg-gray-100"

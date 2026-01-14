@@ -68,8 +68,6 @@ export function CreateActivityDialog({
                             </Select>
                         </div>
 
-                        {/* Nhân viên: đã bỏ theo yêu cầu (không gán cho cá nhân) */}
-
                         <div>
                             <Label>Ngày bắt đầu</Label>
                             <Input

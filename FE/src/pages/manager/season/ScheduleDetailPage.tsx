@@ -44,6 +44,8 @@ export const ScheduleDetailPage: React.FC = () => {
     const [assignStaffOpen, setAssignStaffOpen] = useState(false)
     const [assignStaffIdLocal, setAssignStaffIdLocal] = useState<number | null>(null)
     const [assignStaffLoading, setAssignStaffLoading] = useState(false)
+    const [localStaffStatusMap, setLocalStaffStatusMap] = useState<Record<string, string>>({})
+    const [staffStatusUpdating, setStaffStatusUpdating] = useState<number | string | null>(null)
     const [editFarmActivityForm, setEditFarmActivityForm] = useState<{
         activityType: string
         startDate: string
@@ -137,6 +139,42 @@ export const ScheduleDetailPage: React.FC = () => {
             setSelectedFarmActivity(payload)
         } catch (err) {
             console.error('Failed to get farm activity (staff API) by id', err)
+        }
+    }
+
+    const handleLocalStaffStatusChange = (staffAssignId: number | string, status: string) => {
+        setLocalStaffStatusMap((prev) => ({ ...prev, [String(staffAssignId)]: status }))
+    }
+
+    const handleUpdateStaffStatus = async (staffAssignId: number | string, status?: string) => {
+        if (!selectedFarmActivity) return
+        const newStatus = status ?? (localStaffStatusMap[String(staffAssignId)] ?? '')
+        if (!newStatus) return
+        try {
+            setStaffStatusUpdating(staffAssignId)
+            const res = await farmActivityService.updateStaffActivityStatus(staffAssignId, newStatus)
+            showSuccessToast(res)
+            setSelectedFarmActivity((prev: any) => {
+                if (!prev) return prev
+                if (Array.isArray(prev)) {
+                    return prev.map((rec: any) => {
+                        const key = rec.stafFarmActivityId ?? rec.Staf_farmActivityId ?? rec.id ?? rec.staffAssignId
+                        if (String(key) === String(staffAssignId)) {
+                            return { ...rec, status: newStatus }
+                        }
+                        return rec
+                    })
+                }
+                const key = prev.stafFarmActivityId ?? prev.Staf_farmActivityId ?? prev.id ?? prev.staffAssignId
+                if (String(key) === String(staffAssignId)) {
+                    return { ...prev, status: newStatus }
+                }
+                return prev
+            })
+        } catch (err) {
+            showErrorToast(err)
+        } finally {
+            setStaffStatusUpdating(null)
         }
     }
 
@@ -509,51 +547,79 @@ export const ScheduleDetailPage: React.FC = () => {
                         </div>
                     </DialogHeader>
                     {selectedFarmActivity ? (
-                        Array.isArray(selectedFarmActivity) ? (
-                            <div className="space-y-4 p-2">
-                                <div className="grid gap-3">
-                                    {selectedFarmActivity.map((rec: any, idx: number) => {
-                                        const info = getFarmActivityStatusInfo(rec.status ?? rec.Status)
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-2">
+                            <div>
+                                <div className="p-4 bg-white rounded-md border shadow-sm">
+                                    {(() => {
+                                        const sample = Array.isArray(selectedFarmActivity) ? selectedFarmActivity[0] : selectedFarmActivity
+                                        const info = getFarmActivityStatusInfo(sample?.status ?? sample?.Status)
                                         return (
-                                            <div key={String(rec.id ?? rec.farmActivitiesId ?? idx)} className="p-3 bg-white rounded-md border shadow-sm">
-                                                <div className="flex items-center justify-between mb-2">
-                                                    <div>
-                                                        <strong>Loại hoạt động:</strong> {translateActivityType(rec.activityType ?? rec.ActivityType ?? '')}
-                                                    </div>
+                                            <>
+                                                <div className="flex items-center justify-between mb-3">
+                                                    <div className="text-lg font-medium">{translateActivityType(sample?.activityType ?? sample?.ActivityType ?? '') || 'Hoạt động'}</div>
                                                     <Badge variant={info.variant as any} className="text-sm">{info.label}</Badge>
                                                 </div>
-                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                                    <div><strong>Ngày bắt đầu:</strong> {formatDate(rec.startDate ?? rec.StartDate ?? rec.start)}</div>
-                                                    <div><strong>Ngày kết thúc:</strong> {formatDate(rec.endDate ?? rec.EndDate ?? rec.end)}</div>
-                                                    <div><strong>Cây trồng:</strong> {rec.cropName ?? (rec.cropView?.cropName ?? '-')}</div>
-                                                    <div><strong>Nhân sự:</strong> {rec.staffName ?? rec.staffFullName ?? '-'}</div>
-                                                    <div><strong>Email:</strong> {rec.staffEmail ?? '-'}</div>
-                                                    <div><strong>SĐT:</strong> {rec.staffPhone ?? '-'}</div>
+                                                <div className="grid grid-cols-1 gap-2">
+                                                    <div><strong>Ngày bắt đầu:</strong> {formatDate(sample?.startDate ?? sample?.StartDate ?? sample?.start)}</div>
+                                                    <div><strong>Ngày kết thúc:</strong> {formatDate(sample?.endDate ?? sample?.EndDate ?? sample?.end)}</div>
+                                                    <div><strong>Cây trồng:</strong> {sample?.cropName ?? sample?.cropView?.cropName ?? '-'}</div>
                                                 </div>
-                                            </div>
+                                            </>
                                         )
-                                    })}
-                                </div>
-                            </div>
-                        ) : (
-                            <div className="space-y-4 p-2">
-                                <div><strong>Hoạt động:</strong> {translateActivityType(selectedFarmActivity.activityType ?? selectedFarmActivity.ActivityType ?? '')}</div>
-                                <div><strong>Ngày bắt đầu:</strong> {formatDate(selectedFarmActivity.startDate ?? selectedFarmActivity.StartDate ?? selectedFarmActivity.start)}</div>
-                                <div><strong>Ngày kết thúc:</strong> {formatDate(selectedFarmActivity.endDate ?? selectedFarmActivity.EndDate ?? selectedFarmActivity.end)}</div>
-                                <div>
-                                    <strong>Trạng thái:</strong>{' '}
-                                    {(() => {
-                                        const info = getFarmActivityStatusInfo(selectedFarmActivity.status ?? selectedFarmActivity.Status)
-                                        return <Badge variant={info.variant as any} className="text-sm">{info.label}</Badge>
                                     })()}
                                 </div>
-                                <div className="p-2 bg-muted/50 rounded">
-                                    <div><strong>Họ tên:</strong> {selectedFarmActivity.staffFullName ?? selectedFarmActivity.staffName ?? 'Chưa có'}</div>
-                                    <div><strong>Email:</strong> {selectedFarmActivity.staffEmail ?? 'Chưa có'}</div>
-                                    <div><strong>Số điện thoại:</strong> {selectedFarmActivity.staffPhone ?? 'Chưa có'}</div>
+                            </div>
+
+                            <div>
+                                <div className="p-2 bg-white rounded-md border shadow-sm">
+                                    <div className="mb-3"><strong>Nhân sự được phân công</strong></div>
+                                    {Array.isArray(selectedFarmActivity) && selectedFarmActivity.length > 0 ? (
+                                        <div className="space-y-3">
+                                            {selectedFarmActivity.map((staffRec: any, idx: number) => {
+                                                const staffKey = staffRec.stafFarmActivityId ?? staffRec.Staf_farmActivityId ?? staffRec.id ?? staffRec.staffAssignId ?? idx
+                                                const staffStatus = localStaffStatusMap[String(staffKey)] ?? staffRec.status ?? staffRec.Status ?? ''
+                                                const staffInfo = getFarmActivityStatusInfo(staffRec.status ?? staffRec.Status)
+                                                return (
+                                                    <div key={String(staffKey)} className="p-3 bg-muted/50 rounded border flex items-start justify-between">
+                                                        <div>
+                                                            <div className="font-medium">{staffRec.staffFullName ?? staffRec.staffName ?? staffRec.name ?? 'Chưa có'}</div>
+                                                            <div className="text-sm text-muted-foreground">{staffRec.staffEmail ?? staffRec.email ?? '-'}</div>
+                                                            <div className="text-sm text-muted-foreground">{staffRec.staffPhone ?? staffRec.phone ?? '-'}</div>
+                                                        </div>
+                                                        <div className="flex flex-col items-end gap-2">
+                                                            <Badge variant={staffInfo.variant as any} className="text-sm">{staffInfo.label}</Badge>
+                                                            <div className="flex items-center gap-2">
+                                                                <Select value={String(staffStatus)} onValueChange={(v) => handleLocalStaffStatusChange(staffKey, v)}>
+                                                                    <SelectTrigger>
+                                                                        <SelectValue placeholder="Chọn trạng thái" />
+                                                                    </SelectTrigger>
+                                                                    <SelectContent>
+                                                                        {[{ value: 'ACTIVE', label: 'Hoạt động' }, { value: 'DEACTIVATED', label: 'Vô hiệu hóa' }].map(s => (
+                                                                            <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                                                                        ))}
+                                                                    </SelectContent>
+                                                                </Select>
+                                                                <Button
+                                                                    size="sm"
+                                                                    disabled={staffStatusUpdating !== null && String(staffStatusUpdating) === String(staffKey)}
+                                                                    onClick={async () => {
+                                                                        await handleUpdateStaffStatus(staffKey, staffStatus)
+                                                                    }}
+                                                                >
+                                                                    {staffStatusUpdating !== null && String(staffStatusUpdating) === String(staffKey) ? 'Đang...' : 'Lưu'}
+                                                                </Button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                )
+                                            })}
+                                        </div>
+                                    ) : (
+                                        <div className="p-3">Không có nhân sự phân công</div>
+                                    )}
                                 </div>
                             </div>
-                        )
+                        </div>
                     ) : (
                         <div className="p-4">Không có dữ liệu hoạt động.</div>
                     )}
@@ -706,7 +772,6 @@ export const ScheduleDetailPage: React.FC = () => {
                                 onChange={e => setEditFarmActivityForm({ ...editFarmActivityForm, endDate: e.target.value })}
                             />
                         </div>
-                        {/* Nhân sự không còn là trường gửi lên API update; hiển thị thông tin không sửa */}
                         <div>
                             <Label>Nhân sự</Label>
                             <div className="p-2 bg-muted/50 rounded text-sm">

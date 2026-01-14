@@ -189,6 +189,18 @@ export const farmActivityService = {
     return response.data
   },
 
+  updateStaffActivityStatus: async (
+    stafFarmActivityId: number | string,
+    status: string
+  ): Promise<FarmActivityResponse> => {
+    const queryParams = new URLSearchParams()
+    queryParams.append('id', String(stafFarmActivityId))
+    queryParams.append('status', String(status))
+    const url = `/v1/farm-activity/staff-activity/status?${queryParams.toString()}`
+    const response = await http.put<FarmActivityResponse>(url)
+    return response.data
+  },
+
   deleteFarmActivity: async (id: number): Promise<FarmActivityResponse> => {
     const response = await http.delete<FarmActivityResponse>(`/v1/farm-activity/delete/${id}`)
     return response.data

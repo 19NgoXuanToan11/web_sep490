@@ -193,7 +193,7 @@ export default function FarmActivitiesPage() {
     () => Object.keys(activityTypeLabels).map(key => ({ value: key, label: activityTypeLabels[key] })),
     []
   )
-  const { staffs, allSchedules, loadReferenceData } = useScheduleData()
+  const { staffs, allSchedules, loadReferenceData, loadAllSchedules } = useScheduleData()
 
   useEffect(() => {
     if (createDialogOpen) {
@@ -585,8 +585,6 @@ export default function FarmActivitiesPage() {
       const updateData: FarmActivityUpdate = {
         startDate: formData.startDate,
         endDate: formData.endDate,
-        staffId: formData.staffId,
-        scheduleId: formData.scheduleId,
       }
 
       const res = await farmActivityService.updateFarmActivity(
@@ -641,11 +639,9 @@ export default function FarmActivitiesPage() {
         staffId: staffIdFromFull,
         scheduleId: scheduleIdFromFull,
       })
-      setFormActivityType(
-        normalizeBackendActivityType(fullActivity.activityType || activity.activityType),
-      )
+      setFormActivityType(normalizeBackendActivityType(fullActivity.activityType || activity.activityType))
       setFormStatus(fullActivity.status || activity.status)
-      void loadReferenceData().catch(() => { })
+      void loadAllSchedules().catch(() => { })
       setEditDialogOpen(true)
     } catch (error: any) {
       showErrorToast(error)
@@ -1348,33 +1344,6 @@ export default function FarmActivitiesPage() {
               {formData.endDate && !dateErrors.endDate && (
                 <p className="text-sm text-gray-500 mt-1">Định dạng hiển thị: {formatDate(formData.endDate)}</p>
               )}
-            </div>
-            <div>
-              <Label htmlFor="editStaff">Nhân sự</Label>
-              <Select
-                value={formData.staffId ? String(formData.staffId) : ''}
-                onValueChange={(v) =>
-                  setFormData({
-                    ...formData,
-                    staffId: !v || v === 'none' ? undefined : Number(v),
-                  })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Chọn nhân sự" />
-                </SelectTrigger>
-                <SelectContent>
-                  {Array.isArray(staffs) && staffs.length > 0 ? (
-                    staffs.map(s => (
-                      <SelectItem key={s.id} value={String(s.id)}>
-                        {s.name}
-                      </SelectItem>
-                    ))
-                  ) : (
-                    <SelectItem value="none">Không có nhân sự</SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
             </div>
             <div>
               <Label htmlFor="editSchedule">Kế hoạch / Thời vụ</Label>

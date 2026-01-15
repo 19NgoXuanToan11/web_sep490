@@ -52,7 +52,7 @@ export default function ManagerOverview({ onFilterActive, onFilterDeactivated, o
     }).length
 
     return (
-        <div className="grid grid-cols-1 sm:grid-cols-5 gap-4 mb-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
             <Card onClick={() => onFilterTotal ? onFilterTotal() : undefined} className="cursor-pointer">
                 <CardContent className="p-4">
                     <div>
@@ -78,27 +78,6 @@ export default function ManagerOverview({ onFilterActive, onFilterDeactivated, o
                         <p className="text-sm text-gray-500">Vô hiệu hóa</p>
                         <p className="text-2xl font-bold text-orange-500">{deactivated}</p>
                         <p className="text-xs text-gray-400 mt-1">Số thời vụ đã vô hiệu hóa</p>
-                    </div>
-                </CardContent>
-            </Card>
-
-            <Card onClick={() => onFilterOverdue ? onFilterOverdue() : undefined} className="cursor-pointer">
-                <CardContent className="p-4">
-                    <div>
-                        <p className="text-sm text-gray-500">Quá hạn</p>
-                        <p className="text-2xl font-bold text-red-500">{overdue}</p>
-                        <p className="text-xs text-gray-400 mt-1">Số thời vụ đã quá hạn</p>
-                    </div>
-                </CardContent>
-            </Card>
-
-
-            <Card onClick={() => onFilterMissingLogs ? onFilterMissingLogs() : undefined} className="cursor-pointer">
-                <CardContent className="p-4">
-                    <div>
-                        <p className="text-sm text-gray-500">Thiếu nhật ký</p>
-                        <p className="text-2xl font-bold text-red-500">{missingLogs}</p>
-                        <p className="text-xs text-gray-400 mt-1">Thiếu nhật ký ≥ 3 ngày</p>
                     </div>
                 </CardContent>
             </Card>

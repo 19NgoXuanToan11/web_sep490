@@ -828,7 +828,7 @@ export default function FarmActivitiesPage() {
             }
           />
 
-          <div className="grid gap-4 grid-cols-1 md:grid-cols-2">
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-4">
             <Card>
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
@@ -847,8 +847,20 @@ export default function FarmActivitiesPage() {
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
                   <div>
+                    <p className="text-sm text-gray-500">Tạm dừng</p>
+                    <p className="text-2xl font-semibold mt-1 text-red-600">{activityStats.deactivated}</p>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">Số hoạt động đã tạm dừng</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
                     <p className="text-sm text-gray-500">Đang hoạt động</p>
-                    <p className="text-2xl font-semibold mt-1 text-green-600">
+                    <p className="text-2xl font-semibold mt-1 text-yellow-600">
                       {activityStats.active + activityStats.inProgress}
                     </p>
                   </div>
@@ -859,6 +871,17 @@ export default function FarmActivitiesPage() {
               </CardContent>
             </Card>
 
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-500">Hoàn thành</p>
+                    <p className="text-2xl font-semibold mt-1 text-green-600">{activityStats.completed}</p>
+                  </div>
+                </div>
+                <p className="text-xs text-gray-500 mt-2">Hoạt động đã hoàn tất</p>
+              </CardContent>
+            </Card>
           </div>
 
           <StaffFilterBar>

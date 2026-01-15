@@ -4,12 +4,10 @@ import { useScheduleData } from '@/features/season/ui/hooks/useScheduleData'
 type Props = {
     onFilterActive?: () => void
     onFilterDeactivated?: () => void
-    onFilterOverdue?: () => void
-    onFilterMissingLogs?: () => void
     onFilterTotal?: () => void
 }
 
-export default function ManagerOverview({ onFilterActive, onFilterDeactivated, onFilterOverdue, onFilterMissingLogs, onFilterTotal }: Props) {
+export default function ManagerOverview({ onFilterActive, onFilterDeactivated, onFilterTotal }: Props) {
     const scheduleData = useScheduleData()
     const all = scheduleData.allSchedules ?? []
     const today = new Date()
@@ -25,30 +23,6 @@ export default function ManagerOverview({ onFilterActive, onFilterDeactivated, o
         const st = s?.status
         if (typeof st === 'number') return st !== 1
         return String(st ?? '').toUpperCase() !== 'ACTIVE'
-    }).length
-
-    const overdue = all.filter(s => {
-        try {
-            const end = s.endDate ? new Date(s.endDate) : null
-            if (!end || Number.isNaN(end.getTime())) return false
-            const diff = Math.ceil((new Date(end.getFullYear(), end.getMonth(), end.getDate()).getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
-            return diff < 0
-        } catch {
-            return false
-        }
-    }).length
-
-    const missingLogs = all.filter(s => {
-        const lastLog = (s as any).lastLogDate ?? (s as any).lastLogAt ?? (s as any).last_crop_log_date ?? (s as any).lastLogCreatedAt
-        if (!lastLog) return true
-        try {
-            const last = new Date(lastLog)
-            if (Number.isNaN(last.getTime())) return true
-            const diffDays = Math.floor((today.getTime() - new Date(last.getFullYear(), last.getMonth(), last.getDate()).getTime()) / (1000 * 60 * 60 * 24))
-            return diffDays >= 3
-        } catch {
-            return true
-        }
     }).length
 
     return (

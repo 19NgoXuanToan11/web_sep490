@@ -439,40 +439,6 @@ const ManagerIoTDevicesPage: React.FC = () => {
                       render: (device) => getStatusBadge(device.status),
                     },
                     {
-                      id: 'lastUpdate',
-                      header: 'Cập nhật lần cuối',
-                      render: (device) => {
-                        if (!device.lastUpdate) return '-'
-                        try {
-                          const date = new Date(device.lastUpdate)
-                          return date.toLocaleDateString('vi-VN', {
-                            year: 'numeric',
-                            month: '2-digit',
-                            day: '2-digit',
-                          })
-                        } catch {
-                          return device.lastUpdate
-                        }
-                      },
-                    },
-                    {
-                      id: 'expiryDate',
-                      header: 'Ngày hết hạn',
-                      render: (device) => {
-                        if (!device.expiryDate) return '-'
-                        try {
-                          const date = new Date(device.expiryDate)
-                          return date.toLocaleDateString('vi-VN', {
-                            year: 'numeric',
-                            month: '2-digit',
-                            day: '2-digit',
-                          })
-                        } catch {
-                          return device.expiryDate
-                        }
-                      },
-                    },
-                    {
                       id: 'actions',
                       header: '',
                       render: (device) => (

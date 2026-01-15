@@ -366,20 +366,6 @@ export default function FarmActivitiesPage() {
     return (b.farmActivitiesId || 0) - (a.farmActivitiesId || 0)
   }
 
-  const groupByActivityType = (items: FarmActivity[]) => {
-    const groups = new Map<string, FarmActivity[]>()
-    const order: string[] = []
-    items.forEach(item => {
-      const key = item.activityType ?? 'unknown'
-      if (!groups.has(key)) {
-        groups.set(key, [])
-        order.push(key)
-      }
-      groups.get(key)!.push(item)
-    })
-    return order.map(key => [key, groups.get(key)!] as [string, FarmActivity[]])
-  }
-
   const statusOptions = [
     ...farmActivityStatusOptions,
   ]
@@ -497,6 +483,20 @@ export default function FarmActivitiesPage() {
     })
     return byTab
   }, [filteredActivities])
+
+  const groupByActivityType = (items: FarmActivity[]) => {
+    const groups = new Map<string, FarmActivity[]>()
+    const order: string[] = []
+    items.forEach(item => {
+      const key = item.activityType ?? 'unknown'
+      if (!groups.has(key)) {
+        groups.set(key, [])
+        order.push(key)
+      }
+      groups.get(key)!.push(item)
+    })
+    return order.map(key => [key, groups.get(key)!] as [string, FarmActivity[]])
+  }
 
   const groupedData = useMemo(() => {
     const itemsForTab = processedByTab[activeTab] || []
@@ -799,11 +799,9 @@ export default function FarmActivitiesPage() {
     }
   }
 
-
   useEffect(() => {
     loadActivities()
   }, [activityTypeFilter, statusFilter, showLatestOnly])
-
 
   return (
     <ManagerLayout>
@@ -907,6 +905,24 @@ export default function FarmActivitiesPage() {
             <div className="inline-flex items-center gap-3 bg-white/60 backdrop-blur-sm border border-gray-100 rounded-xl shadow-sm p-2">
               <button
                 role="tab"
+                aria-selected={activeTab === 'DEACTIVATED'}
+                onClick={() => setActiveTab('DEACTIVATED')}
+                title="Tạm dừng"
+                className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-400 ${activeTab === 'DEACTIVATED'
+                  ? 'bg-gradient-to-r from-emerald-700 to-green-600 text-white shadow-md'
+                  : 'bg-white/60 text-gray-700 hover:shadow-sm'
+                  }`}
+              >
+                <span className="ml-1">Tạm dừng</span>
+                <span
+                  className={`ml-3 inline-flex items-center justify-center px-3 py-0.5 rounded-full text-xs font-semibold ${activeTab === 'DEACTIVATED' ? 'bg-white/20' : 'bg-gray-100 text-gray-800'
+                    }`}
+                >
+                  {processedByTab.DEACTIVATED ? processedByTab.DEACTIVATED.length : 0}
+                </span>
+              </button>
+              <button
+                role="tab"
                 aria-selected={activeTab === 'ACTIVE'}
                 onClick={() => setActiveTab('ACTIVE')}
                 title="Hoạt động"
@@ -923,8 +939,6 @@ export default function FarmActivitiesPage() {
                   {processedByTab.ACTIVE ? processedByTab.ACTIVE.length : 0}
                 </span>
               </button>
-
-
               <button
                 role="tab"
                 aria-selected={activeTab === 'COMPLETED'}
@@ -943,30 +957,11 @@ export default function FarmActivitiesPage() {
                   {processedByTab.COMPLETED ? processedByTab.COMPLETED.length : 0}
                 </span>
               </button>
-
-              <button
-                role="tab"
-                aria-selected={activeTab === 'DEACTIVATED'}
-                onClick={() => setActiveTab('DEACTIVATED')}
-                title="Tạm dừng"
-                className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-400 ${activeTab === 'DEACTIVATED'
-                  ? 'bg-gradient-to-r from-emerald-700 to-green-600 text-white shadow-md'
-                  : 'bg-white/60 text-gray-700 hover:shadow-sm'
-                  }`}
-              >
-                <span className="ml-1">Tạm dừng</span>
-                <span
-                  className={`ml-3 inline-flex items-center justify-center px-3 py-0.5 rounded-full text-xs font-semibold ${activeTab === 'DEACTIVATED' ? 'bg-white/20' : 'bg-gray-100 text-gray-800'
-                    }`}
-                >
-                  {processedByTab.DEACTIVATED ? processedByTab.DEACTIVATED.length : 0}
-                </span>
-              </button>
             </div>
           </div>
 
           <Card>
-            <CardContent className="p-0">
+            <CardContent className="p-4">
               {loading ? (
                 <div className="flex items-center justify-center py-12">
                   <RefreshCw className="h-8 w-8 animate-spin text-green-600" />
@@ -994,63 +989,75 @@ export default function FarmActivitiesPage() {
                   </p>
                 </div>
               ) : (
-                <div className="space-y-6">
-                  {groupedData.map(([typeKey, items]) => {
-                    const collapsed = collapsedSections[typeKey] ?? false
-                    const displayLabel = mapActivityTypeToLabelVi(typeKey)
-                    return (
-                      <div key={typeKey} className="space-y-3">
-                        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
-                          <div className="flex items-center gap-3">
-                            <button
-                              className="p-1 rounded hover:bg-gray-100"
-                              onClick={() => setCollapsedSections(prev => ({ ...prev, [typeKey]: !collapsed }))}
-                              aria-expanded={!collapsed}
-                            >
-                              {collapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
-                            </button>
-                            <h3 className="text-lg font-semibold text-gray-900">{displayLabel}</h3>
-                            <span className="text-sm text-gray-500">({items.length})</span>
-                          </div>
-                        </div>
-                        {!collapsed && (
-                          <div className="grid gap-3 px-4 pb-4 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-                            {items.map(activity => (
-                              <Card
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200 table-fixed">
+                    <colgroup>
+                      <col style={{ width: '35%' }} />
+                      <col style={{ width: '35%' }} />
+                      <col style={{ width: '20%' }} />
+                      <col style={{ width: '10%' }} />
+                    </colgroup>
+                    <thead className="bg-white">
+                      <tr>
+                        <th scope="col" className="px-4 py-3 text-left text-sm font-medium text-gray-600">Loại hoạt động</th>
+                        <th scope="col" className="px-4 py-3 text-left text-sm font-medium text-gray-600">Thời gian</th>
+                        <th scope="col" className="px-4 py-3 text-left text-sm font-medium text-gray-600">Trạng thái</th>
+                        <th scope="col" className="px-4 py-3 text-left text-sm font-medium text-gray-600">Thao tác</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-100">
+                      {groupedData.map(([typeKey, items]) => {
+                        const collapsed = collapsedSections[typeKey] ?? false
+                        const displayLabel = mapActivityTypeToLabelVi(typeKey)
+                        return (
+                          <React.Fragment key={typeKey}>
+                            <tr className="bg-gray-50">
+                              <td colSpan={4} className="px-4 py-3">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-3">
+                                    <button
+                                      className="p-1 rounded hover:bg-gray-100"
+                                      onClick={(e) => { e.stopPropagation(); setCollapsedSections(prev => ({ ...prev, [typeKey]: !collapsed })) }}
+                                      aria-expanded={!collapsed}
+                                    >
+                                      {collapsed ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+                                    </button>
+                                    <h3 className="text-sm font-semibold text-gray-900">{displayLabel}</h3>
+                                    <span className="text-sm text-gray-500">({items.length})</span>
+                                  </div>
+                                </div>
+                              </td>
+                            </tr>
+                            {!collapsed && items.map(activity => (
+                              <tr
                                 key={activity.farmActivitiesId ?? `${activity.activityType}-${activity.startDate}`}
-                                className="group transition-all cursor-pointer transform hover:-translate-y-1 hover:shadow-lg"
+                                className="hover:bg-gray-50 cursor-pointer"
                                 onClick={() => handleViewDetailsClick(activity)}
                               >
-                                <CardContent className="p-4">
-                                  <div className="flex items-start justify-between">
-                                    <div className="space-y-3">
-                                      <p className="text-sm font-medium text-gray-900 group-hover:text-green-700 transition-colors">
-                                        {formatDisplayDate(activity.startDate)} - {formatDisplayDate(activity.endDate)}
-                                      </p>
-                                      <div className="flex items-center gap-2">
-                                        {getStatusBadge(activity.status)}
-                                      </div>
-                                      <div className="text-sm text-gray-600 mt-1">
-                                        <div>Nhân sự: <span className="font-medium text-gray-900">{safeField(activity.staffFullName)}</span></div>
-                                      </div>
-                                    </div>
-                                    <div onClick={(e) => e.stopPropagation()}>
-                                      <ActivityActionMenu
-                                        activity={activity}
-                                        onView={handleViewDetailsClick}
-                                        onEdit={handleEditClick}
-                                        onToggleStatus={handleToggleStatus}
-                                      />
-                                    </div>
-                                  </div>
-                                </CardContent>
-                              </Card>
+                                <td className="px-4 py-3 align-top text-sm text-gray-900">
+                                  {getActivityTypeLabel(activity.activityType)}
+                                </td>
+                                <td className="px-4 py-3 align-top text-sm text-gray-700">
+                                  {formatDisplayDate(activity.startDate)} - {formatDisplayDate(activity.endDate)}
+                                </td>
+                                <td className="px-4 py-3 align-top text-sm">
+                                  {getStatusBadge(activity.status)}
+                                </td>
+                                <td className="px-4 py-3 align-top text-sm" onClick={(e) => e.stopPropagation()}>
+                                  <ActivityActionMenu
+                                    activity={activity}
+                                    onView={handleViewDetailsClick}
+                                    onEdit={handleEditClick}
+                                    onToggleStatus={handleToggleStatus}
+                                  />
+                                </td>
+                              </tr>
                             ))}
-                          </div>
-                        )}
-                      </div>
-                    )
-                  })}
+                          </React.Fragment>
+                        )
+                      })}
+                    </tbody>
+                  </table>
                 </div>
               )}
             </CardContent>

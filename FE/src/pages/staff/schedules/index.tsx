@@ -571,7 +571,7 @@ const StaffSchedulesPage: React.FC = () => {
                 ) : null}
 
                 <Dialog open={isScheduleDetailOpen} onOpenChange={handleModalOpenChange}>
-                    <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+                    <DialogContent className="max-w-6xl w-full max-h-[94vh] overflow-y-auto">
                         <DialogHeader>
                             <DialogTitle>
                                 Chi tiết lịch làm việc
@@ -878,7 +878,7 @@ const StaffSchedulesPage: React.FC = () => {
                     </DialogContent>
                 </Dialog>
                 <Dialog open={showLogModal} onOpenChange={setShowLogModal}>
-                    <DialogContent className="sm:max-w-lg">
+                    <DialogContent className="sm:max-w-3xl max-w-4xl w-full">
                         <DialogHeader>
                             <DialogTitle>{logModalMode === 'create' ? 'Tạo ghi nhận' : 'Chỉnh sửa ghi nhận'}</DialogTitle>
                         </DialogHeader>

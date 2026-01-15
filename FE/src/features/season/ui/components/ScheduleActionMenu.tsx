@@ -108,7 +108,7 @@ const ScheduleActionMenu: React.FC<ScheduleActionMenuProps> = React.memo(({
           onSelect={(e) => e.preventDefault()}
           disabled={actionLoading[`status-${schedule.scheduleId}`]}
         >
-          {isActiveStatus(schedule.status) ? 'Vô hiệu hóa lịch' : 'Kích hoạt lịch'}
+          {isActiveStatus(schedule.status) ? 'Vô hiệu hóa thời vụ' : 'Kích hoạt thời vụ'}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -727,8 +727,8 @@ export function BackendScheduleList({
             />
 
             <Dialog open={scheduleDialogs.showDetail} onOpenChange={scheduleDialogs.setShowDetail}>
-                <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
-                    <DialogHeader className="flex flex-row items-center justify-between gap-4 pr-8">
+                <DialogContent className="w-[95vw] h-[95vh] max-w-none max-h-none flex flex-col">
+                    <DialogHeader className="flex flex-row items-center justify-between gap-4 pr-8 sticky top-0 z-10 bg-white border-b flex-shrink-0">
                         <DialogTitle>Chi tiết thời vụ</DialogTitle>
                         {scheduleDialogs.scheduleDetail?.scheduleId && (
                             <div className="flex items-center gap-2">
@@ -755,8 +755,8 @@ export function BackendScheduleList({
                         )}
                     </DialogHeader>
                     {scheduleDialogs.scheduleDetail && (
-                        <div>
-                            <Tabs value={scheduleDialogs.detailActiveTab} onValueChange={(v) => scheduleDialogs.setDetailActiveTab(v as any)}>
+                        <div className="flex-1 flex flex-col min-h-0 relative">
+                            <Tabs value={scheduleDialogs.detailActiveTab} onValueChange={(v) => scheduleDialogs.setDetailActiveTab(v as any)} className="flex-1 flex flex-col">
                                 <div className="flex items-center justify-between">
                                     <TabsList className="flex space-x-2">
                                         <TabsTrigger value="info">Thông tin</TabsTrigger>
@@ -769,15 +769,10 @@ export function BackendScheduleList({
                                                 Tạo
                                             </Button>
                                         )}
-                                        {scheduleDialogs.detailActiveTab === 'logs' && (
-                                            <Button size="sm" onClick={() => { if (scheduleDialogs.selectedSchedule) openCreateLogForSchedule(scheduleDialogs.selectedSchedule) }}>
-                                                Ghi nhận mới
-                                            </Button>
-                                        )}
                                     </div>
                                 </div>
 
-                                <TabsContent value="info">
+                                <TabsContent value="info" className="flex-1 overflow-y-auto">
                                     <div className={`grid grid-cols-1 ${scheduleDialogs.showThresholdInline ? 'lg:grid-cols-[1fr_360px]' : 'lg:grid-cols-1'} gap-6`}>
                                         <div className="space-y-6">
                                             <div>
@@ -890,7 +885,7 @@ export function BackendScheduleList({
                                     </div>
                                 </TabsContent>
 
-                                <TabsContent value="calendar">
+                                <TabsContent value="calendar" className="flex-1 overflow-y-auto">
                                     <div className="space-y-4">
                                         <Card>
                                             <CardContent className="px-6 pt-3 pb-6">
@@ -938,11 +933,8 @@ export function BackendScheduleList({
                                     </div>
                                 </TabsContent>
 
-                                <TabsContent value="logs">
+                                <TabsContent value="logs" className="flex-1 overflow-y-auto relative">
                                     <div className="space-y-4">
-                                        <div className="flex items-center justify-between">
-                                            <div />
-                                        </div>
                                         <ScheduleLogPanel scheduleId={scheduleDialogs.scheduleDetail.scheduleId} onEdit={(log) => {
                                             scheduleDialogs.openEditLog(log)
                                         }} registerUpdater={(fn) => { externalLogUpdaterRef.current = fn }} />

@@ -157,6 +157,8 @@ export default function FarmActivitiesPage() {
   const [selectedActivityForDetails, setSelectedActivityForDetails] = useState<any | null>(
     null
   )
+  const [detailsLoading, setDetailsLoading] = useState<boolean>(false)
+  const [detailsError, setDetailsError] = useState<string | null>(null)
 
   const [formData, setFormData] = useState<FarmActivityRequest>({
     startDate: '',
@@ -782,20 +784,26 @@ export default function FarmActivitiesPage() {
   }
 
   const handleViewDetailsClick = async (activity: FarmActivity) => {
+    setSelectedActivityForDetails(null)
+    setDetailsError(null)
+    setDetailsDialogOpen(true)
+
     try {
       const id = Number(activity.farmActivitiesId)
       if (!id) {
         setSelectedActivityForDetails(activity)
-        setDetailsDialogOpen(true)
         return
       }
-      const payload = await farmActivityService.getStaffByFarmActivityId(id)
+
+      setDetailsLoading(true)
+      const payload = await farmActivityService.getFarmActivityById(id)
       setSelectedActivityForDetails(payload)
     } catch (err) {
-      console.error('Failed to fetch activity detail (staff API) for details dialog', err)
-      setSelectedActivityForDetails(activity)
+      console.error('Failed to fetch activity detail (get-by-id) for details dialog', err)
+      setDetailsError('Không thể tải chi tiết hoạt động. Vui lòng thử lại.')
+      setSelectedActivityForDetails(null)
     } finally {
-      setDetailsDialogOpen(true)
+      setDetailsLoading(false)
     }
   }
 
@@ -1071,7 +1079,14 @@ export default function FarmActivitiesPage() {
             <DialogTitle>Chi Tiết Hoạt Động Nông Trại</DialogTitle>
           </DialogHeader>
 
-          {selectedActivityForDetails && (
+          {detailsLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <RefreshCw className="h-6 w-6 animate-spin text-green-600" />
+              <span className="ml-2 text-gray-600">Đang tải chi tiết...</span>
+            </div>
+          ) : detailsError ? (
+            <div className="py-6 text-center text-sm text-red-600">{detailsError}</div>
+          ) : selectedActivityForDetails ? (
             Array.isArray(selectedActivityForDetails) ? (
               <div className="space-y-4">
                 <div className="grid gap-3">
@@ -1120,27 +1135,11 @@ export default function FarmActivitiesPage() {
                       </div>
                     </div>
                   </div>
-
-                  <div>
-                    <Label className="text-sm text-gray-600">Nhân sự phụ trách</Label>
-                    <div className="mt-2 space-y-2">
-                      <div className="flex items-center justify-between">
-                        <div className="text-sm text-gray-600">Họ và tên</div>
-                        <div className="text-sm font-medium text-gray-900">{safeField(selectedActivityForDetails.staffFullName)}</div>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div className="text-sm text-gray-600">Email</div>
-                        <div className="text-sm font-medium text-gray-900">{safeField(selectedActivityForDetails.staffEmail)}</div>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <div className="text-sm text-gray-600">SĐT</div>
-                        <div className="text-sm font-medium text-gray-900">{safeField(selectedActivityForDetails.staffPhone)}</div>
-                      </div>
-                    </div>
-                  </div>
                 </div>
               </div>
             )
+          ) : (
+            <div className="py-6 text-center text-sm text-gray-600">Không có dữ liệu chi tiết để hiển thị.</div>
           )}
         </DialogContent>
       </Dialog>

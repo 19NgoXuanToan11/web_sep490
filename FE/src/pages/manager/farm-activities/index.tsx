@@ -905,21 +905,21 @@ export default function FarmActivitiesPage() {
               </Button>
             </div>
           </StaffFilterBar>
-          <div className="flex items-center gap-2" role="tablist" aria-label="Activity tabs">
-            <div className="inline-flex items-center gap-3 bg-white/60 backdrop-blur-sm border border-gray-100 rounded-xl shadow-sm p-2">
+          <div className="flex items-center gap-2 w-full" role="tablist" aria-label="Activity tabs">
+            <div className="flex items-center gap-3 bg-white/60 backdrop-blur-sm border border-gray-100 rounded-xl shadow-sm p-2 w-full">
               <button
                 role="tab"
                 aria-selected={activeTab === 'DEACTIVATED'}
                 onClick={() => setActiveTab('DEACTIVATED')}
                 title="Tạm dừng"
-                className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-400 ${activeTab === 'DEACTIVATED'
+                className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-400 ${activeTab === 'DEACTIVATED'
                   ? 'bg-gradient-to-r from-emerald-700 to-green-600 text-white shadow-md'
                   : 'bg-white/60 text-gray-700 hover:shadow-sm'
                   }`}
               >
-                <span className="ml-1">Tạm dừng</span>
+                <span>Tạm dừng</span>
                 <span
-                  className={`ml-3 inline-flex items-center justify-center px-3 py-0.5 rounded-full text-xs font-semibold ${activeTab === 'DEACTIVATED' ? 'bg-white/20' : 'bg-gray-100 text-gray-800'
+                  className={`inline-flex items-center justify-center px-3 py-0.5 rounded-full text-xs font-semibold ${activeTab === 'DEACTIVATED' ? 'bg-white/20' : 'bg-gray-100 text-gray-800'
                     }`}
                 >
                   {processedByTab.DEACTIVATED ? processedByTab.DEACTIVATED.length : 0}
@@ -930,14 +930,14 @@ export default function FarmActivitiesPage() {
                 aria-selected={activeTab === 'ACTIVE'}
                 onClick={() => setActiveTab('ACTIVE')}
                 title="Hoạt động"
-                className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-400 ${activeTab === 'ACTIVE'
+                className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-400 ${activeTab === 'ACTIVE'
                   ? 'bg-gradient-to-r from-emerald-700 to-green-600 text-white shadow-md'
                   : 'bg-white/60 text-gray-700 hover:shadow-sm'
                   }`}
               >
-                <span className="ml-1">Hoạt động</span>
+                <span>Hoạt động</span>
                 <span
-                  className={`ml-3 inline-flex items-center justify-center px-3 py-0.5 rounded-full text-xs font-semibold ${activeTab === 'ACTIVE' ? 'bg-white/20' : 'bg-gray-100 text-gray-800'
+                  className={`inline-flex items-center justify-center px-3 py-0.5 rounded-full text-xs font-semibold ${activeTab === 'ACTIVE' ? 'bg-white/20' : 'bg-gray-100 text-gray-800'
                     }`}
                 >
                   {processedByTab.ACTIVE ? processedByTab.ACTIVE.length : 0}
@@ -948,14 +948,14 @@ export default function FarmActivitiesPage() {
                 aria-selected={activeTab === 'COMPLETED'}
                 onClick={() => setActiveTab('COMPLETED')}
                 title="Hoàn thành"
-                className={`flex items-center gap-2 px-5 py-2 rounded-lg text-sm font-semibold transition duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-400 ${activeTab === 'COMPLETED'
+                className={`flex-1 flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-400 ${activeTab === 'COMPLETED'
                   ? 'bg-gradient-to-r from-emerald-700 to-green-600 text-white shadow-md'
                   : 'bg-white/60 text-gray-700 hover:shadow-sm'
                   }`}
               >
-                <span className="ml-1">Hoàn thành</span>
+                <span>Hoàn thành</span>
                 <span
-                  className={`ml-3 inline-flex items-center justify-center px-3 py-0.5 rounded-full text-xs font-semibold ${activeTab === 'COMPLETED' ? 'bg-white/20' : 'bg-gray-100 text-gray-800'
+                  className={`inline-flex items-center justify-center px-3 py-0.5 rounded-full text-xs font-semibold ${activeTab === 'COMPLETED' ? 'bg-white/20' : 'bg-gray-100 text-gray-800'
                     }`}
                 >
                   {processedByTab.COMPLETED ? processedByTab.COMPLETED.length : 0}

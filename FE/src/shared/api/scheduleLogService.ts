@@ -9,6 +9,8 @@ export interface ScheduleLogItem {
   updatedBy?: number | null
   staffNameCreate?: string | null
   staffNameUpdate?: string | null
+  farmActivityId?: number | null
+  farmActivityName?: string | null
 }
 
 export interface PaginatedLogs {
@@ -46,6 +48,9 @@ export const scheduleLogService = {
           createdBy: it.createdBy ?? it.created_by ?? null,
           updatedAt: it.updatedAt ?? it.updated_at ?? null,
           updatedBy: it.updatedBy ?? it.updated_by ?? null,
+          farmActivityId: it.farmActivityId ?? it.farm_activity_id ?? it.farm_activityId ?? null,
+          farmActivityName:
+            it.activityName ?? it.activity_name ?? it.activityType ?? it.activity_type ?? null,
           staffNameCreate:
             it.staffNameCreate ??
             it.staff_name_create ??
@@ -68,8 +73,17 @@ export const scheduleLogService = {
     return mapped
   },
 
-  async createLog(payload: { scheduleId: number; notes: string; timestamp?: string }) {
-    const body: any = { scheduleId: payload.scheduleId, notes: payload.notes }
+  async createLog(payload: {
+    scheduleId: number
+    notes: string
+    farmActivityId?: number | null
+    timestamp?: string
+  }) {
+    const body: any = {
+      scheduleId: payload.scheduleId,
+      notes: payload.notes,
+      farmActivityId: payload.farmActivityId ?? null,
+    }
     if (payload.timestamp) body.createdAt = payload.timestamp
     const res = await http.post('/v1/schedule-log/create-log', body)
     return res.data

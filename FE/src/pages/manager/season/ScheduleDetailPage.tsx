@@ -224,11 +224,6 @@ export const ScheduleDetailPage: React.FC = () => {
                                             Tạo
                                         </Button>
                                     )}
-                                    {scheduleDialogs.detailActiveTab === 'logs' && (
-                                        <Button size="sm" onClick={() => { if (scheduleDialogs.selectedSchedule) scheduleDialogs.openCreateLogForSchedule(scheduleDialogs.selectedSchedule) }}>
-                                            Ghi nhận mới
-                                        </Button>
-                                    )}
                                 </div>
                             </div>
 
@@ -403,9 +398,22 @@ export const ScheduleDetailPage: React.FC = () => {
 
                             <TabsContent value="logs">
                                 <div className="space-y-4">
-                                    <ScheduleLogPanel scheduleId={scheduleDialogs.scheduleDetail.scheduleId} onEdit={(log) => {
-                                        scheduleDialogs.openEditLog(log)
-                                    }} registerUpdater={(_fn) => { }} />
+                                    <ScheduleLogPanel
+                                        scheduleId={scheduleDialogs.scheduleDetail.scheduleId}
+                                        onEdit={(log) => {
+                                            scheduleDialogs.openEditLog(log)
+                                        }}
+                                        onRecord={(log) => {
+                                            if (!scheduleDialogs.selectedSchedule) return
+                                            try {
+                                                scheduleDialogs.openCreateLogForSchedule(scheduleDialogs.selectedSchedule, (log as any).farmActivityId ?? null)
+                                            } catch (err) {
+                                                console.error('Failed to open create log for specific activity', err)
+                                                scheduleDialogs.openCreateLogForSchedule(scheduleDialogs.selectedSchedule)
+                                            }
+                                        }}
+                                        registerUpdater={(_fn) => { }}
+                                    />
                                 </div>
                             </TabsContent>
                         </Tabs>
@@ -460,6 +468,14 @@ export const ScheduleDetailPage: React.FC = () => {
                 mode={scheduleDialogs.logModalMode}
                 editingLog={scheduleDialogs.editingLog}
                 selectedScheduleId={scheduleDialogs.selectedSchedule?.scheduleId}
+                selectedFarmActivityId={
+                    (scheduleDialogs as any).selectedFarmActivityId ??
+                    scheduleDialogs.scheduleDetail?.farmActivityView?.farmActivitiesId ??
+                    (Array.isArray((scheduleDialogs.scheduleDetail as any)?.farmActivities) ? (scheduleDialogs.scheduleDetail as any)?.farmActivities[0]?.farmActivitiesId : undefined) ??
+                    scheduleDialogs.selectedSchedule?.farmActivityView?.farmActivitiesId ??
+                    (Array.isArray((scheduleDialogs.selectedSchedule as any)?.farmActivities) ? (scheduleDialogs.selectedSchedule as any)?.farmActivities[0]?.farmActivitiesId : undefined) ??
+                    scheduleDialogs.selectedSchedule?.farmActivitiesId
+                }
                 onSuccess={() => {
                     if (!scheduleDialogs.scheduleDetail?.scheduleId) return
                     scheduleActions.handleViewDetail({ scheduleId: scheduleDialogs.scheduleDetail.scheduleId } as any, (detail) => {

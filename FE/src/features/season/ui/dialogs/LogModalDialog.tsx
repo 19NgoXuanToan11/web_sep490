@@ -4,6 +4,7 @@ import { Label } from '@/shared/ui/label'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/shared/ui/dialog'
 import { toastManager } from '@/shared/lib/toast-manager'
 import { scheduleLogService } from '@/shared/api/scheduleLogService'
+import { scheduleService } from '@/shared/api/scheduleService'
 import type { ScheduleLogItem } from '../types'
 
 const stripSystemPrefixes = (s?: string | null) => {
@@ -21,6 +22,7 @@ interface LogModalDialogProps {
     mode: 'create' | 'edit'
     editingLog: ScheduleLogItem | null
     selectedScheduleId?: number
+    selectedFarmActivityId?: number
     onSuccess?: (createdOrUpdated?: any) => void
 }
 
@@ -30,6 +32,7 @@ export function LogModalDialog({
     mode,
     editingLog,
     selectedScheduleId,
+    selectedFarmActivityId,
     onSuccess,
 }: LogModalDialogProps) {
     const [notes, setNotes] = useState('')
@@ -52,9 +55,28 @@ export function LogModalDialog({
 
         try {
             if (mode === 'create' && selectedScheduleId) {
+                let farmActivityId = selectedFarmActivityId
+                if ((farmActivityId === undefined || farmActivityId === null) && selectedScheduleId) {
+                    try {
+                        const schedRes: any = await scheduleService.getScheduleById(selectedScheduleId)
+                        const sched = schedRes?.data ?? {}
+                        farmActivityId =
+                            sched?.farmActivityView?.farmActivitiesId ??
+                            (Array.isArray((sched as any)?.farmActivities) ? (sched as any).farmActivities[0]?.farmActivitiesId : undefined) ??
+                            sched?.farmActivitiesId ??
+                            sched?.farmActivityId
+                    } catch {
+                        farmActivityId = undefined
+                    }
+                }
+                try {
+                    console.debug('[LogModalDialog] creating log, selectedScheduleId:', selectedScheduleId, 'selectedFarmActivityId:', selectedFarmActivityId, 'computedFarmActivityId:', farmActivityId)
+                } catch { }
+
                 const res: any = await scheduleLogService.createLog({
                     scheduleId: selectedScheduleId,
                     notes: trimmedNotes,
+                    farmActivityId,
                 })
                 if (res?.status === 1) {
                     if (res?.message) toastManager.success(res.message)

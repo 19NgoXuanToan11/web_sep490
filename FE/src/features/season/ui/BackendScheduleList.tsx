@@ -1045,6 +1045,13 @@ export function BackendScheduleList({
                 mode={scheduleDialogs.logModalMode}
                 editingLog={scheduleDialogs.editingLog}
                 selectedScheduleId={scheduleDialogs.selectedSchedule?.scheduleId}
+                selectedFarmActivityId={
+                    scheduleDialogs.scheduleDetail?.farmActivityView?.farmActivitiesId ??
+                    (Array.isArray((scheduleDialogs.scheduleDetail as any)?.farmActivities) ? (scheduleDialogs.scheduleDetail as any)?.farmActivities[0]?.farmActivitiesId : undefined) ??
+                    scheduleDialogs.selectedSchedule?.farmActivityView?.farmActivitiesId ??
+                    (Array.isArray((scheduleDialogs.selectedSchedule as any)?.farmActivities) ? (scheduleDialogs.selectedSchedule as any)?.farmActivities[0]?.farmActivitiesId : undefined) ??
+                    scheduleDialogs.selectedSchedule?.farmActivitiesId
+                }
                 onSuccess={async (payload) => {
                     try {
                         const createdObj = payload ?? {}

@@ -2,14 +2,17 @@ import React, { useState, useCallback, useEffect } from 'react'
 import { Button } from '@/shared/ui/button'
 import { Loader2, Edit } from 'lucide-react'
 import { scheduleLogService, type ScheduleLogItem } from '@/shared/api/scheduleLogService'
+import { farmActivityService } from '@/shared/api/farmActivityService'
 import { toastManager } from '@/shared/lib/toast-manager'
+import { translateActivityType } from '../utils/labels'
 
-function ScheduleLogPanel({ scheduleId, onEdit, registerUpdater }: { scheduleId: number; onEdit: (log: ScheduleLogItem) => void; registerUpdater?: (fn: (item: ScheduleLogItem | { id: number }, mode: 'create' | 'update' | 'delete') => void) => void }) {
+function ScheduleLogPanel({ scheduleId, onEdit, registerUpdater, onRecord }: { scheduleId: number; onEdit: (log: ScheduleLogItem) => void; registerUpdater?: (fn: (item: ScheduleLogItem | { id: number }, mode: 'create' | 'update' | 'delete') => void) => void; onRecord?: (log: ScheduleLogItem) => void }) {
   const [logs, setLogs] = useState<ScheduleLogItem[]>([])
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(true)
   const [loading, setLoading] = useState(false)
   const [total, setTotal] = useState<number | null>(null)
+  const [farmActivityNames, setFarmActivityNames] = useState<Record<number, string>>({})
 
   const PAGE_SIZE = 5
   const VISIBLE_THRESHOLD = PAGE_SIZE
@@ -63,6 +66,32 @@ function ScheduleLogPanel({ scheduleId, onEdit, registerUpdater }: { scheduleId:
           const incoming = incomingItems.filter(it => !existingIds.has(it.id))
           return [...prev, ...incoming]
         })
+      }
+      // fetch farm activity names for any logs that reference an activity id
+      try {
+        const ids = Array.from(new Set((incomingItems || []).map((it: any) => Number(it.farmActivityId)).filter(Boolean)))
+        if (ids.length > 0) {
+          const fetches = ids.map((id: number) =>
+            farmActivityService
+              .getFarmActivityById(id)
+              .then((fa) => ({ id, name: fa.activityType ?? (fa as any).activityName ?? `#${id}` }))
+              .catch(() => ({ id, name: `#${id}` }))
+          )
+          const results = await Promise.all(fetches)
+          setFarmActivityNames((prev) => {
+            const next = { ...prev }
+            results.forEach((r) => {
+              try {
+                next[r.id] = translateActivityType(String(r.name)) || r.name
+              } catch {
+                next[r.id] = r.name
+              }
+            })
+            return next
+          })
+        }
+      } catch (err) {
+        // ignore failures to fetch activity names
       }
       const totalItems = data.totalItemCount ?? 0
       const more = p * PAGE_SIZE < totalItems
@@ -127,6 +156,11 @@ function ScheduleLogPanel({ scheduleId, onEdit, registerUpdater }: { scheduleId:
                   <div className="min-w-0">
                     <div className="text-xs text-muted-foreground">{safeFormat(l.createdAt ?? undefined)}</div>
                     <div className="font-medium whitespace-pre-wrap break-words">{(l.notes || '').split('\n')[0]}</div>
+                    {(l as any).farmActivityId || (l as any).farmActivityName ? (
+                      <div className="text-xs text-muted-foreground mt-1">
+                        <strong>Hoạt động</strong>: {(l as any).farmActivityName ?? farmActivityNames[(l as any).farmActivityId] ?? `#${(l as any).farmActivityId ?? ''}`}
+                      </div>
+                    ) : null}
                     <div className="text-xs text-muted-foreground mt-1">
                       <div>
                         <strong>Người tạo</strong>: {l.staffNameCreate ?? 'Không xác định'}
@@ -150,6 +184,9 @@ function ScheduleLogPanel({ scheduleId, onEdit, registerUpdater }: { scheduleId:
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
+                    {typeof onRecord === 'function' ? (
+                      <Button size="sm" onClick={() => onRecord(l)}>Ghi nhận</Button>
+                    ) : null}
                     <Button size="sm" variant="outline" onClick={() => onEdit(l)}><Edit className="h-4 w-4" /></Button>
                   </div>
                 </div>

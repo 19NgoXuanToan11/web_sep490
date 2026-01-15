@@ -22,6 +22,7 @@ export function useScheduleDialogs() {
   const [customToday, setCustomToday] = useState<string>('')
   const [logModalMode, setLogModalMode] = useState<'create' | 'edit'>('create')
   const [editingLog, setEditingLog] = useState<ScheduleLogItem | null>(null)
+  const [selectedFarmActivityId, setSelectedFarmActivityId] = useState<number | null>(null)
   const [editingScheduleId, setEditingScheduleId] = useState<number | null>(null)
 
   const [form, setForm] = useState<CreateScheduleRequest>(buildEmptyScheduleForm())
@@ -84,12 +85,16 @@ export function useScheduleDialogs() {
     setShowCreateActivity(true)
   }, [])
 
-  const openCreateLogForSchedule = useCallback((schedule: ScheduleListItem) => {
-    setSelectedSchedule(schedule)
-    setLogModalMode('create')
-    setEditingLog(null)
-    setShowLogModal(true)
-  }, [])
+  const openCreateLogForSchedule = useCallback(
+    (schedule: ScheduleListItem, farmActivityId?: number | null) => {
+      setSelectedSchedule(schedule)
+      setSelectedFarmActivityId(farmActivityId ?? null)
+      setLogModalMode('create')
+      setEditingLog(null)
+      setShowLogModal(true)
+    },
+    []
+  )
 
   const openEditLog = useCallback((log: ScheduleLogItem) => {
     setEditingLog(log)
@@ -154,6 +159,8 @@ export function useScheduleDialogs() {
     openCreateActivityForSchedule,
     openCreateLogForSchedule,
     openEditLog,
+    selectedFarmActivityId,
+    setSelectedFarmActivityId,
     resetDialogStates,
   }
 }

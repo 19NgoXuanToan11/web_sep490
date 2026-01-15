@@ -571,7 +571,7 @@ const StaffSchedulesPage: React.FC = () => {
                 ) : null}
 
                 <Dialog open={isScheduleDetailOpen} onOpenChange={handleModalOpenChange}>
-                    <DialogContent className="max-w-6xl w-full max-h-[94vh] overflow-y-auto">
+                    <DialogContent className="max-w-7xl w-full max-h-[94vh] overflow-y-auto">
                         <DialogHeader>
                             <DialogTitle>
                                 Chi tiết lịch làm việc
@@ -890,9 +890,14 @@ const StaffSchedulesPage: React.FC = () => {
                             }
                             try {
                                 if (logModalMode === 'create' && selectedScheduleDetail?.scheduleId) {
+                                    const sd = selectedScheduleDetail as any
+                                    const farmActivityId =
+                                        (sd?.farmActivityView as any)?.farmActivitiesId ??
+                                        (Array.isArray(sd?.farmActivities) ? sd.farmActivities[0]?.farmActivitiesId : undefined)
                                     const res: any = await scheduleLogService.createLog({
                                         scheduleId: selectedScheduleDetail.scheduleId,
                                         notes,
+                                        farmActivityId,
                                     })
                                     if (res?.status === 1) {
                                         showSuccessToast(res)

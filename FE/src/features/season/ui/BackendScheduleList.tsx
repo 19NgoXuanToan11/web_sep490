@@ -631,18 +631,6 @@ export function BackendScheduleList({
                     scheduleData.setStatusFilter('inactive')
                     scheduleData.setPageIndex(1)
                 }}
-                onFilterOverdue={() => {
-                    setQuickFilter('overdue')
-                    scheduleData.setSearchTerm('')
-                    scheduleData.setStatusFilter('all')
-                    scheduleData.setPageIndex(1)
-                }}
-                onFilterMissingLogs={() => {
-                    setQuickFilter('missingLogs')
-                    scheduleData.setSearchTerm('')
-                    scheduleData.setStatusFilter('all')
-                    scheduleData.setPageIndex(1)
-                }}
                 onFilterTotal={() => {
                     setQuickFilter(null)
                     scheduleData.setSearchTerm('')

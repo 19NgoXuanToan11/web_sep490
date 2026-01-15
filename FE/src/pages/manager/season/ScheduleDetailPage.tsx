@@ -35,6 +35,7 @@ export const ScheduleDetailPage: React.FC = () => {
     }, [params.scheduleId])
 
     const [selectedFarmActivity, setSelectedFarmActivity] = useState<any>(null)
+    const [selectedFarmActivityId, setSelectedFarmActivityId] = useState<number | null>(null)
     const [showFarmActivityDetail, setShowFarmActivityDetail] = useState(false)
     const [editingFarmActivity, setEditingFarmActivity] = useState<any>(null)
     const [showEditFarmActivity, setShowEditFarmActivity] = useState(false)
@@ -135,6 +136,7 @@ export const ScheduleDetailPage: React.FC = () => {
         try {
             const payload = await farmActivityService.getStaffByFarmActivityId(farmActivityId)
             setSelectedFarmActivity(payload)
+            setSelectedFarmActivityId(farmActivityId)
         } catch (err) {
             console.error('Failed to get farm activity (staff API) by id', err)
         }
@@ -790,7 +792,10 @@ export const ScheduleDetailPage: React.FC = () => {
                                     disabled={assignStaffLoading || !assignStaffIdLocal}
                                     onClick={async () => {
                                         if (!selectedFarmActivity) return
-                                        const id = Number(selectedFarmActivity.farmActivitiesId ?? selectedFarmActivity.farmActivityId ?? selectedFarmActivity.id)
+                                        const idFromState = selectedFarmActivityId
+                                        const source = Array.isArray(selectedFarmActivity) ? selectedFarmActivity[0] : selectedFarmActivity
+                                        const derivedId = Number(source?.farmActivitiesId ?? source?.farmActivityId ?? source?.id)
+                                        const id = Number(idFromState ?? derivedId)
                                         if (!id || !assignStaffIdLocal) return
                                         try {
                                             setAssignStaffLoading(true)

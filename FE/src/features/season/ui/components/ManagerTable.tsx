@@ -3,7 +3,6 @@ import type { ScheduleListItem } from '../types'
 import { formatDateRange } from '@/shared/lib/date-utils'
 import { Badge } from '@/shared/ui/badge'
 import ScheduleActionMenu from '../components/ScheduleActionMenu'
-import { scheduleLogService } from '@/shared/api/scheduleLogService'
 import ScheduleLogPanel from './ScheduleLogPanel'
 import { cn } from '@/shared/lib/utils'
 
@@ -95,25 +94,6 @@ export default function ManagerTable({ items, onOpenDetail, onAddLog, onEdit, on
                                                     >
                                                         Ghi nhật ký
                                                     </button>
-                                                    {onOpenLogEditor ? (
-                                                        <button
-                                                            className="px-3 py-1 bg-white text-gray-800 border border-gray-200 rounded-full text-sm font-medium shadow-sm hover:bg-gray-50 transition-colors duration-200 focus:outline-none"
-                                                            onClick={async (e) => {
-                                                                e.stopPropagation()
-                                                                try {
-                                                                    if (!item.scheduleId) return
-                                                                    const logs = await scheduleLogService.getLogsBySchedule(item.scheduleId, 1, 1)
-                                                                    const latest = Array.isArray((logs as any).items) && (logs as any).items.length > 0 ? (logs as any).items[0] : null
-                                                                    if (latest && onOpenLogEditor) {
-                                                                        onOpenLogEditor(latest)
-                                                                    }
-                                                                } catch (err) {
-                                                                }
-                                                            }}
-                                                        >
-                                                            Điều chỉnh
-                                                        </button>
-                                                    ) : null}
                                                 </div>
                                             </td>
                                         </tr>

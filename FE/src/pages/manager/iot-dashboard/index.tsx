@@ -444,7 +444,7 @@ const RealTimeIoTDashboard: React.FC = () => {
         </div>
 
         { }
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
+        <div className="grid gap-6 grid-cols-1 sm:grid-cols-2 md:grid-cols-4 mb-8">
           { }
           <Card className="bg-white border-gray-200 shadow-sm">
             <CardContent className="p-6">

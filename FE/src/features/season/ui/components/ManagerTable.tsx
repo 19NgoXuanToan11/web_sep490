@@ -1,9 +1,8 @@
-import React, { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import type { ScheduleListItem } from '../types'
 import { formatDateRange } from '@/shared/lib/date-utils'
 import { Badge } from '@/shared/ui/badge'
 import ScheduleActionMenu from '../components/ScheduleActionMenu'
-import ScheduleLogPanel from './ScheduleLogPanel'
 import { cn } from '@/shared/lib/utils'
 
 type Props = {
@@ -12,10 +11,9 @@ type Props = {
     onAddLog: (s: ScheduleListItem) => void
     onEdit: (s: ScheduleListItem) => void
     onUpdateStatus: (s: ScheduleListItem, next: any) => void
-    onOpenLogEditor?: (log: any) => void
 }
 
-export default function ManagerTable({ items, onOpenDetail, onAddLog, onEdit, onUpdateStatus, onOpenLogEditor }: Props) {
+export default function ManagerTable({ items, onOpenDetail, onAddLog, onEdit, onUpdateStatus }: Props) {
 
     const rows = useMemo(() => {
         return items.map(i => {

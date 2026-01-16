@@ -695,12 +695,6 @@ export function BackendScheduleList({
                                                 onAddLog={(s) => openCreateLogForSchedule(s)}
                                                 onEdit={handleEdit}
                                                 onUpdateStatus={handleUpdateStatus}
-                                                onOpenLogEditor={(log) => {
-                                                    try {
-                                                        scheduleDialogs.openEditLog(log)
-                                                    } catch {
-                                                    }
-                                                }}
                                             />
                                         </div>
                                     </CardContent>

@@ -36,6 +36,8 @@ export const ScheduleDetailPage: React.FC = () => {
 
     const [selectedFarmActivity, setSelectedFarmActivity] = useState<any>(null)
     const [selectedFarmActivityId, setSelectedFarmActivityId] = useState<number | null>(null)
+    const [selectedFarmActivityStaffs, setSelectedFarmActivityStaffs] = useState<any[] | null>(null)
+    const [selectedFarmActivityLoading, setSelectedFarmActivityLoading] = useState<boolean>(false)
     const [showFarmActivityDetail, setShowFarmActivityDetail] = useState(false)
     const [editingFarmActivity, setEditingFarmActivity] = useState<any>(null)
     const [showEditFarmActivity, setShowEditFarmActivity] = useState(false)
@@ -133,12 +135,44 @@ export const ScheduleDetailPage: React.FC = () => {
     }, [scheduleDialogs.scheduleDetail])
 
     const fetchAndSetActivity = async (farmActivityId: number) => {
+        setSelectedFarmActivityLoading(true)
         try {
-            const payload = await farmActivityService.getStaffByFarmActivityId(farmActivityId)
-            setSelectedFarmActivity(payload)
+            const [actResult, staffResult] = await Promise.allSettled([
+                farmActivityService.getFarmActivityById(farmActivityId),
+                farmActivityService.getStaffByFarmActivityId(farmActivityId),
+            ])
+
+            let fullActivity: any = null
+            let staffPayload: any = null
+
+            if (actResult.status === 'fulfilled') {
+                fullActivity = actResult.value
+            } else {
+                console.error('Failed to get farm activity by id', actResult.reason)
+            }
+
+            if (staffResult.status === 'fulfilled') {
+                staffPayload = staffResult.value
+            } else {
+                console.error('Failed to get staff for farm activity', staffResult.reason)
+            }
+
+            if (fullActivity) {
+                setSelectedFarmActivity(fullActivity)
+            } else {
+                if (Array.isArray(staffPayload) && staffPayload.length > 0) {
+                    setSelectedFarmActivity(staffPayload[0]._parentActivity ?? staffPayload[0])
+                } else {
+                    setSelectedFarmActivity(null)
+                }
+            }
+
+            setSelectedFarmActivityStaffs(Array.isArray(staffPayload) ? staffPayload : null)
             setSelectedFarmActivityId(farmActivityId)
         } catch (err) {
-            console.error('Failed to get farm activity (staff API) by id', err)
+            console.error('Failed to fetch farm activity and staffs', err)
+        } finally {
+            setSelectedFarmActivityLoading(false)
         }
     }
 
@@ -147,29 +181,22 @@ export const ScheduleDetailPage: React.FC = () => {
     }
 
     const handleUpdateStaffStatus = async (staffAssignId: number | string, status?: string) => {
-        if (!selectedFarmActivity) return
+        if (!selectedFarmActivity && !selectedFarmActivityStaffs) return
         const newStatus = status ?? (localStaffStatusMap[String(staffAssignId)] ?? '')
         if (!newStatus) return
         try {
             setStaffStatusUpdating(staffAssignId)
             const res = await farmActivityService.updateStaffActivityStatus(staffAssignId, newStatus)
             showSuccessToast(res)
-            setSelectedFarmActivity((prev: any) => {
-                if (!prev) return prev
-                if (Array.isArray(prev)) {
-                    return prev.map((rec: any) => {
-                        const key = rec.stafFarmActivityId ?? rec.Staf_farmActivityId ?? rec.id ?? rec.staffAssignId
-                        if (String(key) === String(staffAssignId)) {
-                            return { ...rec, individualStatus: newStatus, status: newStatus }
-                        }
-                        return rec
-                    })
-                }
-                const key = prev.stafFarmActivityId ?? prev.Staf_farmActivityId ?? prev.id ?? prev.staffAssignId
-                if (String(key) === String(staffAssignId)) {
-                    return { ...prev, individualStatus: newStatus, status: newStatus }
-                }
-                return prev
+            setSelectedFarmActivityStaffs((prev: any[] | null) => {
+                if (!Array.isArray(prev)) return prev
+                return prev.map((rec: any) => {
+                    const key = rec.stafFarmActivityId ?? rec.Staf_farmActivityId ?? rec.id ?? rec.staffAssignId
+                    if (String(key) === String(staffAssignId)) {
+                        return { ...rec, individualStatus: newStatus, status: newStatus }
+                    }
+                    return rec
+                })
             })
         } catch (err) {
             showErrorToast(err)
@@ -601,7 +628,10 @@ export const ScheduleDetailPage: React.FC = () => {
                                 className="border border-gray-200 bg-white text-gray-700 hover:bg-gray-100 hover:border-gray-300"
                                 onClick={() => {
                                     if (!selectedFarmActivity) return
-                                    setAssignStaffIdLocal(selectedFarmActivity.staffId ?? null)
+                                    const firstStaffId = Array.isArray(selectedFarmActivityStaffs) && selectedFarmActivityStaffs.length > 0
+                                        ? (selectedFarmActivityStaffs[0].staffId ?? selectedFarmActivityStaffs[0].staffId)
+                                        : null
+                                    setAssignStaffIdLocal(firstStaffId ?? (selectedFarmActivity.staffId ?? null))
                                     setAssignStaffOpen(true)
                                 }}>
                                 <span className="font-medium">Gán nhân sự</span>
@@ -609,7 +639,9 @@ export const ScheduleDetailPage: React.FC = () => {
                         </div>
                     </DialogHeader>
 
-                    {selectedFarmActivity ? (
+                    {selectedFarmActivityLoading ? (
+                        <div className="p-6 text-center">Đang tải chi tiết hoạt động...</div>
+                    ) : selectedFarmActivity ? (
                         <div className="grid grid-cols-1 md:grid-cols-[1fr_520px] gap-6 p-4">
                             <div>
                                 <div className="p-4 bg-white rounded-md border shadow-sm">
@@ -636,9 +668,9 @@ export const ScheduleDetailPage: React.FC = () => {
                             <div>
                                 <div className="p-4 bg-white rounded-md border shadow-sm">
                                     <div className="mb-3"><strong>Nhân sự được phân công</strong></div>
-                                    {Array.isArray(selectedFarmActivity) && selectedFarmActivity.length > 0 ? (
+                                    {selectedFarmActivityStaffs && selectedFarmActivityStaffs.length > 0 ? (
                                         <div className="space-y-4">
-                                            {selectedFarmActivity.map((staffRec: any, idx: number) => {
+                                            {selectedFarmActivityStaffs.map((staffRec: any, idx: number) => {
                                                 const staffKey =
                                                     staffRec.stafFarmActivityId ??
                                                     staffRec.Staf_farmActivityId ??
@@ -713,7 +745,7 @@ export const ScheduleDetailPage: React.FC = () => {
                                             })}
                                         </div>
                                     ) : (
-                                        <div className="p-3">Không có nhân sự phân công</div>
+                                        <div className="p-3">Chưa có nhân sự được gán</div>
                                     )}
                                 </div>
                             </div>

@@ -21,6 +21,7 @@ export const plantStageLabels: Record<string, string> = {
 export const statusOptions = [
   { value: 0, label: 'Vô hiệu hóa' },
   { value: 1, label: 'Hoạt động' },
+  { value: 2, label: 'Hoàn thành' },
 ]
 
 export const farmActivityStatusOptions = [

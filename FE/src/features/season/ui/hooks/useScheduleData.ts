@@ -367,6 +367,7 @@ export function useScheduleData() {
     groupedSchedules,
 
     setPageIndex,
+    setData,
     setSearchTerm,
     setStatusFilter,
     setSortBy,

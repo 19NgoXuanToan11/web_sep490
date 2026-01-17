@@ -25,7 +25,7 @@ import type { BackendScheduleListProps, ScheduleListItem, ScheduleStatusString, 
 import { isActiveStatus, getStatusLabel, translatePlantStage, getDiseaseLabel, getFarmActivityStatusInfo, translateActivityType, activityTypeLabels, farmActivityStatusOptions } from './utils/labels'
 import ScheduleLogPanel from './components/ScheduleLogPanel'
 import ManagerOverview from './components/ManagerOverview'
-import ManagerTable from './components/ManagerTable'
+import ManagerTableOptimistic from './components/ManagerTableOptimistic'
 import { useScheduleData } from './hooks/useScheduleData'
 import { useScheduleActions } from './hooks/useScheduleActions'
 import { useScheduleDialogs } from './hooks/useScheduleDialogs'
@@ -49,7 +49,9 @@ export function BackendScheduleList({
     const scheduleActions = useScheduleActions(
         scheduleData.allSchedules,
         scheduleData.load,
-        scheduleData.loadAllSchedules
+        scheduleData.loadAllSchedules,
+        scheduleData.setData,
+        scheduleData.setAllSchedules
     )
     const navigate = useNavigate()
     const openDetailPage = useCallback((schedule: ScheduleListItem | null, tab?: 'info' | 'calendar' | 'logs') => {
@@ -689,12 +691,13 @@ export function BackendScheduleList({
                                         </div>
 
                                         <div className="max-h-[420px] overflow-y-auto">
-                                            <ManagerTable
+                                            <ManagerTableOptimistic
                                                 items={items}
                                                 onOpenDetail={(s) => openDetailPage(s)}
                                                 onAddLog={(s) => openCreateLogForSchedule(s)}
                                                 onEdit={handleEdit}
                                                 onUpdateStatus={handleUpdateStatus}
+                                                actionLoading={scheduleActions.actionLoading}
                                             />
                                         </div>
                                     </CardContent>

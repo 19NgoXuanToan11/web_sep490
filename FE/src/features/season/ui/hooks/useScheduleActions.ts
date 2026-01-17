@@ -14,7 +14,9 @@ import { validateSchedulePayload } from '../utils/form'
 export function useScheduleActions(
   allSchedules: ScheduleListItem[],
   load: () => Promise<void>,
-  loadAllSchedules: () => Promise<ScheduleListItem[]>
+  loadAllSchedules: () => Promise<ScheduleListItem[]>,
+  setData: any,
+  setAllSchedules: any
 ) {
   const [actionLoading, setActionLoading] = useState<{ [key: string]: boolean }>({})
 
@@ -123,23 +125,87 @@ export function useScheduleActions(
     ) => {
       if (!schedule.scheduleId) return
       setActionLoading({ [`status-${schedule.scheduleId}`]: true })
+      const prevStatus = schedule.status
       try {
+        if (typeof setAllSchedules === 'function') {
+          setAllSchedules((prev: ScheduleListItem[]) =>
+            Array.isArray(prev)
+              ? prev.map(s =>
+                  s.scheduleId === schedule.scheduleId ? { ...s, status: nextStatus } : s
+                )
+              : prev
+          )
+        }
+
+        if (typeof setData === 'function') {
+          setData((prev: any) => {
+            try {
+              if (!prev || !prev.data || !Array.isArray(prev.data.items)) return prev
+              return {
+                ...prev,
+                data: {
+                  ...prev.data,
+                  items: prev.data.items.map((s: ScheduleListItem) =>
+                    s.scheduleId === schedule.scheduleId ? { ...s, status: nextStatus } : s
+                  ),
+                },
+              }
+            } catch {
+              return prev
+            }
+          })
+        }
+
         const response = await scheduleService.updateScheduleStatus(schedule.scheduleId, nextStatus)
         if (response?.message) {
           toastManager.success(response.message)
         }
-        await load()
-        await loadAllSchedules()
+
         onSuccess?.()
       } catch (e: any) {
+        try {
+          if (typeof setAllSchedules === 'function') {
+            setAllSchedules((prev: ScheduleListItem[]) =>
+              Array.isArray(prev)
+                ? prev.map(s =>
+                    s.scheduleId === schedule.scheduleId ? { ...s, status: prevStatus } : s
+                  )
+                : prev
+            )
+          }
+
+          if (typeof setData === 'function') {
+            setData((prev: any) => {
+              try {
+                if (!prev || !prev.data || !Array.isArray(prev.data.items)) return prev
+                return {
+                  ...prev,
+                  data: {
+                    ...prev.data,
+                    items: prev.data.items.map((s: ScheduleListItem) =>
+                      s.scheduleId === schedule.scheduleId ? { ...s, status: prevStatus } : s
+                    ),
+                  },
+                }
+              } catch {
+                return prev
+              }
+            })
+          }
+        } catch (rollbackErr) {
+          console.error('Rollback failed', rollbackErr)
+        }
+
         if (e?.message) {
           showErrorToast(e)
+        } else {
+          showErrorToast(new Error('Cập nhật trạng thái thất bại'))
         }
       } finally {
         setActionLoading({ [`status-${schedule.scheduleId}`]: false })
       }
     },
-    [load, loadAllSchedules]
+    [load, loadAllSchedules, setAllSchedules, setData]
   )
 
   const handleUpdateToday = useCallback(

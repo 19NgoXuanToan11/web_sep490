@@ -4,6 +4,9 @@ import { ManagerLayout } from '@/shared/layouts/ManagerLayout'
 import { BackendScheduleList } from '@/features/season'
 import { scheduleService, type PaginatedSchedules, type ScheduleListItem } from '@/shared/api/scheduleService'
 import { ManagementPageHeader } from '@/shared/ui/management-page-header'
+import { Button } from '@/shared/ui/button'
+import { RefreshCw } from 'lucide-react'
+import { useScheduleData } from '@/features/season/ui/hooks/useScheduleData'
 import { showErrorToast } from '@/shared/lib/toast-manager'
 
 const BULK_PAGE_SIZE = 50
@@ -12,6 +15,7 @@ export default function SeasonPage() {
   const selectedTab = 'calendar'
   const handleTabChange = (_tab: string) => { }
   const [showCreate, setShowCreate] = useState(false)
+  const scheduleData = useScheduleData()
 
   const [filteredItems, setFilteredItems] = useState<ScheduleListItem[] | null>(null)
   const [, setAllSchedules] = useState<ScheduleListItem[]>([])
@@ -54,6 +58,18 @@ export default function SeasonPage() {
     loadAllSchedules()
   }, [loadAllSchedules])
 
+  const handleRefresh = useCallback(async () => {
+    try {
+      await Promise.all([
+        scheduleData.load(),
+        scheduleData.loadAllSchedules(true),
+        loadAllSchedules(),
+      ])
+    } catch (e) {
+      showErrorToast(e)
+    }
+  }, [scheduleData, loadAllSchedules])
+
 
 
   return (
@@ -63,6 +79,13 @@ export default function SeasonPage() {
           <ManagementPageHeader
             title="Quản lý thời vụ gieo trồng"
             description="Quản lý và lập thời vụ gieo trồng"
+            actions={
+              <div>
+                <Button variant="outline" onClick={handleRefresh} className="ml-2 flex items-center gap-2">
+                  Làm mới
+                </Button>
+              </div>
+            }
           />
           { }
           <Tabs value={selectedTab} onValueChange={handleTabChange} className="space-y-6">

@@ -5,7 +5,6 @@ import { BackendScheduleList } from '@/features/season'
 import { scheduleService, type PaginatedSchedules, type ScheduleListItem } from '@/shared/api/scheduleService'
 import { ManagementPageHeader } from '@/shared/ui/management-page-header'
 import { Button } from '@/shared/ui/button'
-import { RefreshCw } from 'lucide-react'
 import { useScheduleData } from '@/features/season/ui/hooks/useScheduleData'
 import { showErrorToast } from '@/shared/lib/toast-manager'
 

@@ -345,22 +345,17 @@ const StaffSchedulesPage: React.FC = () => {
     const parseDateString = useCallback((dateStr?: string | null) => {
         if (!dateStr) return null
 
-        const iso = new Date(dateStr)
-        if (!Number.isNaN(iso.getTime())) return iso
-
         const m = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/)
         if (m) {
-            const p1 = Number(m[1])
-            const p2 = Number(m[2])
+            const d = Number(m[1])
+            const mo = Number(m[2])
             const y = Number(m[3])
-            if (p1 > 12) {
-                return new Date(y, p2 - 1, p1)
-            }
-            if (p2 > 12) {
-                return new Date(y, p1 - 1, p2)
-            }
-            return new Date(y, p1 - 1, p2)
+            if (Number.isNaN(d) || Number.isNaN(mo) || Number.isNaN(y)) return null
+            return new Date(y, mo - 1, d)
         }
+
+        const iso = new Date(dateStr)
+        if (!Number.isNaN(iso.getTime())) return iso
 
         return null
     }, [])
@@ -368,6 +363,7 @@ const StaffSchedulesPage: React.FC = () => {
     const statusToColor = useCallback((status?: string) => {
         if (!status) return '#f59e0b'
         if (status === 'ACTIVE') return '#f59e0b'
+
         if (status === 'COMPLETED') return '#10B981'
         if (status === 'DEACTIVATED') return '#DC2626'
         return '#f59e0b'

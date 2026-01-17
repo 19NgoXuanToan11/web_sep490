@@ -91,6 +91,7 @@ export const getStatusLabel = (value: number | string | null | undefined) => {
   if (typeof value === 'string') {
     if (value === 'ACTIVE') return 'Hoạt động'
     if (value === 'DEACTIVATED') return 'Vô hiệu hóa'
+    if (value === 'COMPLETED') return 'Hoàn thành'
     return value
   }
   return statusOptions.find(option => option.value === value)?.label ?? String(value)
@@ -102,6 +103,36 @@ export const isActiveStatus = (status: number | string | null | undefined) => {
     return status === 'ACTIVE'
   }
   return status === 1
+}
+
+export const getStatusVariant = (
+  value: number | string | null | undefined
+): 'golden' | 'processing' | 'completed' | 'destructive' | 'outline' => {
+  if (value === null || value === undefined) return 'outline'
+
+  if (typeof value === 'string') {
+    const normalized = value.toUpperCase()
+    switch (normalized) {
+      case 'ACTIVE':
+        return 'golden'
+      case 'IN_PROGRESS':
+        return 'processing'
+      case 'COMPLETED':
+        return 'completed'
+      case 'DEACTIVATED':
+        return 'destructive'
+      default:
+        return 'outline'
+    }
+  }
+
+  if (typeof value === 'number') {
+    if (value === 1) return 'golden'
+    if (value === 2) return 'completed'
+    if (value === 0) return 'destructive'
+  }
+
+  return 'outline'
 }
 
 export const getDiseaseLabel = (value: number | string | null | undefined) => {

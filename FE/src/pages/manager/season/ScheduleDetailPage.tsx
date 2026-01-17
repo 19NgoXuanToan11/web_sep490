@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/shared/ui/di
 import ThresholdPanel from '@/features/thresholds/ThresholdPanel'
 import ScheduleLogPanel from '@/features/season/ui/components/ScheduleLogPanel'
 import { formatDate } from '@/shared/lib/date-utils'
-import { isActiveStatus, getStatusLabel, translatePlantStage, getDiseaseLabel, translateActivityType, getFarmActivityStatusInfo, activityTypeLabels, farmActivityStatusOptions, staffStatusOptions } from '@/features/season/ui/utils/labels'
+import { getStatusLabel, getStatusVariant, translatePlantStage, getDiseaseLabel, translateActivityType, getFarmActivityStatusInfo, activityTypeLabels, farmActivityStatusOptions, staffStatusOptions } from '@/features/season/ui/utils/labels'
 import { useScheduleData } from '@/features/season/ui/hooks/useScheduleData'
 import { useScheduleDialogs } from '@/features/season/ui/hooks/useScheduleDialogs'
 import { useScheduleActions } from '@/features/season/ui/hooks/useScheduleActions'
@@ -26,7 +26,7 @@ export const ScheduleDetailPage: React.FC = () => {
     const location = useLocation()
     const scheduleData = useScheduleData()
     const scheduleDialogs = useScheduleDialogs()
-    const scheduleActions = useScheduleActions(scheduleData.allSchedules, scheduleData.load, scheduleData.loadAllSchedules)
+    const scheduleActions = useScheduleActions(scheduleData.allSchedules, scheduleData.load, scheduleData.loadAllSchedules, scheduleData.setData, scheduleData.setAllSchedules)
     const { handleViewDetail } = scheduleActions
     const navigate = useNavigate()
 
@@ -264,7 +264,7 @@ export const ScheduleDetailPage: React.FC = () => {
                                                 <div><strong>Ngày kết thúc dự kiến:</strong> {formatDate(scheduleDialogs.scheduleDetail.endDate)}</div>
                                                 <div>
                                                     <strong>Trạng thái:</strong>{' '}
-                                                    <Badge variant={isActiveStatus(scheduleDialogs.scheduleDetail.status) ? 'golden' : 'destructive'}>
+                                                    <Badge variant={getStatusVariant(scheduleDialogs.scheduleDetail.status)}>
                                                         {getStatusLabel(scheduleDialogs.scheduleDetail.status)}
                                                     </Badge>
                                                 </div>

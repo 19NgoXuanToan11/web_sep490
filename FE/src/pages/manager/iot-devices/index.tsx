@@ -376,7 +376,7 @@ const ManagerIoTDevicesPage: React.FC = () => {
                 <SelectContent>
                   <SelectItem value="all">Tất cả</SelectItem>
                   <SelectItem value="1">Hoạt động</SelectItem>
-                  <SelectItem value="0">Không hoạt động</SelectItem>
+                  <SelectItem value="0">Vô hiệu hóa</SelectItem>
                 </SelectContent>
               </Select>
 

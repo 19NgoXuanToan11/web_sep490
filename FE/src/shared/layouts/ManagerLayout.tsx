@@ -56,6 +56,12 @@ const navigationItems: NavItem[] = [
     description: 'Quản lý thiết bị IoT & cảm biến',
   },
   {
+    name: 'Thiết bị nông trại',
+    href: '/manager/farm-equipments',
+    icon: Leaf,
+    description: 'Quản lý thiết bị nông trại',
+  },
+  {
     name: 'Cây trồng',
     href: '/manager/crop-management',
     icon: Wheat,

@@ -126,9 +126,6 @@ export default function ManagerFarmEquipmentsPage() {
     }, [])
 
     const [statusFilter, setStatusFilter] = useState<string>('all')
-    const [typeFilter, setTypeFilter] = useState<string>('all')
-    const [devicesList, setDevicesList] = useState<any[]>([])
-    const [deviceTypes, setDeviceTypes] = useState<string[]>([])
 
     const isActiveStatus = (status: number | string | undefined): boolean => {
         if (status === undefined) return false
@@ -140,12 +137,8 @@ export default function ManagerFarmEquipmentsPage() {
         let mounted = true
         const loadDevices = async () => {
             try {
-                const resp = await iotDeviceService.getAllDevices(1, 1000)
-                const list = resp.items || []
-                if (!mounted) return
-                setDevicesList(list)
-                const types = [...new Set(list.map(d => d.deviceType).filter((t: any): t is string => Boolean(t)))]
-                setDeviceTypes(types)
+                // Load devices for potential future use
+                await iotDeviceService.getAllDevices(1, 1000)
             } catch (err) {
             }
         }
@@ -162,13 +155,8 @@ export default function ManagerFarmEquipmentsPage() {
         const matchesStatus =
             statusFilter === 'all' ? true : (statusFilter === '1' ? isActiveStatus(item.status) : !isActiveStatus(item.status))
 
-        const matchesType =
-            typeFilter === 'all' ? true : (((item as any).deviceType !== undefined) ? (item as any).deviceType === typeFilter : (devicesList.find(d => (d.deviceName || '') === (item.deviceName || ''))?.deviceType === typeFilter))
-
-        return matchesSearch && matchesStatus && matchesType
+        return matchesSearch && matchesStatus
     })
-
-
 
     const handleCreate = async (payload: { deviceId: number; FarmId: number; Note?: string | null }) => {
         try {

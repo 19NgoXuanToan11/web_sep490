@@ -134,16 +134,13 @@ export default function ManagerFarmEquipmentsPage() {
     }
 
     useEffect(() => {
-        let mounted = true
         const loadDevices = async () => {
             try {
-                // Load devices for potential future use
                 await iotDeviceService.getAllDevices(1, 1000)
             } catch (err) {
             }
         }
         loadDevices()
-        return () => { mounted = false }
     }, [])
 
     const filteredItems = items.filter(item => {

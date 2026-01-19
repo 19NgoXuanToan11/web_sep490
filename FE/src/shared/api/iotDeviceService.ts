@@ -3,6 +3,7 @@ import { http } from './client'
 export interface IoTDevice {
   devicesId?: number
   deviceName?: string
+  farmName?: string
   pinCode?: string
   deviceType?: string
   status?: number | string
@@ -44,6 +45,7 @@ const mapApiDeviceToDevice = (apiDevice: any): IoTDevice => {
       apiDevice.ioTdevicesId ||
       apiDevice.IoTdevicesId,
     deviceName: apiDevice.deviceName || apiDevice.DeviceName,
+    farmName: apiDevice.farmName || apiDevice.FarmName,
     pinCode: apiDevice.pinCode || apiDevice.PinCode,
     deviceType: apiDevice.deviceType || apiDevice.DeviceType,
     status: apiDevice.status || apiDevice.Status,

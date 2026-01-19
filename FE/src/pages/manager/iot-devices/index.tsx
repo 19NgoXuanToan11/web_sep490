@@ -234,7 +234,7 @@ const ManagerIoTDevicesPage: React.FC = () => {
     const normalizedId = Number(deviceId)
     const nextStatus = isActiveStatus(device.status) ? 0 : 1
 
-      try {
+    try {
       setStatusUpdatingId(normalizedId)
       await iotDeviceService.updateDeviceStatus(normalizedId, nextStatus)
 
@@ -273,9 +273,11 @@ const ManagerIoTDevicesPage: React.FC = () => {
   }
 
   const filteredDevices = devices.filter(device => {
+    const q = searchQuery.toLowerCase()
     const matchesSearch =
-      device.deviceName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      device.deviceType?.toLowerCase().includes(searchQuery.toLowerCase())
+      device.deviceName?.toLowerCase().includes(q) ||
+      device.deviceType?.toLowerCase().includes(q) ||
+      device.farmName?.toLowerCase().includes(q)
 
     const selectedStatus =
       statusFilter === 'all' ? null : Number.isNaN(Number(statusFilter)) ? null : Number(statusFilter)
@@ -422,6 +424,11 @@ const ManagerIoTDevicesPage: React.FC = () => {
                       render: (device) => (
                         <div className="font-medium">{device.deviceName}</div>
                       ),
+                    },
+                    {
+                      id: 'farm',
+                      header: 'Nông trại',
+                      render: (device) => device.farmName || '-',
                     },
                     {
                       id: 'type',

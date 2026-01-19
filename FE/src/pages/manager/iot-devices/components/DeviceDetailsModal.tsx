@@ -114,6 +114,11 @@ export const DeviceDetailsModal: React.FC<DeviceDetailsModalProps> = ({
                                 </div>
                                 <div className="border-t border-gray-200" />
                                 <div>
+                                    <p className="text-sm font-medium text-gray-500 mb-1">Nông trại</p>
+                                    <p className="text-base">{device.farmName || 'Chưa gán nông trại'}</p>
+                                </div>
+                                <div className="border-t border-gray-200" />
+                                <div>
                                     <p className="text-sm font-medium text-gray-500 mb-1">Mã PIN</p>
                                     <p className="text-base">{device.pinCode || 'N/A'}</p>
                                 </div>

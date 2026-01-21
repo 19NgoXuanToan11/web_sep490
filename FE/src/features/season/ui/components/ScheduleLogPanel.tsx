@@ -6,7 +6,7 @@ import { farmActivityService } from '@/shared/api/farmActivityService'
 import { toastManager } from '@/shared/lib/toast-manager'
 import { translateActivityType } from '../utils/labels'
 
-function ScheduleLogPanel({ scheduleId, onEdit, registerUpdater, onRecord }: { scheduleId: number; onEdit: (log: ScheduleLogItem) => void; registerUpdater?: (fn: (item: ScheduleLogItem | { id: number }, mode: 'create' | 'update' | 'delete') => void) => void; onRecord?: (log: ScheduleLogItem) => void }) {
+function ScheduleLogPanel({ scheduleId, onEdit, registerUpdater }: { scheduleId: number; onEdit: (log: ScheduleLogItem) => void; registerUpdater?: (fn: (item: ScheduleLogItem | { id: number }, mode: 'create' | 'update' | 'delete') => void) => void }) {
   const [logs, setLogs] = useState<ScheduleLogItem[]>([])
   const [page, setPage] = useState(1)
   const [hasMore, setHasMore] = useState(true)
@@ -67,7 +67,6 @@ function ScheduleLogPanel({ scheduleId, onEdit, registerUpdater, onRecord }: { s
           return [...prev, ...incoming]
         })
       }
-      // fetch farm activity names for any logs that reference an activity id
       try {
         const ids = Array.from(new Set((incomingItems || []).map((it: any) => Number(it.farmActivityId)).filter(Boolean)))
         if (ids.length > 0) {
@@ -91,7 +90,6 @@ function ScheduleLogPanel({ scheduleId, onEdit, registerUpdater, onRecord }: { s
           })
         }
       } catch (err) {
-        // ignore failures to fetch activity names
       }
       const totalItems = data.totalItemCount ?? 0
       const more = p * PAGE_SIZE < totalItems
@@ -184,9 +182,6 @@ function ScheduleLogPanel({ scheduleId, onEdit, registerUpdater, onRecord }: { s
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    {typeof onRecord === 'function' ? (
-                      <Button size="sm" onClick={() => onRecord(l)}>Ghi nhận</Button>
-                    ) : null}
                     <Button size="sm" variant="outline" onClick={() => onEdit(l)}><Edit className="h-4 w-4" /></Button>
                   </div>
                 </div>

@@ -156,7 +156,23 @@ const StaffSchedulesPage: React.FC = () => {
             return
         }
         const v = (selectedScheduleDetail as any).harvestedQuantity
-        setHarvestedInput(v === null || v === undefined ? '' : String(v))
+        let normalized = ''
+        if (v === null || v === undefined) {
+            normalized = ''
+        } else if (typeof v === 'number') {
+            normalized = String(v)
+        } else if (typeof v === 'string') {
+            const cleaned = String(v).replace(/,/g, '').trim()
+            if (/^-?\d+(\.\d+)?$/.test(cleaned)) {
+                normalized = cleaned
+            } else {
+                normalized = ''
+            }
+        } else {
+            normalized = ''
+        }
+
+        setHarvestedInput(normalized)
     }, [selectedScheduleDetail])
 
     const handleStartEditHarvested = useCallback(() => {
@@ -734,13 +750,19 @@ const StaffSchedulesPage: React.FC = () => {
                                                                             </div>
                                                                         ) : (
                                                                             <div className="flex items-center gap-2">
+                                                                                <div className="text-sm text-gray-600 mr-2">Nhập sản lượng thu hoạch:</div>
                                                                                 <input
-                                                                                    type="text"
+                                                                                    type="number"
+                                                                                    step="0.01"
+                                                                                    min="0"
                                                                                     value={harvestedInput}
                                                                                     onClick={(e) => e.stopPropagation()}
                                                                                     onChange={(e) => setHarvestedInput(e.target.value)}
+                                                                                    placeholder="Số lượng"
+                                                                                    aria-label="Sản lượng thu hoạch"
                                                                                     className="p-1 border rounded w-36"
                                                                                 />
+                                                                                <span className="text-sm text-gray-700">kg</span>
                                                                                 <Button
                                                                                     size="sm"
                                                                                     onClick={(e) => {

@@ -1,5 +1,6 @@
 import { Card, CardContent } from '@/shared/ui/card'
 import { useScheduleData } from '@/features/season/ui/hooks/useScheduleData'
+import type { ScheduleListItem } from '@/shared/api/scheduleService'
 
 type Props = {
     onFilterActive?: () => void
@@ -13,13 +14,13 @@ export default function ManagerOverview({ onFilterActive, onFilterDeactivated, o
     const today = new Date()
     today.setHours(0, 0, 0, 0)
 
-    const active = all.filter(s => {
+    const active = all.filter((s: ScheduleListItem) => {
         const st = s?.status
         if (typeof st === 'number') return st === 1
         return String(st ?? '').toUpperCase() === 'ACTIVE'
     }).length
 
-    const deactivated = all.filter(s => {
+    const deactivated = all.filter((s: ScheduleListItem) => {
         const st = s?.status
         if (typeof st === 'number') return st !== 1
         return String(st ?? '').toUpperCase() !== 'ACTIVE'

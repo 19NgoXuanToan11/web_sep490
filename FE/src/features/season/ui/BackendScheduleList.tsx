@@ -1246,7 +1246,7 @@ export function BackendScheduleList({
                                 </SelectTrigger>
                                 <SelectContent>
                                     {Array.isArray(scheduleData.staffs) && scheduleData.staffs.length > 0 ? (
-                                        scheduleData.staffs.map(s => (
+                                        scheduleData.staffs.map((s: { id: number; name: string }) => (
                                             <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>
                                         ))
                                     ) : (
@@ -1267,8 +1267,8 @@ export function BackendScheduleList({
                                 <SelectContent>
                                     {Array.isArray(scheduleData.allSchedules) && scheduleData.allSchedules.length > 0 ? (
                                         scheduleData.allSchedules
-                                            .filter(s => s.scheduleId !== undefined && s.scheduleId !== null)
-                                            .map(s => {
+                                            .filter((s: ScheduleListItem) => s.scheduleId !== undefined && s.scheduleId !== null)
+                                            .map((s: ScheduleListItem) => {
                                                 const label =
                                                     (s.cropView?.cropName ?? s.farmView?.farmName ?? `Kế hoạch #${s.scheduleId}`) +
                                                     (s.startDate || s.endDate ? ` (${formatDateRange(s.startDate, s.endDate)})` : '')

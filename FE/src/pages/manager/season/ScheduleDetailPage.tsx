@@ -20,6 +20,7 @@ import { useScheduleActions } from '@/features/season/ui/hooks/useScheduleAction
 import { UpdateStageModalDialog, CreateActivityDialog, LogModalDialog } from '@/features/season/ui/dialogs'
 import { farmActivityService } from '@/shared/api/farmActivityService'
 import { showSuccessToast, showErrorToast } from '@/shared/lib/toast-manager'
+import type { ScheduleListItem } from '@/shared/api/scheduleService'
 
 export const ScheduleDetailPage: React.FC = () => {
     const params = useParams<{ scheduleId: string }>()
@@ -251,6 +252,22 @@ export const ScheduleDetailPage: React.FC = () => {
                                             Tạo
                                         </Button>
                                     )}
+                                    {scheduleDialogs.detailActiveTab === 'logs' && (
+                                        <Button
+                                            size="sm"
+                                            onClick={() => {
+                                                if (!scheduleDialogs.selectedSchedule) return
+                                                try {
+                                                    scheduleDialogs.openCreateLogForSchedule(scheduleDialogs.selectedSchedule)
+                                                } catch (err) {
+                                                    console.error('Failed to open create log', err)
+                                                    scheduleDialogs.openCreateLogForSchedule(scheduleDialogs.selectedSchedule)
+                                                }
+                                            }}
+                                        >
+                                            Ghi nhận mới
+                                        </Button>
+                                    )}
                                 </div>
                             </div>
 
@@ -429,15 +446,6 @@ export const ScheduleDetailPage: React.FC = () => {
                                         scheduleId={scheduleDialogs.scheduleDetail.scheduleId}
                                         onEdit={(log) => {
                                             scheduleDialogs.openEditLog(log)
-                                        }}
-                                        onRecord={(log) => {
-                                            if (!scheduleDialogs.selectedSchedule) return
-                                            try {
-                                                scheduleDialogs.openCreateLogForSchedule(scheduleDialogs.selectedSchedule, (log as any).farmActivityId ?? null)
-                                            } catch (err) {
-                                                console.error('Failed to open create log for specific activity', err)
-                                                scheduleDialogs.openCreateLogForSchedule(scheduleDialogs.selectedSchedule)
-                                            }
                                         }}
                                         registerUpdater={(_fn) => { }}
                                     />
@@ -825,7 +833,7 @@ export const ScheduleDetailPage: React.FC = () => {
                                     </SelectTrigger>
                                     <SelectContent>
                                         {Array.isArray(scheduleData.staffs) && scheduleData.staffs.length > 0 ? (
-                                            scheduleData.staffs.map(s => (
+                                            scheduleData.staffs.map((s: { id: number; name: string }) => (
                                                 <SelectItem key={s.id} value={String(s.id)}>{s.name}</SelectItem>
                                             ))
                                         ) : (
@@ -907,7 +915,6 @@ export const ScheduleDetailPage: React.FC = () => {
                                 onChange={e => setEditFarmActivityForm({ ...editFarmActivityForm, endDate: e.target.value })}
                             />
                         </div>
-                        {/* Staff is not editable via this modal per API contract; removed from form */}
                         <div>
                             <Label htmlFor="editSchedule">Kế hoạch / Thời vụ</Label>
                             <Select
@@ -920,8 +927,8 @@ export const ScheduleDetailPage: React.FC = () => {
                                 <SelectContent>
                                     {Array.isArray(scheduleData.allSchedules) && scheduleData.allSchedules.length > 0 ? (
                                         scheduleData.allSchedules
-                                            .filter(s => s.scheduleId !== undefined && s.scheduleId !== null)
-                                            .map(s => {
+                                            .filter((s: ScheduleListItem) => s.scheduleId !== undefined && s.scheduleId !== null)
+                                            .map((s: ScheduleListItem) => {
                                                 const label =
                                                     (s.cropView?.cropName ?? s.farmView?.farmName ?? `Kế hoạch #${s.scheduleId}`) +
                                                     (s.startDate || s.endDate ? ` (${formatDate(s.startDate)} - ${formatDate(s.endDate)})` : '')

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, useCallback } from 'react'
 import type { ScheduleListItem } from '../types'
 import { formatDateRange } from '@/shared/lib/date-utils'
 import { Badge } from '@/shared/ui/badge'
+import { getStatusLabel, getStatusVariant } from '../utils/labels'
 import ScheduleActionMenu from './ScheduleActionMenu'
 import { cn } from '@/shared/lib/utils'
 
@@ -50,7 +51,9 @@ export default function ManagerTableOptimistic({ items, onOpenDetail, onAddLog, 
                     <tbody className="bg-white divide-y divide-gray-100">
                         {rows.map(({ item }) => {
                             const id = Number(item.scheduleId ?? Math.random() * 1000000)
-                            const isActive = typeof item.status === 'number' ? item.status === 1 : item.status === 'ACTIVE'
+                            const statusLabel = getStatusLabel(item.status)
+                            const statusVariant = getStatusVariant(item.status)
+                            const isActive = typeof item.status === 'number' ? item.status === 1 : String(item.status).toUpperCase() === 'ACTIVE'
                             return (
                                 <tr
                                     key={id}
@@ -59,7 +62,7 @@ export default function ManagerTableOptimistic({ items, onOpenDetail, onAddLog, 
                                 >
                                     <td className="px-4 py-3 align-top">
                                         <div className="flex items-center gap-2">
-                                            <Badge className={`h-6 text-xs ${isActive ? 'bg-yellow-500 text-white' : 'bg-red-500 text-white'}`}>{isActive ? 'Hoạt động' : 'Vô hiệu hóa'}</Badge>
+                                            <Badge variant={statusVariant as any} className="h-6 text-xs">{statusLabel}</Badge>
                                         </div>
                                     </td>
 

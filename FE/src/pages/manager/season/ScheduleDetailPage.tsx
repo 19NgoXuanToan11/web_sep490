@@ -92,6 +92,18 @@ export const ScheduleDetailPage: React.FC = () => {
         return () => { cancelled = true }
     }, [scheduleId, handleViewDetail, scheduleDialogs.setScheduleDetail, scheduleDialogs.setSelectedSchedule, scheduleDialogs.setDetailActiveTab, query])
 
+    useEffect(() => {
+        try {
+            const detail = scheduleDialogs.scheduleDetail
+            if (!detail || !detail.scheduleId) return
+            const fromList = scheduleData.allSchedules?.find((s: any) => s.scheduleId === detail.scheduleId)
+            if (fromList && fromList.status !== detail.status) {
+                scheduleDialogs.setScheduleDetail((prev: any) => (prev && prev.scheduleId === detail.scheduleId ? { ...prev, status: fromList.status } : prev))
+            }
+        } catch {
+        }
+    }, [scheduleData.allSchedules, scheduleDialogs.scheduleDetail, scheduleDialogs.setScheduleDetail])
+
     const scheduleCalendarEvents = useMemo(() => {
         const detail = scheduleDialogs.scheduleDetail
         if (!detail) return []

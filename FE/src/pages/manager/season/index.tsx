@@ -5,7 +5,7 @@ import { BackendScheduleList } from '@/features/season'
 import { scheduleService, type PaginatedSchedules, type ScheduleListItem } from '@/shared/api/scheduleService'
 import { ManagementPageHeader } from '@/shared/ui/management-page-header'
 import { Button } from '@/shared/ui/button'
-import { useScheduleData } from '@/features/season/ui/hooks/useScheduleData'
+import { useScheduleData, ScheduleDataContext } from '@/features/season/ui/hooks/useScheduleData'
 import { showErrorToast } from '@/shared/lib/toast-manager'
 
 const BULK_PAGE_SIZE = 50
@@ -89,12 +89,14 @@ export default function SeasonPage() {
           { }
           <Tabs value={selectedTab} onValueChange={handleTabChange} className="space-y-6">
             <TabsContent value="calendar" className="space-y-6">
-              <BackendScheduleList
-                showCreate={showCreate}
-                onShowCreateChange={setShowCreate}
-                filteredItems={filteredItems}
-                onFilteredItemsChange={setFilteredItems}
-              />
+              <ScheduleDataContext.Provider value={scheduleData}>
+                <BackendScheduleList
+                  showCreate={showCreate}
+                  onShowCreateChange={setShowCreate}
+                  filteredItems={filteredItems}
+                  onFilteredItemsChange={setFilteredItems}
+                />
+              </ScheduleDataContext.Provider>
             </TabsContent>
           </Tabs>
         </div>

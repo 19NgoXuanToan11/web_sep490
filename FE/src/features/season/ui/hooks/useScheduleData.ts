@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo, useRef } from 'react'
+import { useState, useCallback, useEffect, useMemo, useRef, createContext, useContext } from 'react'
 import {
   scheduleService,
   type PaginatedSchedules,
@@ -13,8 +13,11 @@ import { formatDate } from '@/shared/lib/date-utils'
 import type { ActivityOption, SortOption } from '../types'
 
 export const BULK_PAGE_SIZE = 50
+export const ScheduleDataContext = createContext<any | null>(null)
 
 export function useScheduleData() {
+  const ctx = useContext(ScheduleDataContext)
+  if (ctx) return ctx
   const [pageIndex, setPageIndex] = useState(1)
   const [pageSize] = useState(10)
   const [data, setData] = useState<PaginatedSchedules | null>(null)

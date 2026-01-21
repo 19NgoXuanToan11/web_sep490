@@ -23,7 +23,7 @@ export function useScheduleData() {
   const [data, setData] = useState<PaginatedSchedules | null>(null)
   const [loading, setLoading] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all')
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive' | 'completed'>('all')
   const [sortBy, setSortBy] = useState<SortOption>('newest')
   const [newlyCreatedIds, setNewlyCreatedIds] = useState<Set<number>>(new Set())
   const previousMaxIdRef = useRef<number>(0)
@@ -42,14 +42,16 @@ export function useScheduleData() {
 
     return (
       data?.data.items.filter(schedule => {
-        if (statusFilter !== 'all') {
-          const isActive =
-            typeof schedule.status === 'number'
-              ? schedule.status === 1
-              : schedule.status === 'ACTIVE'
-          if (statusFilter === 'active' && !isActive) return false
-          if (statusFilter === 'inactive' && isActive) return false
-        }
+    if (statusFilter !== 'all') {
+      const raw = schedule.status ?? (schedule as any).Status
+      const normalized = String(raw ?? '').toUpperCase()
+      const isActive = typeof raw === 'number' ? raw === 1 : normalized === 'ACTIVE'
+      const isCompleted = typeof raw === 'number' ? raw === 2 : normalized === 'COMPLETED'
+      const isDeactivated = typeof raw === 'number' ? raw === 0 : normalized === 'DEACTIVATED'
+      if (statusFilter === 'active' && !isActive) return false
+      if (statusFilter === 'inactive' && !isDeactivated) return false
+      if (statusFilter === 'completed' && !isCompleted) return false
+    }
 
         if (normalizedSearch) {
           const cropName = (schedule.cropView?.cropName || '').toLowerCase()

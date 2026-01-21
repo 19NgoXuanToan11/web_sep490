@@ -206,7 +206,7 @@ export const ScheduleDetailPage: React.FC = () => {
                 return prev.map((rec: any) => {
                     const key = rec.stafFarmActivityId ?? rec.Staf_farmActivityId ?? rec.id ?? rec.staffAssignId
                     if (String(key) === String(staffAssignId)) {
-                        return { ...rec, individualStatus: newStatus, status: newStatus }
+                        return { ...rec, status: newStatus }
                     }
                     return rec
                 })

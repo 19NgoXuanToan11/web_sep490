@@ -633,6 +633,12 @@ export function BackendScheduleList({
                     scheduleData.setStatusFilter('inactive')
                     scheduleData.setPageIndex(1)
                 }}
+                onFilterCompleted={() => {
+                    setQuickFilter(null)
+                    scheduleData.setSearchTerm('')
+                    scheduleData.setStatusFilter('completed')
+                    scheduleData.setPageIndex(1)
+                }}
                 onFilterTotal={() => {
                     setQuickFilter(null)
                     scheduleData.setSearchTerm('')

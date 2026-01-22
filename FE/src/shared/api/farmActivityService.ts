@@ -107,6 +107,37 @@ export const farmActivityService = {
     return response.data.data
   },
 
+  getFarmActivityBySchedule: async (scheduleId: number): Promise<number | null> => {
+    const url = `/v1/farm-activity/farm-activity-by-schedule?scheduleId=${scheduleId}`
+    const response = await http.get<any>(url)
+    const payload = response?.data?.data ?? response?.data
+
+    if (payload === null || payload === undefined) return null
+
+    if (typeof payload === 'number') return payload
+
+    if (typeof payload === 'object') {
+      return (
+        (payload as any).farmActivitiesId ??
+        (payload as any).farmActivityId ??
+        (payload as any).id ??
+        null
+      )
+    }
+
+    if (Array.isArray(payload) && payload.length > 0) {
+      const first = payload[0]
+      return (
+        (first as any).farmActivitiesId ??
+        (first as any).farmActivityId ??
+        (first as any).id ??
+        null
+      )
+    }
+
+    return null
+  },
+
   createFarmActivity: async (
     activityData: FarmActivityRequest,
     activityType: string

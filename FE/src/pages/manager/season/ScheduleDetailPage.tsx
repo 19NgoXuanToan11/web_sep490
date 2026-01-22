@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState, useRef } from 'react'
 import { useParams, useLocation, useNavigate } from 'react-router-dom'
 import { Card, CardContent } from '@/shared/ui/card'
 import { Button } from '@/shared/ui/button'
@@ -45,6 +45,7 @@ export const ScheduleDetailPage: React.FC = () => {
     const [statusEditorOpen, setStatusEditorOpen] = useState(false)
     const [statusEditorValue, setStatusEditorValue] = useState<string | null>(null)
     const [statusEditorLoading, setStatusEditorLoading] = useState(false)
+    const externalLogUpdaterRef = useRef<((item: any, mode: 'create' | 'update' | 'delete') => void) | null>(null)
     const [assignStaffOpen, setAssignStaffOpen] = useState(false)
     const [assignStaffIdLocal, setAssignStaffIdLocal] = useState<number | null>(null)
     const [assignStaffLoading, setAssignStaffLoading] = useState(false)
@@ -459,7 +460,7 @@ export const ScheduleDetailPage: React.FC = () => {
                                         onEdit={(log) => {
                                             scheduleDialogs.openEditLog(log)
                                         }}
-                                        registerUpdater={(_fn) => { }}
+                                        registerUpdater={(fn) => { externalLogUpdaterRef.current = fn }}
                                     />
                                 </div>
                             </TabsContent>
@@ -523,11 +524,16 @@ export const ScheduleDetailPage: React.FC = () => {
                     (Array.isArray((scheduleDialogs.selectedSchedule as any)?.farmActivities) ? (scheduleDialogs.selectedSchedule as any)?.farmActivities[0]?.farmActivitiesId : undefined) ??
                     scheduleDialogs.selectedSchedule?.farmActivitiesId
                 }
-                onSuccess={() => {
-                    if (!scheduleDialogs.scheduleDetail?.scheduleId) return
-                    scheduleActions.handleViewDetail({ scheduleId: scheduleDialogs.scheduleDetail.scheduleId } as any, (detail) => {
-                        scheduleDialogs.setScheduleDetail(detail)
-                    })
+                onSuccess={async (payload) => {
+                    try {
+                        externalLogUpdaterRef.current?.(payload ?? {}, scheduleDialogs.logModalMode === 'edit' ? 'update' : 'create')
+                    } catch { }
+                    try {
+                        if (!scheduleDialogs.scheduleDetail?.scheduleId) return
+                        await scheduleActions.handleViewDetail({ scheduleId: scheduleDialogs.scheduleDetail.scheduleId } as any, (detail) => {
+                            scheduleDialogs.setScheduleDetail(detail)
+                        })
+                    } catch { }
                 }}
             />
             <Dialog open={showFarmActivityDetail} onOpenChange={setShowFarmActivityDetail}>

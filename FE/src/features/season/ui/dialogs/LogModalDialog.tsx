@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { toastManager } from '@/shared/lib/toast-manager'
 import { scheduleLogService } from '@/shared/api/scheduleLogService'
 import { scheduleService } from '@/shared/api/scheduleService'
+import { farmActivityService } from '@/shared/api/farmActivityService'
 import type { ScheduleLogItem } from '../types'
 
 const stripSystemPrefixes = (s?: string | null) => {
@@ -58,19 +59,59 @@ export function LogModalDialog({
                 let farmActivityId = selectedFarmActivityId
                 if ((farmActivityId === undefined || farmActivityId === null) && selectedScheduleId) {
                     try {
-                        const schedRes: any = await scheduleService.getScheduleById(selectedScheduleId)
-                        const sched = schedRes?.data ?? {}
-                        farmActivityId =
-                            sched?.farmActivityView?.farmActivitiesId ??
-                            (Array.isArray((sched as any)?.farmActivities) ? (sched as any).farmActivities[0]?.farmActivitiesId : undefined) ??
-                            sched?.farmActivitiesId ??
-                            sched?.farmActivityId
+                        const faId = await farmActivityService.getFarmActivityBySchedule(Number(selectedScheduleId))
+                        if (faId !== undefined && faId !== null) {
+                            farmActivityId = faId
+                        } else {
+                            const schedRes: any = await scheduleService.getScheduleById(selectedScheduleId)
+                            const sched = schedRes?.data ?? {}
+                            if (Array.isArray(sched?.farmActivityView) && sched.farmActivityView.length > 0) {
+                                farmActivityId =
+                                    sched.farmActivityView[0]?.farmActivitiesId ??
+                                    sched.farmActivityView[0]?.farmActivityId ??
+                                    sched.farmActivityView[0]?.id ??
+                                    undefined
+                            } else {
+                                farmActivityId =
+                                    sched?.farmActivityView?.farmActivitiesId ??
+                                    (Array.isArray((sched as any)?.farmActivities) ? (sched as any).farmActivities[0]?.farmActivitiesId : undefined) ??
+                                    sched?.farmActivitiesId ??
+                                    sched?.farmActivityId
+                            }
+                        }
                     } catch {
-                        farmActivityId = undefined
+                        try {
+                            const schedRes: any = await scheduleService.getScheduleById(selectedScheduleId)
+                            const sched = schedRes?.data ?? {}
+                            if (Array.isArray(sched?.farmActivityView) && sched.farmActivityView.length > 0) {
+                                farmActivityId =
+                                    sched.farmActivityView[0]?.farmActivitiesId ??
+                                    sched.farmActivityView[0]?.farmActivityId ??
+                                    sched.farmActivityView[0]?.id ??
+                                    undefined
+                            } else {
+                                farmActivityId =
+                                    sched?.farmActivityView?.farmActivitiesId ??
+                                    (Array.isArray((sched as any)?.farmActivities) ? (sched as any).farmActivities[0]?.farmActivitiesId : undefined) ??
+                                    sched?.farmActivitiesId ??
+                                    sched?.farmActivityId
+                            }
+                        } catch {
+                            farmActivityId = undefined
+                        }
                     }
                 }
                 try {
-                    console.debug('[LogModalDialog] creating log, selectedScheduleId:', selectedScheduleId, 'selectedFarmActivityId:', selectedFarmActivityId, 'computedFarmActivityId:', farmActivityId)
+                    console.debug(
+                        '[LogModalDialog] creating log values',
+                        { selectedScheduleId, selectedFarmActivityId, computedFarmActivityId: farmActivityId }
+                    )
+                    try {
+                        const lastFa = await farmActivityService.getFarmActivityBySchedule(Number(selectedScheduleId))
+                        console.debug('[LogModalDialog] farmActivityService.getFarmActivityBySchedule returned', lastFa)
+                    } catch (dbgErr) {
+                        console.debug('[LogModalDialog] farmActivityService.getFarmActivityBySchedule error', dbgErr)
+                    }
                 } catch { }
 
                 const res: any = await scheduleLogService.createLog({
@@ -78,6 +119,9 @@ export function LogModalDialog({
                     notes: trimmedNotes,
                     farmActivityId,
                 })
+                if ((farmActivityId === undefined || farmActivityId === null) && res?.status !== 1) {
+                    toastManager.error('Không tìm thấy farmActivityId cho lịch này; không thể tạo ghi nhận. Vui lòng thử lại sau.')
+                }
                 if (res?.status === 1) {
                     if (res?.message) toastManager.success(res.message)
                 } else {

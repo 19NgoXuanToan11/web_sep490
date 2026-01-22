@@ -164,7 +164,17 @@ function ScheduleLogPanel({ scheduleId, onEdit, registerUpdater }: { scheduleId:
                         <strong>Người tạo</strong>: {l.staffNameCreate ?? 'Không xác định'}
                         {l.createdAt ? ` • ${safeFormat(l.createdAt ?? undefined)}` : ''}
                       </div>
-                      {l.updatedAt && (() => {
+                      {(() => {
+                        const updated = (l as any).updatedAt ?? (l as any).updated_at ?? null
+                        const created = (l as any).createdAt ?? (l as any).created_at ?? null
+                        if (!updated) return null
+                        try {
+                          const updTime = Number(new Date(String(updated)).getTime())
+                          const crtTime = created ? Number(new Date(String(created)).getTime()) : NaN
+                          if (!Number.isNaN(crtTime) && crtTime === updTime) return null
+                        } catch {
+                        }
+
                         const name = l.staffNameUpdate
                         if (!name) return null
                         const trimmed = String(name).trim()
@@ -175,7 +185,7 @@ function ScheduleLogPanel({ scheduleId, onEdit, registerUpdater }: { scheduleId:
                         if (isInvalid) return null
                         return (
                           <div className="mt-1">
-                            <strong>Người sửa</strong>: {trimmed} • {safeFormat(l.updatedAt ?? undefined)}
+                            <strong>Người sửa</strong>: {trimmed} • {safeFormat(String(updated) ?? undefined)}
                           </div>
                         )
                       })()}

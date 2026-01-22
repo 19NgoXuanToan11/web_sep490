@@ -1,12 +1,13 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Button } from '@/shared/ui/button'
-import { Label } from '@/shared/ui/label'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/shared/ui/dialog'
 import { toastManager } from '@/shared/lib/toast-manager'
 import { scheduleLogService } from '@/shared/api/scheduleLogService'
 import { scheduleService } from '@/shared/api/scheduleService'
 import { farmActivityService } from '@/shared/api/farmActivityService'
 import type { ScheduleLogItem } from '../types'
+import type { FarmActivity } from '@/shared/api/farmActivityService'
+import { translateActivityType } from '../utils/labels'
 
 const stripSystemPrefixes = (s?: string | null) => {
     if (!s) return ''
@@ -37,14 +38,37 @@ export function LogModalDialog({
     onSuccess,
 }: LogModalDialogProps) {
     const [notes, setNotes] = useState('')
+    const [availableActivities, setAvailableActivities] = useState<FarmActivity[] | null>(null)
+    const [selectedActivityIdLocal, setSelectedActivityIdLocal] = useState<number | null>(selectedFarmActivityId ?? null)
 
     React.useEffect(() => {
         if (open && editingLog) {
             setNotes(stripSystemPrefixes(editingLog.notes || ''))
         } else if (open && mode === 'create') {
             setNotes('')
+            setSelectedActivityIdLocal(selectedFarmActivityId ?? null)
+            setAvailableActivities(null)
         }
     }, [open, editingLog, mode])
+
+    useEffect(() => {
+        if (!(open && mode === 'create' && selectedScheduleId)) return
+        let cancelled = false
+            ; (async () => {
+                try {
+                    const list = await farmActivityService.getFarmActivitiesBySchedule(Number(selectedScheduleId))
+                    if (cancelled) return
+                    setAvailableActivities(list)
+                    if ((selectedActivityIdLocal === null || selectedActivityIdLocal === undefined) && Array.isArray(list) && list.length > 0) {
+                        setSelectedActivityIdLocal(list[0]?.farmActivitiesId ?? null)
+                    }
+                } catch (err) {
+                    console.debug('[LogModalDialog] failed to fetch farm activities for schedule', err)
+                    if (!cancelled) setAvailableActivities([])
+                }
+            })()
+        return () => { cancelled = true }
+    }, [open, mode, selectedScheduleId])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -114,12 +138,13 @@ export function LogModalDialog({
                     }
                 } catch { }
 
+                const finalFarmActivityId = selectedActivityIdLocal ?? farmActivityId
                 const res: any = await scheduleLogService.createLog({
                     scheduleId: selectedScheduleId,
                     notes: trimmedNotes,
-                    farmActivityId,
+                    farmActivityId: finalFarmActivityId,
                 })
-                if ((farmActivityId === undefined || farmActivityId === null) && res?.status !== 1) {
+                if ((finalFarmActivityId === undefined || finalFarmActivityId === null) && res?.status !== 1) {
                     toastManager.error('Không tìm thấy farmActivityId cho lịch này; không thể tạo ghi nhận. Vui lòng thử lại sau.')
                 }
                 if (res?.status === 1) {
@@ -154,23 +179,52 @@ export function LogModalDialog({
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-lg">
-                <DialogHeader>
-                    <DialogTitle>{mode === 'create' ? 'Tạo ghi nhận' : 'Chỉnh sửa ghi nhận'}</DialogTitle>
+            <DialogContent className="sm:max-w-lg bg-white rounded-2xl shadow-2xl p-6">
+                <DialogHeader className="mb-2">
+                    <DialogTitle className="text-lg font-semibold text-gray-900">{mode === 'create' ? 'Tạo ghi nhận' : 'Chỉnh sửa ghi nhận'}</DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleSubmit}>
-                    <div className="grid gap-3">
+                    <div className="grid gap-4">
                         <div>
-                            <Label>Nội dung</Label>
+                            <label className="block text-sm font-medium text-gray-600 mb-2">Hoạt động nông trại</label>
+                            <div className="relative">
+                                <select
+                                    value={selectedActivityIdLocal ?? ''}
+                                    onChange={(e) => setSelectedActivityIdLocal(e.target.value ? Number(e.target.value) : null)}
+                                    className="block w-full appearance-none bg-white border border-gray-200 rounded-xl px-4 py-2 text-sm text-gray-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-green-100"
+                                >
+                                    <option value="">-- Không chọn --</option>
+                                    {Array.isArray(availableActivities) &&
+                                        availableActivities.map((a) => {
+                                            const id = (a as any).farmActivitiesId ?? (a as any).farmActivityId ?? (a as any).id
+                                            const rawType = (a as any).activityType ?? (a as any).activityName ?? null
+                                            const label = translateActivityType(String(rawType ?? `Hoạt động #${id}`))
+                                            return (
+                                                <option key={String(id ?? Math.random())} value={String(id ?? '')}>
+                                                    {label}
+                                                </option>
+                                            )
+                                        })}
+                                </select>
+                                <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
+                                    <svg className="h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                        <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.293l3.71-4.06a.75.75 0 111.11 1.01l-4.25 4.657a.75.75 0 01-1.11 0L5.23 8.27a.75.75 0 01.0-1.06z" clipRule="evenodd" />
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-600 mb-2">Nội dung</label>
                             <textarea
                                 value={notes}
                                 onChange={(e) => setNotes(e.target.value)}
-                                className="w-full p-2 border rounded"
-                                rows={4}
+                                className="block w-full p-3 border border-gray-200 rounded-xl text-sm text-gray-800 shadow-sm resize-none focus:outline-none focus:ring-2 focus:ring-green-100"
+                                rows={5}
+                                placeholder="Nhập nội dung ghi nhận (ví dụ: quan sát, ghi chú, kết quả...)"
                             />
                         </div>
                     </div>
-                    <DialogFooter className="mt-4">
+                    <DialogFooter className="mt-6 flex items-center justify-end gap-3">
                         <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Hủy</Button>
                         <Button type="submit">{mode === 'create' ? 'Lưu' : 'Lưu'}</Button>
                     </DialogFooter>

@@ -138,6 +138,26 @@ export const farmActivityService = {
     return null
   },
 
+  getFarmActivitiesBySchedule: async (scheduleId: number): Promise<FarmActivity[]> => {
+    const url = `/v1/farm-activity/farm-activity-by-schedule?scheduleId=${scheduleId}`
+    const response = await http.get<any>(url)
+    const payload = response?.data?.data ?? response?.data
+    if (!payload) return []
+
+    if (Array.isArray(payload)) {
+      return payload as FarmActivity[]
+    }
+
+    if (payload && typeof payload === 'object') {
+      if (Array.isArray((payload as any).items)) {
+        return (payload as any).items as FarmActivity[]
+      }
+      return [payload as FarmActivity]
+    }
+
+    return []
+  },
+
   createFarmActivity: async (
     activityData: FarmActivityRequest,
     activityType: string

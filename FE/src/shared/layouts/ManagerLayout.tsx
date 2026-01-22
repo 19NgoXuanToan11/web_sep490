@@ -15,6 +15,7 @@ import {
   Monitor,
   History,
   Tractor,
+  Leaf,
 } from 'lucide-react'
 import { Button } from '@/shared/ui/button'
 import LogoutButton from '@/shared/ui/LogoutButton'
@@ -215,7 +216,7 @@ export const ManagerLayout: React.FC<ManagerLayoutProps> = ({ children }) => {
             <div className="flex items-center justify-between px-6 py-6">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-brand rounded-full flex items-center justify-center">
-                  <Tractor className="w-6 h-6 text-white" />
+                  <Leaf className="w-6 h-6 text-white" />
                 </div>
                 <motion.div
                   initial={{ opacity: 0, x: -10 }}

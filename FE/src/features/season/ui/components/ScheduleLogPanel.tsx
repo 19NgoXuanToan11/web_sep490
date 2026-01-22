@@ -22,34 +22,29 @@ function ScheduleLogPanel({ scheduleId, onEdit, registerUpdater }: { scheduleId:
   const safeFormat = (iso?: string) => {
     if (!iso) return '—'
 
-    const tryParse = (s: string) => {
-      try {
-        const d = new Date(s)
-        if (Number.isNaN(d.getTime())) return null
-        return d
-      } catch {
-        return null
+    try {
+      const d = new Date(iso)
+      if (Number.isNaN(d.getTime())) return '—'
+
+      const hasTZ = /\dT\d.*Z$/.test(iso) || /[+-]\d{2}:\d{2}$/.test(iso)
+      if (hasTZ) {
+        const hh = String(d.getUTCHours()).padStart(2, '0')
+        const mm = String(d.getUTCMinutes()).padStart(2, '0')
+        const dd = String(d.getUTCDate()).padStart(2, '0')
+        const mmth = String(d.getUTCMonth() + 1).padStart(2, '0')
+        const yyyy = String(d.getUTCFullYear())
+        return `${hh}:${mm} • ${dd}/${mmth}/${yyyy}`
       }
+
+      const hh = String(d.getHours()).padStart(2, '0')
+      const mm = String(d.getMinutes()).padStart(2, '0')
+      const dd = String(d.getDate()).padStart(2, '0')
+      const mmth = String(d.getMonth() + 1).padStart(2, '0')
+      const yyyy = String(d.getFullYear())
+      return `${hh}:${mm} • ${dd}/${mmth}/${yyyy}`
+    } catch {
+      return '—'
     }
-
-    const asIs = tryParse(iso)
-    const noZ = iso.endsWith('Z') ? tryParse(iso.replace(/Z$/, '')) : null
-
-    let d: Date | null = null
-    if (noZ && asIs) {
-      d = (Math.abs(Date.now() - noZ.getTime()) < Math.abs(Date.now() - asIs.getTime())) ? noZ : asIs
-    } else {
-      d = asIs || noZ
-    }
-
-    if (!d) return '—'
-
-    const hh = String(d.getHours()).padStart(2, '0')
-    const mm = String(d.getMinutes()).padStart(2, '0')
-    const dd = String(d.getDate()).padStart(2, '0')
-    const mmth = String(d.getMonth() + 1).padStart(2, '0')
-    const yyyy = String(d.getFullYear())
-    return `${hh}:${mm} • ${dd}/${mmth}/${yyyy}`
   }
 
   const load = useCallback(async (p = 1) => {

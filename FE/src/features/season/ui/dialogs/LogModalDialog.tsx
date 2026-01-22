@@ -185,34 +185,36 @@ export function LogModalDialog({
                 </DialogHeader>
                 <form onSubmit={handleSubmit}>
                     <div className="grid gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-600 mb-2">Hoạt động nông trại</label>
-                            <div className="relative">
-                                <select
-                                    value={selectedActivityIdLocal ?? ''}
-                                    onChange={(e) => setSelectedActivityIdLocal(e.target.value ? Number(e.target.value) : null)}
-                                    className="block w-full appearance-none bg-white border border-gray-200 rounded-xl px-4 py-2 text-sm text-gray-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-green-100"
-                                >
-                                    <option value="">-- Không chọn --</option>
-                                    {Array.isArray(availableActivities) &&
-                                        availableActivities.map((a) => {
-                                            const id = (a as any).farmActivitiesId ?? (a as any).farmActivityId ?? (a as any).id
-                                            const rawType = (a as any).activityType ?? (a as any).activityName ?? null
-                                            const label = translateActivityType(String(rawType ?? `Hoạt động #${id}`))
-                                            return (
-                                                <option key={String(id ?? Math.random())} value={String(id ?? '')}>
-                                                    {label}
-                                                </option>
-                                            )
-                                        })}
-                                </select>
-                                <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-                                    <svg className="h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                        <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.293l3.71-4.06a.75.75 0 111.11 1.01l-4.25 4.657a.75.75 0 01-1.11 0L5.23 8.27a.75.75 0 01.0-1.06z" clipRule="evenodd" />
-                                    </svg>
+                        {mode === 'create' && (
+                            <div>
+                                <label className="block text-sm font-medium text-gray-600 mb-2">Hoạt động nông trại</label>
+                                <div className="relative">
+                                    <select
+                                        value={selectedActivityIdLocal ?? ''}
+                                        onChange={(e) => setSelectedActivityIdLocal(e.target.value ? Number(e.target.value) : null)}
+                                        className="block w-full appearance-none bg-white border border-gray-200 rounded-xl px-4 py-2 text-sm text-gray-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-green-100"
+                                    >
+                                        <option value="">-- Không chọn --</option>
+                                        {Array.isArray(availableActivities) &&
+                                            availableActivities.map((a) => {
+                                                const id = (a as any).farmActivitiesId ?? (a as any).farmActivityId ?? (a as any).id
+                                                const rawType = (a as any).activityType ?? (a as any).activityName ?? null
+                                                const label = translateActivityType(String(rawType ?? `Hoạt động #${id}`))
+                                                return (
+                                                    <option key={String(id ?? Math.random())} value={String(id ?? '')}>
+                                                        {label}
+                                                    </option>
+                                                )
+                                            })}
+                                    </select>
+                                    <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
+                                        <svg className="h-4 w-4 text-gray-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                            <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.293l3.71-4.06a.75.75 0 111.11 1.01l-4.25 4.657a.75.75 0 01-1.11 0L5.23 8.27a.75.75 0 01.0-1.06z" clipRule="evenodd" />
+                                        </svg>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        )}
                         <div>
                             <label className="block text-sm font-medium text-gray-600 mb-2">Nội dung</label>
                             <textarea

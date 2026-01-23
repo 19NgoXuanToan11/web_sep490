@@ -728,65 +728,67 @@ const StaffSchedulesPage: React.FC = () => {
                                                                             </p>
                                                                         </div>
                                                                     )}
-                                                                    <div>
-                                                                        <span className="text-sm text-gray-600">Sản lượng đã thu hoạch:</span>
-                                                                        {!isEditingHarvested ? (
-                                                                            <div className="flex items-center gap-2">
-                                                                                <p className="font-medium mt-0.5">
-                                                                                    {formatHarvestedQuantity(selectedScheduleDetail.harvestedQuantity as any)}
-                                                                                </p>
-                                                                                <div>
+                                                                    {selectedScheduleDetail.farmActivityView?.activityType === 'Harvesting' ? (
+                                                                        <div>
+                                                                            <span className="text-sm text-gray-600">Sản lượng đã thu hoạch:</span>
+                                                                            {!isEditingHarvested ? (
+                                                                                <div className="flex items-center gap-2">
+                                                                                    <p className="font-medium mt-0.5">
+                                                                                        {formatHarvestedQuantity(selectedScheduleDetail.harvestedQuantity as any)}
+                                                                                    </p>
+                                                                                    <div>
+                                                                                        <Button
+                                                                                            size="sm"
+                                                                                            variant="outline"
+                                                                                            onClick={(e) => {
+                                                                                                e.stopPropagation()
+                                                                                                handleStartEditHarvested()
+                                                                                            }}
+                                                                                        >
+                                                                                            Cập nhật
+                                                                                        </Button>
+                                                                                    </div>
+                                                                                </div>
+                                                                            ) : (
+                                                                                <div className="flex items-center gap-2">
+                                                                                    <div className="text-sm text-gray-600 mr-2">Nhập sản lượng thu hoạch:</div>
+                                                                                    <input
+                                                                                        type="number"
+                                                                                        step="0.01"
+                                                                                        min="0"
+                                                                                        value={harvestedInput}
+                                                                                        onClick={(e) => e.stopPropagation()}
+                                                                                        onChange={(e) => setHarvestedInput(e.target.value)}
+                                                                                        placeholder="Số lượng"
+                                                                                        aria-label="Sản lượng thu hoạch"
+                                                                                        className="p-1 border rounded w-36"
+                                                                                    />
+                                                                                    <span className="text-sm text-gray-700">kg</span>
+                                                                                    <Button
+                                                                                        size="sm"
+                                                                                        onClick={(e) => {
+                                                                                            e.stopPropagation()
+                                                                                            void handleSaveHarvested()
+                                                                                        }}
+                                                                                        disabled={isSavingHarvested}
+                                                                                    >
+                                                                                        {isSavingHarvested ? 'Đang lưu...' : 'Lưu'}
+                                                                                    </Button>
                                                                                     <Button
                                                                                         size="sm"
                                                                                         variant="outline"
                                                                                         onClick={(e) => {
                                                                                             e.stopPropagation()
-                                                                                            handleStartEditHarvested()
+                                                                                            handleCancelEditHarvested()
                                                                                         }}
+                                                                                        disabled={isSavingHarvested}
                                                                                     >
-                                                                                        Cập nhật
+                                                                                        Hủy
                                                                                     </Button>
                                                                                 </div>
-                                                                            </div>
-                                                                        ) : (
-                                                                            <div className="flex items-center gap-2">
-                                                                                <div className="text-sm text-gray-600 mr-2">Nhập sản lượng thu hoạch:</div>
-                                                                                <input
-                                                                                    type="number"
-                                                                                    step="0.01"
-                                                                                    min="0"
-                                                                                    value={harvestedInput}
-                                                                                    onClick={(e) => e.stopPropagation()}
-                                                                                    onChange={(e) => setHarvestedInput(e.target.value)}
-                                                                                    placeholder="Số lượng"
-                                                                                    aria-label="Sản lượng thu hoạch"
-                                                                                    className="p-1 border rounded w-36"
-                                                                                />
-                                                                                <span className="text-sm text-gray-700">kg</span>
-                                                                                <Button
-                                                                                    size="sm"
-                                                                                    onClick={(e) => {
-                                                                                        e.stopPropagation()
-                                                                                        void handleSaveHarvested()
-                                                                                    }}
-                                                                                    disabled={isSavingHarvested}
-                                                                                >
-                                                                                    {isSavingHarvested ? 'Đang lưu...' : 'Lưu'}
-                                                                                </Button>
-                                                                                <Button
-                                                                                    size="sm"
-                                                                                    variant="outline"
-                                                                                    onClick={(e) => {
-                                                                                        e.stopPropagation()
-                                                                                        handleCancelEditHarvested()
-                                                                                    }}
-                                                                                    disabled={isSavingHarvested}
-                                                                                >
-                                                                                    Hủy
-                                                                                </Button>
-                                                                            </div>
-                                                                        )}
-                                                                    </div>
+                                                                            )}
+                                                                        </div>
+                                                                    ) : null}
                                                                 </div>
                                                             </div>
                                                         )}

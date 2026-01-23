@@ -128,6 +128,8 @@ const StaffSchedulesPage: React.FC = () => {
     const [isEditingHarvested, setIsEditingHarvested] = useState(false)
     const [harvestedInput, setHarvestedInput] = useState<string>('')
     const [isSavingHarvested, setIsSavingHarvested] = useState(false)
+    const [selectedActivityStaffs, setSelectedActivityStaffs] = useState<any[] | null>(null)
+    const [selectedActivityStaffsLoading, setSelectedActivityStaffsLoading] = useState<boolean>(false)
 
     const transformApiSchedule = (apiSchedule: any): DisplaySchedule => {
         const farmActivitiesArray = Array.isArray(apiSchedule.farmActivityView)
@@ -344,6 +346,27 @@ const StaffSchedulesPage: React.FC = () => {
 
         setSelectedScheduleDetail(scheduleCopy)
         setIsScheduleDetailOpen(true)
+        try {
+            const primaryActivityId = scheduleCopy.farmActivityView?.farmActivitiesId ?? (Array.isArray(scheduleCopy.farmActivities) ? scheduleCopy.farmActivities[0]?.farmActivitiesId : undefined)
+            if (primaryActivityId) {
+                void (async () => {
+                    setSelectedActivityStaffsLoading(true)
+                    try {
+                        const staffs = await farmActivityService.getStaffByFarmActivityId(Number(primaryActivityId))
+                        setSelectedActivityStaffs(Array.isArray(staffs) ? staffs : null)
+                    } catch (err) {
+                        console.error('Failed to fetch staffs for activity in schedule detail', err)
+                        setSelectedActivityStaffs(null)
+                    } finally {
+                        setSelectedActivityStaffsLoading(false)
+                    }
+                })()
+            } else {
+                setSelectedActivityStaffs(null)
+            }
+        } catch {
+            setSelectedActivityStaffs(null)
+        }
     }, [])
 
     const formatDateOnly = useCallback((dateString: string) => {
@@ -591,286 +614,323 @@ const StaffSchedulesPage: React.FC = () => {
                         </DialogHeader>
 
                         {selectedScheduleDetail ? (
-                            <div className="space-y-6">
+                            <div className="space-y-10">
                                 <Tabs value={activeTab} onValueChange={(v: any) => setActiveTab(v)}>
                                     <TabsList>
                                         <TabsTrigger value="details">Chi tiết</TabsTrigger>
                                         <TabsTrigger value="logs">Nhật ký</TabsTrigger>
                                     </TabsList>
                                     <TabsContent value="details">
-                                        <Card>
-                                            <CardContent className="p-6">
-                                                <div className="flex flex-col md:flex-row gap-6">
-                                                    <div className="flex-1">
-                                                        <div className="border rounded-md p-4 bg-white shadow-sm h-full">
-                                                            <p className="text-base font-semibold text-gray-900 mt-0">
-                                                                {translateActivityType(selectedScheduleDetail.farmActivityView?.activityType) || 'N/A'}
-                                                            </p>
-                                                            <div className="mt-3">
-                                                                {selectedScheduleDetail.farmActivities && selectedScheduleDetail.farmActivities.length > 0 ? (
-                                                                    <div className="space-y-3">
-                                                                        {selectedScheduleDetail.farmActivities?.map((fa) => {
-                                                                            const isSelected = selectedScheduleDetail.farmActivityView?.farmActivitiesId === fa.farmActivitiesId
-                                                                            return (
-                                                                                <div
-                                                                                    key={fa.farmActivitiesId}
-                                                                                    className={`flex items-center justify-between p-3 rounded ${isSelected ? 'bg-gray-50 border-l-4 border-emerald-400' : ''}`}
-                                                                                    role="group"
-                                                                                    aria-disabled="true"
-                                                                                >
-                                                                                    <div className="min-w-0">
-                                                                                        <div className="text-sm font-medium text-gray-900">
-                                                                                            {translateActivityType(fa.activityType) || 'N/A'}
-                                                                                        </div>
-                                                                                        <div className="text-sm text-gray-600 truncate">
-                                                                                            {formatDateRange(fa.startDate, fa.endDate)}
-                                                                                        </div>
-                                                                                    </div>
-                                                                                    <div className="ml-4">
-                                                                                        <Badge variant={getFarmActivityStatusVariant(fa.status)}>
-                                                                                            {getFarmActivityStatusLabel(fa.status)}
-                                                                                        </Badge>
-                                                                                    </div>
-                                                                                </div>
-                                                                            )
-                                                                        })}
-                                                                    </div>
-                                                                ) : selectedScheduleDetail.farmActivityView ? (
-                                                                    <div>
-                                                                        <p className="text-sm text-gray-600 mt-2 truncate">
-                                                                            {formatDateRange(selectedScheduleDetail.farmActivityView.startDate, selectedScheduleDetail.farmActivityView.endDate)}
-                                                                        </p>
-                                                                        <div className="mt-3">
-                                                                            <Badge variant={getFarmActivityStatusVariant(selectedScheduleDetail.farmActivityView?.status)}>
-                                                                                {getFarmActivityStatusLabel(selectedScheduleDetail.farmActivityView?.status)}
-                                                                            </Badge>
-                                                                        </div>
-                                                                    </div>
-                                                                ) : (
-                                                                    <p className="text-sm text-gray-600 mt-2">Thời gian: N/A</p>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </CardContent>
-                                        </Card>
-
-                                        <Dialog open={isConfirmCompleteOpen} onOpenChange={setIsConfirmCompleteOpen}>
-                                            <DialogContent className="max-w-lg">
-                                                <DialogHeader>
-                                                    <DialogTitle>Xác nhận hoàn thành</DialogTitle>
-                                                </DialogHeader>
-                                                <div className="py-4">
-                                                    <p>Bạn có chắc muốn đánh dấu hoạt động này là <strong>Hoàn thành</strong> không?</p>
-                                                </div>
-                                                <div className="py-2">
-                                                    <Label>Ghi chú</Label>
-                                                    <textarea
-                                                        value={completeNote}
-                                                        onChange={(e) => setCompleteNote(e.target.value)}
-                                                        className="w-full p-2 border rounded"
-                                                        rows={3}
-                                                        placeholder="Ghi chú thêm (không bắt buộc)"
-                                                    />
-                                                </div>
-                                                <div className="flex justify-end gap-2">
-                                                    <Button
-                                                        variant="outline"
-                                                        onClick={() => setIsConfirmCompleteOpen(false)}
-                                                        disabled={isCompleting}
-                                                    >
-                                                        Hủy
-                                                    </Button>
-                                                    <Button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation()
-                                                            setIsConfirmCompleteOpen(false)
-                                                            void handleCompleteFarmActivity()
-                                                        }}
-                                                        disabled={isCompleting}
-                                                    >
-                                                        {isCompleting ? 'Đang xử lý...' : 'Xác nhận'}
-                                                    </Button>
-                                                </div>
-                                            </DialogContent>
-                                        </Dialog>
-
-                                        {(selectedScheduleDetail.farmView || selectedScheduleDetail.cropView) && (
-                                            <Card>
-                                                <CardContent className="p-4">
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                        {selectedScheduleDetail.farmView && (
-                                                            <div className="space-y-3">
-                                                                <h3 className="text-base font-semibold text-gray-700 border-b pb-2">
-                                                                    Thông tin nông trại
-                                                                </h3>
-                                                                <div className="space-y-2">
-                                                                    <div>
-                                                                        <span className="text-sm text-gray-600">Tên nông trại:</span>
-                                                                        <p className="font-medium mt-0.5">
-                                                                            {selectedScheduleDetail.farmView.farmName || 'N/A'}
-                                                                        </p>
-                                                                    </div>
-                                                                    {selectedScheduleDetail.farmView.location && (
+                                        <div className="space-y-8">
+                                            {(selectedScheduleDetail.farmView || selectedScheduleDetail.cropView) && (
+                                                <Card className="mb-4">
+                                                    <CardContent className="p-6">
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                                            {selectedScheduleDetail.farmView && (
+                                                                <div className="space-y-3">
+                                                                    <h3 className="text-base font-semibold text-gray-700 border-b pb-2">
+                                                                        Thông tin nông trại
+                                                                    </h3>
+                                                                    <div className="space-y-2">
                                                                         <div>
-                                                                            <span className="text-sm text-gray-600">Địa điểm:</span>
+                                                                            <span className="text-sm text-gray-600">Tên nông trại:</span>
                                                                             <p className="font-medium mt-0.5">
-                                                                                {selectedScheduleDetail.farmView.location}
+                                                                                {selectedScheduleDetail.farmView.farmName || 'N/A'}
                                                                             </p>
                                                                         </div>
-                                                                    )}
-                                                                    {selectedScheduleDetail.farmView.createdAt && (
-                                                                        <div>
-                                                                            <span className="text-sm text-gray-600">Ngày tạo:</span>
-                                                                            <p className="font-medium mt-0.5">
-                                                                                {formatDateOnly(selectedScheduleDetail.farmView.createdAt)}
-                                                                            </p>
-                                                                        </div>
-                                                                    )}
-                                                                    {selectedScheduleDetail.farmActivityView?.activityType === 'Harvesting' ? (
-                                                                        <div>
-                                                                            <span className="text-sm text-gray-600">Sản lượng đã thu hoạch:</span>
-                                                                            {!isEditingHarvested ? (
-                                                                                <div className="flex items-center gap-2">
-                                                                                    <p className="font-medium mt-0.5">
-                                                                                        {formatHarvestedQuantity(selectedScheduleDetail.harvestedQuantity as any)}
-                                                                                    </p>
-                                                                                    <div>
+                                                                        {selectedScheduleDetail.farmView.location && (
+                                                                            <div>
+                                                                                <span className="text-sm text-gray-600">Địa điểm:</span>
+                                                                                <p className="font-medium mt-0.5">
+                                                                                    {selectedScheduleDetail.farmView.location}
+                                                                                </p>
+                                                                            </div>
+                                                                        )}
+                                                                        {selectedScheduleDetail.farmView.createdAt && (
+                                                                            <div>
+                                                                                <span className="text-sm text-gray-600">Ngày tạo:</span>
+                                                                                <p className="font-medium mt-0.5">
+                                                                                    {formatDateOnly(selectedScheduleDetail.farmView.createdAt)}
+                                                                                </p>
+                                                                            </div>
+                                                                        )}
+                                                                        {selectedScheduleDetail.farmActivityView?.activityType === 'Harvesting' ? (
+                                                                            <div>
+                                                                                <span className="text-sm text-gray-600">Sản lượng đã thu hoạch:</span>
+                                                                                {!isEditingHarvested ? (
+                                                                                    <div className="flex items-center gap-2">
+                                                                                        <p className="font-medium mt-0.5">
+                                                                                            {formatHarvestedQuantity(selectedScheduleDetail.harvestedQuantity as any)}
+                                                                                        </p>
+                                                                                        <div>
+                                                                                            <Button
+                                                                                                size="sm"
+                                                                                                variant="outline"
+                                                                                                onClick={(e) => {
+                                                                                                    e.stopPropagation()
+                                                                                                    handleStartEditHarvested()
+                                                                                                }}
+                                                                                            >
+                                                                                                Cập nhật
+                                                                                            </Button>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                ) : (
+                                                                                    <div className="flex items-center gap-2">
+                                                                                        <div className="text-sm text-gray-600 mr-2">Nhập sản lượng thu hoạch:</div>
+                                                                                        <input
+                                                                                            type="number"
+                                                                                            step="0.01"
+                                                                                            min="0"
+                                                                                            value={harvestedInput}
+                                                                                            onClick={(e) => e.stopPropagation()}
+                                                                                            onChange={(e) => setHarvestedInput(e.target.value)}
+                                                                                            placeholder="Số lượng"
+                                                                                            aria-label="Sản lượng thu hoạch"
+                                                                                            className="p-1 border rounded w-36"
+                                                                                        />
+                                                                                        <span className="text-sm text-gray-700">kg</span>
+                                                                                        <Button
+                                                                                            size="sm"
+                                                                                            onClick={(e) => {
+                                                                                                e.stopPropagation()
+                                                                                                void handleSaveHarvested()
+                                                                                            }}
+                                                                                            disabled={isSavingHarvested}
+                                                                                        >
+                                                                                            {isSavingHarvested ? 'Đang lưu...' : 'Lưu'}
+                                                                                        </Button>
                                                                                         <Button
                                                                                             size="sm"
                                                                                             variant="outline"
                                                                                             onClick={(e) => {
                                                                                                 e.stopPropagation()
-                                                                                                handleStartEditHarvested()
+                                                                                                handleCancelEditHarvested()
                                                                                             }}
+                                                                                            disabled={isSavingHarvested}
                                                                                         >
-                                                                                            Cập nhật
+                                                                                            Hủy
                                                                                         </Button>
                                                                                     </div>
-                                                                                </div>
-                                                                            ) : (
-                                                                                <div className="flex items-center gap-2">
-                                                                                    <div className="text-sm text-gray-600 mr-2">Nhập sản lượng thu hoạch:</div>
-                                                                                    <input
-                                                                                        type="number"
-                                                                                        step="0.01"
-                                                                                        min="0"
-                                                                                        value={harvestedInput}
-                                                                                        onClick={(e) => e.stopPropagation()}
-                                                                                        onChange={(e) => setHarvestedInput(e.target.value)}
-                                                                                        placeholder="Số lượng"
-                                                                                        aria-label="Sản lượng thu hoạch"
-                                                                                        className="p-1 border rounded w-36"
-                                                                                    />
-                                                                                    <span className="text-sm text-gray-700">kg</span>
-                                                                                    <Button
-                                                                                        size="sm"
-                                                                                        onClick={(e) => {
-                                                                                            e.stopPropagation()
-                                                                                            void handleSaveHarvested()
-                                                                                        }}
-                                                                                        disabled={isSavingHarvested}
-                                                                                    >
-                                                                                        {isSavingHarvested ? 'Đang lưu...' : 'Lưu'}
-                                                                                    </Button>
-                                                                                    <Button
-                                                                                        size="sm"
-                                                                                        variant="outline"
-                                                                                        onClick={(e) => {
-                                                                                            e.stopPropagation()
-                                                                                            handleCancelEditHarvested()
-                                                                                        }}
-                                                                                        disabled={isSavingHarvested}
-                                                                                    >
-                                                                                        Hủy
-                                                                                    </Button>
-                                                                                </div>
-                                                                            )}
-                                                                        </div>
-                                                                    ) : null}
+                                                                                )}
+                                                                            </div>
+                                                                        ) : null}
+                                                                    </div>
                                                                 </div>
-                                                            </div>
-                                                        )}
+                                                            )}
 
-                                                        {selectedScheduleDetail.cropView && (
-                                                            <div className="space-y-3">
-                                                                <h3 className="text-base font-semibold text-gray-700 border-b pb-2">
-                                                                    Thông tin cây trồng
-                                                                </h3>
-                                                                <div className="space-y-2">
-                                                                    <div>
-                                                                        <span className="text-sm text-gray-600">Tên cây trồng:</span>
-                                                                        <p className="font-medium mt-0.5">
-                                                                            {selectedScheduleDetail.cropView.cropName || 'N/A'}
-                                                                        </p>
-                                                                    </div>
-                                                                    <div>
-                                                                        <span className="text-sm text-gray-600">Số lượng:</span>
-                                                                        <p className="font-medium mt-0.5">
-                                                                            {selectedScheduleDetail.quantity ?? 0}
-                                                                        </p>
-                                                                    </div>
-                                                                    <div>
-                                                                        <span className="text-sm text-gray-600">Thuốc BVTV:</span>
-                                                                        <p className="font-medium mt-0.5">
-                                                                            {selectedScheduleDetail.pesticideUsed ? 'Có' : 'Không'}
-                                                                        </p>
-                                                                    </div>
-                                                                    <div>
-                                                                        <span className="text-sm text-gray-600">Tình trạng bệnh:</span>
-                                                                        <p className="font-medium mt-0.5">
-                                                                            {getDiseaseStatusLabel(selectedScheduleDetail.diseaseStatus)}
-                                                                        </p>
-                                                                    </div>
-                                                                    {selectedScheduleDetail.cropView.description && (
+                                                            {selectedScheduleDetail.cropView && (
+                                                                <div className="space-y-3">
+                                                                    <h3 className="text-base font-semibold text-gray-700 border-b pb-2">
+                                                                        Thông tin cây trồng
+                                                                    </h3>
+                                                                    <div className="space-y-2">
                                                                         <div>
-                                                                            <span className="text-sm text-gray-600">Mô tả:</span>
-                                                                            <p className="text-sm text-gray-700 mt-0.5">
-                                                                                {selectedScheduleDetail.cropView.description}
+                                                                            <span className="text-sm text-gray-600">Tên cây trồng:</span>
+                                                                            <p className="font-medium mt-0.5">
+                                                                                {selectedScheduleDetail.cropView.cropName || 'N/A'}
                                                                             </p>
                                                                         </div>
-                                                                    )}
-                                                                    {selectedScheduleDetail.cropView.status && (
                                                                         <div>
-                                                                            <span className="text-sm text-gray-600">Trạng thái:</span>
-                                                                            <div className="mt-0.5">
-                                                                                <Badge variant={selectedScheduleDetail.cropView.status === 'ACTIVE' ? 'default' : 'secondary'}>
-                                                                                    {selectedScheduleDetail.cropView.status === 'ACTIVE' ? 'Hoạt động' : 'Tạm dừng'}
-                                                                                </Badge>
+                                                                            <span className="text-sm text-gray-600">Số lượng:</span>
+                                                                            <p className="font-medium mt-0.5">
+                                                                                {selectedScheduleDetail.quantity ?? 0}
+                                                                            </p>
+                                                                        </div>
+                                                                        <div>
+                                                                            <span className="text-sm text-gray-600">Thuốc BVTV:</span>
+                                                                            <p className="font-medium mt-0.5">
+                                                                                {selectedScheduleDetail.pesticideUsed ? 'Có' : 'Không'}
+                                                                            </p>
+                                                                        </div>
+                                                                        <div>
+                                                                            <span className="text-sm text-gray-600">Tình trạng bệnh:</span>
+                                                                            <p className="font-medium mt-0.5">
+                                                                                {getDiseaseStatusLabel(selectedScheduleDetail.diseaseStatus)}
+                                                                            </p>
+                                                                        </div>
+                                                                        {selectedScheduleDetail.cropView.description && (
+                                                                            <div>
+                                                                                <span className="text-sm text-gray-600">Mô tả:</span>
+                                                                                <p className="text-sm text-gray-700 mt-0.5">
+                                                                                    {selectedScheduleDetail.cropView.description}
+                                                                                </p>
+                                                                            </div>
+                                                                        )}
+                                                                        {selectedScheduleDetail.cropView.status && (
+                                                                            <div>
+                                                                                <span className="text-sm text-gray-600">Trạng thái:</span>
+                                                                                <div className="mt-0.5">
+                                                                                    <Badge variant={selectedScheduleDetail.cropView.status === 'ACTIVE' ? 'default' : 'secondary'}>
+                                                                                        {selectedScheduleDetail.cropView.status === 'ACTIVE' ? 'Hoạt động' : 'Tạm dừng'}
+                                                                                    </Badge>
+                                                                                </div>
+                                                                            </div>
+                                                                        )}
+                                                                        {selectedScheduleDetail.cropView.origin && (
+                                                                            <div>
+                                                                                <span className="text-sm text-gray-600">Nguồn gốc:</span>
+                                                                                <p className="font-medium mt-0.5">{selectedScheduleDetail.cropView.origin}</p>
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                        <Card className="mb-4">
+                                                            <CardContent className="p-8">
+                                                                <div className="flex flex-col md:flex-row gap-8">
+                                                                    <div className="flex-1">
+                                                                        <div className="border rounded-md p-6 bg-white shadow-sm h-full">
+                                                                            <div className="mt-3">
+                                                                                {selectedScheduleDetail.farmActivities && selectedScheduleDetail.farmActivities.length > 0 ? (
+                                                                                    <div className="space-y-3">
+                                                                                        {selectedScheduleDetail.farmActivities?.map((fa) => {
+                                                                                            const isSelected = selectedScheduleDetail.farmActivityView?.farmActivitiesId === fa.farmActivitiesId
+                                                                                            return (
+                                                                                                <div
+                                                                                                    key={fa.farmActivitiesId}
+                                                                                                    className={`flex items-center justify-between p-3 rounded ${isSelected ? 'bg-gray-50 border-l-4 border-emerald-400' : ''}`}
+                                                                                                    role="group"
+                                                                                                    aria-disabled="true"
+                                                                                                >
+                                                                                                    <div className="min-w-0">
+                                                                                                        <div className="text-sm font-medium text-gray-900">
+                                                                                                            {translateActivityType(fa.activityType) || 'N/A'}
+                                                                                                        </div>
+                                                                                                        <div className="text-sm text-gray-600 truncate">
+                                                                                                            {formatDateRange(fa.startDate, fa.endDate)}
+                                                                                                        </div>
+                                                                                                    </div>
+                                                                                                    <div className="ml-4">
+                                                                                                        <Badge variant={getFarmActivityStatusVariant(fa.status)}>
+                                                                                                            {getFarmActivityStatusLabel(fa.status)}
+                                                                                                        </Badge>
+                                                                                                    </div>
+                                                                                                </div>
+                                                                                            )
+                                                                                        })}
+                                                                                    </div>
+                                                                                ) : selectedScheduleDetail.farmActivityView ? (
+                                                                                    <div>
+                                                                                        <p className="text-sm text-gray-600 mt-2 truncate">
+                                                                                            {formatDateRange(selectedScheduleDetail.farmActivityView.startDate, selectedScheduleDetail.farmActivityView.endDate)}
+                                                                                        </p>
+                                                                                        <div className="mt-3">
+                                                                                            <Badge variant={getFarmActivityStatusVariant(selectedScheduleDetail.farmActivityView?.status)}>
+                                                                                                {getFarmActivityStatusLabel(selectedScheduleDetail.farmActivityView?.status)}
+                                                                                            </Badge>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                ) : (
+                                                                                    <p className="text-sm text-gray-600 mt-2">Thời gian: N/A</p>
+                                                                                )}
                                                                             </div>
                                                                         </div>
-                                                                    )}
-                                                                    {selectedScheduleDetail.cropView.origin && (
-                                                                        <div>
-                                                                            <span className="text-sm text-gray-600">Nguồn gốc:</span>
-                                                                            <p className="font-medium mt-0.5">{selectedScheduleDetail.cropView.origin}</p>
-                                                                        </div>
-                                                                    )}
+                                                                    </div>
                                                                 </div>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </CardContent>
-                                            </Card>
-                                        )}
+                                                            </CardContent>
+                                                        </Card>
 
-                                        <div className="flex justify-end px-4">
-                                            {selectedScheduleDetail?.farmActivityView &&
-                                                selectedScheduleDetail.farmActivityView.status !== 'COMPLETED' && (
-                                                    <div className="mt-4">
-                                                        <Button
-                                                            onClick={(e) => {
-                                                                e.stopPropagation()
-                                                                setIsConfirmCompleteOpen(true)
-                                                            }}
-                                                            disabled={isCompleting}
-                                                            className="rounded-md"
-                                                        >
-                                                            {isCompleting ? 'Đang xử lý...' : 'Hoàn thành'}
-                                                        </Button>
-                                                    </div>
-                                                )}
+                                                        <Dialog open={isConfirmCompleteOpen} onOpenChange={setIsConfirmCompleteOpen}>
+                                                            <DialogContent className="max-w-lg">
+                                                                <DialogHeader>
+                                                                    <DialogTitle>Xác nhận hoàn thành</DialogTitle>
+                                                                </DialogHeader>
+                                                                <div className="py-4">
+                                                                    <p>Bạn có chắc muốn đánh dấu hoạt động này là <strong>Hoàn thành</strong> không?</p>
+                                                                </div>
+                                                                <div className="py-2">
+                                                                    <Label>Ghi chú</Label>
+                                                                    <textarea
+                                                                        value={completeNote}
+                                                                        onChange={(e) => setCompleteNote(e.target.value)}
+                                                                        className="w-full p-2 border rounded"
+                                                                        rows={3}
+                                                                        placeholder="Ghi chú thêm (không bắt buộc)"
+                                                                    />
+                                                                </div>
+                                                                <div className="flex justify-end gap-2">
+                                                                    <Button
+                                                                        variant="outline"
+                                                                        onClick={() => setIsConfirmCompleteOpen(false)}
+                                                                        disabled={isCompleting}
+                                                                    >
+                                                                        Hủy
+                                                                    </Button>
+                                                                    <Button
+                                                                        onClick={(e) => {
+                                                                            e.stopPropagation()
+                                                                            setIsConfirmCompleteOpen(false)
+                                                                            void handleCompleteFarmActivity()
+                                                                        }}
+                                                                        disabled={isCompleting}
+                                                                    >
+                                                                        {isCompleting ? 'Đang xử lý...' : 'Xác nhận'}
+                                                                    </Button>
+                                                                </div>
+                                                            </DialogContent>
+                                                        </Dialog>
+
+                                                        <Card className="mb-4">
+                                                            <CardContent className="p-6">
+                                                                <h3 className="text-base font-semibold text-gray-700 border-b pb-2 mb-3">Nhân sự được phân công</h3>
+                                                                {selectedActivityStaffsLoading ? (
+                                                                    <div className="p-3">Đang tải nhân sự...</div>
+                                                                ) : selectedActivityStaffs && selectedActivityStaffs.length > 0 ? (
+                                                                    <div className="space-y-3">
+                                                                        {selectedActivityStaffs.map((staffRec: any, idx: number) => {
+                                                                            const assignedVal = staffRec.status ?? staffRec.Status ?? ''
+                                                                            const assignedVariant = getFarmActivityStatusVariant(assignedVal)
+                                                                            const assignedLabel = getFarmActivityStatusLabel(assignedVal)
+                                                                            const individualVal = staffRec.individualStatus ?? staffRec.individualstatus ?? ''
+                                                                            const individualVariant = getFarmActivityStatusVariant(individualVal)
+                                                                            const individualLabel = getFarmActivityStatusLabel(individualVal)
+                                                                            return (
+                                                                                <div key={String(staffRec.id ?? staffRec.staffId ?? idx)} className="p-4 bg-muted/50 rounded border flex items-start justify-between">
+                                                                                    <div>
+                                                                                        <div className="font-medium">{staffRec.staffFullName ?? staffRec.staffName ?? staffRec.name ?? 'Chưa có'}</div>
+                                                                                        {staffRec.staffEmail ?? staffRec.email ? <div className="text-sm text-muted-foreground">Email: {staffRec.staffEmail ?? staffRec.email}</div> : null}
+                                                                                        {individualVal ? (
+                                                                                            <div className="mt-2 text-sm">
+                                                                                                <span className="text-muted-foreground mr-2"><strong>Trạng thái công việc:</strong></span>
+                                                                                                <Badge variant={individualVariant as any} className="text-xs">{individualLabel}</Badge>
+                                                                                            </div>
+                                                                                        ) : null}
+                                                                                    </div>
+                                                                                    <div className="flex flex-col items-end gap-2">
+                                                                                        <Badge variant={assignedVariant as any} className="text-sm">{assignedLabel}</Badge>
+                                                                                    </div>
+                                                                                </div>
+                                                                            )
+                                                                        })}
+                                                                    </div>
+                                                                ) : (
+                                                                    <div className="p-3">Chưa có nhân sự được gán</div>
+                                                                )}
+                                                            </CardContent>
+                                                        </Card>
+
+                                                        <div className="flex justify-end px-4">
+                                                            {selectedScheduleDetail?.farmActivityView &&
+                                                                selectedScheduleDetail.farmActivityView.status !== 'COMPLETED' && (
+                                                                    <div className="mt-4">
+                                                                        <Button
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation()
+                                                                                setIsConfirmCompleteOpen(true)
+                                                                            }}
+                                                                            disabled={isCompleting}
+                                                                            className="rounded-md"
+                                                                        >
+                                                                            {isCompleting ? 'Đang xử lý...' : 'Hoàn thành'}
+                                                                        </Button>
+                                                                    </div>
+                                                                )}
+                                                        </div>
+                                                    </CardContent>
+                                                </Card>
+                                            )}
                                         </div>
                                     </TabsContent>
 

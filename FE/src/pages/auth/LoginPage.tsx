@@ -133,10 +133,12 @@ export const LoginPage: React.FC = () => {
                   <Button
                     type="submit"
                     size="lg"
-                    className="w-full bg-brand text-white hover:bg-brand-hover"
+                    className="w-full bg-brand text-white hover:bg-brand-hover relative overflow-hidden group transition-all duration-700 ease-out hover:bg-transparent hover:backdrop-blur-md hover:border-white/30 hover:shadow-2xl hover:shadow-white/10 before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-1000 before:ease-out after:absolute after:inset-0 after:bg-gradient-to-r after:from-white/10 after:via-white/30 after:to-white/10 after:opacity-0 hover:after:opacity-100 after:transition-opacity after:duration-500 after:blur-sm"
                     disabled={isSubmitting}
                   >
-                    {isSubmitting ? 'Đang đăng nhập…' : 'Đăng nhập'}
+                    <span className="relative z-10 transition-colors duration-300 group-hover:text-white/90">
+                      {isSubmitting ? 'Đang đăng nhập…' : 'Đăng nhập'}
+                    </span>
                   </Button>
                 </form>
               </CardContent>

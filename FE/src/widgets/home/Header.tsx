@@ -39,18 +39,17 @@ export const Header: React.FC = () => {
 
   return (
     <motion.header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled
-          ? 'bg-white/95 backdrop-blur-md shadow-lg border-b border-border/50'
-          : 'bg-transparent'
-      }`}
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isScrolled
+        ? 'bg-white/95 backdrop-blur-md shadow-lg border-b border-border/50'
+        : 'bg-transparent'
+        }`}
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.6 }}
     >
       <nav className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
-          {}
+          { }
           <motion.div
             className="flex items-center space-x-3"
             whileHover={{ scale: 1.05 }}
@@ -65,39 +64,37 @@ export const Header: React.FC = () => {
             </div>
           </motion.div>
 
-          {}
+          { }
           <div className="hidden lg:flex items-center space-x-8">
             {navigationItems.map((item, index) => (
               <button
                 key={index}
                 onClick={() => scrollToSection(item.href)}
-                className={`font-medium transition-colors duration-200 hover:text-brand ${
-                  isScrolled ? 'text-foreground' : 'text-white'
-                }`}
+                className={`font-medium transition-colors duration-200 hover:text-brand ${isScrolled ? 'text-foreground' : 'text-white'
+                  }`}
               >
                 {item.name}
               </button>
             ))}
           </div>
 
-          {}
+          { }
           <div className="hidden lg:flex items-center space-x-3 mx-6" />
 
-          {}
+          { }
           <div className="flex items-center space-x-3">
-            {}
+            { }
             <Button
-              className="hidden lg:inline-flex bg-brand hover:bg-brand-hover text-white"
+              className="hidden lg:inline-flex bg-brand text-white transition-colors duration-300 ease-out shadow-sm hover:bg-transparent hover:text-black hover:shadow-lg hover:border hover:border-white/10 rounded-md px-4 py-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/30"
               onClick={() => navigate('/login')}
             >
               Đăng nhập
             </Button>
 
-            {}
+            { }
             <button
-              className={`lg:hidden p-2 rounded-md transition-colors duration-200 ${
-                isScrolled ? 'text-foreground hover:bg-muted' : 'text-white hover:bg-white/10'
-              }`}
+              className={`lg:hidden p-2 rounded-md transition-colors duration-200 ${isScrolled ? 'text-foreground hover:bg-muted' : 'text-white hover:bg-white/10'
+                }`}
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             >
               {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -105,7 +102,7 @@ export const Header: React.FC = () => {
           </div>
         </div>
 
-        {}
+        { }
         <AnimatePresence>
           {isMobileMenuOpen && (
             <motion.div
@@ -130,7 +127,7 @@ export const Header: React.FC = () => {
                     </motion.button>
                   ))}
 
-                  {}
+                  { }
                   <div className="border-t border-border pt-4 mt-4" />
 
                   <motion.div
@@ -139,7 +136,7 @@ export const Header: React.FC = () => {
                     transition={{ delay: (navigationItems.length + roleItems.length) * 0.1 }}
                   >
                     <Button
-                      className="w-full bg-brand hover:bg-brand-hover text-white mt-4"
+                      className="w-full bg-brand text-white transition-colors duration-300 ease-out shadow-sm hover:bg-transparent hover:text-black hover:shadow-lg hover:border hover:border-white/10 rounded-md px-4 py-2 mt-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/30"
                       onClick={() => navigate('/login')}
                     >
                       Đăng nhập
@@ -168,3 +165,4 @@ export const Header: React.FC = () => {
     </motion.header>
   )
 }
+

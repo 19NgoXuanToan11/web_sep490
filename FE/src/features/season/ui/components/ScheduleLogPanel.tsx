@@ -15,7 +15,6 @@ function ScheduleLogPanel({ scheduleId, onEdit, registerUpdater }: { scheduleId:
   const [farmActivityNames, setFarmActivityNames] = useState<Record<number, string>>({})
 
   const PAGE_SIZE = 5
-  const VISIBLE_THRESHOLD = PAGE_SIZE
   const containerRef = React.useRef<HTMLDivElement | null>(null)
   const loadingRef = React.useRef(false)
 

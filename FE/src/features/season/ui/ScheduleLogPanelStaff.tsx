@@ -3,7 +3,7 @@ import { Button } from '@/shared/ui/button'
 import { Loader2, Edit } from 'lucide-react'
 import { scheduleLogService, type ScheduleLogItem } from '@/shared/api/scheduleLogService'
 
-export default function ScheduleLogPanelStaff({ scheduleId, onEdit, registerUpdater }: { scheduleId: number; onEdit: (log: ScheduleLogItem) => void; registerUpdater?: (fn: (item: ScheduleLogItem | { id: number }, mode: 'create' | 'update' | 'delete') => void) => void }) {
+export default function ScheduleLogPanelStaff({ scheduleId, farmActivityId, onEdit, registerUpdater }: { scheduleId: number; farmActivityId?: number | null; onEdit: (log: ScheduleLogItem) => void; registerUpdater?: (fn: (item: ScheduleLogItem | { id: number }, mode: 'create' | 'update' | 'delete') => void) => void }) {
     const [logs, setLogs] = useState<ScheduleLogItem[]>([])
     const [_page, setPage] = useState(1)
     const [hasMore, setHasMore] = useState(true)
@@ -53,10 +53,24 @@ export default function ScheduleLogPanelStaff({ scheduleId, onEdit, registerUpda
         setLoading(true)
         try {
             const data = await scheduleLogService.getLogsBySchedule(scheduleId, p, PAGE_SIZE)
+            let items: ScheduleLogItem[] = (data.items || []).slice()
+            if (farmActivityId != null) {
+                items = items.filter(it => {
+                    const fid = (it.farmActivityId ?? (it as any).farm_activity_id ?? null)
+                    return fid != null && Number(fid) === Number(farmActivityId)
+                })
+            }
+            items.sort((a, b) => {
+                const ta = a.createdAt ?? a.updatedAt ?? null
+                const tb = b.createdAt ?? b.updatedAt ?? null
+                const da = ta ? new Date(ta).getTime() : (a.id || 0)
+                const db = tb ? new Date(tb).getTime() : (b.id || 0)
+                return db - da
+            })
             if (p === 1) {
-                setLogs(data.items || [])
+                setLogs(items)
             } else {
-                setLogs(prev => [...prev, ...(data.items || [])])
+                setLogs(prev => [...prev, ...items])
             }
             setPage(data.pageIndex || p)
             setHasMore((data.items?.length || 0) >= PAGE_SIZE)
@@ -98,11 +112,22 @@ export default function ScheduleLogPanelStaff({ scheduleId, onEdit, registerUpda
             ) : (
                 <>
                     <div className="space-y-2 max-h-80 overflow-y-auto" ref={containerRef}>
-                        {logs.map(l => {
+                        {logs.map((l, idx) => {
+                            const isLatest = idx === 0
                             return (
-                                <div key={l.id} className="p-3 border rounded-md flex items-start justify-between">
+                                <div
+                                    key={l.id}
+                                    className={`p-3 border rounded-md flex items-start justify-between ${isLatest ? 'bg-green-50 border-green-200' : ''}`}
+                                >
                                     <div className="min-w-0">
-                                        <div className="text-xs text-muted-foreground">{safeFormat(l.createdAt ?? undefined)}</div>
+                                        <div className="flex items-center gap-2">
+                                            <div className="text-xs text-muted-foreground">{safeFormat(l.createdAt ?? undefined)}</div>
+                                            {isLatest ? (
+                                                <div className="text-xs text-white bg-emerald-600 rounded-full px-2 py-0.5 font-medium">
+                                                    Mới nhất
+                                                </div>
+                                            ) : null}
+                                        </div>
                                         <div className="font-medium truncate">{(l.notes || '').split('\n')[0]}</div>
                                         <div className="text-xs text-muted-foreground mt-1">
                                             <div>

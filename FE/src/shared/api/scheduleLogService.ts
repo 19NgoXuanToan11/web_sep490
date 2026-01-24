@@ -94,4 +94,18 @@ export const scheduleLogService = {
     const res = await http.put('/v1/schedule-log/update-log', body)
     return res.data
   },
+
+  async checkToday(farmActivityId: number, scheduleId: number) {
+    const url = `/v1/schedule-log/check-today?farmActivityId=${farmActivityId}&scheduleId=${scheduleId}`
+    const res = await http.get<any>(url)
+    const raw = res.data
+    const payload = raw?.data ?? raw
+    const exists =
+      payload?.exists ??
+      payload?.Exists ??
+      payload?.Data?.Exists ??
+      payload?.data?.exists ??
+      false
+    return { exists: Boolean(exists), data: payload }
+  },
 }

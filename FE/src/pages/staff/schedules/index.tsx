@@ -347,6 +347,14 @@ const StaffSchedulesPage: React.FC = () => {
         setSelectedScheduleDetail(scheduleCopy)
         setIsScheduleDetailOpen(true)
         try {
+            const primaryActivityId =
+                scheduleCopy.farmActivityView?.farmActivitiesId ??
+                (Array.isArray(scheduleCopy.farmActivities) ? scheduleCopy.farmActivities[0]?.farmActivitiesId : undefined)
+            setSelectedFarmActivityId(primaryActivityId ?? null)
+        } catch {
+            setSelectedFarmActivityId(null)
+        }
+        try {
             const primaryActivityId = scheduleCopy.farmActivityView?.farmActivitiesId ?? (Array.isArray(scheduleCopy.farmActivities) ? scheduleCopy.farmActivities[0]?.farmActivitiesId : undefined)
             if (primaryActivityId) {
                 void (async () => {
@@ -377,6 +385,7 @@ const StaffSchedulesPage: React.FC = () => {
         setIsScheduleDetailOpen(open)
         if (!open) {
             setSelectedScheduleDetail(null)
+            setSelectedFarmActivityId(null)
         }
     }, [])
 
@@ -437,9 +446,14 @@ const StaffSchedulesPage: React.FC = () => {
             const end = parseDateString(fa.endDate) ?? undefined
 
             const color = statusToColor(fa.status)
+            const normalizedFarmActivityId =
+                Number(fa?.farmActivitiesId ?? fa?.farmActivityId ?? fa?.farm_activity_id ?? fa?.id ?? null) || null
+            const normalizedScheduleId = String(s?.id ?? s?.scheduleId ?? s?.scheduleId ?? '')
+
+            const eventId = `${normalizedScheduleId}-${normalizedFarmActivityId ?? Math.random().toString(36).slice(2, 8)}`
 
             return {
-                id: `${String(s.id)}-${String(fa.farmActivitiesId ?? Math.random().toString(36).slice(2, 8))}`,
+                id: eventId,
                 title,
                 start,
                 end,
@@ -447,12 +461,46 @@ const StaffSchedulesPage: React.FC = () => {
                 backgroundColor: color,
                 borderColor: color,
                 extendedProps: { original: { schedule: s, activity: fa } },
+                farmActivityId: normalizedFarmActivityId,
+                scheduleId: normalizedScheduleId,
             }
         })
     }, [calendarActivityEntries, parseDateString, statusToColor])
 
+    const [logExistsMap, setLogExistsMap] = useState<Record<string, boolean>>({})
+
+    useEffect(() => {
+        let mounted = true
+        if (!calendarActivityEntries || calendarActivityEntries.length === 0) {
+            setLogExistsMap({})
+            return
+        }
+
+        void (async () => {
+            const resultMap: Record<string, boolean> = {}
+            await Promise.all(calendarActivityEntries.map(async ({ schedule: s, activity: fa }) => {
+                try {
+                    const farmActivityId =
+                        Number(fa?.farmActivitiesId ?? fa?.farmActivityId ?? fa?.farm_activity_id ?? fa?.id ?? null) || null
+                    const scheduleId = String(s?.id ?? s?.scheduleId ?? s?.scheduleId ?? '')
+                    if (!farmActivityId || !scheduleId) return
+                    const res: any = await scheduleLogService.checkToday(farmActivityId, Number(scheduleId))
+                    const exists = res?.exists ?? res?.data?.Exists ?? res?.data?.exists ?? false
+                    const eventId = `${scheduleId}-${String(farmActivityId)}`
+                    resultMap[eventId] = Boolean(exists)
+                } catch (e) {
+                }
+            }))
+
+            if (mounted) setLogExistsMap(resultMap)
+        })()
+
+        return () => { mounted = false }
+    }, [calendarActivityEntries])
+
     const [activeTab, setActiveTab] = useState<'details' | 'logs'>('details')
     const [showLogModal, setShowLogModal] = useState(false)
+    const [selectedFarmActivityId, setSelectedFarmActivityId] = useState<number | null>(null)
     const [logModalMode, setLogModalMode] = useState<'create' | 'edit'>('create')
     const [editingLog, setEditingLog] = useState<ScheduleLogItem | null>(null)
     const externalLogUpdaterRef = useRef<((item: ScheduleLogItem | { id: number }, mode: 'create' | 'update' | 'delete') => void) | null>(null)
@@ -491,9 +539,10 @@ const StaffSchedulesPage: React.FC = () => {
         setShowLogModal(true)
     }
 
-    const openLogsForSchedule = (schedule: DisplaySchedule | null) => {
+    const openLogsForSchedule = (schedule: DisplaySchedule | null, farmActivityId?: number | null) => {
         if (!schedule) return
         setSelectedScheduleDetail(schedule)
+        setSelectedFarmActivityId(farmActivityId ?? (schedule?.farmActivityView?.farmActivitiesId ?? (Array.isArray(schedule?.farmActivities) ? schedule.farmActivities[0]?.farmActivitiesId : null)) ?? null)
         setActiveTab('logs')
         setIsScheduleDetailOpen(true)
     }
@@ -504,7 +553,13 @@ const StaffSchedulesPage: React.FC = () => {
         if (raw && raw.schedule) scheduleRaw = raw.schedule
         const schedule = transformApiSchedule(scheduleRaw)
         if (action === 'logs') {
-            openLogsForSchedule(schedule)
+            const activityId =
+                Number(raw?.activity?.farmActivitiesId ??
+                    raw?.farmActivitiesId ??
+                    raw?.farmActivityId ??
+                    schedule?.farmActivityView?.farmActivitiesId ??
+                    (Array.isArray(schedule?.farmActivities) ? schedule.farmActivities[0]?.farmActivitiesId : undefined)) || null
+            openLogsForSchedule(schedule, activityId)
         } else if (action === 'create') {
             openCreateLogForSchedule(schedule)
         } else if (action === 'deactivate-activity') {
@@ -572,6 +627,7 @@ const StaffSchedulesPage: React.FC = () => {
                                         }]
                                     })() : [],
                                     raw: ev.extendedProps?.original ?? null,
+                                    hasLog: logExistsMap[String(ev.id)] ?? false,
                                 }))}
                                 onEventClick={(raw) => {
                                     if (!raw) return;
@@ -945,7 +1001,7 @@ const StaffSchedulesPage: React.FC = () => {
                                                     </Button>
                                                 </div>
                                             </div>
-                                            <ScheduleLogPanelStaff scheduleId={selectedScheduleDetail.scheduleId!} onEdit={(log) => {
+                                            <ScheduleLogPanelStaff scheduleId={selectedScheduleDetail.scheduleId!} farmActivityId={selectedFarmActivityId} onEdit={(log) => {
                                                 setEditingLog(log)
                                                 setLogModalMode('edit')
                                                 setShowLogModal(true)

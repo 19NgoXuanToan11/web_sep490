@@ -55,6 +55,7 @@ const toRbcEvent = (e: any) => {
     allDay: isAllDay,
     color: e.color ?? undefined,
     raw: e.raw ?? e,
+    hasLog: e.hasLog ?? false,
   };
 };
 
@@ -147,6 +148,20 @@ const BigCalendar: React.FC<Props> = ({ events = [], onEventClick, onDayClick })
         }}
         title={title}
       >
+        {ev.hasLog ? (
+          <span
+            aria-hidden
+            style={{
+              display: "inline-block",
+              width: 8,
+              height: 8,
+              background: "#ef4444",
+              borderRadius: "50%",
+              marginRight: 6,
+              boxShadow: "0 0 0 2px rgba(239,68,68,0.08)",
+            }}
+          />
+        ) : null}
         {!isContinuation ? title : "\u00A0"}
       </div>
     );

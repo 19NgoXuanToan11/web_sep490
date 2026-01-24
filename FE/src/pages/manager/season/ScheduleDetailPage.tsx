@@ -19,6 +19,7 @@ import { useScheduleDialogs } from '@/features/season/ui/hooks/useScheduleDialog
 import { useScheduleActions } from '@/features/season/ui/hooks/useScheduleActions'
 import { UpdateStageModalDialog, CreateActivityDialog, LogModalDialog } from '@/features/season/ui/dialogs'
 import { farmActivityService } from '@/shared/api/farmActivityService'
+import { scheduleLogService } from '@/shared/api/scheduleLogService'
 import { showSuccessToast, showErrorToast } from '@/shared/lib/toast-manager'
 import type { ScheduleListItem } from '@/shared/api/scheduleService'
 
@@ -189,6 +190,68 @@ export const ScheduleDetailPage: React.FC = () => {
             setSelectedFarmActivityLoading(false)
         }
     }
+
+    const [logExistsMap, setLogExistsMap] = useState<Record<string, boolean>>({})
+
+    useEffect(() => {
+        let cancelled = false
+        const detail = scheduleDialogs.scheduleDetail
+        if (!detail || !detail.scheduleId) {
+            setLogExistsMap({})
+            return
+        }
+
+        const activities = Array.isArray(detail.farmActivityView) ? detail.farmActivityView : []
+
+            ; (async () => {
+                try {
+                    const resultMap: Record<string, boolean> = {}
+                    await Promise.all(
+                        activities.map(async (fa: any) => {
+                            const idNum = Number(fa.farmActivitiesId ?? fa.farmActivityId ?? fa.id)
+                            if (!idNum) return
+                            const key = String(idNum)
+                            try {
+                                const staffPayload = await farmActivityService.getStaffByFarmActivityId(idNum)
+                                const staffList = Array.isArray(staffPayload) ? staffPayload : []
+                                if (staffList.length === 0) {
+                                    try {
+                                        const chk = await scheduleLogService.checkToday(idNum, detail.scheduleId)
+                                        resultMap[key] = Boolean(chk.exists)
+                                    } catch {
+                                        resultMap[key] = false
+                                    }
+                                    return
+                                }
+
+                                for (const s of staffList) {
+                                    const sid = Number(s.accountId ?? s.staffId ?? s.id ?? s.staffAssignId)
+                                    if (!sid) continue
+                                    try {
+                                        const resp = await scheduleLogService.checkTodayByStaff(idNum, detail.scheduleId, sid)
+                                        if (resp && resp.exists) {
+                                            resultMap[key] = true
+                                            return
+                                        }
+                                    } catch {
+                                    }
+                                }
+
+                                resultMap[key] = resultMap[key] ?? false
+                            } catch (err) {
+                                resultMap[key] = resultMap[key] ?? false
+                            }
+                        })
+                    )
+                    if (cancelled) return
+                    setLogExistsMap(resultMap)
+                } catch (err) {
+                    console.error('Failed to check logs by staff for activities', err)
+                }
+            })()
+
+        return () => { cancelled = true }
+    }, [scheduleDialogs.scheduleDetail])
 
     const handleLocalStaffStatusChange = (staffAssignId: number | string, status: string) => {
         setLocalStaffStatusMap((prev) => ({ ...prev, [String(staffAssignId)]: status }))
@@ -419,6 +482,7 @@ export const ScheduleDetailPage: React.FC = () => {
                                                     color: ev.color ?? undefined,
                                                     isActive: ev.isActive ?? false,
                                                     participants: [],
+                                                    hasLog: logExistsMap[String(ev.id)] ?? false,
                                                     raw: ev.raw ?? null,
                                                 }))}
                                                 onEventClick={async (raw) => {

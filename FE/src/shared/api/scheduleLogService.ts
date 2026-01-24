@@ -108,4 +108,18 @@ export const scheduleLogService = {
       false
     return { exists: Boolean(exists), data: payload }
   },
+
+  async checkTodayByStaff(farmActivityId: number, scheduleId: number, staffId: number) {
+    const url = `/v1/schedule-log/check-today/by-staff?farmActivityId=${farmActivityId}&scheduleId=${scheduleId}&staffId=${staffId}`
+    const res = await http.get<any>(url)
+    const raw = res.data
+    const payload = raw?.data ?? raw
+    const exists =
+      payload?.exists ??
+      payload?.Exists ??
+      payload?.Data?.Exists ??
+      payload?.data?.exists ??
+      false
+    return { exists: Boolean(exists), data: payload }
+  },
 }

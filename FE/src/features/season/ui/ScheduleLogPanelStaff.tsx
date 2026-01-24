@@ -106,12 +106,12 @@ export default function ScheduleLogPanelStaff({ scheduleId, farmActivityId, onEd
     }, [registerUpdater, load])
 
     return (
-        <div>
+        <div className="flex flex-col h-full">
             {logs.length === 0 && !loading ? (
                 <div className="py-6 text-center text-muted-foreground">Chưa có ghi nhận cho thời vụ này.</div>
             ) : (
                 <>
-                    <div className="space-y-2 max-h-80 overflow-y-auto" ref={containerRef}>
+                    <div className="space-y-2 overflow-y-auto flex-1" ref={containerRef}>
                         {logs.map((l, idx) => {
                             const isLatest = idx === 0
                             return (

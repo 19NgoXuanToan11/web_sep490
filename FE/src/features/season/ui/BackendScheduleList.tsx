@@ -22,7 +22,7 @@ import { formatDate, formatDateRange } from '@/shared/lib/date-utils'
 import { farmActivityService } from '@/shared/api/farmActivityService'
 import { showSuccessToast, showErrorToast } from '@/shared/lib/toast-manager'
 import type { BackendScheduleListProps, ScheduleListItem, ScheduleStatusString, CreateScheduleRequest } from './types'
-import { isActiveStatus, getStatusLabel, translatePlantStage, getDiseaseLabel, getFarmActivityStatusInfo, translateActivityType, activityTypeLabels, farmActivityStatusOptions } from './utils/labels'
+import { isActiveStatus, getStatusLabel, translatePlantStage, getDiseaseLabel, getFarmActivityStatusInfo, translateActivityType, activityTypeLabels, farmActivityStatusOptions, PLANT_STAGE_ORDER } from './utils/labels'
 import ScheduleLogPanel from './components/ScheduleLogPanel'
 import ManagerOverview from './components/ManagerOverview'
 import ManagerTableOptimistic from './components/ManagerTableOptimistic'
@@ -206,6 +206,12 @@ export function BackendScheduleList({
 
         return mapped
     }, [scheduleDialogs.scheduleDetail])
+
+    const plantStageOrderMap = useMemo(() => {
+        const m: Record<string, number> = {}
+        PLANT_STAGE_ORDER.forEach((s, i) => { m[s] = i })
+        return m
+    }, [])
 
     useEffect(() => {
         const shouldLoadMetadata = showCreate || scheduleDialogs.showCreate || scheduleDialogs.showEdit || scheduleDialogs.showAssignStaff || scheduleDialogs.showCreateActivity
@@ -854,6 +860,9 @@ export function BackendScheduleList({
                                                         {scheduleDialogs.scheduleDetail.cropView.cropRequirement
                                                             .slice()
                                                             .sort((a: any, b: any) => {
+                                                                const ia = a && a.plantStage ? (plantStageOrderMap[String(a.plantStage)] ?? 999) : 999
+                                                                const ib = b && b.plantStage ? (plantStageOrderMap[String(b.plantStage)] ?? 999) : 999
+                                                                if (ia !== ib) return ia - ib
                                                                 if (a.plantStage && b.plantStage) return String(a.plantStage).localeCompare(String(b.plantStage))
                                                                 return (a.cropRequirementId ?? 0) - (b.cropRequirementId ?? 0)
                                                             })

@@ -78,7 +78,7 @@ export const ThresholdPanel: React.FC = () => {
         <div className="mt-2">
             <div className="mt-6 grid gap-6 md:grid-cols-1">
                 <div className="space-y-2">
-                    <label className="text-sm font-medium">Ngưỡng soil thấp (bật bơm khi ≤ %)</label>
+                    <label className="text-sm font-medium">Ngưỡng độ ẩm thấp</label>
                     <div className="flex items-center gap-3">
                         <input
                             value={soilLow === '' ? '' : String(soilLow)}
@@ -92,7 +92,7 @@ export const ThresholdPanel: React.FC = () => {
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium">Ngưỡng soil cao (tắt bơm khi ≥ %)</label>
+                    <label className="text-sm font-medium">Ngưỡng độ ẩm cao</label>
                     <div className="flex items-center gap-3">
                         <input
                             value={soilHigh === '' ? '' : String(soilHigh)}
@@ -106,7 +106,7 @@ export const ThresholdPanel: React.FC = () => {
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium">Ngưỡng ánh sáng thấp (LDR ≤)</label>
+                    <label className="text-sm font-medium">Ngưỡng ánh sáng thấp</label>
                     <div className="flex items-center gap-3">
                         <input
                             value={ldrLow === '' ? '' : String(ldrLow)}
@@ -116,11 +116,11 @@ export const ThresholdPanel: React.FC = () => {
                         />
                         <button type="button" onClick={() => void handleUpdate('ldr-low')} className="bg-emerald-600 text-white px-3 py-2 rounded-md text-sm">Cập nhật</button>
                     </div>
-                    <p className="text-xs text-muted-foreground">Hệ thống xem ánh sáng ≤ giá trị là điều kiện thiếu sáng (đơn vị: lux / cảm biến LDR).</p>
+                    <p className="text-xs text-muted-foreground">Hệ thống xem ánh sáng ≤ giá trị là điều kiện thiếu sáng.</p>
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium">Ngưỡng ánh sáng cao (LDR ≥)</label>
+                    <label className="text-sm font-medium">Ngưỡng ánh sáng cao</label>
                     <div className="flex items-center gap-3">
                         <input
                             value={ldrHigh === '' ? '' : String(ldrHigh)}
@@ -130,11 +130,11 @@ export const ThresholdPanel: React.FC = () => {
                         />
                         <button type="button" onClick={() => void handleUpdate('ldr-high')} className="bg-emerald-600 text-white px-3 py-2 rounded-md text-sm">Cập nhật</button>
                     </div>
-                    <p className="text-xs text-muted-foreground">Hệ thống xem ánh sáng ≥ giá trị là điều kiện đủ sáng (đơn vị: lux / cảm biến LDR).</p>
+                    <p className="text-xs text-muted-foreground">Hệ thống xem ánh sáng ≥ giá trị là điều kiện đủ sáng.</p>
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium">Ngưỡng bật đèn (LDR ≤)</label>
+                    <label className="text-sm font-medium">Ngưỡng bật đèn</label>
                     <div className="flex items-center gap-3">
                         <input
                             value={lightOn === '' ? '' : String(lightOn)}
@@ -148,7 +148,7 @@ export const ThresholdPanel: React.FC = () => {
                 </div>
 
                 <div className="space-y-2">
-                    <label className="text-sm font-medium">Ngưỡng tắt đèn (LDR ≥)</label>
+                    <label className="text-sm font-medium">Ngưỡng tắt đèn</label>
                     <div className="flex items-center gap-3">
                         <input
                             value={lightOff === '' ? '' : String(lightOff)}

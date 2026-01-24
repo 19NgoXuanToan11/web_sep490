@@ -124,13 +124,13 @@ function ScheduleLogPanel({ scheduleId, onEdit, registerUpdater }: { scheduleId:
   const isEmptyState = (total === 0 && logs.length === 0)
 
   return (
-    <div>
+    <div className="flex flex-col h-full">
       {isEmptyState ? (
         <div className="py-6 text-center text-muted-foreground">Không có ghi nhận</div>
       ) : (
         <>
           <div
-            className={`space-y-2 ${hasMore || logs.length > VISIBLE_THRESHOLD ? 'max-h-[360px] overflow-y-auto' : ''}`}
+            className="space-y-2 overflow-y-auto flex-1"
             ref={containerRef}
             onScroll={() => {
               const el = containerRef.current

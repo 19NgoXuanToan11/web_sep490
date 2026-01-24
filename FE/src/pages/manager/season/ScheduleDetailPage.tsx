@@ -13,7 +13,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/shared/ui/di
 import ThresholdPanel from '@/features/thresholds/ThresholdPanel'
 import ScheduleLogPanel from '@/features/season/ui/components/ScheduleLogPanel'
 import { formatDate } from '@/shared/lib/date-utils'
-import { getStatusLabel, getStatusVariant, translatePlantStage, getDiseaseLabel, translateActivityType, getFarmActivityStatusInfo, activityTypeLabels, farmActivityStatusOptions, staffStatusOptions } from '@/features/season/ui/utils/labels'
+import { getStatusLabel, getStatusVariant, translatePlantStage, getDiseaseLabel, translateActivityType, getFarmActivityStatusInfo, activityTypeLabels, farmActivityStatusOptions, staffStatusOptions, PLANT_STAGE_ORDER } from '@/features/season/ui/utils/labels'
 import { useScheduleData } from '@/features/season/ui/hooks/useScheduleData'
 import { useScheduleDialogs } from '@/features/season/ui/hooks/useScheduleDialogs'
 import { useScheduleActions } from '@/features/season/ui/hooks/useScheduleActions'
@@ -66,6 +66,7 @@ export const ScheduleDetailPage: React.FC = () => {
         status: 'ACTIVE',
     })
     const [editFarmActivitySubmitting, setEditFarmActivitySubmitting] = useState(false)
+    const [refreshing, setRefreshing] = useState(false)
 
 
     const query = useMemo(() => {
@@ -148,6 +149,12 @@ export const ScheduleDetailPage: React.FC = () => {
             })
         return mapped
     }, [scheduleDialogs.scheduleDetail])
+
+    const plantStageOrderMap = useMemo(() => {
+        const m: Record<string, number> = {}
+        PLANT_STAGE_ORDER.forEach((s, i) => { m[s] = i })
+        return m
+    }, [])
 
     const fetchAndSetActivity = async (farmActivityId: number) => {
         setSelectedFarmActivityLoading(true)
@@ -282,6 +289,37 @@ export const ScheduleDetailPage: React.FC = () => {
         }
     }
 
+    const handleRefreshCurrentTab = async () => {
+        try {
+            if (!scheduleDialogs.scheduleDetail || !scheduleDialogs.scheduleDetail.scheduleId) return
+            const sid = scheduleDialogs.scheduleDetail.scheduleId
+            setRefreshing(true)
+
+            try {
+                await scheduleActions.handleViewDetail({ scheduleId: sid } as any, (detail: any) => {
+                    scheduleDialogs.setScheduleDetail(detail)
+                })
+            } catch (err) {
+                console.error('Failed to refresh schedule detail', err)
+            }
+
+            try {
+                await scheduleData.load()
+            } catch (err) {
+            }
+
+            if (scheduleDialogs.detailActiveTab === 'logs') {
+                try {
+                    externalLogUpdaterRef.current?.({ id: 0 } as any, 'update')
+                } catch (err) {
+                    console.error('Failed to trigger logs refresh', err)
+                }
+            }
+        } finally {
+            setRefreshing(false)
+        }
+    }
+
 
     return (
         <div className="max-w-6xl mx-auto p-6">
@@ -307,6 +345,9 @@ export const ScheduleDetailPage: React.FC = () => {
                                 </Button>
                                 <Button variant="outline" size="sm" onClick={() => scheduleDialogs.setShowUpdateStageModal(true)}>
                                     Demo cập nhật giai đoạn theo ngày
+                                </Button>
+                                <Button variant="outline" size="sm" onClick={() => { void handleRefreshCurrentTab() }} disabled={refreshing}>
+                                    {refreshing ? 'Đang...' : 'Làm mới'}
                                 </Button>
                             </>
                         )}
@@ -427,6 +468,9 @@ export const ScheduleDetailPage: React.FC = () => {
                                                     {scheduleDialogs.scheduleDetail.cropView.cropRequirement
                                                         .slice()
                                                         .sort((a: any, b: any) => {
+                                                            const ia = a && a.plantStage ? (plantStageOrderMap[String(a.plantStage)] ?? 999) : 999
+                                                            const ib = b && b.plantStage ? (plantStageOrderMap[String(b.plantStage)] ?? 999) : 999
+                                                            if (ia !== ib) return ia - ib
                                                             if (a.plantStage && b.plantStage) return String(a.plantStage).localeCompare(String(b.plantStage))
                                                             return (a.cropRequirementId ?? 0) - (b.cropRequirementId ?? 0)
                                                         })
@@ -435,7 +479,7 @@ export const ScheduleDetailPage: React.FC = () => {
                                                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                                                     <div><strong>Giai đoạn:</strong> {req.plantStage ? translatePlantStage(req.plantStage) ?? req.plantStage : '-'}</div>
                                                                     <div><strong>Thời gian dự kiến:</strong> {req.estimatedDate !== null && req.estimatedDate !== undefined ? `${req.estimatedDate} ngày` : '-'}</div>
-                                                                    <div><strong>Độ ẩm đất:</strong> {req.soilMoisture ?? '-'}</div>
+                                                                    <div><strong>Độ ẩm không khí:</strong> {req.humidity !== null && req.humidity !== undefined ? `${req.humidity}%` : '-'}</div>
                                                                     <div><strong>Nhiệt độ:</strong> {req.temperature !== null && req.temperature !== undefined ? `${req.temperature} °C` : '-'}</div>
                                                                     <div><strong>Phân bón:</strong> {req.fertilizer ?? '-'}</div>
                                                                     <div><strong>Ánh sáng:</strong> {req.lightRequirement !== null && req.lightRequirement !== undefined ? `${req.lightRequirement} lux` : '-'}</div>
@@ -518,7 +562,7 @@ export const ScheduleDetailPage: React.FC = () => {
                             </TabsContent>
 
                             <TabsContent value="logs">
-                                <div className="space-y-4">
+                                <div className="flex flex-col space-y-4 h-[calc(100vh-14rem)]">
                                     <ScheduleLogPanel
                                         scheduleId={scheduleDialogs.scheduleDetail.scheduleId}
                                         onEdit={(log) => {

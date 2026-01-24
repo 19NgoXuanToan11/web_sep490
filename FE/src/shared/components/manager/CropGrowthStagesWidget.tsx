@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { Sprout } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/shared/ui/card'
 import type { CropRequirementView, PlantStage } from '@/shared/api/cropRequirementService'
+import { PLANT_STAGE_ORDER } from '@/features/season/ui/utils/labels'
 
 const PLANT_STAGE_CONFIG: Record<PlantStage, { label: string; color: string; description: string }> = {
     Preparation: {
@@ -38,10 +39,8 @@ export const CropGrowthStagesWidget: React.FC<CropGrowthStagesWidgetProps> = ({
 }) => {
     const stageDistribution = React.useMemo(() => {
         const total = requirements.length
-        const distribution = Object.keys(PLANT_STAGE_CONFIG).map((stage) => {
-            const count = requirements.filter(
-                (req) => req.plantStage === stage
-            ).length
+        const distribution = PLANT_STAGE_ORDER.map((stage) => {
+            const count = requirements.filter((req) => req.plantStage === stage).length
             const percent = total > 0 ? Math.round((count / total) * 100) : 0
             return {
                 stage: stage as PlantStage,

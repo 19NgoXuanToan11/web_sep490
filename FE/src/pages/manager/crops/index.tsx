@@ -39,6 +39,7 @@ import {
 } from '@/shared/api/cropRequirementService'
 import { cropService, type Crop, type CropRequirement } from '@/shared/api/cropService'
 import { showSuccessToast, showErrorToast } from '@/shared/lib/toast-manager'
+import { PLANT_STAGE_ORDER } from '@/features/season/ui/utils/labels'
 
 type RequirementFormState = {
   cropId: number | ''
@@ -805,14 +806,25 @@ export default function CropsPage() {
                         <h3 className="text-lg font-semibold text-gray-900">{cropName}</h3>
                       </div>
 
-                      <div className="grid gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-                        {items.map((req) => {
+                      <div
+                        className="grid gap-3"
+                        style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}
+                      >
+                        {(items.slice().sort((a, b) => {
+                          const orderMap: Record<string, number> = {}
+                          PLANT_STAGE_ORDER.forEach((s, i) => { orderMap[s] = i })
+                          const ia = a && a.plantStage ? (orderMap[String(a.plantStage)] ?? 999) : 999
+                          const ib = b && b.plantStage ? (orderMap[String(b.plantStage)] ?? 999) : 999
+                          if (ia !== ib) return ia - ib
+                          if (a.plantStage && b.plantStage) return String(a.plantStage).localeCompare(String(b.plantStage))
+                          return (a.cropRequirementId ?? 0) - (b.cropRequirementId ?? 0)
+                        })).map((req) => {
                           const isNewlyCreated = req.cropRequirementId ? newlyCreatedIds.has(req.cropRequirementId) : false
                           return (
                             <Card
                               key={`${req.cropId}-${req.cropRequirementId ?? 'na'}`}
                               className={cn(
-                                "hover:shadow-md transition-all cursor-pointer",
+                                "hover:shadow-md transition-all cursor-pointer h-full flex flex-col",
                                 isNewlyCreated && "ring-2 ring-green-500 bg-green-50/50 shadow-lg"
                               )}
                               onClick={() => {
@@ -823,8 +835,8 @@ export default function CropsPage() {
                                 }
                               }}
                             >
-                              <CardContent className="p-4">
-                                <div className="flex items-start justify-between">
+                              <CardContent className="p-4 flex-1 flex flex-col">
+                                <div className="flex items-start justify-between h-full">
                                   <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2 mb-2 min-w-0">
                                       <Badge

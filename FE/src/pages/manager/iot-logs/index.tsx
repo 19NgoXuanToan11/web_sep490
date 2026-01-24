@@ -270,6 +270,18 @@ const ManagerIoTLogsPage: React.FC = () => {
                 )}
 
                 <StaffFilterBar>
+                    <div className="flex-1">
+                        <div className="relative">
+                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <Input
+                                placeholder="Tìm theo tên cảm biến, mã thiết bị..."
+                                value={searchQuery}
+                                onChange={event => setSearchQuery(event.target.value)}
+                                className="pl-9"
+                            />
+                        </div>
+                    </div>
+
                     <div className="w-full sm:w-64">
                         <Select value={sensorFilter} onValueChange={setSensorFilter}>
                             <SelectTrigger>
@@ -284,18 +296,6 @@ const ManagerIoTLogsPage: React.FC = () => {
                                 ))}
                             </SelectContent>
                         </Select>
-                    </div>
-
-                    <div className="flex-1">
-                        <div className="relative">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                            <Input
-                                placeholder="Tìm theo tên cảm biến, mã thiết bị..."
-                                value={searchQuery}
-                                onChange={event => setSearchQuery(event.target.value)}
-                                className="pl-9"
-                            />
-                        </div>
                     </div>
                 </StaffFilterBar>
 

@@ -18,6 +18,8 @@ export const plantStageLabels: Record<string, string> = {
   Harvest: 'Thu hoạch',
 }
 
+export const PLANT_STAGE_ORDER = ['Preparation', 'Seedling', 'Vegetative', 'Harvest']
+
 export const statusOptions = [
   { value: 0, label: 'Vô hiệu hóa' },
   { value: 1, label: 'Hoạt động' },

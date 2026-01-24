@@ -88,7 +88,7 @@ export function CreateScheduleDialog({
                         />
                     </div>
                     <div>
-                        <Label>Số lượng</Label>
+                        <Label>Số lượng hạt giống</Label>
                         <Input
                             type="number"
                             min={1}

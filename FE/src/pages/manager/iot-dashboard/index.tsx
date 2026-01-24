@@ -477,14 +477,19 @@ const RealTimeIoTDashboard: React.FC = () => {
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-gray-900 font-semibold">Điều Khiển Đèn</h3>
                   <Switch
-                    checked={lightControl}
+                    checked={!manualControl ? (sensorData.lightState ?? false) : lightControl}
                     onCheckedChange={handleLightControl}
-                    disabled={!isOnline || isLoading}
+                    disabled={!isOnline || isLoading || !manualControl}
                   />
                 </div>
                 <p className="text-gray-600 text-sm">
-                  {lightControl ? 'Đèn đang hoạt động' : 'Đèn đang tắt'}
+                  {(!manualControl ? (sensorData.lightState ?? false) : lightControl) ? 'Đèn đang hoạt động' : 'Đèn đang tắt'}
                 </p>
+                {!manualControl && (
+                  <p className="text-gray-500 text-xs mt-2 italic">
+                    Ở chế độ tự động, đèn được hệ thống tự động bật/tắt
+                  </p>
+                )}
               </CardContent>
             </Card>
 
@@ -660,7 +665,7 @@ const RealTimeIoTDashboard: React.FC = () => {
                 { }
                 <div className="space-y-4">
                   <div className="flex items-center gap-2 mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900">Ánh sáng</h3>
+                    <h3 className="text-lg font-semibold text-gray-900">Servo</h3>
                   </div>
 
                   <div className="space-y-3">

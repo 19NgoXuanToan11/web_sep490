@@ -182,14 +182,6 @@ const RealTimeIoTDashboard: React.FC = () => {
     }
   }, [isThresholdModalOpen, soilLowThreshold, soilHighThreshold, ldrLowThreshold, ldrHighThreshold, lightOnThreshold, lightOffThreshold, isLoadingThresholds])
 
-  useEffect(() => {
-    if (!manualControl && !pumpControl) {
-      setPumpControl(true)
-      handlePumpControl(true, { showSuccessToast: false })
-    }
-  }, [manualControl])
-
-
   const handlePumpControl = async (
     newState: boolean,
     options?: {
@@ -218,12 +210,6 @@ const RealTimeIoTDashboard: React.FC = () => {
       const result = await blynkService.controlManualMode(newState)
       if (result.success) {
         setManualControl(newState)
-
-        if (!newState) {
-          setPumpControl(true)
-          await handlePumpControl(true)
-        }
-
         showSuccessToast(result)
       } else {
         showErrorToast(result)

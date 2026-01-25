@@ -220,14 +220,10 @@ export function BackendScheduleList({
             ; (async () => {
                 try {
                     scheduleData.setMetaLoading(true)
-                    const result = await scheduleData.loadReferenceData()
-                    if (cancelled) return
-                    scheduleData.setFarms(result.farmOptions)
-                    scheduleData.setCrops(result.cropOptions)
-                    scheduleData.setStaffs(result.staffOptions)
-                    scheduleData.setActivities(result.activityOptions)
+                    await scheduleData.loadReferenceData()
                 } catch (e) {
                     if (!cancelled) {
+                        console.error('Failed to load reference data:', e)
                     }
                 } finally {
                     if (!cancelled) scheduleData.setMetaLoading(false)
@@ -236,7 +232,7 @@ export function BackendScheduleList({
         return () => {
             cancelled = true
         }
-    }, [showCreate, scheduleDialogs.showCreate, scheduleDialogs.showEdit, scheduleDialogs.showAssignStaff, scheduleDialogs.showCreateActivity, scheduleData.loadReferenceData, scheduleData.setFarms, scheduleData.setCrops, scheduleData.setStaffs, scheduleData.setActivities, scheduleData.setMetaLoading])
+    }, [showCreate, scheduleDialogs.showCreate, scheduleDialogs.showEdit, scheduleDialogs.showAssignStaff, scheduleDialogs.showCreateActivity, scheduleData.loadReferenceData, scheduleData.setMetaLoading])
 
     const handleCreateDialogChange = useCallback((open: boolean) => {
         scheduleDialogs.handleCreateDialogChange(open)
@@ -410,14 +406,8 @@ export function BackendScheduleList({
             ; (async () => {
                 try {
                     scheduleData.setMetaLoading(true)
-                    let metaResult = null
                     try {
-                        metaResult = await scheduleData.loadReferenceData()
-                        if (cancelled) return
-                        scheduleData.setFarms(metaResult.farmOptions)
-                        scheduleData.setCrops(metaResult.cropOptions)
-                        scheduleData.setStaffs(metaResult.staffOptions)
-                        scheduleData.setActivities(metaResult.activityOptions)
+                        await scheduleData.loadReferenceData()
                     } catch (metaErr) {
                         console.error('Failed to load metadata for edit dialog:', metaErr)
                     } finally {

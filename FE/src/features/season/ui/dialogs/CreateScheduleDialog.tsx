@@ -37,11 +37,29 @@ export function CreateScheduleDialog({
         onSubmit(form)
     }
 
+    const isDataReady = !metaLoading && farms.length > 0
+    const hasCropsData = crops.length > 0
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-2xl">
                 <DialogHeader>
                     <DialogTitle>Tạo thời vụ mới</DialogTitle>
+                    {!isDataReady && (
+                        <div className="text-sm text-muted-foreground">
+                            Đang tải dữ liệu nông trại...
+                        </div>
+                    )}
+                    {isDataReady && !hasCropsData && (
+                        <div className="text-sm text-orange-600">
+                            Đã tải dữ liệu nông trại, đang chờ dữ liệu cây trồng...
+                        </div>
+                    )}
+                    {isDataReady && hasCropsData && crops.length === 3 && crops[0].name === 'Rau cải' && (
+                        <div className="text-sm text-blue-600">
+                            Đang sử dụng dữ liệu mẫu cho cây trồng (API không phản hồi)
+                        </div>
+                    )}
                 </DialogHeader>
                 <form className="grid grid-cols-2 md:grid-cols-3 gap-3" onSubmit={handleSubmit}>
                     <div>
@@ -55,6 +73,11 @@ export function CreateScheduleDialog({
                                 <SelectValue placeholder={metaLoading ? 'Đang tải...' : 'Chọn nông trại'} />
                             </SelectTrigger>
                             <SelectContent>
+                                {farms.length === 0 && !metaLoading && (
+                                    <div className="p-2 text-sm text-muted-foreground">
+                                        Không có dữ liệu nông trại
+                                    </div>
+                                )}
                                 {farms.map(f => (
                                     <SelectItem key={f.id} value={String(f.id)}>{f.name}</SelectItem>
                                 ))}
@@ -72,6 +95,11 @@ export function CreateScheduleDialog({
                                 <SelectValue placeholder={metaLoading ? 'Đang tải...' : 'Chọn cây trồng'} />
                             </SelectTrigger>
                             <SelectContent className="max-h-56 overflow-y-auto">
+                                {crops.length === 0 && !metaLoading && (
+                                    <div className="p-2 text-sm text-muted-foreground">
+                                        Không có dữ liệu cây trồng
+                                    </div>
+                                )}
                                 {crops.map(c => (
                                     <SelectItem key={c.id} value={String(c.id)}>{c.name}</SelectItem>
                                 ))}
@@ -108,9 +136,9 @@ export function CreateScheduleDialog({
                         <div className="ml-auto flex gap-2">
                             {metaLoading && <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />}
                             <Button type="button" variant="outline" size="sm" onClick={() => onOpenChange(false)}>Hủy</Button>
-                            <Button type="submit" size="sm" disabled={actionLoading.create}>
+                            <Button type="submit" size="sm" disabled={actionLoading.create || !isDataReady}>
                                 {actionLoading.create && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                                Tạo
+                                {!isDataReady ? 'Đang tải dữ liệu...' : 'Tạo'}
                             </Button>
                         </div>
                     </div>

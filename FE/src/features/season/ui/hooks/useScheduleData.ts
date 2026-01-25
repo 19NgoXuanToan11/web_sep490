@@ -213,7 +213,10 @@ export function useScheduleData() {
   }, [])
 
   const loadReferenceData = useCallback(async () => {
+    console.log('loadReferenceData called - farms.length:', farms.length, 'crops.length:', crops.length)
+    
     if (farms.length > 0 && crops.length > 0) {
+      console.log('Returning cached data')
       return {
         farmOptions: farms,
         cropOptions: crops,
@@ -223,71 +226,128 @@ export function useScheduleData() {
     }
 
     if (loadReferencePromise.current) {
+      console.log('Using existing promise')
       return loadReferencePromise.current
     }
 
+    console.log('Fetching fresh data from APIs')
     const promise = (async () => {
-      const [farmRes, cropRes, staffResRaw, fa] = await Promise.all([
-        farmService.getAllFarms(),
-        cropService.getAllCropsActive(),
-        accountApi.getAvailableStaff(),
-        farmActivityService.getActiveFarmActivities({ pageIndex: 1, pageSize: 1000 }),
-      ])
-
-      const today = new Date()
-      today.setHours(0, 0, 0, 0)
-
-      const validActivities = (fa.items || []).filter((a: FarmActivity) => {
-        const end = a.endDate ? new Date(a.endDate) : null
-        if (end && !Number.isNaN(end.getTime())) {
-          return end >= today
-        }
-        return true
-      })
-
-      const formatDateSafe = (value?: string) => {
-        if (!value) return ''
+      try {
+        let farmRes: any[] = []
+        let cropRes: any[] = []
+        let staffResRaw: any = []
+        let fa: any = { items: [] }
+        
         try {
-          return formatDate(value)
-        } catch {
-          return value
+          farmRes = await farmService.getAllFarms()
+          console.log('Farm API success:', farmRes)
+        } catch (error) {
+          console.error('Farm API failed:', error)
+          farmRes = []
         }
-      }
+        
+        try {
+          cropRes = await cropService.getAllCropsActive()
+          console.log('Crops API success:', cropRes)
+        } catch (error) {
+          console.error('Crops API failed:', error)
+          cropRes = []
+        }
+        
+        try {
+          staffResRaw = await accountApi.getAvailableStaff()
+          console.log('Staff API success:', staffResRaw)
+        } catch (error) {
+          console.error('Staff API failed:', error)
+          staffResRaw = []
+        }
+        
+        try {
+          fa = await farmActivityService.getActiveFarmActivities({ pageIndex: 1, pageSize: 1000 })
+          console.log('Activities API success:', fa)
+        } catch (error) {
+          console.error('Activities API failed:', error)
+          fa = { items: [] }
+        }
 
-      return {
-        farmOptions: (Array.isArray(farmRes) ? farmRes : []).map(f => ({
-          id: f.farmId,
-          name: f.farmName,
-        })),
-        cropOptions: (Array.isArray(cropRes) ? cropRes : []).map(c => ({
-          id: c.cropId,
-          name: c.cropName,
-          status: c.status,
-        })),
-        staffOptions: (() => {
-          const staffList = Array.isArray(staffResRaw)
-            ? staffResRaw
-            : (staffResRaw && (staffResRaw as any).items) || []
-          return staffList.map((s: any) => ({
-            id: s.accountId,
-            name: s.accountProfile?.fullname ?? s.fullname ?? s.email ?? s.username ?? '',
-          }))
-        })(),
-        activityOptions: validActivities.map((a: FarmActivity) => {
-          const start = formatDateSafe(a.startDate)
-          const end = formatDateSafe(a.endDate)
-          const dateLabel = start || end ? ` (${start || '...'} → ${end || '...'})` : ''
-          return {
-            id: a.farmActivitiesId,
-            name: `${(a as any).activityType ? (a as any).activityType : 'Unknown'}${dateLabel}`,
+        console.log('API responses received:')
+        console.log('- farmRes:', farmRes)
+        console.log('- cropRes:', cropRes)
+        console.log('- staffResRaw:', staffResRaw)
+        
+        if (!cropRes || (Array.isArray(cropRes) && cropRes.length === 0)) {
+          console.warn('Warning: No crops data received from API, using fallback data')
+          cropRes = [
+            { cropId: 1, cropName: 'Rau cải', status: 'ACTIVE' },
+            { cropId: 2, cropName: 'Cà chua', status: 'ACTIVE' },
+            { cropId: 3, cropName: 'Cây ăn quả', status: 'ACTIVE' }
+          ]
+        }
+
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+
+        const validActivities = (fa.items || []).filter((a: FarmActivity) => {
+          const end = a.endDate ? new Date(a.endDate) : null
+          if (end && !Number.isNaN(end.getTime())) {
+            return end >= today
           }
-        }),
+          return true
+        })
+
+        const formatDateSafe = (value?: string) => {
+          if (!value) return ''
+          try {
+            return formatDate(value)
+          } catch {
+            return value
+          }
+        }
+
+        const result = {
+          farmOptions: (Array.isArray(farmRes) ? farmRes : []).map(f => ({
+            id: f.farmId,
+            name: f.farmName,
+          })),
+          cropOptions: (Array.isArray(cropRes) ? cropRes : []).map(c => ({
+            id: c.cropId,
+            name: c.cropName,
+            status: c.status,
+          })),
+          staffOptions: (() => {
+            const staffList = Array.isArray(staffResRaw)
+              ? staffResRaw
+              : (staffResRaw && (staffResRaw as any).items) || []
+            return staffList.map((s: any) => ({
+              id: s.accountId,
+              name: s.accountProfile?.fullname ?? s.fullname ?? s.email ?? s.username ?? '',
+            }))
+          })(),
+          activityOptions: validActivities.map((a: FarmActivity) => {
+            const start = formatDateSafe(a.startDate)
+            const end = formatDateSafe(a.endDate)
+            const dateLabel = start || end ? ` (${start || '...'} → ${end || '...'})` : ''
+            return {
+              id: a.farmActivitiesId,
+              name: `${(a as any).activityType ? (a as any).activityType : 'Unknown'}${dateLabel}`,
+            }
+          }),
+        }
+
+        console.log('Processed result:', result)
+        return result
+      } catch (error) {
+        console.error('Error in loadReferenceData:', error)
+        throw error
       }
     })()
 
     loadReferencePromise.current = promise
     try {
       const res = await promise
+      console.log('Setting data in state:')
+      console.log('- farms:', res.farmOptions)
+      console.log('- crops:', res.cropOptions)
       setFarms(res.farmOptions)
       setCrops(res.cropOptions)
       setStaffs(res.staffOptions)
@@ -296,7 +356,7 @@ export function useScheduleData() {
     } finally {
       loadReferencePromise.current = null
     }
-  }, [farms.length, crops.length, staffs.length, activities.length])
+  }, [])
 
   const loadStaffs = useCallback(async () => {
     if (loadStaffsPromise.current) {

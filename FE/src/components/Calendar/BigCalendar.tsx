@@ -1,7 +1,7 @@
 import React, { useCallback, useState } from "react";
 import { Calendar as RBC, dateFnsLocalizer, Views } from "react-big-calendar";
 import { format, parse, startOfWeek, getDay, addDays } from "date-fns";
-import Header from "./archive/Header";
+import Header from "./Header";
 import { vi } from "date-fns/locale";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 

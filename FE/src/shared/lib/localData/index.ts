@@ -1,3 +1,19 @@
 export type * from './types'
 export * from './fixtures'
-export * from './storage'
+
+export {
+    storage,
+    userPreferences,
+    type UserPreferences,
+    simulateLatency,
+    simulateError,
+} from './storage'
+
+export {
+    formatDate as formatDateSimple,
+    formatDateTime as formatDateTimeSimple,
+    formatTime,
+    isToday,
+    addHours,
+    addDays,
+} from './storage'

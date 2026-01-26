@@ -27,4 +27,5 @@ export const env = {
 } as const
 
 if (env.isDevelopment) {
+  console.info('Farm Management System - Development Mode')
 }
